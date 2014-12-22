@@ -15,7 +15,7 @@ class Youku(VideoExtractor):
 
     supported_stream_types = [ 'hd3', 'hd2', 'mp4', 'flvhd','flv', '3gphd']
 
-    stream_2_container = {'hd3': 'flv', 'hd2':'flv', 'mp4':'mp4', 'flvhd':'flv', 'flv': 'flv', '3gphd': '3gp'}
+    stream_2_container = {'hd3': 'flv', 'hd2':'flv', 'mp4':'mp4', 'flvhd':'flv', 'flv': 'flv', '3gphd': 'mp4'}
 
     stream_2_profile = {'hd3': '1080P', 'hd2':'超清', 'mp4':'高清', 'flvhd':'高清', 'flv': '标清', '3gphd': '高清（3GP）'}
 
@@ -234,8 +234,8 @@ class Youku(VideoExtractor):
             fileId,ep  = self.__class__.generate_ep(no,fileId0,sid,token)
             #pdb.set_trace()
             m3u8  += 'http://k.youku.com/player/getFlvPath/sid/'+ sid
-            m3u8+='/fileid/'+ fileId
             m3u8+='_00/st/'+ container
+            m3u8+='/fileid/'+ fileId
             m3u8+='?K='+ k
             m3u8+='&ctype=12&ev=1&token='+ token
             m3u8+='&oip='+ str(self.ip)

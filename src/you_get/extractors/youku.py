@@ -117,7 +117,7 @@ class Youku(VideoExtractor):
 
         f_code_2 = 'bf7e5f01'
 
-        number = hex(int(no,10))[2:].upper()
+        number = hex(int(str(no),10))[2:].upper()
         if len(number) == 1:
             number = '0' + number
         fileId = fileId0[0:8] + number + fileId0[10:]
@@ -177,12 +177,19 @@ class Youku(VideoExtractor):
         metadata0 = meta['data'][0]
 
         if 'error_code' in metadata0 and metadata0['error_code']:
+            if metadata0['error_code'] == -6:
+                log.w('[Warning] This video is password protected.')
+                self.password_protected = True
+                password = input(log.sprint('Password: ', log.YELLOW))
+                meta = json.loads(get_html('http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1/password/' % self.vid + password))
+                if not meta['data']:
+                    log.wtf('[Failed] Video not found.')
+                metadata0 = meta['data'][0]
+
+        if 'error_code' in metadata0 and metadata0['error_code']:
             if metadata0['error_code'] == -8:
                 log.w('[Warning] This video can only be streamed within Mainland China!')
                 log.w('Use \'-y\' to specify a proxy server for extracting stream data.\n')
-            elif metadata0['error_code'] == -6:
-                log.w('[Warning] This video is password protected.')
-                self.password_protected = True
 
         self.title = metadata0['title']
         self.metadata = metadata0
@@ -230,6 +237,9 @@ class Youku(VideoExtractor):
         stream_list=self.metadata['segs'][stream_id]
         for nu in range(0,len(stream_list)):
             k = stream_list[nu]['k']
+            if k == -1:
+                log.e('Error')
+                exit()
             no = stream_list[nu]['no']
             fileId,ep  = self.__class__.generate_ep(no,fileId0,sid,token)
             #pdb.set_trace()
@@ -240,12 +250,8 @@ class Youku(VideoExtractor):
             m3u8+='&ctype=12&ev=1&token='+ token
             m3u8+='&oip='+ str(self.ip)
             m3u8+='&ep='+ ep+'\r\n'
-        if not kwargs['info_only']:
-#            if self.password_protected:
-#                password = input(log.sprint('Password: ', log.YELLOW))
-#                m3u8_url += '&password={}'.format(password)
 
-            #pdb.set_trace()
+        if not kwargs['info_only']:
             self.streams[stream_id]['src'] = self.__class__.parse_m3u8(m3u8)
             if not self.streams[stream_id]['src'] and self.password_protected:
                 log.e('[Failed] Wrong password.')

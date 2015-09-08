@@ -54,17 +54,17 @@ def embed_download(url, output_dir = '.', merge = True, info_only = False ,**kwa
     vids = matchall(content, youku_embed_patterns)
     for vid in vids:
         found = True
-        youku_download_by_vid(vid, title=title, output_dir=output_dir, merge=merge, info_only=info_only)
+        youku_download_by_vid(vid, title=title, output_dir=output_dir, merge=merge, info_only=info_only, **kwargs)
 
     vids = matchall(content, tudou_embed_patterns)
     for vid in vids:
         found = True
-        tudou_download_by_id(vid, title=title, output_dir=output_dir, merge=merge, info_only=info_only)
+        tudou_download_by_id(vid, title=title, output_dir=output_dir, merge=merge, info_only=info_only, **kwargs)
 
     vids = matchall(content, qq_embed_patterns)
     for vid in vids:
         found = True
-        qq_download_by_vid(vid, title=title, output_dir=output_dir, merge=merge, info_only=info_only)
+        qq_download_by_vid(vid, title=title, output_dir=output_dir, merge=merge, info_only=info_only, **kwargs)
 
     if not found:
         raise NotImplementedError(url)

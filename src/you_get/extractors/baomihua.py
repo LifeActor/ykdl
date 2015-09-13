@@ -12,7 +12,7 @@ def baomihua_download_by_id(id, title = None, output_dir = '.', merge = True, in
     assert host
     type = r1(r'videofiletype=([^&]*)', html)
     assert type
-    vid = r1(r'&stream_name=([0-9\/]+)&', html)
+    vid = r1(r'&stream_name=([^&]*)', html)
     assert vid
     url = "http://%s/pomoho_video/%s.%s" % (host, vid, type)
     _, ext, size = url_info(url)
@@ -24,7 +24,7 @@ def baomihua_download(url, output_dir = '.', merge = True, info_only = False):
     html = get_html(url)
     title = r1(r'<title>(.*)</title>', html)
     assert title
-    id = r1(r'flvid=(\d+)', html)
+    id = r1(r'flvid = (\d+);', html)
     assert id
     baomihua_download_by_id(id, title, output_dir = output_dir, merge = merge, info_only = info_only)
 

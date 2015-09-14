@@ -603,6 +603,26 @@ def download_urls(urls, title, ext, total_size, output_dir='.', refer=None, merg
 
     print()
 
+def download_one_url(url, title, ext, index, output_dir='.', refer=None, faker=False):
+    assert url
+    if dry_run:
+        print('Real URL [{}]:{}'.format(index, url))
+        return
+
+    if player:
+        launch_player(player, [url])
+        return
+
+
+    title = tr(get_filename(title))
+
+    filename = '%s[%02d].%s' % (title, index, ext)
+    filepath = os.path.join(output_dir, filename)
+
+    print('Downloading %s ...' % tr(filename))
+    url_save(url, filepath, None, refer = refer, faker = faker)
+    print()
+
 def download_urls_chunked(urls, title, ext, total_size, output_dir='.', refer=None, merge=True, faker=False):
     assert urls
     if dry_run:

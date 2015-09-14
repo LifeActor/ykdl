@@ -99,6 +99,12 @@ class Iqiyi(VideoExtractor):
     baseurl = ''
 
     gen_uid = ''
+
+    def __init__(self):
+        VideoExtractor.__init__(self)
+        self.iterable = True
+
+
     def getVMS(self):
         #tm ->the flash run time for md5 usage
         #um -> vip 1 normal 0
@@ -165,7 +171,7 @@ class Iqiyi(VideoExtractor):
                     self.streams[stream['id']] = {'container': stream['container'], 'video_profile': stream['video_profile'], 'size' : size}
                     break
 
-    def extract(self, **kwargs):
+    def extract_iter(self, **kwargs):
         if 'stream_id' in kwargs and kwargs['stream_id']:
             # Extract the stream
             stream_id = kwargs['stream_id']
@@ -188,11 +194,8 @@ class Iqiyi(VideoExtractor):
             baseurl = [x for x in self.baseurl]
             baseurl.insert(-1,key)
             url="/".join(baseurl)+vlink+'?su='+self.gen_uid+'&qyid='+uuid4().hex+'&client=&z=&bt=&ct=&tn='+str(randint(10000,20000))
-            urls.append(json.loads(get_content(url))["l"])
-        #download should be complete in 10 minutes
-        #because the url is generated before start downloading
-        #and the key may be expired after 10 minutes
-        self.streams[stream_id]['src'] = urls
+            yield json.loads(get_content(url))["l"]
+
 
 site = Iqiyi()
 download = site.download_by_url

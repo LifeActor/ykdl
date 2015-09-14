@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from .common import match1, download_urls, parse_host, set_proxy, unset_proxy
+from .common import match1, download_urls, parse_host, set_proxy, unset_proxy, download_one_url
 from .util import log
 
 class Extractor():
@@ -23,6 +23,7 @@ class VideoExtractor():
         self.streams_sorted = []
         self.audiolang = None
         self.password_protected = False
+        self.iterable = False
 
         if args:
             self.url = args[0]
@@ -42,9 +43,11 @@ class VideoExtractor():
         except:
             self.streams_sorted = [dict([('itag', stream_type['itag'])] + list(self.streams[stream_type['itag']].items())) for stream_type in self.__class__.stream_types if stream_type['itag'] in self.streams]
 
-        self.extract(**kwargs)
-
-        self.download(**kwargs)
+        if self.iterable:
+            self.download_iter(**kwargs)
+        else:
+            self.extract(**kwargs)
+            self.download(**kwargs)
 
     def download_by_vid(self, vid, **kwargs):
         self.url = None
@@ -61,9 +64,13 @@ class VideoExtractor():
         except:
             self.streams_sorted = [dict([('itag', stream_type['itag'])] + list(self.streams[stream_type['itag']].items())) for stream_type in self.__class__.stream_types if stream_type['itag'] in self.streams]
 
-        self.extract(**kwargs)
+        print(self.iterable)
 
-        self.download(**kwargs)
+        if self.iterable:
+            self.download_iter(**kwargs)
+        else:
+            self.extract(**kwargs)
+            self.download(**kwargs)
 
     def prepare(self, **kwargs):
         pass
@@ -72,6 +79,9 @@ class VideoExtractor():
     def extract(self, **kwargs):
         pass
         #raise NotImplementedError()
+
+    def extract_iter(**kwargs):
+        pass
 
     def p_stream(self, stream_id):
         stream = self.streams[stream_id]
@@ -174,5 +184,40 @@ class VideoExtractor():
             download_urls(urls, self.title, self.streams[stream_id]['container'], self.streams[stream_id]['size'], output_dir=kwargs['output_dir'], merge=kwargs['merge'])
             # For main_dev()
             #download_urls(urls, self.title, self.streams[stream_id]['container'], self.streams[stream_id]['size'])
+
+    def download_iter(self, **kwargs):
+        if 'info_only' in kwargs and kwargs['info_only']:
+            if 'stream_id' in kwargs and kwargs['stream_id']:
+                # Display the stream
+                stream_id = kwargs['stream_id']
+                if 'index' not in kwargs:
+                    self.p(stream_id)
+                else:
+                    self.p_i(stream_id)
+            else:
+                # Display all available streams
+                if 'index' not in kwargs:
+                    self.p([])
+                else:
+                    stream_id = self.streams_sorted[0]['id'] if 'id' in self.streams_sorted[0] else self.streams_sorted[0]['itag']
+                    self.p_i(stream_id)
+
+        else:
+            if 'stream_id' in kwargs and kwargs['stream_id']:
+                # Download the stream
+                stream_id = kwargs['stream_id']
+            else:
+                # Download stream with the best quality
+                stream_id = self.streams_sorted[0]['id'] if 'id' in self.streams_sorted[0] else self.streams_sorted[0]['itag']
+
+            if 'index' not in kwargs:
+                self.p(stream_id)
+            else:
+                self.p_i(stream_id)
+
+            i = 0
+            for url in self.extract_iter(**kwargs):
+                download_one_url(url, self.title, self.streams[stream_id]['container'], output_dir=kwargs['output_dir'], index = i)
+                i += 1
 
         self.__init__()

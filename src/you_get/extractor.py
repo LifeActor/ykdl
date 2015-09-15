@@ -3,17 +3,6 @@
 from .common import match1, download_urls, parse_host, set_proxy, unset_proxy, download_one_url
 from .util import log
 
-class Extractor():
-    def __init__(self, *args):
-        self.url = None
-        self.title = None
-        self.vid = None
-        self.streams = {}
-        self.streams_sorted = []
-
-        if args:
-            self.url = args[0]
-
 class VideoExtractor():
     def __init__(self, *args):
         self.url = None

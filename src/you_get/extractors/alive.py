@@ -1,21 +1,25 @@
 #!/usr/bin/env python
 
-__all__ = ['alive_download']
-
 from ..common import *
+from ..extractor import VideoExtractor
 
-def alive_download(url, output_dir = '.', merge = True, info_only = False):
-    html = get_html(url)
-    
-    title = r1(r'<meta property="og:title" content="([^"]+)"', html)
-    
-    url = r1(r'file: "(http://alive[^"]+)"', html)
-    type, ext, size = url_info(url)
-    
-    print_info(site_info, title, type, size)
-    if not info_only:
-        download_urls([url], title, ext, size, output_dir, merge = merge)
+class Alive(VideoExtractor):
+    name = "Alive"
 
-site_info = "Alive.in.th"
-download = alive_download
-download_playlist = playlist_not_supported('alive')
+    stream_types = [
+        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
+    ]
+
+    def prepare(self, **kwargs):
+        assert self.url
+        html = get_html(self.url)
+        self.title = r1(r'<meta property="og:title" content="([^"]+)"', html)
+        url = r1(r'file: "(http://alive[^"]+)"', html)
+        print(self.title, url)
+        container, ext, size = url_info(url)
+
+        self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
+
+site = Alive()
+download = site.download_by_url
+download_playlist = playlist_not_supported('Alive')

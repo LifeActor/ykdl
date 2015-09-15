@@ -83,7 +83,7 @@ class Letv(VideoExtractor):
                 for i in self.streams[stream_id]['src']:
                     _, _, tmp = url_info(i)
                     size += tmp
-                stream['size'] = size
+                self.streams[stream_id]['size'] = size
         return
         #ignore video size in download/play mode, for preformence issue
         if 'stream_id' in kwargs and kwargs['stream_id']:

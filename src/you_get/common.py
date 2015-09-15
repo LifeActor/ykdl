@@ -500,7 +500,7 @@ class DummyProgressBar:
     def done(self):
         pass
 
-def download_urls(urls, title, ext, total_size, output_dir='.', refer=None, merge=True, faker=False):
+def download_urls(urls, title, ext, total_size, output_dir='.', refer=None,  faker=False):
     assert urls
     if dry_run:
         print('Real URLs:\n%s' % '\n'.join(urls))
@@ -549,58 +549,6 @@ def download_urls(urls, title, ext, total_size, output_dir='.', refer=None, merg
             url_save(url, filepath, bar, refer = refer, is_part = True, faker = faker)
         bar.done()
 
-        if not merge:
-            print()
-            return
-        if ext in ['flv', 'f4v']:
-            try:
-                from .processor.ffmpeg import has_ffmpeg_installed
-                if has_ffmpeg_installed():
-                    from .processor.ffmpeg import ffmpeg_concat_flv_to_mp4
-                    ffmpeg_concat_flv_to_mp4(parts, os.path.join(output_dir, title + '.mp4'))
-                else:
-                    from .processor.join_flv import concat_flv
-                    concat_flv(parts, os.path.join(output_dir, title + '.flv'))
-            except:
-                raise
-            else:
-                for part in parts:
-                    os.remove(part)
-
-        elif ext == 'mp4':
-            try:
-                from .processor.ffmpeg import has_ffmpeg_installed
-                if has_ffmpeg_installed():
-                    from .processor.ffmpeg import ffmpeg_concat_mp4_to_mp4
-                    ffmpeg_concat_mp4_to_mp4(parts, os.path.join(output_dir, title + '.mp4'))
-                else:
-                    from .processor.join_mp4 import concat_mp4
-                    concat_mp4(parts, os.path.join(output_dir, title + '.mp4'))
-            except:
-                raise
-            else:
-                for part in parts:
-                    os.remove(part)
-
-        elif ext == "ts":
-            try:
-                from .processor.ffmpeg import has_ffmpeg_installed
-                if has_ffmpeg_installed():
-                    from .processor.ffmpeg import ffmpeg_concat_ts_to_mkv
-                    ffmpeg_concat_ts_to_mkv(parts, os.path.join(output_dir, title + '.mkv'))
-                else:
-                    from .processor.join_ts import concat_ts
-                    concat_ts(parts, os.path.join(output_dir, title + '.ts'))
-            except:
-                raise
-            else:
-                for part in parts:
-                    os.remove(part)
-
-
-        else:
-            print("Can't merge %s files" % ext)
-
     print()
 
 def download_one_url(url, title, ext, index, output_dir='.', refer=None, faker=False):
@@ -623,88 +571,8 @@ def download_one_url(url, title, ext, index, output_dir='.', refer=None, faker=F
     url_save(url, filepath, None, refer = refer, faker = faker)
     print()
 
-def download_urls_chunked(urls, title, ext, total_size, output_dir='.', refer=None, merge=True, faker=False):
-    assert urls
-    if dry_run:
-        print('Real URLs:\n%s\n' % urls)
-        return
 
-    if player:
-        launch_player(player, urls)
-        return
-
-    assert ext in ('ts')
-
-    title = tr(get_filename(title))
-
-    filename = '%s.%s' % (title, 'ts')
-    filepath = os.path.join(output_dir, filename)
-    if total_size:
-        if not force and os.path.exists(filepath[:-3] + '.mkv'):
-            print('Skipping %s: file already exists' % filepath[:-3] + '.mkv')
-            print()
-            return
-        bar = SimpleProgressBar(total_size, len(urls))
-    else:
-        bar = PiecesProgressBar(total_size, len(urls))
-
-    if len(urls) == 1:
-        parts = []
-        url = urls[0]
-        print('Downloading %s ...' % tr(filename))
-        filepath = os.path.join(output_dir, filename)
-        parts.append(filepath)
-        url_save_chunked(url, filepath, bar, refer = refer, faker = faker)
-        bar.done()
-
-        if not merge:
-            print()
-            return
-        if ext == 'ts':
-            from .processor.ffmpeg import has_ffmpeg_installed
-            if has_ffmpeg_installed():
-                from .processor.ffmpeg import ffmpeg_convert_ts_to_mkv
-                if ffmpeg_convert_ts_to_mkv(parts, os.path.join(output_dir, title + '.mkv')):
-                    for part in parts:
-                        os.remove(part)
-                else:
-                    os.remove(os.path.join(output_dir, title + '.mkv'))
-            else:
-                print('No ffmpeg is found. Conversion aborted.')
-        else:
-            print("Can't convert %s files" % ext)
-    else:
-        parts = []
-        print('Downloading %s.%s ...' % (tr(title), ext))
-        for i, url in enumerate(urls):
-            filename = '%s[%02d].%s' % (title, i, ext)
-            filepath = os.path.join(output_dir, filename)
-            parts.append(filepath)
-            #print 'Downloading %s [%s/%s]...' % (tr(filename), i + 1, len(urls))
-            bar.update_piece(i + 1)
-            url_save_chunked(url, filepath, bar, refer = refer, is_part = True, faker = faker)
-        bar.done()
-
-        if not merge:
-            print()
-            return
-        if ext == 'ts':
-            from .processor.ffmpeg import has_ffmpeg_installed
-            if has_ffmpeg_installed():
-                from .processor.ffmpeg import ffmpeg_concat_ts_to_mkv
-                if ffmpeg_concat_ts_to_mkv(parts, os.path.join(output_dir, title + '.mkv')):
-                    for part in parts:
-                        os.remove(part)
-                else:
-                    os.remove(os.path.join(output_dir, title + '.mkv'))
-            else:
-                print('No ffmpeg is found. Merging aborted.')
-        else:
-            print("Can't merge %s files" % ext)
-
-    print()
-
-def download_rtmp_url(url,title, ext,params={}, total_size=0, output_dir='.', refer=None, merge=True, faker=False):
+def download_rtmp_url(url,title, ext,params={}, total_size=0, output_dir='.', refer=None, faker=False):
     assert url
     if dry_run:
         print('Real URL:\n%s\n' % [url])
@@ -857,7 +725,6 @@ def script_main(script_name, download, download_playlist = None):
     -i | --info                              Display the information of videos without downloading.
     -u | --url                               Display the real URLs of videos without downloading.
     -c | --cookies                           Load NetScape's cookies.txt file.
-    -n | --no-merge                          Don't merge video parts.
     -F | --format <STREAM_ID>                Video format code.
     -o | --output-dir <PATH>                 Set the output directory for downloaded videos.
     -p | --player <PLAYER [options]>         Directly play the video with PLAYER like vlc/smplayer.
@@ -868,7 +735,7 @@ def script_main(script_name, download, download_playlist = None):
     '''
 
     short_opts = 'Vhfiuc:nF:o:p:x:y:'
-    opts = ['version', 'help', 'force', 'info', 'url', 'cookies', 'no-merge', 'no-proxy', 'debug', 'format=', 'stream=', 'itag=', 'output-dir=', 'player=', 'http-proxy=', 'extractor-proxy=', 'lang=']
+    opts = ['version', 'help', 'force', 'info', 'url', 'cookies', 'no-proxy', 'debug', 'format=', 'stream=', 'itag=', 'output-dir=', 'player=', 'http-proxy=', 'extractor-proxy=', 'lang=']
     if download_playlist:
         short_opts = 'l' + short_opts
         opts = ['playlist'] + opts
@@ -889,7 +756,6 @@ def script_main(script_name, download, download_playlist = None):
 
     info_only = False
     playlist = False
-    merge = True
     stream_id = None
     lang = None
     output_dir = '.'
@@ -916,8 +782,6 @@ def script_main(script_name, download, download_playlist = None):
             cookies_txt.load()
         elif o in ('-l', '--playlist'):
             playlist = True
-        elif o in ('-n', '--no-merge'):
-            merge = False
         elif o in ('--no-proxy',):
             proxy = ''
         elif o in ('--debug',):
@@ -946,14 +810,14 @@ def script_main(script_name, download, download_playlist = None):
     try:
         if stream_id:
             if not extractor_proxy:
-                download_main(download, download_playlist, args, playlist, stream_id=stream_id, output_dir=output_dir, merge=merge, info_only=info_only)
+                download_main(download, download_playlist, args, playlist, stream_id=stream_id, output_dir=output_dir, info_only=info_only)
             else:
-                download_main(download, download_playlist, args, playlist, stream_id=stream_id, extractor_proxy=extractor_proxy, output_dir=output_dir, merge=merge, info_only=info_only)
+                download_main(download, download_playlist, args, playlist, stream_id=stream_id, extractor_proxy=extractor_proxy, output_dir=output_dir,  info_only=info_only)
         else:
             if not extractor_proxy:
-                download_main(download, download_playlist, args, playlist, output_dir=output_dir, merge=merge, info_only=info_only)
+                download_main(download, download_playlist, args, playlist, output_dir=output_dir,  info_only=info_only)
             else:
-                download_main(download, download_playlist, args, playlist, extractor_proxy=extractor_proxy, output_dir=output_dir, merge=merge, info_only=info_only)
+                download_main(download, download_playlist, args, playlist, extractor_proxy=extractor_proxy, output_dir=output_dir,  info_only=info_only)
     except KeyboardInterrupt:
         if traceback:
             raise

@@ -1,33 +1,55 @@
 #!/usr/bin/env python
 
-__all__ = ['baomihua_download', 'baomihua_download_by_id']
-
 from ..common import *
+from ..extractor import VideoExtractor
+import json
 
-import urllib
+class Baomihua(VideoExtractor):
 
-def baomihua_download_by_id(id, title = None, output_dir = '.', merge = True, info_only = False):
-    html = get_html('http://play.baomihua.com/getvideourl.aspx?flvid=%s' % id)
-    host = r1(r'host=([^&]*)', html)
-    assert host
-    type = r1(r'videofiletype=([^&]*)', html)
-    assert type
-    vid = r1(r'&stream_name=([^&]*)', html)
-    assert vid
-    url = "http://%s/pomoho_video/%s.%s" % (host, vid, type)
-    _, ext, size = url_info(url)
-    print_info(site_info, title, type, size)
-    if not info_only:
-        download_urls([url], title, ext, size, output_dir, merge = merge)
+    name = "爆米花（Baomihua)"
 
-def baomihua_download(url, output_dir = '.', merge = True, info_only = False):
-    html = get_html(url)
-    title = r1(r'<title>(.*)</title>', html)
-    assert title
-    id = r1(r'flvid = (\d+);', html)
-    assert id
-    baomihua_download_by_id(id, title, output_dir = output_dir, merge = merge, info_only = info_only)
+    stream_types = [
+        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
+    ]
 
-site_info = "baomihua.com"
-download = baomihua_download
+
+    def prepare(self, **kwargs):
+        assert self.url or self.vid
+
+
+        if self.url and not self.vid:
+            html = get_html(self.url)
+            self.vid = r1(r'flvid = (\d+);', html)
+            self.title = r1(r'<title>(.*)</title>', html)
+
+        if not self.url:
+            self.title = self.vid
+
+        html = ''
+        while(True):
+            html = get_html('http://play.baomihua.com/getvideourl.aspx?flvid=%s' % self.vid)
+
+            try:
+               #do not go json!!
+               json.load(html)
+               continue
+            except:
+               break
+
+        host = r1(r'host=([^&]*)', html)
+        assert host
+        type = r1(r'videofiletype=([^&]*)', html)
+        assert type
+        id = r1(r'&stream_name=([^&]*)', html)
+        assert id
+        size = int(r1(r'&videofilesize=([^&]*)', html))
+
+        url = "http://%s/pomoho_video/%s.%s" % (host, id, type)
+
+        self.streams['current'] = {'container': type, 'src': [url], 'size' : size}
+
+
+
+site = Baomihua()
+download = site.download_by_url
 download_playlist = playlist_not_supported('baomihua')

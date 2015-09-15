@@ -1,8 +1,0 @@
-# https://travis-ci.org/soimort/you-get
-language: python
-python:
-  - "3.2"
-  - "3.3"
-  - "3.4"
-  - "pypy3"
-script: make test

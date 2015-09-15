@@ -53,8 +53,6 @@ class VideoExtractor():
         except:
             self.streams_sorted = [dict([('itag', stream_type['itag'])] + list(self.streams[stream_type['itag']].items())) for stream_type in self.__class__.stream_types if stream_type['itag'] in self.streams]
 
-        print(self.iterable)
-
         if self.iterable:
             self.download_iter(**kwargs)
         else:

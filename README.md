@@ -25,13 +25,21 @@ this project is forked from: <https://github.com/soimort/you-get>
 
 		$ cd you-get-*/
 		$ ./you-get -V
-  * git download
+ * git download
+
         $ git clone https://github.com/zhangn1985/you-get
+
     update
+
         $ git pull
 
-  Note, I will always do git push -f. if you find git pull failed, with merge conflict, please use git reset --hard <commit id>, and git pull again.
+  Note, I will always do git push -f. if you find git pull failed, with merge conflict.
+
+  Please use git reset --hard <commit id>, and git pull again.
 
 For more, please goto [upstream](https://github.com/soimort/you-get)
-report issue and submit patch are welcome, but you'd better submit to upstream(https://github.com/soimort/you-get), otherwise this issue/patch is only for this fork.
+
+Report issue and submit patch are welcome, but you'd better submit to upstream(https://github.com/soimort/you-get),
+
+otherwise this issue/patch is only for this fork.
 

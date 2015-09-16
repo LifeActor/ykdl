@@ -1,24 +1,28 @@
 #!/usr/bin/env python
 
-__all__ = ['blip_download']
-
 from ..common import *
-
+from ..extractor import VideoExtractor
 import json
 
-def blip_download(url, output_dir = '.', merge = True, info_only = False):
-    p_url = url + "?skin=json&version=2&no_wrap=1"
-    html = get_html(p_url)
-    metadata = json.loads(html)
-    
-    title = metadata['Post']['title']
-    real_url = metadata['Post']['media']['url']
-    type, ext, size = url_info(real_url)
-    
-    print_info(site_info, title, type, size)
-    if not info_only:
-        download_urls([real_url], title, ext, size, output_dir, merge = merge)
+class Blip(VideoExtractor):
+    name = "Blip"
 
-site_info = "Blip.tv"
-download = blip_download
-download_playlist = playlist_not_supported('blip')
+    stream_types = [
+        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
+    ]
+
+    def prepare(self, **kwargs):
+        assert self.url
+        p_url = self.url + "?skin=json&version=2&no_wrap=1"
+        html = get_html(p_url)
+        metadata = json.loads(html)
+
+        self.title = metadata['Post']['title']
+        real_url = metadata['Post']['media']['url']
+        _, ext, size = url_info(real_url)
+
+        self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
+
+site = Blip()
+download = site.download_by_url
+download_playlist = playlist_not_supported('Blip')

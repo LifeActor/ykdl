@@ -1,39 +1,45 @@
 #!/usr/bin/env python
 
-__all__ = ['ku6_download', 'ku6_download_by_id']
-
 from ..common import *
 
 import json
-import re
+from ..extractor import VideoExtractor
 
-def ku6_download_by_id(id, title = None, output_dir = '.', merge = True, info_only = False):
-    data = json.loads(get_html('http://v.ku6.com/fetchVideo4Player/%s...html' % id))['data']
-    t = data['t']
-    f = data['f']
-    title = title or t
-    assert title
-    urls = f.split(',')
-    ext = re.sub(r'.*\.', '', urls[0])
-    assert ext in ('flv', 'mp4', 'f4v'), ext
-    ext = {'f4v': 'flv'}.get(ext, ext)
-    size = 0
-    for url in urls:
-        _, _, temp = url_info(url)
-        size += temp
-    
-    print_info(site_info, title, ext, size)
-    if not info_only:
-        download_urls(urls, title, ext, size, output_dir, merge = merge)
+class Ku6(VideoExtractor):
+    name = "酷6 (Ku6)"
 
-def ku6_download(url, output_dir = '.', merge = True, info_only = False):
-    patterns = [r'http://v.ku6.com/special/show_\d+/(.*)\.\.\.html',
+    stream_types = [
+        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
+    ]
+
+    def prepare(self, **kwargs):
+        assert self.url or self.vid
+        patterns = [r'http://v.ku6.com/special/show_\d+/(.*)\.\.\.html',
             r'http://v.ku6.com/show/(.*)\.\.\.html',
             r'http://my.ku6.com/watch\?.*v=(.*)\.\..*']
-    id = r1_of(patterns, url)
+        if self.url and not self.vid:
+            self.vid = r1_of(patterns, self.url)
 
-    ku6_download_by_id(id, output_dir = output_dir, merge = merge, info_only = info_only)
+        self.ku6_download_by_id()
 
-site_info = "Ku6.com"
-download = ku6_download
+    def ku6_download_by_id(self):
+        data = json.loads(get_html('http://v.ku6.com/fetchVideo4Player/%s...html' % self.vid))['data']
+
+        self.title = data['t']
+        f = data['f']
+
+
+        urls = f.split(',')
+        ext = re.sub(r'.*\.', '', urls[0])
+        assert ext in ('flv', 'mp4', 'f4v'), ext
+        ext = {'f4v': 'flv'}.get(ext, ext)
+        size = 0
+        for url in urls:
+            _, _, temp = url_info(url)
+            size += temp
+
+        self.streams['current'] = {'container': ext, 'src': urls, 'size' : size}
+
+site = Ku6()
+download = site.download_by_url
 download_playlist = playlist_not_supported('ku6')

@@ -1,23 +1,31 @@
 #!/usr/bin/env python
 
-__all__ = ['magisto_download']
-
 from ..common import *
+from ..extractor import VideoExtractor
 
-def magisto_download(url, output_dir='.', merge=True, info_only=False):
-    html = get_html(url)
+class Magisto(VideoExtractor):
+    name = "Magisto"
 
-    title1 = r1(r'<meta name="twitter:title" content="([^"]*)"', html)
-    title2 = r1(r'<meta name="twitter:description" content="([^"]*)"', html)
-    video_hash = r1(r'http://www.magisto.com/video/([^/]+)', url)
-    title = "%s %s - %s" % (title1, title2, video_hash)
-    url = r1(r'<source type="[^"]+" src="([^"]*)"', html)
-    type, ext, size = url_info(url)
+    stream_types = [
+        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
+    ]
 
-    print_info(site_info, title, type, size)
-    if not info_only:
-        download_urls([url], title, ext, size, output_dir, merge=merge)
+    def prepare(self, **kwargs):
+        assert self.url
+        html = get_html(self.url)
+        title1 = r1(r'<meta name="twitter:title" content="([^"]*)"', html)
+        title2 = r1(r'<meta name="twitter:description" content="([^"]*)"', html)
+        video_hash = r1(r'http://www.magisto.com/video/([^/]+)', self.url)
+        self.title = "%s %s - %s" % (title1, title2, video_hash)
+        url = r1(r'<source type="[^"]+" src="([^"]*)"', html)
 
-site_info = "Magisto.com"
-download = magisto_download
+        container, ext, size = url_info(url)
+
+        self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
+
+    def download_by_vid(self, **kwargs):
+        pass
+
+site = Magisto()
+download = site.download_by_url
 download_playlist = playlist_not_supported('magisto')

@@ -1,26 +1,30 @@
 #!/usr/bin/env python
 
-__all__ = ['iqilu_download']
-
 from ..common import *
+from ..extractor import VideoExtractor
 
-def iqilu_download(url, output_dir = '.', merge = False, info_only = False):
-    ''''''
-    if re.match(r'http://v.iqilu.com/\w+', url):
+class Iqilu(VideoExtractor):
+    name = "齐鲁网 (iqilu)"
 
-        #URL in webpage
-        html = get_content(url)
+    stream_types = [
+        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
+    ]
+
+    def prepare(self, **kwargs):
+        assert self.url
+        assert re.match(r'http://v.iqilu.com/\w+', self.url)
+
+        html = get_html(self.url)
+        self.title = match1(html, r'<meta name="description" content="(.*?)\"\W')
         url = match1(html, r"<input type='hidden' id='playerId' url='(.+)'")
 
-        #grab title
-        title = match1(html, r'<meta name="description" content="(.*?)\"\W')
+        container, ext, size = url_info(url)
 
-        type_, ext, size = url_info(url)
-        print_info(site_info, title, type_, size)
-        if not info_only:
-            download_urls([url], title, ext, total_size=None, output_dir=output_dir, merge=merge)
+        self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
 
+    def download_by_vid(self, **kwargs):
+        pass
 
-site_info = "iQilu"
-download = iqilu_download
+site = Iqilu()
+download = site.download_by_url
 download_playlist = playlist_not_supported('iqilu')

@@ -1,21 +1,31 @@
 #!/usr/bin/env python
 
-__all__ = ['freesound_download']
 
 from ..common import *
+from ..extractor import VideoExtractor
 
-def freesound_download(url, output_dir = '.', merge = True, info_only = False):
-    page = get_html(url)
-    
-    title = r1(r'<meta property="og:title" content="([^"]*)"', page)
-    preview_url = r1(r'<meta property="og:audio" content="([^"]*)"', page)
-    
-    type, ext, size = url_info(preview_url)
-    
-    print_info(site_info, title, type, size)
-    if not info_only:
-        download_urls([preview_url], title, ext, size, output_dir, merge = merge)
 
-site_info = "Freesound.org"
-download = freesound_download
+class Freesound(VideoExtractor):
+    name = "Freesound"
+
+    stream_types = [
+        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
+    ]
+
+
+    def prepare(self, **kwargs):
+        assert self.url
+        html = get_html(self.url)
+        self.title = r1(r'<meta property="og:title" content="([^"]*)"', html)
+        url = r1(r'<meta property="og:audio" content="([^"]*)"', html)
+
+        container, ext, size = url_info(url)
+
+        self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
+
+    def download_by_vid(self, **kwargs):
+        pass
+
+site = Freesound()
+download = site.download_by_url
 download_playlist = playlist_not_supported('freesound')

@@ -1,22 +1,33 @@
 #!/usr/bin/env python
 
-__all__ = ['instagram_download']
-
 from ..common import *
+from ..extractor import VideoExtractor
 
-def instagram_download(url, output_dir = '.', merge = True, info_only = False):
-    html = get_html(url)
 
-    vid = r1(r'instagram.com/p/([^/]+)', url)
-    description = r1(r'<meta property="og:title" content="([^"]*)"', html)
-    title = "{} [{}]".format(description.replace("\n", " "), vid)
-    stream = r1(r'<meta property="og:video" content="([^"]*)"', html)
-    mime, ext, size = url_info(stream)
+class Instagram(VideoExtractor):
+    name = "Instagram"
 
-    print_info(site_info, title, mime, size)
-    if not info_only:
-        download_urls([stream], title, ext, size, output_dir, merge=merge)
+    stream_types = [
+        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
+    ]
 
-site_info = "Instagram.com"
-download = instagram_download
+    def prepare(self, **kwargs):
+        assert self.url or self.vid
+
+        if not self.url:
+            self.url = 'instagram.com/p/{}'.format(self.vid)
+
+        if not self.vid:
+            self.vid = r1(r'instagram.com/p/([^/]+)', self.url)
+
+        html = get_html(self.url)
+        description = r1(r'<meta property="og:title" content="([^"]*)"', html)
+        self.title = "{} [{}]".format(description.strip(), vid)
+        stream = r1(r'<meta property="og:video" content="([^"]*)"', html)
+        mime, ext, size = url_info(stream)
+        self.streams['current'] = {'container': ext, 'src': [stream], 'size' : size}
+
+
+site = Instagram()
+download = site.download_by_url
 download_playlist = playlist_not_supported('instagram')

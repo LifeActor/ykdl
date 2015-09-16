@@ -1,31 +1,34 @@
 #!/usr/bin/env python
 
-__all__ = ['dailymotion_download']
-
 from ..common import *
+from ..extractor import VideoExtractor
 
-def dailymotion_download(url, output_dir = '.', merge = True, info_only = False):
-    """Downloads Dailymotion videos by URL.
-    """
 
-    html = get_content(url)
-    info = json.loads(match1(html, r'qualities":({.+?}),"'))
-    title = match1(html, r'"video_title"\s*:\s*"(.+?)",')
+class Dailymotion(VideoExtractor):
+    name = "Dailymotion"
 
-    for quality in ['720','480','380','240','auto']:
-        try:
-            real_url = info[quality][0]["url"]
-            if real_url:
-                break
-        except KeyError:
-            pass
+    stream_types = [
+        {'id': '720', 'container': 'unknown', 'video_profile': '720p'},
+        {'id': '480', 'container': 'unknown', 'video_profile': '480p'},
+        {'id': '380', 'container': 'unknown', 'video_profile': '380p'},
+        {'id': '240', 'container': 'unknown', 'video_profile': '240p'},
+    ]
 
-    type, ext, size = url_info(real_url)
+    def prepare(self, **kwargs):
+        assert self.url
+        html = get_content(self.url)
+        info = json.loads(match1(html, r'qualities":({.+?}),"'))
+        self.title = match1(html, r'"video_title"\s*:\s*"(.+?)",')
 
-    print_info(site_info, title, type, size)
-    if not info_only:
-        download_urls([real_url], title, ext, size, output_dir, merge = merge)
+        for stream in self.stream_types:
+            if stream['id'] in info.keys():
+                url = info[stream['id']][0]["url"]
+                _, ext, size = url_info(url)
+                self.streams[stream['id']] = {'container': ext, 'src': [url], 'size' : size}
 
-site_info = "Dailymotion.com"
-download = dailymotion_download
+    def download_by_vid(self, **kwargs):
+        pass
+
+site = Dailymotion()
+download = site.download_by_url
 download_playlist = playlist_not_supported('dailymotion')

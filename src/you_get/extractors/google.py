@@ -40,7 +40,7 @@ fmt_level = dict(
                 youtube_codecs],
         range(len(youtube_codecs))))
 
-def google_download(url, output_dir = '.', merge = True, info_only = False):
+def google_download(url, output_dir = '.', info_only = False):
     # Percent-encoding Unicode URL
     url = parse.quote(url, safe = ':/+%')
 
@@ -82,7 +82,7 @@ def google_download(url, output_dir = '.', merge = True, info_only = False):
 
             print_info(site_info, "%s[%s]" % (title, i), ext, size)
             if not info_only:
-                download_urls([real_url], "%s[%s]" % (title, i), ext, size, output_dir, merge = merge)
+                download_urls([real_url], "%s[%s]" % (title, i), ext, size, output_dir)
 
     elif service in ['docs', 'drive'] : # Google Docs
 
@@ -103,7 +103,7 @@ def google_download(url, output_dir = '.', merge = True, info_only = False):
 
         print_info(site_info, title, ext, size)
         if not info_only:
-            download_urls([real_url], title, ext, size, output_dir, merge = merge)
+            download_urls([real_url], title, ext, size, output_dir)
 
 site_info = "Google.com"
 download = google_download

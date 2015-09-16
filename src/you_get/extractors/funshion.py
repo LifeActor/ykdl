@@ -40,7 +40,7 @@ def funshion_download_by_vid(vid, output_dir = '.', merge = False, info_only = F
         print_info(site_info, title, type, size)
     
     if not info_only:
-        download_urls(url_list, title, ext, total_size=None, output_dir=output_dir, merge=merge)
+        download_urls(url_list, title, ext, total_size=None, output_dir=output_dir)
 
 #----------------------------------------------------------------------
 def funshion_get_title_by_vid(vid):
@@ -55,6 +55,7 @@ def funshion_vid_to_urls(vid):
     """str->str
     Select one resolution for single video download."""
     html = get_content('http://pv.funshion.com/v5/video/play/?id={vid}&cl=aphone&uc=5'.format(vid = vid))
+    print(html)
     return select_url_from_video_api(html)
 
 #Logics for drama until helper functions
@@ -87,7 +88,7 @@ def funshion_download_by_id(vid_id_tuple, output_dir = '.', merge = False, info_
         print_info(site_info, title, type, size)
     
     if not info_only:
-        download_urls(url_list, title, ext, total_size=None, output_dir=output_dir, merge=merge)
+        download_urls(url_list, title, ext, total_size=None, output_dir=output_dir)
 
 #----------------------------------------------------------------------
 def funshion_drama_id_to_vid(episode_id):

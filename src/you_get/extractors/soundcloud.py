@@ -1,31 +1,33 @@
 #!/usr/bin/env python
 
-__all__ = ['soundcloud_download', 'soundcloud_download_by_id']
-
 from ..common import *
+from ..extractor import VideoExtractor
+import json
 
-def soundcloud_download_by_id(id, title = None, output_dir = '.', merge = True, info_only = False):
-    assert title
-    
-    #if info["downloadable"]:
-    #   url = 'https://api.soundcloud.com/tracks/' + id + '/download?client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
-    url = 'https://api.soundcloud.com/tracks/' + id + '/stream?client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
-    assert url
-    type, ext, size = url_info(url)
-    
-    print_info(site_info, title, type, size)
-    if not info_only:
-        download_urls([url], title, ext, size, output_dir, merge = merge)
+class SoundCloud(VideoExtractor)
+    name = "SoundCloud"
 
-def soundcloud_download(url, output_dir = '.', merge = True, info_only = False):
-    metadata = get_html('https://api.soundcloud.com/resolve.json?url=' + url + '&client_id=b45b1aa10f1ac2941910a7f0d10f8e28')
-    import json
-    info = json.loads(metadata)
-    title = info["title"]
-    id = str(info["id"])
-    
-    soundcloud_download_by_id(id, title, output_dir, merge = merge, info_only = info_only)
+    stream_types = [
+            {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
+    ]
 
-site_info = "SoundCloud.com"
-download = soundcloud_download
+    def prepare(self, **kwargs):
+        assert self.url or self.vid
+
+        if self.url and not self.vid:
+            metadata = get_html('https://api.soundcloud.com/resolve.json?url=' + self.url + '&client_id=b45b1aa10f1ac2941910a7f0d10f8e28')
+            info = json.loads(metadata)
+            self.title = info["title"]
+            self.vid = str(info["id"])
+        else:
+            self.title = title or self.vid
+
+        url = 'https://api.soundcloud.com/tracks/' + self.vid + '/stream?client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
+
+        type, ext, size = url_info(url)
+
+        self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
+ 
+site = SoundCloud()
+download = site.down_by_url
 download_playlist = playlist_not_supported('soundcloud')

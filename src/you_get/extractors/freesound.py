@@ -2,29 +2,16 @@
 
 
 from ..common import *
-from ..extractor import VideoExtractor
+from ..simpleextractor import SimpleExtractor
 
 
-class Freesound(VideoExtractor):
+class Freesound(SimpleExtractor):
     name = "Freesound"
 
-    stream_types = [
-        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
-    ]
-
-
-    def prepare(self, **kwargs):
-        assert self.url
-        html = get_html(self.url)
-        self.title = r1(r'<meta property="og:title" content="([^"]*)"', html)
-        url = r1(r'<meta property="og:audio" content="([^"]*)"', html)
-
-        container, ext, size = url_info(url)
-
-        self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
-
-    def download_by_vid(self, **kwargs):
-        pass
+    def __init__(self):
+        SimpleExtractor.__init__(self)
+        self.title_pattern = '<meta property="og:title" content="([^"]*)"'
+        self.url_pattern = '<meta property="og:audio" content="([^"]*)"'
 
 site = Freesound()
 download = site.download_by_url

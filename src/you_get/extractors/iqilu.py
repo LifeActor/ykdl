@@ -1,29 +1,18 @@
 #!/usr/bin/env python
 
 from ..common import *
-from ..extractor import VideoExtractor
+from ..simpleextractor import SimpleExtractor
 
-class Iqilu(VideoExtractor):
+class Iqilu(SimpleExtractor):
     name = "齐鲁网 (iqilu)"
 
-    stream_types = [
-        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
-    ]
+    def __init__(self):
+        SimpleExtractor.__init__(self)
+        self.title_pattern = '<meta name="description" content="(.*?)\"\W'
+        self.url_pattern = "<input type='hidden' id='playerId' url='(.+)'"
 
-    def prepare(self, **kwargs):
-        assert self.url
+    def l_assert(self):
         assert re.match(r'http://v.iqilu.com/\w+', self.url)
-
-        html = get_html(self.url)
-        self.title = match1(html, r'<meta name="description" content="(.*?)\"\W')
-        url = match1(html, r"<input type='hidden' id='playerId' url='(.+)'")
-
-        container, ext, size = url_info(url)
-
-        self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
-
-    def download_by_vid(self, **kwargs):
-        pass
 
 site = Iqilu()
 download = site.download_by_url

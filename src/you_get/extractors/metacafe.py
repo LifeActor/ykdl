@@ -3,31 +3,19 @@
 from ..common import *
 import urllib.error
 from urllib.parse import unquote
-from ..extractor import VideoExtractor
+from ..simpleextractor import SimpleExtractor
+import re
 
-class Metacafe(VideoExtractor):
+class Metacafe(SimpleExtractor):
     name = "Metacafe"
 
-    stream_types = [
-        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
-    ]
+    def __init__(self):
+        SimpleExtractor.__init__(self)
+        self.title_pattern = '<meta property="og:title" content="([^"]*)"'
+        self.url_pattern = '&videoURL=([^&]+)'
 
-    def prepare(self, **kwargs):
-        assert self.url and re.match(r'http://www.metacafe.com/watch/\w+', self.url)
-
-        html = get_html(self.url, faker = True)
-        self.title = r1(r'<meta property="og:title" content="([^"]*)"', html)
-        url_raw = match1(html, '&videoURL=([^&]+)')
-        print(url_raw)
-        
-        url = unquote(url_raw)
-
-        container, ext, size = url_info(url)
-
-        self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
-
-    def download_by_vid(self, **kwargs):
-        pass
+    def l_assert(self):
+        assert re.match(r'http://www.metacafe.com/watch/\w+', self.url)
 
 site = Metacafe()
 download = site.download_by_url

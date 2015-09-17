@@ -1,27 +1,16 @@
 #!/usr/bin/env python
 
 from ..common import *
-from ..extractor import VideoExtractor
+from ..simpleextractor import SimpleExtractor
 
-class JPopsuki(VideoExtractor):
+class JPopsuki(SimpleExtractor):
     name = "JPopsuki"
+    def __init__(self):
+        SimpleExtractor.__init__(self)
+        self.title_pattern = '<meta name="title" content="([^"]*)"'
 
-    stream_types = [
-        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
-    ]
-
-    def prepare(self, **kwargs):
-        assert self.url
-        html = get_html(self.url, faker = True)
-        self.title =  r1(r'<meta name="title" content="([^"]*)"', html)
-        url = "http://jpopsuki.tv%s" % r1(r'<source src="([^"]*)"', html)
-
-        container, ext, size = url_info(url)
-
-        self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
-
-    def download_by_vid(self, **kwargs):
-        pass
+    def get_url(self):
+        self.url = "http://jpopsuki.tv{}".format(match1(self.html, '<source src="([^"]*)"'))
 
 site = JPopsuki()
 download = site.download_by_url

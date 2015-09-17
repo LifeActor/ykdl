@@ -1,30 +1,20 @@
 #!/usr/bin/env python
 
 from ..common import *
-from ..extractor import VideoExtractor
+from ..simpleextractor import SimpleExtractor
 
-class Magisto(VideoExtractor):
+class Magisto(SimpleExtractor):
     name = "Magisto"
 
-    stream_types = [
-        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
-    ]
+    def __init__(self):
+        SimpleExtractor.__init__(self)
+        self.url_pattern = '<source type="[^"]+" src="([^"]*)"'
 
-    def prepare(self, **kwargs):
-        assert self.url
-        html = get_html(self.url)
-        title1 = r1(r'<meta name="twitter:title" content="([^"]*)"', html)
-        title2 = r1(r'<meta name="twitter:description" content="([^"]*)"', html)
+    def get_title(self):
+        title1 = r1(r'<meta name="twitter:title" content="([^"]*)"', self.html)
+        title2 = r1(r'<meta name="twitter:description" content="([^"]*)"', self.html)
         video_hash = r1(r'http://www.magisto.com/video/([^/]+)', self.url)
         self.title = "%s %s - %s" % (title1, title2, video_hash)
-        url = r1(r'<source type="[^"]+" src="([^"]*)"', html)
-
-        container, ext, size = url_info(url)
-
-        self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
-
-    def download_by_vid(self, **kwargs):
-        pass
 
 site = Magisto()
 download = site.download_by_url

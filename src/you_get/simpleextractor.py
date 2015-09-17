@@ -12,7 +12,6 @@ class SimpleExtractor(VideoExtractor):
 
     def __init__(self):
         VideoExtractor.__init__(self)
- 
 
         self.html = ''
 
@@ -26,12 +25,12 @@ class SimpleExtractor(VideoExtractor):
         self.title = match1(self.html, self.title_pattern)
 
     def get_url(self):
-        self.url = [match1(self.html, self.url_pattern)]
+        self.v_url = [match1(self.html, self.url_pattern)]
 
     def get_info(self):
         size=0
         ext=''
-        for u in self.url:
+        for u in self.v_url:
             _, ext, temp = url_info(u)
             size += temp
         return ext, size
@@ -47,7 +46,7 @@ class SimpleExtractor(VideoExtractor):
         self.get_url()
         ext, size = self.get_info()
 
-        self.streams['current'] = {'container': ext, 'src': self.url, 'size' : size}
+        self.streams['current'] = {'container': ext, 'src': self.v_url, 'size' : size}
 
     def download_by_vid(self, **kwargs):
         pass

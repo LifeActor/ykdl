@@ -8,9 +8,10 @@ class JPopsuki(SimpleExtractor):
     def __init__(self):
         SimpleExtractor.__init__(self)
         self.title_pattern = '<meta name="title" content="([^"]*)"'
+        self.faker = True
 
     def get_url(self):
-        self.url = "http://jpopsuki.tv{}".format(match1(self.html, '<source src="([^"]*)"'))
+        self.v_url = ["http://jpopsuki.tv{}".format(match1(self.html, '<source src="([^"]*)"'))]
 
 site = JPopsuki()
 download = site.download_by_url

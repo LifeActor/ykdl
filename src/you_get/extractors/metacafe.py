@@ -12,10 +12,13 @@ class Metacafe(SimpleExtractor):
     def __init__(self):
         SimpleExtractor.__init__(self)
         self.title_pattern = '<meta property="og:title" content="([^"]*)"'
-        self.url_pattern = '&videoURL=([^&]+)'
 
     def l_assert(self):
         assert re.match(r'http://www.metacafe.com/watch/\w+', self.url)
+
+    def get_url(self):
+        url_raw = match1(html, '&videoURL=([^&]+)')
+        self.v_url = [unquote(url_raw)]
 
 site = Metacafe()
 download = site.download_by_url

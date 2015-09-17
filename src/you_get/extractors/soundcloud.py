@@ -4,7 +4,7 @@ from ..common import *
 from ..extractor import VideoExtractor
 import json
 
-class SoundCloud(VideoExtractor)
+class SoundCloud(VideoExtractor):
     name = "SoundCloud"
 
     stream_types = [
@@ -29,5 +29,5 @@ class SoundCloud(VideoExtractor)
         self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
  
 site = SoundCloud()
-download = site.down_by_url
+download = site.download_by_url
 download_playlist = playlist_not_supported('soundcloud')

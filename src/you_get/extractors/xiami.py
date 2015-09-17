@@ -43,7 +43,7 @@ def xiami_download_pic(pic_url, file_name, output_dir):
         with open(output_dir + "/" + file_name.replace('/', '-') + ext, 'wb') as x:
             x.write(pic)
 
-def xiami_download_song(sid, output_dir = '.', merge = True, info_only = False):
+def xiami_download_song(sid, output_dir = '.', info_only = False):
     xml = get_html('http://www.xiami.com/song/playlist/id/%s/object_name/default/object_id/0' % sid, faker = True)
     doc = parseString(xml)
     i = doc.getElementsByTagName("track")[0]
@@ -68,7 +68,7 @@ def xiami_download_song(sid, output_dir = '.', merge = True, info_only = False):
         except:
             pass
 
-def xiami_download_showcollect(cid, output_dir = '.', merge = True, info_only = False):
+def xiami_download_showcollect(cid, output_dir = '.', info_only = False):
     html = get_html('http://www.xiami.com/song/showcollect/id/' + cid, faker = True)
     collect_name = r1(r'<title>(.*)</title>', html)
 
@@ -99,7 +99,7 @@ def xiami_download_showcollect(cid, output_dir = '.', merge = True, info_only = 
         print_info(site_info, song_title, type, size)
         if not info_only:
             file_name = "%02d.%s - %s - %s" % (track_nr, song_title, artist, album_name)
-            download_urls([url], file_name, ext, size, output_dir, merge = merge, faker = True)
+            download_urls([url], file_name, ext, size, output_dir, faker = True)
             try:
                 xiami_download_lyric(lrc_url, file_name, output_dir)
             except:
@@ -132,7 +132,7 @@ def xiami_download_album(aid, output_dir = '.', merge = True, info_only = False)
         print_info(site_info, song_title, type, size)
         if not info_only:
             file_name = "%02d.%s" % (track_nr, song_title)
-            download_urls([url], file_name, ext, size, output_dir, merge = merge, faker = True)
+            download_urls([url], file_name, ext, size, output_dir,faker = True)
             try:
                 xiami_download_lyric(lrc_url, file_name, output_dir)
             except:
@@ -143,22 +143,22 @@ def xiami_download_album(aid, output_dir = '.', merge = True, info_only = False)
         
         track_nr += 1
 
-def xiami_download(url, output_dir = '.', stream_type = None, merge = True, info_only = False):
+def xiami_download(url, output_dir = '.', stream_type = None, info_only = False):
     if re.match(r'http://www.xiami.com/album/\d+', url):
         id = r1(r'http://www.xiami.com/album/(\d+)', url)
-        xiami_download_album(id, output_dir, merge, info_only)
+        xiami_download_album(id, output_dir, info_only)
     
     if re.match(r'http://www.xiami.com/collect/\d+', url):
         id = r1(r'http://www.xiami.com/collect/(\d+)', url)
-        xiami_download_showcollect(id, output_dir, merge, info_only)
+        xiami_download_showcollect(id, output_dir,info_only)
     
     if re.match('http://www.xiami.com/song/\d+', url):
         id = r1(r'http://www.xiami.com/song/(\d+)', url)
-        xiami_download_song(id, output_dir, merge, info_only)
+        xiami_download_song(id, output_dir, info_only)
     
     if re.match('http://www.xiami.com/song/detail/id/\d+', url):
         id = r1(r'http://www.xiami.com/song/detail/id/(\d+)', url)
-        xiami_download_song(id, output_dir, merge, info_only)
+        xiami_download_song(id, output_dir, info_only)
 
 site_info = "Xiami.com"
 download = xiami_download

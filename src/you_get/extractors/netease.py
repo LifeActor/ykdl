@@ -10,7 +10,7 @@ import base64
 import os
 
 
-def netease_cloud_music_download(url, output_dir='.', merge=True, info_only=False):
+def netease_cloud_music_download(url, output_dir='.', info_only=False):
     rid = match1(url, r'id=(.*)')
     if rid is None:
         rid = match1(url, r'/(\d+)/?$')
@@ -77,11 +77,11 @@ def netease_download_common(title, url_best, output_dir, info_only):
         download_urls([url_best], title, ext, size, output_dir)
 
 
-def netease_download(url, output_dir = '.', merge = True, info_only = False):
+def netease_download(url, output_dir = '.',info_only = False):
     if "163.fm" in url:
         url = get_location(url)
     if "music.163.com" in url:
-        netease_cloud_music_download(url,output_dir,merge,info_only)
+        netease_cloud_music_download(url,output_dir,info_only)
     else:
         html = get_decoded_html(url)
 
@@ -112,7 +112,7 @@ def netease_download(url, output_dir = '.', merge = True, info_only = False):
 
         print_info(site_info, title, ext, size)
         if not info_only:
-            download_urls([url], title, ext, size, output_dir = output_dir, merge = merge)
+            download_urls([url], title, ext, size, output_dir = output_dir)
 
 
 def encrypted_id(dfsId):

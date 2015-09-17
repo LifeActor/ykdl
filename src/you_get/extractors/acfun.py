@@ -21,21 +21,21 @@ def get_srt_lock_json(id):
     url = 'http://comment.acfun.tv/%s_lock.json' % id
     return get_html(url)
 
-def acfun_download_by_vid(vid, title=None, output_dir='.', merge=True, info_only=False):
+def acfun_download_by_vid(vid, title=None, output_dir='.', info_only=False):
     info = json.loads(get_html('http://www.acfun.tv/video/getVideo.aspx?id=' + vid))
     sourceType = info['sourceType']
     sourceId = info['sourceId']
     # danmakuId = info['danmakuId']
     if sourceType == 'sina':
-        sina_download_by_vid(sourceId, title, output_dir=output_dir, merge=merge, info_only=info_only)
+        sina_download_by_vid(sourceId, title, output_dir=output_dir, info_only=info_only)
     elif sourceType == 'youku':
-        youku_download_by_vid(sourceId, title=title, output_dir=output_dir, merge=merge, info_only=info_only)
+        youku_download_by_vid(sourceId, title=title, output_dir=output_dir, info_only=info_only)
     elif sourceType == 'tudou':
-        tudou_download_by_iid(sourceId, title, output_dir=output_dir, merge=merge, info_only=info_only)
+        tudou_download_by_iid(sourceId, title, output_dir=output_dir,info_only=info_only)
     elif sourceType == 'qq':
-        qq_download_by_vid(sourceId, title, output_dir=output_dir, merge=merge, info_only=info_only)
+        qq_download_by_vid(sourceId, title, output_dir=output_dir, info_only=info_only)
     elif sourceType == 'letv':
-        letvcloud_download_by_vu(sourceId, '2d8c027396', title, output_dir=output_dir, merge=merge, info_only=info_only)
+        letvcloud_download_by_vu(sourceId, '2d8c027396', title, output_dir=output_dir, info_only=info_only)
     else:
         raise NotImplementedError(sourceType)
 
@@ -109,7 +109,7 @@ def acfun_download_by_vid(vid, title=None, output_dir='.', merge=True, info_only
         #except:
             #pass
 
-def acfun_download(url, output_dir = '.', merge = True, info_only = False ,**kwargs):
+def acfun_download(url, output_dir = '.', info_only = False ,**kwargs):
     assert re.match(r'http://[^\.]+.acfun.[^\.]+/\D/\D\D(\d+)', url)
     html = get_html(url)
 
@@ -123,11 +123,11 @@ def acfun_download(url, output_dir = '.', merge = True, info_only = False ,**kwa
         for video in videos:
             p_vid = video[0]
             p_title = title + " - " + video[1]
-            acfun_download_by_vid(p_vid, p_title, output_dir=output_dir, merge=merge, info_only=info_only ,**kwargs)
+            acfun_download_by_vid(p_vid, p_title, output_dir=output_dir, info_only=info_only ,**kwargs)
     else:
         # Useless - to be removed?
         id = r1(r"src=\"/newflvplayer/player.*id=(\d+)", html)
-        sina_download_by_vid(id, title, output_dir=output_dir, merge=merge, info_only=info_only)
+        sina_download_by_vid(id, title, output_dir=output_dir, info_only=info_only)
 
 site_info = "AcFun.tv"
 download = acfun_download

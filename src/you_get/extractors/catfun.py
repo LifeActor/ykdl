@@ -62,14 +62,14 @@ def catfun_download(url, output_dir = '.', merge = True, info_only = False):
         else:
             t = title
         if item["type"] == "tudou":
-            tudou_download_by_id(item["vid"], title, output_dir, merge, info_only)
+            tudou_download_by_id(item["vid"], title, output_dir,info_only)
 
         else:
             urls, ext, size = parse_item(item)
 
             print_info(site_info, title, ext, size)
             if not info_only:
-                download_urls(urls, t, ext, size, output_dir, merge=merge)
+                download_urls(urls, t, ext, size, output_dir)
 
 site_info = "CatFun.tv"
 download = catfun_download

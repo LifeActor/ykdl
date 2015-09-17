@@ -17,13 +17,13 @@ def miomio_download(url, output_dir = '.', merge = True, info_only = False):
     t = r1(r'type=(\w+)', flashvars)
     id = r1(r'vid=([^"]+)', flashvars)
     if t == 'youku':
-        youku_download_by_vid(id, title=title, output_dir=output_dir, merge=merge, info_only=info_only)
+        youku_download_by_vid(id, title=title, output_dir=output_dir, info_only=info_only)
     elif t == 'tudou':
-        tudou_download_by_id(id, title, output_dir=output_dir, merge=merge, info_only=info_only)
+        tudou_download_by_id(id, title, output_dir=output_dir, info_only=info_only)
     elif t == 'sina' or t=='video':
         url = "http://www.miomio.tv/mioplayer/mioplayerconfigfiles/sina.php?vid=" + id
         xml = get_content (url, headers=fake_headers, decoded=True)
-        sina_download_by_xml(xml, title, output_dir=output_dir, merge=merge, info_only=info_only)
+        sina_download_by_xml(xml, title, output_dir=output_dir, info_only=info_only)
     else:
         raise NotImplementedError(flashvars)
 

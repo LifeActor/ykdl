@@ -97,9 +97,13 @@ def matchall(text, patterns):
 
     return ret
 
-def launch_player(player, urls):
+def launch_player(player, urls, size):
     import subprocess
     import shlex
+    if size > 2.14748e+09:
+        size = 2.14748e+09
+    if not size:
+        player += " --cache-default {}".format(size)
     subprocess.call(shlex.split(player) + list(urls))
 
 def parse_query_param(url, param):
@@ -507,7 +511,7 @@ def download_urls(urls, title, ext, total_size, output_dir='.', refer=None,  fak
         return
 
     if player:
-        launch_player(player, urls)
+        launch_player(player, urls, total_size)
         return
 
     if not total_size:
@@ -558,7 +562,7 @@ def download_one_url(url, title, ext, index, output_dir='.', refer=None, faker=F
         return
 
     if player:
-        launch_player(player, [url])
+        launch_player(player, [url],0)
         return
 
 

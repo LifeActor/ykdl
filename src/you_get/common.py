@@ -102,8 +102,9 @@ def launch_player(player, urls, size):
     import shlex
     if size > 2.14748e+09:
         size = 2.14748e+09
-    if not size:
-        player += " --cache-default {}".format(size)
+
+    if size:
+        player += " --cache={}".format(int(size/1024))
     subprocess.call(shlex.split(player) + list(urls))
 
 def parse_query_param(url, param):

@@ -5,9 +5,6 @@ from .extractor import VideoExtractor
 
 class SimpleExtractor(VideoExtractor):
 
-    stream_types = [
-            {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
-    ]
     name = "SimpleExtractor"
 
     def __init__(self):
@@ -45,7 +42,7 @@ class SimpleExtractor(VideoExtractor):
         self.get_title()
         self.get_url()
         ext, size = self.get_info()
-
+        self.stream_types.append('current')
         self.streams['current'] = {'container': ext, 'src': self.v_url, 'size' : size}
 
     def download_by_vid(self, **kwargs):

@@ -7,10 +7,6 @@ import json
 class SoundCloud(VideoExtractor):
     name = "SoundCloud"
 
-    stream_types = [
-            {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
-    ]
-
     def prepare(self, **kwargs):
         assert self.url or self.vid
 
@@ -27,6 +23,7 @@ class SoundCloud(VideoExtractor):
         type, ext, size = url_info(url)
 
         self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
+        self.stream_types.append('current')
  
 site = SoundCloud()
 download = site.download_by_url

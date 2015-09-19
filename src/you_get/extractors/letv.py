@@ -33,13 +33,8 @@ def decode(data):
 class Letv(VideoExtractor):
     name = "乐视 (Letv)"
 
-    stream_types = [
-        {'id': '1080p', 'container': 'mp4', 'video_profile': '1080p'},
-        {'id': '1300', 'container': 'mp4', 'video_profile': '超清'},
-        {'id': '1000', 'container': 'mp4', 'video_profile': '高清'},
-        {'id': '720p', 'container': 'mp4', 'video_profile': '标清'},
-        {'id': '350', 'container': 'mp4', 'video_profile': '流畅'},
-    ]
+    supported_stream_types = [ '1080p', '1300', '1000', '720p', '350' ]
+
 
     def prepare(self, **kwargs):
         assert self.url or self.vid
@@ -60,12 +55,12 @@ class Letv(VideoExtractor):
         info_url = 'http://api.letv.com/mms/out/video/playJson?id={}&platid=1&splatid=101&format=1&tkey={}&domain=www.letv.com'.format(self.vid, calcTimeKey(int(time.time())))
         r = get_content(info_url, decoded=False)
         info=json.loads(str(r,"utf-8"))
-        support_stream_id = info["playurl"]["dispatch"].keys()
-        for stream in self.stream_types:
-            if stream['id'] in support_stream_id:
-                s_url =info["playurl"]["domain"][0]+info["playurl"]["dispatch"][stream['id']][0]
-                ext = info["playurl"]["dispatch"][stream['id']][1].split('.')[-1]
-                s_url+="&ctv=pc&m3v=1&termid=1&format=1&hwtype=un&ostype=Linux&tag=letv&sign=letv&expect=3&tn={}&pay=0&iscpn=f9051&rateid={}".format(random.random(),stream['id'])
+        available_stream_id = info["playurl"]["dispatch"].keys()
+        for stream in self.supported_stream_types:
+            if stream in available_stream_id:
+                s_url =info["playurl"]["domain"][0]+info["playurl"]["dispatch"][stream][0]
+                ext = info["playurl"]["dispatch"][stream][1].split('.')[-1]
+                s_url+="&ctv=pc&m3v=1&termid=1&format=1&hwtype=un&ostype=Linux&tag=letv&sign=letv&expect=3&tn={}&pay=0&iscpn=f9051&rateid={}".format(random.random(),stream)
                 r2=get_content(s_url,decoded=False)
                 info2=json.loads(str(r2,"utf-8"))
 
@@ -74,7 +69,8 @@ class Letv(VideoExtractor):
                 m3u8 = get_content(info2["location"],decoded=False)
                 m3u8_list = decode(m3u8)
                 urls = re.findall(r'^[^#][^\r]*',m3u8_list,re.MULTILINE)
-                self.streams[stream['id']] = {'container': ext, 'video_profile': stream['video_profile'], 'src': urls, 'size' : 0}
+                self.streams[stream] = {'container': ext, 'video_profile': stream, 'src': urls, 'size' : 0}
+                self.stream_types.append(stream)
 
     def extract(self, **kwargs):
         if 'info_only' in kwargs and kwargs['info_only']:
@@ -96,7 +92,7 @@ class Letv(VideoExtractor):
                 exit(2)
         else:
             # Extract stream with the best quality
-            stream_id = self.streams_sorted[0]['id']
+            stream_id = self.stream_type[0]
 
         size = 0
         for i in self.streams[stream_id]['src']:

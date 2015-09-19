@@ -8,10 +8,6 @@ from ..extractor import VideoExtractor
 class Ku6(VideoExtractor):
     name = "酷6 (Ku6)"
 
-    stream_types = [
-        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
-    ]
-
     def prepare(self, **kwargs):
         assert self.url or self.vid
         patterns = [r'http://v.ku6.com/special/show_\d+/(.*)\.\.\.html',
@@ -39,6 +35,7 @@ class Ku6(VideoExtractor):
             size += temp
 
         self.streams['current'] = {'container': ext, 'src': urls, 'size' : size}
+        self.stream_types.append('current')
 
 site = Ku6()
 download = site.download_by_url

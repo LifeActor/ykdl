@@ -83,15 +83,7 @@ def getDispathKey(rid):
 class Iqiyi(VideoExtractor):
     name = "爱奇艺 (Iqiyi)"
 
-    stream_types = [
-        {'id': '4k', 'container': 'f4v', 'video_profile': '4K'},
-        {'id': 'fullhd', 'container': 'f4v', 'video_profile': '全高清'},
-        {'id': 'suprt-high', 'container': 'f4v', 'video_profile': '超高清'},
-        {'id': 'super', 'container': 'f4v', 'video_profile': '超清'},
-        {'id': 'high', 'container': 'f4v', 'video_profile': '高清'},
-        {'id': 'standard', 'container': 'f4v', 'video_profile': '标清'},
-        {'id': 'topspeed', 'container': 'f4v', 'video_profile': '最差'},
-    ]
+    supported_stream_types = [ '4k', 'fullhd', 'suprt-high', 'super', 'high', 'standard', 'topspeed' ]
 
     stream_to_bid = {  '4k': 10, 'fullhd' : 5, 'suprt-high' : 4, 'super' : 3, 'high' : 2, 'standard' :1, 'topspeed' :96}
 
@@ -157,19 +149,20 @@ class Iqiyi(VideoExtractor):
         vs = info["data"]["vp"]["tkl"][0]["vs"]
         self.baseurl=info["data"]["vp"]["du"].split("/")
 
-        for stream in self.stream_types:
+        for stream in self.supported_stream_types:
             for i in vs:
-                if self.stream_to_bid[stream['id']] == i['bid']:
+                if self.stream_to_bid[stream] == i['bid']:
                     video_links=i["fs"] #now in i["flvs"] not in i["fs"]
                     if not i["fs"][0]["l"].startswith("/"):
                         tmp = getVrsEncodeCode(i["fs"][0]["l"])
                         if tmp.endswith('mp4'):
                              video_links = i["flvs"]
-                    self.stream_urls[stream['id']] = video_links
+                    self.stream_urls[stream] = video_links
                     size = 0
                     for l in video_links:
                         size += l['b']
-                    self.streams[stream['id']] = {'container': stream['container'], 'video_profile': stream['video_profile'], 'size' : size}
+                    self.streams[stream] = {'container': 'f4v', 'video_profile': stream, 'size' : size}
+                    self.stream_types.append(stream)
                     break
 
     def extract_iter(self, **kwargs):
@@ -183,7 +176,7 @@ class Iqiyi(VideoExtractor):
                 exit(2)
         else:
             # Extract stream with the best quality
-            stream_id = self.streams_sorted[0]['id']
+            stream_id = self.stream_types[0]
 
         urls=[]
         for i in self.stream_urls[stream_id]:

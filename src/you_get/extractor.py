@@ -4,18 +4,15 @@ from .common import match1, download_urls, parse_host, set_proxy, unset_proxy, d
 from .util import log
 
 class VideoExtractor():
-    def __init__(self, *args):
+    def __init__(self):
         self.url = None
         self.title = None
         self.vid = None
         self.streams = {}
-        self.streams_sorted = []
         self.audiolang = None
         self.password_protected = False
         self.iterable = False
-
-        if args:
-            self.url = args[0]
+        self.stream_types = []
 
     def download_by_url(self, url, **kwargs):
         self.url = url
@@ -26,11 +23,6 @@ class VideoExtractor():
         self.prepare(**kwargs)
         if 'extractor_proxy' in kwargs and kwargs['extractor_proxy']:
             unset_proxy()
-
-        try:
-            self.streams_sorted = [dict([('id', stream_type['id'])] + list(self.streams[stream_type['id']].items())) for stream_type in self.__class__.stream_types if stream_type['id'] in self.streams]
-        except:
-            self.streams_sorted = [dict([('itag', stream_type['itag'])] + list(self.streams[stream_type['itag']].items())) for stream_type in self.__class__.stream_types if stream_type['itag'] in self.streams]
 
         if self.iterable:
             self.download_iter(**kwargs)
@@ -47,11 +39,6 @@ class VideoExtractor():
         self.prepare(**kwargs)
         if 'extractor_proxy' in kwargs and kwargs['extractor_proxy']:
             unset_proxy()
-
-        try:
-            self.streams_sorted = [dict([('id', stream_type['id'])] + list(self.streams[stream_type['id']].items())) for stream_type in self.__class__.stream_types if stream_type['id'] in self.streams]
-        except:
-            self.streams_sorted = [dict([('itag', stream_type['itag'])] + list(self.streams[stream_type['itag']].items())) for stream_type in self.__class__.stream_types if stream_type['itag'] in self.streams]
 
         if self.iterable:
             self.download_iter(**kwargs)
@@ -114,14 +101,14 @@ class VideoExtractor():
         elif stream_id is None:
             # Print stream with best quality
             print("stream:              # Best quality")
-            stream_id = self.streams_sorted[0]['id'] if 'id' in self.streams_sorted[0] else self.streams_sorted[0]['itag']
+            stream_id = self.stream_types[0]
             self.p_stream(stream_id)
 
         elif stream_id == []:
             # Print all available streams
             print("streams:             # Available quality and codecs")
-            for stream in self.streams_sorted:
-                self.p_stream(stream['id'] if 'id' in stream else stream['itag'])
+            for stream in self.stream_types:
+                self.p_stream(stream)
 
         if self.audiolang:
             print("audio-languages:")
@@ -148,7 +135,7 @@ class VideoExtractor():
                 if 'index' not in kwargs:
                     self.p([])
                 else:
-                    stream_id = self.streams_sorted[0]['id'] if 'id' in self.streams_sorted[0] else self.streams_sorted[0]['itag']
+                    stream_id = self.stream_types[0]
                     self.p_i(stream_id)
 
         else:
@@ -157,7 +144,7 @@ class VideoExtractor():
                 stream_id = kwargs['stream_id']
             else:
                 # Download stream with the best quality
-                stream_id = self.streams_sorted[0]['id'] if 'id' in self.streams_sorted[0] else self.streams_sorted[0]['itag']
+                stream_id = self.stream_types[0]
 
             if 'index' not in kwargs:
                 self.p(stream_id)
@@ -186,7 +173,7 @@ class VideoExtractor():
                 if 'index' not in kwargs:
                     self.p([])
                 else:
-                    stream_id = self.streams_sorted[0]['id'] if 'id' in self.streams_sorted[0] else self.streams_sorted[0]['itag']
+                    stream_id = self.stream_types[0]
                     self.p_i(stream_id)
 
         else:
@@ -195,7 +182,7 @@ class VideoExtractor():
                 stream_id = kwargs['stream_id']
             else:
                 # Download stream with the best quality
-                stream_id = self.streams_sorted[0]['id'] if 'id' in self.streams_sorted[0] else self.streams_sorted[0]['itag']
+                stream_id = self.stream_types[0]
 
             if 'index' not in kwargs:
                 self.p(stream_id)
@@ -206,5 +193,3 @@ class VideoExtractor():
             for url in self.extract_iter(**kwargs):
                 download_one_url(url, self.title, self.streams[stream_id]['container'], output_dir=kwargs['output_dir'], index = i)
                 i += 1
-
-        self.__init__()

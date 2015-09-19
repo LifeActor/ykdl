@@ -8,12 +8,7 @@ import base64, hashlib, time, re
 class Letvcloud(VideoExtractor):
     name = "乐视云 (Letvcloud)"
 
-    stream_types = [
-        {'id': 'yuanhua', 'container': 'mp4', 'video_profile': '原画'},
-        {'id': 'super', 'container': 'mp4', 'video_profile': '超清'},
-        {'id': 'high', 'container': 'mp4', 'video_profile': '高清'},
-        {'id': 'low', 'container': 'mp4', 'video_profile': '标清'},
-    ]
+    supported_stream_types = ['yuanhua', 'supper', 'high', 'low']
 
     def letvcloud_download_by_vu(self):
         #ran = float('0.' + str(random.randint(0, 9999999999999999))) # For ver 2.1
@@ -27,12 +22,13 @@ class Letvcloud(VideoExtractor):
         info = json.loads(str(html,"utf-8"))
 
         available_stream_type = info['data']['video_info']['media'].keys()
-        for stream in self.stream_types:
-            if stream['id'] in available_stream_type:
-                urls = [base64.b64decode(info['data']['video_info']['media'][stream['id']]['play_url']['main_url']).decode("utf-8")]
+        for stream in self.supported_stream_types:
+            if stream in available_stream_type:
+                urls = [base64.b64decode(info['data']['video_info']['media'][stream]['play_url']['main_url']).decode("utf-8")]
                 size = urls_size(urls)
                 ext = 'mp4'
-                self.streams[stream['id']] = {'container': ext, 'video_profile': stream['video_profile'], 'src': urls, 'size' : size}
+                self.stream_types.append(stream)
+                self.streams[stream] = {'container': ext, 'video_profile': stream, 'src': urls, 'size' : size}
 
     def prepare(self, **kwargs):
         assert self.url or self.vid

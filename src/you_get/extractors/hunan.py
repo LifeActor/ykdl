@@ -11,23 +11,13 @@ import re
 class Hunantv(VideoExtractor):
     name = "芒果TV (HunanTV)"
 
-    stream_types = [
-        {'id': '超清', 'container': 'fhv', 'video_profile': '超清'},
-        {'id': '高清', 'container': 'fhv', 'video_profile': '高清'},
-        {'id': '标清', 'container': 'fhv', 'video_profile': '标清'},
-    ]
-
-    def get_vid_from_url(url):
-        """Extracts video ID from URL.
-        """
-        return match1(url, "/([0-9]+).html")
-
+    supported_stream_types = [ '超清', '高清', '标清' ]
 
     def prepare(self, **kwargs):
         assert self.url or self.vid
 
         if self.url and not self.vid:
-            self.vid = self.__class__.get_vid_from_url(self.url)
+            self.vid = match1(self.url, "/([0-9]+).html")
 
         rn = randint(0, 99999999)
         api_url = 'http://v.api.hunantv.com/player/video?video_id={}&random={}'.format(self.vid,rn)
@@ -40,50 +30,51 @@ class Hunantv(VideoExtractor):
 
         info = data['info']
         self.title = info['title']
-
-        self.lstreams = data['stream']
-
-        for lstream in self.lstreams:
-               self.streams[lstream['name']] = {'container': 'fhv', 'video_profile': lstream['name'], 'size' : 0}
+        for stream in self.supported_stream_types:
+            for lstream in data['stream']:
+                if stream == lstream['name']:
+                    break;
+            self.streams[lstream['name']] = {'container': 'fhv', 'video_profile': lstream['name'], 'url' : lstream['url']}
+            self.stream_types.append(lstream['name'])
 
     def extract(self, **kwargs):
         if 'info_only' in kwargs and kwargs['info_only']:
-          for lstream in self.lstreams:
+          for stream in self.stream_types:
                 meta = ''
                 while True:
                     rn = randint(0, 99999999)
-                    meta = json.loads(get_html("{}&random={}".format((lstream['url']),rn)))
+                    meta = json.loads(get_html("{}&random={}".format((self.streams[stream]['url']),rn)))
                     if meta['status'] == 'ok':
                         if meta['info'].startswith('http://pcfastvideo.imgo.tv/'):
                             break
                 size = url_size(meta['info'])
-                self.streams[lstream['name']]['src'] = [meta['info']]
-                self.streams[lstream['name']]['size'] = size
-
-        if 'stream_id' in kwargs and kwargs['stream_id']:
-            # Extract the stream
-            stream_id = kwargs['stream_id']
-
-            if stream_id not in self.streams:
-                log.e('[Error] Invalid video format.')
-                log.e('Run \'-i\' command with no specific video format to view all available formats.')
-                exit(2)
+                self.streams[stream]['src'] = [meta['info']]
+                self.streams[stream]['size'] = size
         else:
-            # Extract stream with the best quality
-            stream_id = self.streams_sorted[0]['id']
 
-        for lstream in self.lstreams:
-            if stream_id == lstream['name']:
-                meta = ''
-                while True:
-                    rn = randint(0, 99999999)
-                    meta = json.loads(get_html("{}&random={}".format((lstream['url']),rn)))
-                    if meta['status'] == 'ok':
-                        if meta['info'].startswith('http://pcfastvideo.imgo.tv/'):
-                            break
-                size = url_size(meta['info'])
-                self.streams[stream_id]['src'] = [meta['info']]
-                self.streams[stream_id]['size'] = size
+            if 'stream_id' in kwargs and kwargs['stream_id']:
+                # Extract the stream
+                stream_id = kwargs['stream_id']
+
+                if stream_id not in self.streams:
+                    log.e('[Error] Invalid video format.')
+                    log.e('Run \'-i\' command with no specific video format to view all available formats.')
+                    exit(2)
+            else:
+                # Extract stream with the best quality
+                stream_id = self.stream_types[0]
+
+
+            meta = ''
+            while True:
+                rn = randint(0, 99999999)
+                meta = json.loads(get_html("{}&random={}".format((self.streams[stream_id]['url']),rn)))
+                if meta['status'] == 'ok':
+                    if meta['info'].startswith('http://pcfastvideo.imgo.tv/'):
+                        break
+            size = url_size(meta['info'])
+            self.streams[stream_id]['src'] = [meta['info']]
+            self.streams[stream_id]['size'] = size
 
 site = Hunantv()
 download = site.download_by_url

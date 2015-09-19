@@ -1,29 +1,34 @@
 #!/usr/bin/env python
 
-__all__ = ['facebook_download']
-
 from ..common import *
+from ..extractor import VideoExtractor
 import json
 
+class Facebook(VideoExtractor):
 
-def facebook_download(url, output_dir='.', merge=True, info_only=False):
-    html = get_html(url)
+    name = 'Facebook'
 
-    title = r1(r'<title id="pageTitle">(.+) \| Facebook</title>', html)
-    s2 = parse.unquote(unicodize(r1(r'\["params","([^"]*)"\]', html)))
-    data = json.loads(s2)
-    video_data = data["video_data"][0]
-    for fmt in ["hd_src", "sd_src"]:
-        src = video_data[fmt]
-        if src:
-            break
+    supported_stream_types = [ 'hd_src', 'sd_src' ]
 
-    type, ext, size = url_info(src, True)
+    def prepare(self, **kwargs):
+        assert self.url
 
-    print_info(site_info, title, type, size)
-    if not info_only:
-        download_urls([src], title, ext, size, output_dir, merge=merge)
+        html = get_content(self.url)
+        self.title = match1(html, '<title id="pageTitle">(.+) \| Facebook</title>')
+        s2 = parse.unquote(unicodize(r1(r'\["params","([^"]*)"\]', html)))
+        data = json.loads(s2)
+        video_data = data["video_data"][0]
+        available_stream_types = video_data.keys()
+        for stream in self.supported_stream_types:
+            if stream in available_stream_types:
+                url = video_data[stream]
+                _, ext, size = url_info(url)
+                self.stream_types.append(stream)
+                self.streams[stream] = {'container': ext, 'src': [url], 'size' : size}
 
-site_info = "Facebook.com"
-download = facebook_download
+    def download_by_vid(self):
+        pass
+
+site = Facebook()
+download = site.download_by_url
 download_playlist = playlist_not_supported('facebook')

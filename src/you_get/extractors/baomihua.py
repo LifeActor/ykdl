@@ -8,11 +8,6 @@ class Baomihua(VideoExtractor):
 
     name = "爆米花（Baomihua)"
 
-    stream_types = [
-        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
-    ]
-
-
     def prepare(self, **kwargs):
         assert self.url or self.vid
 
@@ -45,7 +40,7 @@ class Baomihua(VideoExtractor):
         size = int(r1(r'&videofilesize=([^&]*)', html))
 
         url = "http://%s/pomoho_video/%s.%s" % (host, id, type)
-
+        self.stream_types.append('current')
         self.streams['current'] = {'container': type, 'src': [url], 'size' : size}
 
 

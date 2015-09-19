@@ -7,9 +7,8 @@ import json
 class Qianmo(VideoExtractor):
     name = "阡陌 (qianmo)"
 
-    stream_types = [
-        {'id': 'hd', 'container': 'mp4', 'video_profile': 'hd'},
-    ]
+    supported_stream_types = [ 'hd' ]
+
 
     def prepare(self, **kwargs):
         assert self.url or self.vid
@@ -28,14 +27,15 @@ class Qianmo(VideoExtractor):
 
         html = get_content('http://v.qianmo.com/player/{}'.format(self.vid))
         c = json.loads(html)
-        for stream in self.stream_types:
-            if stream['id'] in c['seg'].keys():
+        for stream in self.supported_stream_types:
+            if stream in c['seg'].keys():
                 urls = []
                 size = 0
-                for info in c['seg'][stream['id']][0]['url']:
+                for info in c['seg'][stream][0]['url']:
                     size += url_size(info[0])
                     urls.append(info[0])
-                self.streams[stream['id']] = {'container': 'mp4','video_profile': stream['video_profile'], 'src': urls, 'size' : size}
+                self.streams[stream['id']] = {'container': 'mp4','video_profile': stream, 'src': urls, 'size' : size}
+                self.stream_types.append(stream)
 
 site = Qianmo()
 download = site.download_by_url

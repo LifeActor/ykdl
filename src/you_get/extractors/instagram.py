@@ -7,10 +7,6 @@ from ..extractor import VideoExtractor
 class Instagram(VideoExtractor):
     name = "Instagram"
 
-    stream_types = [
-        {'id': 'current', 'container': 'unknown', 'video_profile': 'currently'},
-    ]
-
     def prepare(self, **kwargs):
         assert self.url or self.vid
 
@@ -26,6 +22,7 @@ class Instagram(VideoExtractor):
         stream = r1(r'<meta property="og:video" content="([^"]*)"', html)
         mime, ext, size = url_info(stream)
         self.streams['current'] = {'container': ext, 'src': [stream], 'size' : size}
+        self.stream_types.append('current')
 
 
 site = Instagram()

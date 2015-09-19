@@ -18,12 +18,8 @@ Changelog:
 class Sohu(VideoExtractor):
     name = "搜狐 (Sohu)"
 
-    stream_types = [
-        {'id': 'oriVid', 'container': 'mp4', 'video_profile': '原画'},
-        {'id': 'superVid', 'container': 'mp4', 'video_profile': '超清'},
-        {'id': 'highVid', 'container': 'mp4', 'video_profile': '高清'},
-        {'id': 'norVid', 'container': 'mp4', 'video_profile': '标清'},
-    ]
+    supported_stream_types = [ 'oriVid', 'superVid', 'highVid', 'norVid' ]
+
 
     realurls = { 'oriVid': [], 'superVid': [], 'highVid': [], 'norVid': [], 'relativeId': []}
 
@@ -44,8 +40,9 @@ class Sohu(VideoExtractor):
         assert len(data['clipsURL']) == len(data['clipsBytes']) == len(data['su'])
         for new, clip, ck, in zip(data['su'], data['clipsURL'], data['ck']):
             clipURL = urlparse(clip).path
-            self.realurls[stream['id']].append(self.__class__.real_url(host, lvid, tvid, new, clipURL, ck))
-        self.streams[stream['id']] = {'container': 'mp4', 'video_profile': stream['video_profile'], 'size' : size}
+            self.realurls[stream].append(self.__class__.real_url(host, lvid, tvid, new, clipURL, ck))
+        self.streams[stream] = {'container': 'mp4', 'video_profile': stream, 'size' : size}
+        self.stream_types.append(stream)
 
 
     def prepare(self, **kwargs):
@@ -58,8 +55,8 @@ class Sohu(VideoExtractor):
         if info['status'] == 1:
             data = info['data']
             self.title = data['tvName']
-            for stream in self.stream_types:
-                lvid = data[stream['id']]
+            for stream in self.supported_stream_types:
+                lvid = data[stream]
                 if lvid == 0:
                     continue
                 if lvid != self.vid :
@@ -87,7 +84,7 @@ class Sohu(VideoExtractor):
                 exit(2)
         else:
             # Extract stream with the best quality
-            stream_id = self.streams_sorted[0]['id']
+            stream_id = self.stream_types[0]
 
 
         urls = []

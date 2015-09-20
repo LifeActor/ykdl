@@ -21,9 +21,8 @@ cookies_txt = None
 
 fake_headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Charset': 'UTF-8,*;q=0.5',
-    'Accept-Encoding': 'gzip,deflate,sdch',
-    'Accept-Language': 'en-US,en;q=0.8',
+    'Accept-Encoding': 'gzip, deflate',
+    'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0 Iceweasel/38.2.1'
 }
 
@@ -194,7 +193,7 @@ def get_location(url):
     # not to do that
     return response.geturl()
 
-def get_content(url, headers={}, decoded=True):
+def get_content(url, headers=fake_headers, decoded=True):
     """Gets the content of a URL via sending a HTTP GET request.
 
     Args:

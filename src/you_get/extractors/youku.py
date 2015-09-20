@@ -10,14 +10,9 @@ import time
 class Youku(VideoExtractor):
     name = "优酷 (Youku)"
 
-    stream_types = [
-        {'id': 'hd3', 'container': 'flv', 'video_profile': '1080P'},
-        {'id': 'hd2', 'container': 'flv', 'video_profile': '超清'},
-        {'id': 'mp4', 'container': 'mp4', 'video_profile': '高清'},
-        {'id': 'flvhd', 'container': 'flv', 'video_profile': '高清'},
-        {'id': 'flv', 'container': 'flv', 'video_profile': '标清'},
-        {'id': '3gphd', 'container': '3gp', 'video_profile': '高清（3GP）'},
-    ]
+    supported_stream_types = [ 'hd3', 'hd2', 'mp4', 'flvhd','flv', '3gphd']
+
+    stream_2_container = {'hd3': 'flv', 'hd2':'flv', 'mp4':'mp4', 'flvhd':'flv', 'flv': 'flv', '3gphd': '3gp'}
 
     def generate_ep(vid, ep):
         f_code_1 = 'becaf9be'
@@ -100,6 +95,8 @@ class Youku(VideoExtractor):
             log.wtf('[Failed] Video not found.')
         metadata0 = meta['data'][0]
 
+        print(metadata0)
+
         if 'error_code' in metadata0 and metadata0['error_code']:
             if metadata0['error_code'] == -8:
                 log.w('[Warning] This video can only be streamed within Mainland China!')
@@ -118,17 +115,17 @@ class Youku(VideoExtractor):
             for i in self.audiolang:
                 i['url'] = 'http://v.youku.com/v_show/id_{}'.format(i['vid'])
 
-        for stream_type in self.stream_types:
-            if stream_type['id'] in metadata0['streamsizes']:
-                stream_id = stream_type['id']
-                stream_size = int(metadata0['streamsizes'][stream_id])
-                self.streams[stream_id] = {'container': stream_type['container'], 'video_profile': stream_type['video_profile'], 'size': stream_size}
+        for stream_type in self.supported_stream_types:
+            if stream_type in metadata0['streamsizes']:
+                stream_size = int(metadata0['streamsizes'][stream_type])
+                self.streams[stream_type] = {'container': self.stream_2_container[stream_type],'video_profile': stream_type, 'size': stream_size}
+                self.stream_types.append(stream_type)
 
         if not self.streams:
-            for stream_type in self.stream_types:
-                if stream_type['id'] in metadata0['streamtypes_o']:
-                    stream_id = stream_type['id']
-                    self.streams[stream_id] = {'container': stream_type['container'], 'video_profile': stream_type['video_profile']}
+            for stream_type in self.supported_stream_types:
+                if stream_type in metadata0['streamtypes_o']:
+                    self.streams[stream_type] = {'container': self.stream_2_container[stream_type],'video_profile': stream_type}
+                    self.stream_types.append(stream_type)
 
     def extract(self, **kwargs):
         if 'stream_id' in kwargs and kwargs['stream_id']:
@@ -141,7 +138,7 @@ class Youku(VideoExtractor):
                 exit(2)
         else:
             # Extract stream with the best quality
-            stream_id = self.streams_sorted[0]['id']
+            stream_id = self.stream_types[0]
 
         new_ep, sid, token = self.__class__.generate_ep(self.vid, self.ep)
         m3u8_query = parse.urlencode(dict(

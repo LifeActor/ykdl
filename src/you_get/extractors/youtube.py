@@ -6,9 +6,11 @@ from ..extractor import VideoExtractor
 class YouTube(VideoExtractor):
     name = "YouTube"
 
+    supported_stream_types = [ '38', '46', '37', '45', '22', '120', '44', '35', '43', '34','18', '6','13', '5','36', '17']
+
     # YouTube media encoding options, in descending quality order.
     # http://en.wikipedia.org/wiki/YouTube#Quality_and_codecs. Retrieved July 17, 2014.
-    stream_types = [
+    stream_types_DONOT_USE = [
         {'itag': '38', 'container': 'MP4', 'video_resolution': '3072p', 'video_encoding': 'H.264', 'video_profile': 'High', 'video_bitrate': '3.5-5', 'audio_encoding': 'AAC', 'audio_bitrate': '192'},
         #{'itag': '85', 'container': 'MP4', 'video_resolution': '1080p', 'video_encoding': 'H.264', 'video_profile': '3D', 'video_bitrate': '3-4', 'audio_encoding': 'AAC', 'audio_bitrate': '192'},
         {'itag': '46', 'container': 'WebM', 'video_resolution': '1080p', 'video_encoding': 'VP8', 'video_profile': '', 'video_bitrate': '', 'audio_encoding': 'Vorbis', 'audio_bitrate': '192'},
@@ -173,10 +175,31 @@ class YouTube(VideoExtractor):
                 'mime': metadata['type'][0].split(';')[0],
                 'container': mime_to_container(metadata['type'][0].split(';')[0]),
             }
+        for stream in self.supported_stream_types:
+            if stream in self.streams.keys():
+                self.stream_types.append(stream)
 
     def extract(self, **kwargs):
-        if not self.streams_sorted:
+        if not self.stream_types:
             # No stream is available
+            return
+
+        if 'info_only' in kwargs and kwargs['info_only']:
+            for stream_id in self.stream_types:
+                src = self.streams[stream_id]['url']
+
+                if self.streams[stream_id]['sig'] is not None:
+                    sig = self.streams[stream_id]['sig']
+                    src += '&signature={}'.format(sig)
+
+                elif self.streams[stream_id]['s'] is not None:
+                    s = self.streams[stream_id]['s']
+                    js = get_content(self.html5player)
+                    sig = self.__class__.decipher(js, s)
+                    src += '&signature={}'.format(sig)
+
+                self.streams[stream_id]['src'] = [src]
+                self.streams[stream_id]['size'] = urls_size(self.streams[stream_id]['src'])
             return
 
         if 'stream_id' in kwargs and kwargs['stream_id']:
@@ -188,7 +211,7 @@ class YouTube(VideoExtractor):
                 exit(2)
         else:
             # Extract stream with the best quality
-            stream_id = self.streams_sorted[0]['itag']
+            stream_id = self.stream_types[0]
 
         src = self.streams[stream_id]['url']
 

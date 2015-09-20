@@ -1,45 +1,32 @@
 #!/usr/bin/env python
 
-__all__ = ['joy_download']
-
 from ..common import *
+from ..extractor import VideoExtractor
 
-def video_info(channel_id, program_id, volumn_id):
-    url = 'http://msx.app.joy.cn/service.php'
-    if program_id:
-        url += '?action=vodmsxv6'
-        url += '&channelid=%s' % channel_id
-        url += '&programid=%s' % program_id
-        url += '&volumnid=%s' % volumn_id
-    else:
-        url += '?action=msxv6'
-        url += '&videoid=%s' % volumn_id
-    
-    xml = get_html(url)
-    
-    name = r1(r'<Title>(?:<!\[CDATA\[)?(.+?)(?:\]\]>)?</Title>', xml)
-    urls = re.findall(r'<Url[^>]*>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</Url>', xml)
-    hostpath = r1(r'<HostPath[^>]*>(?:<!\[CDATA\[)?(.+?)(?:\]\]>)?</HostPath>', xml)
-    
-    return name, urls, hostpath
+class Joy(VideoExtractor):
 
-def joy_download(url, output_dir = '.', merge = True, info_only = False):
-    channel_id = r1(r'[^_]channelId\s*:\s*"([^\"]+)"', get_html(url))
-    program_id = r1(r'[^_]programId\s*:\s*"([^\"]+)"', get_html(url))
-    volumn_id = r1(r'[^_]videoId\s*:\s*"([^\"]+)"', get_html(url))
-    
-    title, urls, hostpath = video_info(channel_id, program_id, volumn_id)
-    urls = [hostpath + url for url in urls]
-    
-    size = 0
-    for url in urls:
-        _, ext, temp = url_info(url)
-        size += temp
-    
-    print_info(site_info, title, ext, size)
-    if not info_only:
-        download_urls(urls, title, ext, size, output_dir = output_dir, merge = merge)
+    name = '激动网 (Joy)'
 
-site_info = "Joy.cn"
-download = joy_download
+
+    def prepare(self, **kwargs):
+        assert self.url or self.vid
+
+        if not self.vid:
+            self.vid = match1(self.url, 'resourceId=([0-9]+)')
+        if not self.url:
+            self.url = "http://www.joy.cn/video?resourceId={}".format(self.vid)
+
+        html= get_html(self.url, faker = True)
+
+        self.title = match1(html, '<meta content=\"([^\"]+)')
+
+        url = match1(html, '<source src=\"([^\"]+) type="video/mp4"> 您的浏览器')
+
+        _, ext, size = url_info(url)
+
+        self.stream_types.append('current')
+        self.streams['current'] = {'container': ext, 'src': [url], 'size': size }
+
+site = Joy()
+download = site.download_by_url
 download_playlist = playlist_not_supported('joy')

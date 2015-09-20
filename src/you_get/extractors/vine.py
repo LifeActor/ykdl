@@ -1,23 +1,32 @@
 #!/usr/bin/env python
 
-__all__ = ['vine_download']
-
 from ..common import *
+from ..extractor import VideoExtractor
 
-def vine_download(url, output_dir='.', merge=True, info_only=False):
-    html = get_html(url)
+class Vine(VideoExtractor):
+    name = 'Vine'
 
-    vid = r1(r'vine.co/v/([^/]+)', url)
-    title1 = r1(r'<meta property="twitter:title" content="([^"]*)"', html)
-    title2 = r1(r'<meta property="twitter:description" content="([^"]*)"', html)
-    title = "{} - {} [{}]".format(title1, title2, vid)
-    stream = r1(r'<meta property="twitter:player:stream" content="([^"]*)">', html)
-    mime, ext, size = url_info(stream)
+    def prepare(self, **kwargs):
+        assert self.url or self.vid
 
-    print_info(site_info, title, mime, size)
-    if not info_only:
-        download_urls([stream], title, ext, size, output_dir, merge=merge)
+        if self.url and not self.vid:
+            self.vid = match1(self.url, 'vine.co/v/([^/]+)')
+        else:
+            self.url = "https://vine.co/v/{}/".format(self.vid)
 
-site_info = "Vine.co"
-download = vine_download
+        html = get_content(self.url)
+
+        title1 = match1(html, '<meta property="twitter:title" content="([^"]*)"')
+        title2 = r1(html, '<meta property="twitter:description" content="([^"]*)"')
+        self.title = "{} - {} [{}]".format(title1, title2, self.vid)
+
+        stream = match1(html, '<meta property="twitter:player:stream" content="([^"]*)">')
+
+        mime, ext, size = url_info(stream)
+
+        self.stream_types.append('current')
+        self.streams['current'] = {'container': ext, 'src': [stream], 'size': size }
+
+site = Vine()
+download = site.download_by_url
 download_playlist = playlist_not_supported('vine')

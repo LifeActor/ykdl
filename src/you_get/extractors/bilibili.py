@@ -69,7 +69,7 @@ def parse_cid_playurl(xml):
     except:
         return []
 
-def bilibili_download_by_cids(cids, title, output_dir='.', merge=True, info_only=False):
+def bilibili_download_by_cids(cids, title, output_dir='.',  info_only=False):
     urls = []
     for cid in cids:
         sign_this = hashlib.md5(bytes('appkey=' + appkey + '&cid=' + cid + secretkey, 'utf-8')).hexdigest()
@@ -87,9 +87,9 @@ def bilibili_download_by_cids(cids, title, output_dir='.', merge=True, info_only
 
     print_info(site_info, title, type_, size)
     if not info_only:
-        download_urls(urls, title, type_, total_size=None, output_dir=output_dir, merge=merge)
+        download_urls(urls, title, type_, total_size=None, output_dir=output_dir)
 
-def bilibili_download_by_cid(id, title, output_dir='.', merge=True, info_only=False):
+def bilibili_download_by_cid(id, title, output_dir='.', info_only=False):
     sign_this = hashlib.md5(bytes('appkey=' + appkey + '&cid=' + id + secretkey, 'utf-8')).hexdigest()
     url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + id + '&sign=' + sign_this
     urls = [i
@@ -105,9 +105,9 @@ def bilibili_download_by_cid(id, title, output_dir='.', merge=True, info_only=Fa
 
     print_info(site_info, title, type_, size)
     if not info_only:
-        download_urls(urls, title, type_, total_size=None, output_dir=output_dir, merge=merge)
+        download_urls(urls, title, type_, total_size=None, output_dir=output_dir)
 
-def bilibili_download(url, output_dir='.', merge=True, info_only=False):
+def bilibili_download(url, output_dir='.', info_only=False):
     html = get_html(url)
 
     title = r1_of([r'<meta name="title" content="([^<>]{1,999})" />',r'<h1[^>]*>([^<>]+)</h1>'], html)
@@ -124,7 +124,7 @@ def bilibili_download(url, output_dir='.', merge=True, info_only=False):
         cids = []
         p = re.findall('<option value=\'([^\']*)\'>', html)
         if not p:
-            bilibili_download_by_cid(id, title, output_dir=output_dir, merge=merge, info_only=info_only)
+            bilibili_download_by_cid(id, title, output_dir=output_dir, info_only=info_only)
         else:
             for i in p:
                 html = get_html("http://www.bilibili.com%s" % i)
@@ -132,14 +132,14 @@ def bilibili_download(url, output_dir='.', merge=True, info_only=False):
                 if flashvars:
                     t, cid = flashvars.split('=', 1)
                     cids.append(cid.split('&')[0])
-            bilibili_download_by_cids(cids, title, output_dir=output_dir, merge=merge, info_only=info_only)
+            bilibili_download_by_cids(cids, title, output_dir=output_dir, info_only=info_only)
 
     elif t == 'vid':
-        sina_download_by_vid(id, title, output_dir = output_dir, merge = merge, info_only = info_only)
+        sina_download_by_vid(id, title, output_dir = output_dir, info_only = info_only)
     elif t == 'ykid':
-        youku_download_by_vid(id, title=title, output_dir = output_dir, merge = merge, info_only = info_only)
+        youku_download_by_vid(id, title=title, output_dir = output_dir, info_only = info_only)
     elif t == 'uid':
-        tudou_download_by_id(id, title, output_dir = output_dir, merge = merge, info_only = info_only)
+        tudou_download_by_id(id, title, output_dir = output_dir, info_only = info_only)
     else:
         raise NotImplementedError(flashvars)
 

@@ -5,7 +5,7 @@ __all__ = ['douyutv_download']
 from ..common import *
 import json
 
-def douyutv_download(url, output_dir = '.', merge = True, info_only = False):
+def douyutv_download(url, output_dir = '.',  info_only = False):
     room_id = url[url.rfind('/')+1:]
 
     content = get_html("http://www.douyutv.com/api/client/room/"+room_id)
@@ -16,7 +16,7 @@ def douyutv_download(url, output_dir = '.', merge = True, info_only = False):
 
     print_info(site_info, title, 'flv', float('inf'))
     if not info_only:
-        download_urls([real_url], title, 'flv', None, output_dir, merge = merge)
+        download_urls([real_url], title, 'flv', None, output_dir)
 
 site_info = "douyutv.com"
 download = douyutv_download

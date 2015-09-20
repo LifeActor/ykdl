@@ -6,8 +6,8 @@ from ..simpleextractor import SimpleExtractor
 class Iqilu(SimpleExtractor):
     name = "齐鲁网 (iqilu)"
 
-    def __init__(self):
-        SimpleExtractor.__init__(self)
+    def __init__(self, *args):
+        SimpleExtractor.__init__(self, *args)
         self.title_pattern = '<meta name="description" content="(.*?)\"\W'
         self.url_pattern = "<input type='hidden' id='playerId' url='(.+)'"
 

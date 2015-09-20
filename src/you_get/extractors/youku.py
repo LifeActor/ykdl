@@ -95,8 +95,6 @@ class Youku(VideoExtractor):
             log.wtf('[Failed] Video not found.')
         metadata0 = meta['data'][0]
 
-        print(metadata0)
-
         if 'error_code' in metadata0 and metadata0['error_code']:
             if metadata0['error_code'] == -8:
                 log.w('[Warning] This video can only be streamed within Mainland China!')

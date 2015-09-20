@@ -6,8 +6,8 @@ from ..simpleextractor import SimpleExtractor
 class Magisto(SimpleExtractor):
     name = "Magisto"
 
-    def __init__(self):
-        SimpleExtractor.__init__(self)
+    def __init__(self, *args):
+        SimpleExtractor.__init__(self, *args)
         self.url_pattern = '<source type="[^"]+" src="([^"]*)"'
 
     def get_title(self):

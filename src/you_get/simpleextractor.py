@@ -7,8 +7,8 @@ class SimpleExtractor(VideoExtractor):
 
     name = "SimpleExtractor"
 
-    def __init__(self):
-        VideoExtractor.__init__(self)
+    def __init__(self, *args):
+        VideoExtractor.__init__(self, *args)
 
         self.html = ''
 

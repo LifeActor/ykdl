@@ -5,8 +5,8 @@ from ..simpleextractor import SimpleExtractor
 
 class JPopsuki(SimpleExtractor):
     name = "JPopsuki"
-    def __init__(self):
-        SimpleExtractor.__init__(self)
+    def __init__(self, *args):
+        SimpleExtractor.__init__(self, *args)
         self.title_pattern = '<meta name="title" content="([^"]*)"'
         self.faker = True
 

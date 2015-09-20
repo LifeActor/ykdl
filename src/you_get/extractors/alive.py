@@ -6,8 +6,8 @@ from ..simpleextractor import SimpleExtractor
 class Alive(SimpleExtractor):
     name = "Alive"
 
-    def __init__(self):
-        SimpleExtractor.__init__(self)
+    def __init__(self, *args):
+        SimpleExtractor.__init__(self, *args)
         self.title_pattern = '<meta property="og:title" content="([^"]+)"'
         self.url_pattern = 'file: "(http://alive[^"]+)"'
 

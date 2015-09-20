@@ -8,8 +8,8 @@ class Miaopai(SimpleExtractor):
     name = "微博秒拍 (Miaopai)"
 
 
-    def __init__(self):
-        SimpleExtractor.__init__(self)
+    def __init__(self, *args):
+        SimpleExtractor.__init__(self, *args)
         self.title_pattern = '<meta name="description" content="(.*?)\"\W'
 
     def get_url(self):

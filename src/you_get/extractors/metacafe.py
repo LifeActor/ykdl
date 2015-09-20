@@ -9,8 +9,8 @@ import re
 class Metacafe(SimpleExtractor):
     name = "Metacafe"
 
-    def __init__(self):
-        SimpleExtractor.__init__(self)
+    def __init__(self, *args):
+        SimpleExtractor.__init__(self, *args)
         self.title_pattern = '<meta property="og:title" content="([^"]*)"'
 
     def l_assert(self):

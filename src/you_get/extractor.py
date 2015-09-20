@@ -4,7 +4,7 @@ from .common import match1, download_urls, parse_host, set_proxy, unset_proxy, d
 from .util import log
 
 class VideoExtractor():
-    def __init__(self):
+    def __init__(self, *args):
         self.url = None
         self.title = None
         self.vid = None
@@ -13,6 +13,9 @@ class VideoExtractor():
         self.password_protected = False
         self.iterable = False
         self.stream_types = []
+
+        if args:
+            self.url = args[0]
 
     def download_by_url(self, url, **kwargs):
         self.url = url

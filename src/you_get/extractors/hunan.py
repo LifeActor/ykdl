@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-__all__ = ['hunan_download']
-
 from ..common import *
 from ..extractor import VideoExtractor
 from random import randint
@@ -78,5 +76,4 @@ class Hunantv(VideoExtractor):
 
 site = Hunantv()
 download = site.download_by_url
-hunan_download_by_vid = site.download_by_vid
 download_playlist = playlist_not_supported('hunantv')

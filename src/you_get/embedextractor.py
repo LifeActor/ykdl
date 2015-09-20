@@ -13,6 +13,7 @@ class EmbedExtractor():
 
     def __init__(self, *args):
         self.video_info = []
+        self.video_url = []
         self.title = None
         if args:
             self.url = args[0]
@@ -27,14 +28,22 @@ class EmbedExtractor():
 
     def download(self, url, **kwargs):
         self.url = url
-
+        self.video_info = []
+        self.video_url = []
         self.prepare(**kwargs)
 
-        if not self.video_info:
+        if not self.video_info and not self.video_url:
             raise NotImplementedError(self.url + "is not supported")
 
-        for v in self.video_info:
-            site, vid = v
-            #enhancemant needed, just know upstream has related patch, and wait a few days
-            s = import_module('.'.join(['you_get','extractors',site]))
-            s.site.download_by_vid(vid, title=self.title, **kwargs)
+        if self.video_info:
+            for v in self.video_info:
+                site, vid = v
+                #enhancemant needed, just know upstream has related patch, and wait a few days
+                s = import_module('.'.join(['you_get','extractors',site]))
+                s.site.download_by_vid(vid, title=self.title, **kwargs)
+
+        if self.video_url:
+            for l in self.video_url:
+                from .common import any_download
+                #dead loop?
+                any_download(l, title = self.title, **kwargs)

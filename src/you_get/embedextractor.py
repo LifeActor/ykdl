@@ -1,4 +1,5 @@
 from importlib import import_module
+from .common import alias
 
 class EmbedExtractor():
     """
@@ -38,7 +39,8 @@ class EmbedExtractor():
         if self.video_info:
             for v in self.video_info:
                 site, vid = v
-                #enhancemant needed, just know upstream has related patch, and wait a few days
+                if site in alias.keys():
+                    site = alias[site]
                 s = import_module('.'.join(['you_get','extractors',site]))
                 s.site.download_by_vid(vid, title=self.title, **kwargs)
 

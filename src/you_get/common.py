@@ -835,7 +835,17 @@ def script_main(script_name, download, download_playlist = None):
             raise
         else:
             sys.exit(1)
-
+alias = {
+        '163': 'netease',
+        '56': 'w56',
+        'fun': 'funshion',
+        'iask': 'sina',
+        'in': 'alive',
+        'kankanews': 'bilibili',
+        'khanacademy': 'khan',
+        'smgbb': 'bilibili',
+        'weibo': 'miaopai',
+}
 def url_to_module(url):
     video_host = r1(r'https?://([^/]+)/', url)
     video_url = r1(r'https?://[^/]+(.*)', url)
@@ -847,79 +857,12 @@ def url_to_module(url):
     assert domain, 'unsupported url: ' + url
 
     k = r1(r'([^.]+)', domain)
-    downloads = {
-        '163': 'netease',
-        '56': 'w56',
-        'acfun': 'acfun',
-        'baidu': 'baidu',
-        'baomihua': 'baomihua',
-        'bilibili': 'bilibili',
-        'blip': 'blip',
-        'catfun': 'catfun',
-        'cntv': 'cntv',
-        'cbs': 'cbs',
-        'coursera': 'coursera',
-        'dailymotion': 'dailymotion',
-        'dongting': 'dongting',
-        'douban': 'douban',
-        'douyutv': 'douyutv',
-        'ehow': 'ehow',
-        'facebook': 'facebook',
-        'freesound': 'freesound',
-        'fun': 'funshion',
-        'google': 'google',
-        'iask': 'sina',
-        'ifeng': 'ifeng',
-        'in': 'alive',
-        'instagram': 'instagram',
-        'iqilu': 'iqilu',
-        'iqiyi': 'iqiyi',
-        'joy': 'joy',
-        'jpopsuki': 'jpopsuki',
-        'kankanews': 'bilibili',
-        'khanacademy': 'khan',
-        'ku6': 'ku6',
-        'kugou': 'kugou',
-        'kuwo': 'kuwo',
-        'letv': 'letv',
-        'lizhi': 'lizhi',
-        'magisto': 'magisto',
-        'metacafe': 'metacafe',
-        'miomio': 'miomio',
-        'mixcloud': 'mixcloud',
-        'mtv81': 'mtv81',
-        'nicovideo': 'nicovideo',
-        'pptv': 'pptv',
-        'qianmo': 'qianmo',
-        'qq': 'qq',
-        'sina': 'sina',
-        'smgbb': 'bilibili',
-        'sohu': 'sohu',
-        'songtaste': 'songtaste',
-        'soundcloud': 'soundcloud',
-        'ted': 'ted',
-        'theplatform': 'theplatform',
-        "tucao": 'tucao',
-        'tudou': 'tudou',
-        'tumblr': 'tumblr',
-        'twitter': 'twitter',
-        'vid48': 'vid48',
-        'videobam': 'videobam',
-        'vidto': 'vidto',
-        'vimeo': 'vimeo',
-        'weibo': 'miaopai',
-        'vine': 'vine',
-        'vk': 'vk',
-        'xiami': 'xiami',
-        'yinyuetai': 'yinyuetai',
-        'youku': 'youku',
-        'youtu': 'youtube',
-        'youtube': 'youtube',
-        'zhanqi': 'zhanqi',
-    }
-    if k in downloads:
-        return import_module('.'.join(['you_get','extractors',downloads[k]])), url
-    else:
+    if k in alias.keys():
+        k = alias[k]
+    try:
+        m = import_module('.'.join(['you_get','extractors', k]))
+        return m ,url
+    except:
         import http.client
         conn = http.client.HTTPConnection(video_host)
         conn.request("HEAD", video_url)

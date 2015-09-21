@@ -870,8 +870,10 @@ def url_to_module(url):
         location = res.getheader('location')
         if location is None:
             return import_module('you_get.extractors.embed'), url
-        else:
+        elif location != url:
             return url_to_module(location)
+        else:
+            raise ConnectionResetError(url)
 
 def any_download(url, **kwargs):
     m, url = url_to_module(url)

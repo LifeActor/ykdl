@@ -236,6 +236,11 @@ class QQ(VideoExtractor):
                 fmt_name, type_name, urls, size = self.get_stream_info(stream)
                 self.streams[fmt_name] = {'container': type_name, 'video_profile': self.stream_2_profile[fmt_name], 'src' : urls, 'size': size}
 
+        if 'stream_id' in kwargs and kwargs['stream_id']:
+            stream_id = kwargs['stream_id']
+            if stream_id in self.stream_types and self.stream_types.index(stream_id) > 0:
+                fmt_name, type_name, urls, size = self.get_stream_info(stream_id)
+                self.streams[fmt_name] = {'container': type_name, 'video_profile': self.stream_2_profile[fmt_name], 'src' : urls, 'size': size}
 
 site = QQ()
 download = site.download_by_url

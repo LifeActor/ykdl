@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
-__all__ = ['qq_download']
-
 from ..common import *
+from ..extractor import VideoExtractor
 
 import xml.etree.ElementTree as ET
 import urllib.parse
@@ -11,9 +10,8 @@ import base64
 import struct
 import uuid
 
-USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:33.0) Gecko/20100101 Firefox/33.0'
 PLAYER_PLATFORM = 11
-PLAYER_VERSION = '3.2.18.285'
+PLAYER_VERSION = '3.2.19.333'
 KLIB_VERSION = '2.0'
 
 def pack(data):
@@ -81,12 +79,6 @@ def ccc(platform, version, timestamp):
     enc = qq_encrypt(data, key)
     return base64.b64encode(bytes(enc), b'_-').replace(b'=', b'')
 
-def to_dict(json_object):
-    class global_dict(dict):
-        def __getitem__(self, key):
-            return key
-    return eval(json_object, global_dict())
-
 def get_from(url):
     return 'v1001'
 
@@ -110,113 +102,141 @@ def load_key():
     t = int(tree.find('./t').text)
     return ccc(PLAYER_PLATFORM, PLAYER_VERSION, t)
 
-def qq_download_by_vid(vid, title = None, output_dir = '.', merge = True, info_only = False):
-    player_pid = uuid.uuid4().hex.upper()
-    params = {
-        'vids': vid,
-        'vid': vid,
-        'otype': 'xml',
-        'defnpayver': 1,
-        'platform': PLAYER_PLATFORM,
-        'charge': 0,
-        'ran': random.random(),
-        'speed': 8096, #random.randint(2048, 8096),
-        'pid': player_pid,
-        'appver': PLAYER_VERSION,
-        'fhdswitch': 0,
-        'defn': 'shd',  # default to super hd
-        'defaultfmt': 'shd', # default to super hd
-        'fp2p': 1,
-        'utype': 0,
-        'cKey': load_key(),
-        'encryptVer': KLIB_VERSION,
-    }
+class QQ(VideoExtractor):
 
-    form = urllib.parse.urlencode(params)
-    url1 = '%s?%s' % ('http://vv.video.qq.com/getvinfo', form)
-    content = get_content(url1, headers = {'User-Agent': USER_AGENT})
-    tree = ET.fromstring(content)
-    fmt_id = None
-    fmt_name = None
-    fmt_br = None
-    for fmt in tree.findall('./fl/fi'):
-        sl = int(fmt.find('./sl').text)
-        if sl:
-            fmt_id = fmt.find('./id').text
-            fmt_name = fmt.find('./name').text
-            fmt_br = fmt.find('./br').text
+    name = "腾讯视频 (QQ)"
 
-    video = tree.find('./vl/vi')
-    filename = video.find('./fn').text
-    filesize = video.find('./fs').text
+    supported_stream_types = [ 'shd', 'hd', 'sd' ]
 
-    cdn = video.find('./ul/ui')
-    cdn_url = cdn.find('./url').text
-    filetype = int(cdn.find('./dt').text)
-    vt = cdn.find('./vt').text
+    stream_2_profile = { 'shd': '超清', 'hd': '高清', 'sd': '标清' }
 
-    if filetype == 1:
-        type_name = 'flv'
-    elif filetype == 2:
-        type_name = 'mp4'
-    else:
-        type_name = 'unknown'
 
-    clips = []
-    for ci in video.findall('./cl/ci'):
-        clip_size = int(ci.find('./cs').text)
-        clip_idx = int(ci.find('./idx').text)
-        clips.append({'idx': clip_idx, 'size': clip_size})
+    def get_stream_info(self, profile):
 
-    size = 0
-    for clip in clips:
-        size += clip['size']
 
-    user_agent = 'Mozilla/5.0 TencentPlayerVod_1.1.91 tencent_-%s-%s' % (vid, fmt_id)
-    fns = os.path.splitext(filename)
+        player_pid = uuid.uuid4().hex.upper()
 
-    urls =[]
-    for clip in clips:
-        fn = '%s.%d%s' % (fns[0], clip['idx'], fns[1])
+        player_guid = uuid.uuid4().hex.upper()
+
         params = {
-            'vid': vid,
+            'vids': self.vid,
+            'vid': self.vid,
             'otype': 'xml',
+            'defnpayver': 1,
             'platform': PLAYER_PLATFORM,
-            'format': fmt_id,
             'charge': 0,
             'ran': random.random(),
-            'filename': fn,
-            'vt': vt,
+            'speed': random.randint(1024, 4096),
+            'pid': player_pid,
+            'guid': player_guid,
             'appver': PLAYER_VERSION,
+            'fhdswitch': 0,
+            'defn': profile,
+            'defaultfmt': profile,
+            'fp2p': 1,
+            'utype': 0,
             'cKey': load_key(),
-            'encryptVer': KLIB_VERSION
+            'encryptVer': KLIB_VERSION,
         }
 
         form = urllib.parse.urlencode(params)
-        url2 = '%s?%s' % ('http://vv.video.qq.com/getvkey', form)
-        content = get_content(url2, headers = {'User-Agent': user_agent})
+        info_url = '%s?%s' % ('http://vv.video.qq.com/getvinfo', form)
+        content = get_content(info_url)
+
         tree = ET.fromstring(content)
+        fmt_id = None
+        fmt_name = None
+        fmt_br = None
+        for fmt in tree.findall('./fl/fi'):
+            sl = int(fmt.find('./sl').text)
+            if sl:
+                fmt_id = fmt.find('./id').text
+                fmt_name = fmt.find('./name').text
+                fmt_br = fmt.find('./br').text
 
-        vkey = tree.find('./key').text
-        level = tree.find('./level').text
-        sp = tree.find('./sp').text
+        video = tree.find('./vl/vi')
+        filename = video.find('./fn').text
 
-        clip_url = '%s%s' % (cdn_url, fn)
 
-        urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, sp, vkey, level))
+        cdn = video.find('./ul/ui')
+        cdn_url = cdn.find('./url').text
+        filetype = int(cdn.find('./dt').text)
+        vt = cdn.find('./vt').text
 
-    print_info(site_info, title, type_name, size)
-    if not info_only:
-        download_urls(urls, title, type_name, size, output_dir = output_dir, merge = merge)
+        if filetype == 1:
+            type_name = 'flv'
+        elif filetype == 2:
+            type_name = 'mp4'
+        else:
+            type_name = 'unknown'
 
-def qq_download(url, output_dir = '.', merge = True, info_only = False):
-    content = get_html(url)
-    video_info = to_dict(match1(content, r'var\s+VIDEO_INFO\s?=\s?({[^}]+})'))
-    vid = video_info['vid']
-    title = video_info['title']
-    assert title
-    qq_download_by_vid(vid, title, output_dir, merge, info_only)
+        clips = []
+        for ci in video.findall('./cl/ci'):
+            clip_size = int(ci.find('./cs').text)
+            clip_idx = int(ci.find('./idx').text)
+            clips.append({'idx': clip_idx, 'size': clip_size})
 
-site_info = "QQ.com"
-download = qq_download
+        size = 0
+        for clip in clips:
+            size += clip['size']
+
+        fns = os.path.splitext(filename)
+
+        #may have preformence issue when info_only
+
+        urls =[]
+        for clip in clips:
+            fn = '%s.%d%s' % (fns[0], clip['idx'], fns[1])
+            params = {
+                'vid': self.vid,
+                'otype': 'xml',
+                'platform': PLAYER_PLATFORM,
+                'format': fmt_id,
+                'charge': 0,
+                'ran': random.random(),
+                'filename': fn,
+                'vt': vt,
+                'appver': PLAYER_VERSION,
+                'cKey': load_key(),
+                'encryptVer': KLIB_VERSION
+            }
+
+            form = urllib.parse.urlencode(params)
+            key_url = '%s?%s' % ('http://vv.video.qq.com/getvkey', form)
+            content = get_content(key_url)
+            tree = ET.fromstring(content)
+
+            vkey = tree.find('./key').text
+            level = tree.find('./level').text
+            sp = tree.find('./sp').text
+
+            clip_url = '%s%s' % (cdn_url, fn)
+
+            urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, sp, vkey, level))
+
+        return fmt_name, type_name, urls, size
+
+    def prepare(self, **kwargs):
+        assert self.url or self.vid
+
+        if not self.vid:
+            html = get_content(self.url)
+            self.vid = match1(html, 'vid:\"([^\"]+)')
+
+        assert self.vid
+
+        fmt_name, type_name, urls, size = self.get_stream_info(self.supported_stream_types[0])
+
+        self.stream_types = self.supported_stream_types[self.supported_stream_types.index(fmt_name):]
+
+        self.streams[fmt_name] = {'container': type_name, 'video_profile': self.stream_2_profile[fmt_name], 'src' : urls, 'size': size}
+
+        if 'info_only' in kwargs and kwargs['info_only']:
+            for stream in self.stream_types[1:]:
+                fmt_name, type_name, urls, size = self.get_stream_info(stream)
+                self.streams[fmt_name] = {'container': type_name, 'video_profile': self.stream_2_profile[fmt_name], 'src' : urls, 'size': size}
+
+
+site = QQ()
+download = site.download_by_url
 download_playlist = playlist_not_supported('qq')

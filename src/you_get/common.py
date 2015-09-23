@@ -869,7 +869,7 @@ def url_to_module(url):
         res = conn.getresponse()
         location = res.getheader('location')
         if location is None:
-            return import_module('you_get.extractors.embed'), url
+            return import_module('you_get.extractors.generalembed'), url
         elif location != url:
             return url_to_module(location)
         else:

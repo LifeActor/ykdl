@@ -1,12 +1,7 @@
 __all__ = ['embed_download']
 
 from ..common import *
-
-from .letv import letvcloud_download_by_vu
-from .qq import qq_download_by_vid
-from .sina import sina_download_by_vid
-from .tudou import tudou_download_by_id
-from .youku import youku_download_by_vid
+from ..embedextractor import EmbedExtractor
 
 """
 refer to http://open.youku.com/tools
@@ -47,28 +42,29 @@ tv.sohu.com
 sohu_embed_patterns = [ 'tv\.sohu\.com[a-zA-Z0-9\/\?=]+\&vid=([a-zA-Z0-9]+)\&'
                       ]
 
-def embed_download(url, output_dir = '.', merge = True, info_only = False ,**kwargs):
-    content = get_content(url)
-    found = False
-    title = match1(content, '<title>([^<>]+)</title>')
-    vids = matchall(content, youku_embed_patterns)
-    for vid in vids:
-        found = True
-        youku_download_by_vid(vid, title=title, output_dir=output_dir, merge=merge, info_only=info_only, **kwargs)
+class GeneralEmbed(EmbedExtractor):
 
-    vids = matchall(content, tudou_embed_patterns)
-    for vid in vids:
-        found = True
-        tudou_download_by_id(vid, title=title, output_dir=output_dir, merge=merge, info_only=info_only, **kwargs)
+    def prepare(self, **kwargs):
+        assert self.url
+        found = False
+        content = get_content(self.url)
+        self.title = match1(content, '<title>([^<>]+)</title>')
 
-    vids = matchall(content, qq_embed_patterns)
-    for vid in vids:
-        found = True
-        qq_download_by_vid(vid, title=title, output_dir=output_dir, merge=merge, info_only=info_only, **kwargs)
+        vids = matchall(content, youku_embed_patterns)
+        for vid in vids:
+            found =True
+            self.video_info.append(('youku',vid))
 
-    if not found:
-        raise NotImplementedError(url)
+        vids = matchall(content, tudou_embed_patterns)
+        for vid in vids:
+            found = True
+            self.video_info.append(('tudou',vid))
 
-site_info = "any.any"
-download = embed_download
+        vids = matchall(content, qq_embed_patterns)
+        for vid in vids:
+            found = True
+            self.video_info.append(('qq',vid))
+
+site = GeneralEmbed()
+download = site.download
 download_playlist = playlist_not_supported('any.any')

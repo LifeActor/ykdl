@@ -39,7 +39,8 @@ qq_embed_patterns = [ 'v\.qq\.com[a-zA-Z0-9\/\?\.\;]+vid=([a-zA-Z0-9]+)',
 """
 tv.sohu.com
 """
-sohu_embed_patterns = [ 'tv\.sohu\.com[a-zA-Z0-9\/\?=]+\&vid=([a-zA-Z0-9]+)\&'
+sohu_embed_patterns = [ 'tv\.sohu\.com[a-zA-Z0-9\/\?=]+\&vid=([a-zA-Z0-9]+)\&',
+                        'share\.vrs\.sohu\.com\/my\/v.swf[&+=a-zA-z0-9]+&id=([^&]+)'
                       ]
 
 class GeneralEmbed(EmbedExtractor):
@@ -64,6 +65,11 @@ class GeneralEmbed(EmbedExtractor):
         for vid in vids:
             found = True
             self.video_info.append(('qq',vid))
+
+        vids = matchall(content, sohu_embed_patterns)
+        for vid in vids:
+            found = True
+            self.video_info.append(('sohu',vid))
 
 site = GeneralEmbed()
 download = site.download

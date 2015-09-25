@@ -105,6 +105,8 @@ def launch_player(player, urls, size):
         if 'mpv' in player:
             if size_kb > 2147483647:
                 size_kb = 2147483647
+            if size_kb < 1024:
+                size_bk = 1024
             player += " --cache={}".format(size_kb)
         elif 'mplayer' in player:
             player += " --cache={} --cache-min=1".format(size_kb)

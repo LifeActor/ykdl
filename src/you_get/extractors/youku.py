@@ -14,6 +14,8 @@ class Youku(VideoExtractor):
 
     stream_2_container = {'hd3': 'flv', 'hd2':'flv', 'mp4':'mp4', 'flvhd':'flv', 'flv': 'flv', '3gphd': '3gp'}
 
+    stream_2_profile = {'hd3': '1080P', 'hd2':'超清', 'mp4':'高清', 'flvhd':'高清', 'flv': '标清', '3gphd': '高清（3GP）'}
+
     def generate_ep(vid, ep):
         f_code_1 = 'becaf9be'
         f_code_2 = 'bf7e5f01'
@@ -116,13 +118,13 @@ class Youku(VideoExtractor):
         for stream_type in self.supported_stream_types:
             if stream_type in metadata0['streamsizes']:
                 stream_size = int(metadata0['streamsizes'][stream_type])
-                self.streams[stream_type] = {'container': self.stream_2_container[stream_type],'video_profile': stream_type, 'size': stream_size}
+                self.streams[stream_type] = {'container': self.stream_2_container[stream_type],'video_profile': self.stream_2_profile[stream_type], 'size': stream_size}
                 self.stream_types.append(stream_type)
 
         if not self.streams:
             for stream_type in self.supported_stream_types:
                 if stream_type in metadata0['streamtypes_o']:
-                    self.streams[stream_type] = {'container': self.stream_2_container[stream_type],'video_profile': stream_type}
+                    self.streams[stream_type] = {'container': self.stream_2_container[stream_type],'video_profile': self.stream_2_profile[stream_type]}
                     self.stream_types.append(stream_type)
 
     def extract(self, **kwargs):

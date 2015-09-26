@@ -20,7 +20,7 @@ class Joy(VideoExtractor):
 
         self.title = match1(html, '<meta content=\"([^\"]+)')
 
-        url = match1(html, '<source src=\"([^\"]+) type="video/mp4"> 您的浏览器')
+        url = matchall(html, ['<source src=\"([^\"]+)'])[3]
 
         _, ext, size = url_info(url)
 

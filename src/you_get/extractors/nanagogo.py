@@ -1,21 +1,16 @@
 #!/usr/bin/env python
 
-__all__ = ['nanagogo_download']
-
 from ..common import *
+from ..simpleextractor import SimpleExtractor
 
-def nanagogo_download(url, output_dir='.', merge=True, info_only=False):
-    html = get_html(url)
-    title = r1(r'<meta property="og:title" content="([^"]*)"', html)
-    postId = r1(r'postId\s*:\s*"([^"]*)"', html)
-    title += ' - ' + postId
-    source = r1(r'<meta property="og:video" content="([^"]*)"', html)
-    mime, ext, size = url_info(source)
+class Nanagogo(SimpleExtractor):
+    name = '7gogo'
 
-    print_info(site_info, title, mime, size)
-    if not info_only:
-        download_urls([source], title, ext, size, output_dir, merge=merge)
+    def __init__(self, *args):
+        SimpleExtractor.__init__(self, *args)
+        self.title_pattern = '<meta property="og:title" content="([^"]+)"'
+        self.url_pattern = '<meta property="og:video" content="([^"]*)"'
 
-site_info = "7gogo.jp"
-download = nanagogo_download
+site=Nanagogo()
+download = site.download_by_url
 download_playlist = playlist_not_supported('nanagogo')

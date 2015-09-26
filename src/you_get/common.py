@@ -585,24 +585,6 @@ def download_one_url(url, title, ext, index, output_dir='.', refer=None, faker=F
     url_save(url, filepath, None, refer = refer, faker = faker)
     print()
 
-
-def download_rtmp_url(url,title, ext,params={}, total_size=0, output_dir='.', refer=None, faker=False):
-    assert url
-    if dry_run:
-        print('Real URL:\n%s\n' % [url])
-        if params.get("-y",False): #None or unset ->False
-            print('Real Playpath:\n%s\n' % [params.get("-y")])
-        return
-
-    if player:
-        from .processor.rtmpdump import play_rtmpdump_stream
-        play_rtmpdump_stream(player, url, params)
-        return
-
-    from .processor.rtmpdump import has_rtmpdump_installed, download_rtmpdump_stream
-    assert has_rtmpdump_installed(), "RTMPDump not installed."
-    download_rtmpdump_stream(url,  title, ext,params, output_dir)
-
 def playlist_not_supported(name):
     def f(*args, **kwargs):
         raise NotImplementedError('Playlist is not supported for ' + name)
@@ -847,6 +829,7 @@ alias = {
         'khanacademy': 'khan',
         'smgbb': 'bilibili',
         'weibo': 'miaopai',
+        '7gogo': 'nanagogo'
 }
 def url_to_module(url):
     video_host = r1(r'https?://([^/]+)/', url)

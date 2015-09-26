@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""
+this site is dead
 
 from ..common import *
 from ..extractor import VideoExtractor
@@ -28,3 +30,4 @@ class Vid48(VideoExtractor):
 site = Vid48()
 download = site.download_by_url
 download_playlist = playlist_not_supported('vid48')
+"""

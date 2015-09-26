@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-
+"""
+NOT supported
 __all__ = ['cbs_download']
 
 from ..common import *
@@ -19,3 +20,4 @@ def cbs_download(url, output_dir='.', merge=True, info_only=False):
 site_info = "CBS.com"
 download = cbs_download
 download_playlist = playlist_not_supported('cbs')
+"""

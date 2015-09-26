@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""
+NOT SUPPORTED
 
 from ..common import *
 
@@ -22,3 +24,4 @@ def theplatform_download_by_pid(pid, title, output_dir='.', merge=True, info_onl
 site_info = "thePlatform.com"
 download = theplatform_download_by_pid
 download_playlist = playlist_not_supported('theplatform')
+"""

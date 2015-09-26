@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+"""
+this site is dead
+
+
 __all__ = ['catfun_download']
 from .tudou import tudou_download_by_id
 from .sina import sina_download_by_vid
@@ -74,3 +78,4 @@ def catfun_download(url, output_dir = '.', merge = True, info_only = False):
 site_info = "CatFun.tv"
 download = catfun_download
 download_playlist = playlist_not_supported('catfun')
+"""

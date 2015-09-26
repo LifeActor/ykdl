@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""
+DO NOT SUPPORT THIS SITE
 
 __all__ = ['vidto_download']
 
@@ -38,3 +40,4 @@ def vidto_download(url, output_dir='.', merge=True, info_only=False):
 site_info = "vidto.me"
 download = vidto_download
 download_playlist = playlist_not_supported('vidto')
+"""

@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""
+this site is dead
 
 __all__ = ['songtaste_download']
 
@@ -41,3 +43,4 @@ def songtaste_download(url, output_dir = '.', merge = True, info_only = False):
 site_info = "SongTaste.com"
 download = songtaste_download
 download_playlist = playlist_not_supported('songtaste')
+"""

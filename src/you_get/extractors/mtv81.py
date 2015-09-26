@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+"""
+NOT SUPPORTED
 
 __all__ = ['mtv81_download']
 
@@ -40,3 +42,4 @@ def mtv81_download(url, output_dir='.', merge=True, info_only=False):
 site_info = "mtv81.com"
 download = mtv81_download
 download_playlist = playlist_not_supported('mtv81')
+"""

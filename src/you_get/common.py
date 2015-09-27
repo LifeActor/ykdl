@@ -821,7 +821,6 @@ def script_main(script_name, download, download_playlist = None):
             sys.exit(1)
 alias = {
         '163': 'netease',
-        '56': 'w56',
         'fun': 'funshion',
         'iask': 'sina',
         'in': 'alive',

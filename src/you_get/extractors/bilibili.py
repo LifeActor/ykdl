@@ -22,13 +22,13 @@ def parse_cid_playurl(xml):
 
 class BiliOrig(VideoExtractor):
     name = '哔哩哔哩 (Bilibili)'
-
+    live = False
     def prepare(self, **kwargs):
         assert self.url or self.vid
 
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, '\"cid=([^&]+)')
+            self.vid = match1(html, 'cid=([^&]+)')
             self.title = match1(html, '<title>([^<]+)')
 
         else:
@@ -39,15 +39,24 @@ class BiliOrig(VideoExtractor):
 
         assert self.vid
 
-        sign_this = hashlib.md5(bytes('appkey=' + appkey + '&cid=' + self.vid + secretkey, 'utf-8')).hexdigest()
-        api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid + '&sign=' + sign_this
-        urls = parse_cid_playurl(get_content(api_url))
+        if self.url:
+            if re.search('live', self.url):
+                self.live = True
+        if not self.live:
+            sign_this = hashlib.md5(bytes('appkey=' + appkey + '&cid=' + self.vid + secretkey, 'utf-8')).hexdigest()
+            api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid + '&sign=' + sign_this
+            urls = parse_cid_playurl(get_content(api_url))
 
-        ext = ''
-        size = 0
-        for url in urls:
-            _, ext, temp = url_info(url)
-            size += temp
+            ext = ''
+            size = 0
+            for url in urls:
+                _, ext, temp = url_info(url)
+                size += temp
+        else:
+            info = get_content('http://live.bilibili.com/api/playurl?cid={}'.format(self.vid))
+            urls = [matchall(info, ['CDATA\[([^\]]+)'])[1]]
+            size = float('inf')
+            ext = 'flv'
 
         self.stream_types.append('current')
         self.streams['current'] = {'container': ext, 'video_profile': 'current', 'src' : urls, 'size': size}
@@ -86,11 +95,10 @@ class BiliBili():
 
         html = get_content(self.url)
         self.title = match1(html, '<title>([^<]+)')
-        vids = matchall(html, ['\"cid=([^&]+)'])
+        vids = matchall(html, ['cid=([^&]+)'])
 
         if vids:
-            for vid in vids:
-                self.orig.download_by_vid(vid, title=self.title, **kwargs)
+            self.orig.download_by_url(self.url, title=self.title, **kwargs)
         else:
             self.embed.download(self.url, **kwargs)
 

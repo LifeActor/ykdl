@@ -100,7 +100,7 @@ def matchall(text, patterns):
 def launch_player(player, urls, size):
     import subprocess
     import shlex
-    if size:
+    if size and size != float('inf'):
         size_kb = int(size/1024) + 1
         if 'mpv' in player:
             if size_kb > 2147483647:

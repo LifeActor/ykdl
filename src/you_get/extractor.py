@@ -20,6 +20,7 @@ class VideoExtractor():
     def download_by_url(self, url, **kwargs):
         self.url = url
         self.vid= None
+        self.stream_types = []
 
         if 'extractor_proxy' in kwargs and kwargs['extractor_proxy']:
             set_proxy(parse_host(kwargs['extractor_proxy']))
@@ -36,6 +37,7 @@ class VideoExtractor():
     def download_by_vid(self, vid, **kwargs):
         self.url = None
         self.vid = vid
+        self.stream_types = []
 
         if 'extractor_proxy' in kwargs and kwargs['extractor_proxy']:
             set_proxy(parse_host(kwargs['extractor_proxy']))

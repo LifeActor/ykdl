@@ -67,8 +67,10 @@ class Sohu(VideoExtractor):
         if info['status'] == 1:
             data = info['data']
             self.title = data['tvName']
-            for stream in self.stream_types:
-                lvid = data[stream['id']]
+            for stream in self.supported_stream_types:
+                lvid = data[stream]
+                if not lvid:
+                    continue
                 info = json.loads(get_decoded_html('http://my.tv.sohu.com/play/videonew.do?vid=%s&referer=http://my.tv.sohu.com' % lvid))
                 self.parser_info(info, stream, lvid)
             return

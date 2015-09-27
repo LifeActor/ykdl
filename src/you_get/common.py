@@ -826,7 +826,6 @@ alias = {
         'iask': 'sina',
         'in': 'alive',
         'kankanews': 'bilibili',
-        'khanacademy': 'khan',
         'smgbb': 'bilibili',
         'weibo': 'miaopai',
         '7gogo': 'nanagogo'

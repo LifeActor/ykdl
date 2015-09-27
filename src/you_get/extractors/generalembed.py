@@ -43,6 +43,14 @@ sohu_embed_patterns = [ 'tv\.sohu\.com[a-zA-Z0-9\/\?=]+\&vid=([a-zA-Z0-9]+)\&',
                         'share\.vrs\.sohu\.com\/my\/v.swf[&+=a-zA-z0-9]+&id=([^&]+)'
                       ]
 
+"""
+Youtube
+"""
+youtube_embed_patterns = [ 'youtu\.be/([^\"]+)',
+                           'youtube\.com/embed/([^\"]+)',
+                           'youtube\.com/v/([^\"]+)'
+                         ]
+
 class GeneralEmbed(EmbedExtractor):
 
     def prepare(self, **kwargs):
@@ -70,6 +78,17 @@ class GeneralEmbed(EmbedExtractor):
         for vid in vids:
             found = True
             self.video_info.append(('sohu',vid))
+
+        vids = matchall(content, youtube_embed_patterns)
+        for vid in vids:
+            found = True
+            self.video_info.append(('youtube',vid))
+
+        tmp = []
+        for v in self.video_info:
+            if not v in tmp:
+                tmp.append(v)
+        self.video_info = tmp
 
 site = GeneralEmbed()
 download = site.download

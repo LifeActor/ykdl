@@ -11,7 +11,7 @@ class SoundCloud(VideoExtractor):
         assert self.url or self.vid
 
         if self.url and not self.vid:
-            metadata = get_html('https://api.soundcloud.com/resolve.json?url=' + self.url + '&client_id=b45b1aa10f1ac2941910a7f0d10f8e28')
+            metadata = get_html('https://api.soundcloud.com/resolve.json?url=' + self.url + '&client_id=02gUJC0hH2ct1EGOcYXQIzRFU91c72Ea')
             info = json.loads(metadata)
             self.title = info["title"]
             self.vid = str(info["id"])
@@ -21,7 +21,7 @@ class SoundCloud(VideoExtractor):
             else:
                 self.title = self.name + "-" + self.vid
 
-        url = 'https://api.soundcloud.com/tracks/' + self.vid + '/stream?client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
+        url = 'https://api.soundcloud.com/tracks/' + self.vid + '/stream?client_id=02gUJC0hH2ct1EGOcYXQIzRFU91c72Ea'
 
         type, ext, size = url_info(url)
 

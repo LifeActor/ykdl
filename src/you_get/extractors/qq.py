@@ -10,9 +10,10 @@ import base64
 import struct
 import uuid
 
-PLAYER_PLATFORM = 11
-PLAYER_VERSION = '3.2.19.333'
-KLIB_VERSION = '2.0'
+PLAYER_PLATFORM = 1
+PLAYER_VERSION = '3.2.18.286'
+"""
+LEGACY FOR REFERENCE ONLY
 
 def pack(data):
     target = []
@@ -79,12 +80,17 @@ def ccc(platform, version, timestamp):
     enc = qq_encrypt(data, key)
     return base64.b64encode(bytes(enc), b'_-').replace(b'=', b'')
 
-def get_from(url):
-    return 'v1001'
+def load_key():
+    url = 'http://vv.video.qq.com/checktime'
+    tree = ET.fromstring(get_content(url))
+    t = int(tree.find('./t').text)
+    return ccc(PLAYER_PLATFORM, PLAYER_VERSION, t)
+
+"""
 
 def qq_get_final_url(url, fmt_name, type_name, br, sp, vkey, level):
     params = {
-        'stdfrom': get_from(url),
+        'stdfrom': 'v1090',
         'type': type_name,
         'vkey': vkey,
         'level': level,
@@ -96,11 +102,7 @@ def qq_get_final_url(url, fmt_name, type_name, br, sp, vkey, level):
     form = urllib.parse.urlencode(params)
     return "%s?%s" % (url, form)
 
-def load_key():
-    url = 'http://vv.video.qq.com/checktime'
-    tree = ET.fromstring(get_content(url))
-    t = int(tree.find('./t').text)
-    return ccc(PLAYER_PLATFORM, PLAYER_VERSION, t)
+
 
 class QQ(VideoExtractor):
 
@@ -116,33 +118,31 @@ class QQ(VideoExtractor):
 
         player_pid = uuid.uuid4().hex.upper()
 
-        player_guid = uuid.uuid4().hex.upper()
-
         params = {
-            'vids': self.vid,
-            'vid': self.vid,
-            'otype': 'xml',
-            'defnpayver': 1,
-            'platform': PLAYER_PLATFORM,
-            'charge': 0,
-            'ran': random.random(),
-            'speed': random.randint(1024, 4096),
-            'pid': player_pid,
-            'guid': player_guid,
-            'appver': PLAYER_VERSION,
-            'fhdswitch': 0,
-            'defn': profile,
-            'defaultfmt': profile,
             'fp2p': 1,
-            'utype': 0,
-            'cKey': load_key(),
-            'encryptVer': KLIB_VERSION,
+            'pid': player_pid,
+            'otype': 'xml',
+            'defn': profile,
+            'platform': 1,
+            'fhdswitch': 0,
+            'charge': 0,
+            'ckey' : "",
+            'vid': self.vid,
+            'defnpayver': 1,
+            'encryptVer': "",
+            'speed': random.randint(512, 1024),
+            'ran': random.random(),
+            'appver': PLAYER_VERSION,
+            'defaultfmt': profile,
+            'utype': -1,
+            'vids': self.vid
         }
 
         form = urllib.parse.urlencode(params)
-        info_url = '%s?%s' % ('http://vv.video.qq.com/getvinfo', form)
-        content = get_content(info_url)
-
+        req = request.Request('http://vv.video.qq.com/getinfo', data=bytes(form, 'utf-8'), headers = fake_headers)
+        response = request.urlopen(req)
+        data = response.read()
+        content = data.decode('utf-8')
         tree = ET.fromstring(content)
         fmt_id = None
         fmt_name = None
@@ -162,7 +162,6 @@ class QQ(VideoExtractor):
         cdn_url = cdn.find('./url').text
         filetype = int(cdn.find('./dt').text)
         vt = cdn.find('./vt').text
-
         if filetype == 1:
             type_name = 'flv'
         elif filetype == 2:
@@ -188,22 +187,24 @@ class QQ(VideoExtractor):
         for clip in clips:
             fn = '%s.%d%s' % (fns[0], clip['idx'], fns[1])
             params = {
-                'vid': self.vid,
-                'otype': 'xml',
-                'platform': PLAYER_PLATFORM,
-                'format': fmt_id,
-                'charge': 0,
                 'ran': random.random(),
-                'filename': fn,
-                'vt': vt,
                 'appver': PLAYER_VERSION,
-                'cKey': load_key(),
-                'encryptVer': KLIB_VERSION
+                'otype': 'xml',
+                'encryptVer': "",
+                'platform': 1,
+                'filename': fn,
+                'vid': self.vid,
+                'vt': vt,
+                'charge': 0,
+                'format': fmt_id,
+                'cKey': "",
             }
 
             form = urllib.parse.urlencode(params)
-            key_url = '%s?%s' % ('http://vv.video.qq.com/getvkey', form)
-            content = get_content(key_url)
+            req = request.Request('http://vv.video.qq.com/getkey', data=bytes(form, 'utf-8'), headers = fake_headers)
+            response = request.urlopen(req)
+            data = response.read()
+            content = data.decode('utf-8')
             tree = ET.fromstring(content)
 
             vkey = tree.find('./key').text

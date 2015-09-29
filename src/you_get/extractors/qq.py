@@ -108,9 +108,9 @@ class QQ(VideoExtractor):
 
     name = "腾讯视频 (QQ)"
 
-    supported_stream_types = [ 'shd', 'hd', 'sd' ]
+    supported_stream_types = [ 'shd', 'mp4', 'hd', 'flv','sd' ]
 
-    stream_2_profile = { 'shd': '超清', 'hd': '高清', 'sd': '标清' }
+    stream_2_profile = { 'shd': '超清', 'mp4': '高清mp4', 'hd': '高清', 'flv': '高清flv', 'sd': '标清' }
 
 
     def get_stream_info(self, profile):
@@ -139,10 +139,7 @@ class QQ(VideoExtractor):
         }
 
         form = urllib.parse.urlencode(params)
-        req = request.Request('http://vv.video.qq.com/getinfo', data=bytes(form, 'utf-8'), headers = fake_headers)
-        response = request.urlopen(req)
-        data = response.read()
-        content = data.decode('utf-8')
+        content = get_content('http://vv.video.qq.com/getinfo',data=bytes(form, 'utf-8'))
         tree = ET.fromstring(content)
         fmt_id = None
         fmt_name = None
@@ -156,7 +153,7 @@ class QQ(VideoExtractor):
 
         video = tree.find('./vl/vi')
         filename = video.find('./fn').text
-
+        self.title = video.find('./ti').text
 
         cdn = video.find('./ul/ui')
         cdn_url = cdn.find('./url').text
@@ -169,23 +166,16 @@ class QQ(VideoExtractor):
         else:
             type_name = 'unknown'
 
-        clips = []
-        for ci in video.findall('./cl/ci'):
-            clip_size = int(ci.find('./cs').text)
-            clip_idx = int(ci.find('./idx').text)
-            clips.append({'idx': clip_idx, 'size': clip_size})
-
-        size = 0
-        for clip in clips:
-            size += clip['size']
+        num_clips = len(video.findall('./cl/ci'))
+        size = int(video.find('./fs').text)
 
         fns = os.path.splitext(filename)
 
         #may have preformence issue when info_only
 
         urls =[]
-        for clip in clips:
-            fn = '%s.%d%s' % (fns[0], clip['idx'], fns[1])
+        for idx in range(1, num_clips+1):
+            fn = '%s.%d%s' % (fns[0], idx, fns[1])
             params = {
                 'ran': random.random(),
                 'appver': PLAYER_VERSION,
@@ -201,10 +191,7 @@ class QQ(VideoExtractor):
             }
 
             form = urllib.parse.urlencode(params)
-            req = request.Request('http://vv.video.qq.com/getkey', data=bytes(form, 'utf-8'), headers = fake_headers)
-            response = request.urlopen(req)
-            data = response.read()
-            content = data.decode('utf-8')
+            content = get_content('http://vv.video.qq.com/getkey',data=bytes(form, 'utf-8'))
             tree = ET.fromstring(content)
 
             vkey = tree.find('./key').text
@@ -226,22 +213,11 @@ class QQ(VideoExtractor):
 
         assert self.vid
 
-        fmt_name, type_name, urls, size = self.get_stream_info(self.supported_stream_types[0])
-
-        self.stream_types = self.supported_stream_types[self.supported_stream_types.index(fmt_name):]
-
-        self.streams[fmt_name] = {'container': type_name, 'video_profile': self.stream_2_profile[fmt_name], 'src' : urls, 'size': size}
-
-        if 'info_only' in kwargs and kwargs['info_only']:
-            for stream in self.stream_types[1:]:
-                fmt_name, type_name, urls, size = self.get_stream_info(stream)
-                self.streams[fmt_name] = {'container': type_name, 'video_profile': self.stream_2_profile[fmt_name], 'src' : urls, 'size': size}
-
-        if 'stream_id' in kwargs and kwargs['stream_id']:
-            stream_id = kwargs['stream_id']
-            if stream_id in self.stream_types and self.stream_types.index(stream_id) > 0:
-                fmt_name, type_name, urls, size = self.get_stream_info(stream_id)
-                self.streams[fmt_name] = {'container': type_name, 'video_profile': self.stream_2_profile[fmt_name], 'src' : urls, 'size': size}
+        for stream in self.supported_stream_types:
+            fmt_name, type_name, urls, size = self.get_stream_info(stream)
+            self.streams[fmt_name] = {'container': type_name, 'video_profile': self.stream_2_profile[fmt_name], 'src' : urls, 'size': size}
+            if not fmt_name in self.stream_types:
+                self.stream_types.append(fmt_name)
 
 site = QQ()
 download = site.download_by_url

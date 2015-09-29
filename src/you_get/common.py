@@ -196,7 +196,7 @@ def get_location(url):
     # not to do that
     return response.geturl()
 
-def get_content(url, headers=fake_headers, decoded=True):
+def get_content(url, headers=fake_headers, decoded=True, data=None):
     """Gets the content of a URL via sending a HTTP GET request.
 
     Args:
@@ -208,7 +208,7 @@ def get_content(url, headers=fake_headers, decoded=True):
         The content as a string.
     """
 
-    req = request.Request(url, headers=headers)
+    req = request.Request(url, headers=headers, data=data)
     if cookies_txt:
         cookies_txt.add_cookie_header(req)
         req.headers.update(req.unredirected_hdrs)

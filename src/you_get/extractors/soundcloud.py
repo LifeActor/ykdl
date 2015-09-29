@@ -16,7 +16,10 @@ class SoundCloud(VideoExtractor):
             self.title = info["title"]
             self.vid = str(info["id"])
         else:
-            self.title = title or self.vid
+            if 'title' in kwargs and kwargs['title']:
+                self.title = kwargs['title']
+            else:
+                self.title = self.name + "-" + self.vid
 
         url = 'https://api.soundcloud.com/tracks/' + self.vid + '/stream?client_id=b45b1aa10f1ac2941910a7f0d10f8e28'
 

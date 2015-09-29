@@ -88,7 +88,15 @@ def load_key():
 
 """
 
-def qq_get_final_url(url, fmt_name, type_name, br, sp, vkey, level):
+def qq_get_final_url(url, fmt_name, type_name, br, form, fn):
+
+    content = get_content('http://vv.video.qq.com/getkey',data=bytes(form, 'utf-8'))
+    tree = ET.fromstring(content)
+
+    vkey = tree.find('./key').text
+    level = tree.find('./level').text
+    sp = tree.find('./sp').text
+
     params = {
         'stdfrom': 'v1090',
         'type': type_name,
@@ -172,17 +180,16 @@ class QQ(VideoExtractor):
         fns = os.path.splitext(filename)
 
         #may have preformence issue when info_only
-
         urls =[]
-        for idx in range(1, num_clips+1):
-            fn = '%s.%d%s' % (fns[0], idx, fns[1])
+
+        if num_clips == 0:
             params = {
                 'ran': random.random(),
                 'appver': PLAYER_VERSION,
                 'otype': 'xml',
                 'encryptVer': "",
                 'platform': 1,
-                'filename': fn,
+                'filename': filename,
                 'vid': self.vid,
                 'vt': vt,
                 'charge': 0,
@@ -191,16 +198,28 @@ class QQ(VideoExtractor):
             }
 
             form = urllib.parse.urlencode(params)
-            content = get_content('http://vv.video.qq.com/getkey',data=bytes(form, 'utf-8'))
-            tree = ET.fromstring(content)
+            clip_url = '%s%s' % (cdn_url, filename)
+            urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, filename))
 
-            vkey = tree.find('./key').text
-            level = tree.find('./level').text
-            sp = tree.find('./sp').text
-
-            clip_url = '%s%s' % (cdn_url, fn)
-
-            urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, sp, vkey, level))
+        else:
+            for idx in range(1, num_clips+1):
+                fn = '%s.%d%s' % (fns[0], idx, fns[1])
+                params = {
+                    'ran': random.random(),
+                    'appver': PLAYER_VERSION,
+                    'otype': 'xml',
+                    'encryptVer': "",
+                    'platform': 1,
+                    'filename': fn,
+                    'vid': self.vid,
+                    'vt': vt,
+                    'charge': 0,
+                    'format': fmt_id,
+                    'cKey': "",
+                }
+                form = urllib.parse.urlencode(params)
+                clip_url = '%s%s' % (cdn_url, fn)
+                urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, fn))
 
         return fmt_name, type_name, urls, size
 

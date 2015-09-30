@@ -237,7 +237,14 @@ class QQ(VideoExtractor):
             self.streams[fmt_name] = {'container': type_name, 'video_profile': self.stream_2_profile[fmt_name], 'src' : urls, 'size': size}
             if not fmt_name in self.stream_types:
                 self.stream_types.append(fmt_name)
+        self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
+
+    def download_playlist(self, url, **kwargs):
+        html = get_content(url)
+        vids = matchall(html, ['id=\"([^\"]+)\S title'])
+        for vid in vids:
+            self.download_by_vid(vid, **kwargs)
 
 site = QQ()
 download = site.download_by_url
-download_playlist = playlist_not_supported('qq')
+download_playlist = site.download_playlist

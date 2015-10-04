@@ -1,33 +1,43 @@
 #!/usr/bin/env python
 
-__all__ = ['douyutv_download']
-
 from ..common import *
-import json
+from ..extractor import VideoExtractor
 import hashlib
 import time
 
-def douyutv_download(url, output_dir = '.',  info_only = False):
-    room_id = url[url.rfind('/')+1:]
-    #Thanks to @yan12125 for providing decoding method!!
-    suffix = 'room/%s?aid=android&client_sys=android&time=%d' % (room_id, int(time.time()))
-    sign = hashlib.md5((suffix + '1231').encode('ascii')).hexdigest()
-    json_request_url = "http://www.douyutv.com/api/v1/%s&auth=%s" % (suffix, sign)
-    content = get_html(json_request_url)
-    data = json.loads(content)['data']
-    server_status = data.get('error',0)
-    if server_status is not 0:
-        raise ValueError("Server returned error:%s" % server_status)
-    title = data.get('room_name')
-    show_status = data.get('show_status')
-    if show_status is not "1":
-        raise ValueError("The live stream is not online! (Errno:%s)" % server_status)
-    real_url = data.get('rtmp_url')+'/'+data.get('rtmp_live')
+class Douyutv(VideoExtractor):
+    name = '斗鱼 (DouyuTV)'
 
-    print_info(site_info, title, 'flv', float('inf'))
-    if not info_only:
-        download_urls([real_url], title, 'flv', None, output_dir)
+    def prepare(self, **kwargs):
+        assert self.url or self.vid
 
-site_info = "douyutv.com"
-download = douyutv_download
-download_playlist = playlist_not_supported('douyutv')
+        if self.url:
+            self.vid = self.url[self.url.rfind('/')+1:]
+
+        suffix = 'room/%s?aid=android&client_sys=android&time=%d' % (self.vid, int(time.time()))
+        sign = hashlib.md5((suffix + '1231').encode('ascii')).hexdigest()
+        json_request_url = "http://www.douyutv.com/api/v1/%s&auth=%s" % (suffix, sign)
+        content = get_content(json_request_url)
+        data = json.loads(content)['data']
+        server_status = data.get('error',0)
+        if server_status is not 0:
+            raise ValueError("Server returned error:%s" % server_status)
+        self.title = data.get('room_name')
+        show_status = data.get('show_status')
+        if show_status is not "1":
+            raise ValueError("The live stream is not online! (Errno:%s)" % show_status)
+        real_url = data.get('rtmp_url')+'/'+data.get('rtmp_live')
+        self.stream_types.append('current')
+        self.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [real_url], 'size': float('inf')}
+
+    def download_playlist(self, url, **kwargs):
+        self.url = url
+        html = get_content(self.url)
+        vids = matchall(html, ['class="hroom_id" value="([^"]+)'])
+
+        for vid in vids:
+            self.download_by_vid(vid, **kwargs)
+
+site = Douyutv()
+download = site.download_by_url
+download_playlist = site.download_playlist

@@ -33,7 +33,7 @@ class Zhanqi(VideoExtractor):
             part_url = re.findall(r'(/[^#]+)\.ts',vod_m3u8)
             real_url = []
             for i in part_url:
-                i = vod_base + i + ".ts"
+                i = self.vod_base + i + ".ts"
                 real_url.append(i)
             type_ = ''
             size = 0

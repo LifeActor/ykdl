@@ -13,32 +13,41 @@ import pdb
 class Youku(VideoExtractor):
     name = "优酷 (Youku)"
 
-    supported_stream_types = [ 'hd3', 'hd2', 'mp4', 'flvhd','flv', '3gphd']
+    supported_stream_types = [ 'hd3', 'hd2', 'mp4', 'flvhd', '3gphd','flv']
 
     stream_2_container = {'hd3': 'flv', 'hd2':'flv', 'mp4':'mp4', 'flvhd':'flv', 'flv': 'flv', '3gphd': 'mp4'}
 
     stream_2_profile = {'hd3': '1080P', 'hd2':'超清', 'mp4':'高清', 'flvhd':'高清', 'flv': '标清', '3gphd': '高清（3GP）'}
 
-    def trans_e(a, c):
-        f = h = 0
-        b = list(range(256))
-        result = ''
-        while h < 256:
-            f = (f + b[h] + ord(a[h % len(a)])) % 256
-            b[h], b[f] = b[f], b[h]
-            h += 1
-        q = f = h = 0
-        while q < len(c):
-            h = (h + 1) % 256
-            f = (f + b[h]) % 256
-            b[h], b[f] = b[f], b[h]
-            if isinstance(c[q], int):
-                result += chr(c[q] ^ b[(b[h] + b[f]) % 256])
-            else:
-                result += chr(ord(c[q]) ^ b[(b[h] + b[f]) % 256])
-            q += 1
+    def generate_ep_old(vid, ep):
+        f_code_1 = 'becaf9be'
+        f_code_2 = 'bf7e5f01'
 
-        return result
+        def trans_e(a, c):
+            f = h = 0
+            b = list(range(256))
+            result = ''
+            while h < 256:
+                f = (f + b[h] + ord(a[h % len(a)])) % 256
+                b[h], b[f] = b[f], b[h]
+                h += 1
+            q = f = h = 0
+            while q < len(c):
+                h = (h + 1) % 256
+                f = (f + b[h]) % 256
+                b[h], b[f] = b[f], b[h]
+                if isinstance(c[q], int):
+                    result += chr(c[q] ^ b[(b[h] + b[f]) % 256])
+                else:
+                    result += chr(ord(c[q]) ^ b[(b[h] + b[f]) % 256])
+                q += 1
+
+            return result
+
+        e_code = trans_e(f_code_1, base64.b64decode(bytes(ep, 'ascii')))
+        sid, token = e_code.split('_')
+        new_ep = trans_e(f_code_2, '%s_%s_%s' % (sid, vid, token))
+        return base64.b64encode(bytes(new_ep, 'latin')), sid, token
 
     def generate_ep_prepare(streamfileids,seed,ep):  #execute once
         f_code_1 = 'becaf9be'
@@ -187,7 +196,7 @@ class Youku(VideoExtractor):
                 metadata0 = meta['data'][0]
 
         if 'error_code' in metadata0 and metadata0['error_code']:
-            if metadata0['error_code'] == -8 or metadata0['error_code'] == -26:
+            if metadata0['error_code'] == -8:
                 log.w('[Warning] This video can only be streamed within Mainland China!')
                 log.w('Use \'-y\' to specify a proxy server for extracting stream data.\n')
             else:
@@ -240,8 +249,7 @@ class Youku(VideoExtractor):
         for nu in range(0,len(stream_list)):
             k = stream_list[nu]['k']
             if k == -1:
-                log.e('Error')
-                exit()
+                break
             no = stream_list[nu]['no']
             fileId,ep  = self.__class__.generate_ep(no,fileId0,sid,token)
             #pdb.set_trace()
@@ -252,7 +260,22 @@ class Youku(VideoExtractor):
             m3u8+='&ctype=12&ev=1&token='+ token
             m3u8+='&oip='+ str(self.ip)
             m3u8+='&ep='+ ep+'\r\n'
-
+        if not m3u8:
+            new_ep, sid, token = self.__class__.generate_ep_old(self.vid, self.ep)
+            m3u8_query = parse.urlencode(dict(
+                ctype=12,
+                ep=new_ep,
+                ev=1,
+                keyframe=1,
+                oip=self.ip,
+                sid=sid,
+                token=token,
+                ts=int(time.time()),
+                type=stream_id,
+                vid=self.vid,
+            ))
+            m3u8_url = 'http://pl.youku.com/playlist/m3u8?' + m3u8_query
+            m3u8 = get_content(m3u8_url)
         if not kwargs['info_only']:
             self.streams[stream_id]['src'] = self.__class__.parse_m3u8(m3u8)
             if not self.streams[stream_id]['src'] and self.password_protected:

@@ -68,7 +68,9 @@ class GeneralEmbed(EmbedExtractor):
         vids = matchall(content, tudou_embed_patterns)
         for vid in vids:
             found = True
-            self.video_info.append(('tudou',vid))
+            new_url = get_location("http://tudou.com/v/"+vid)
+            iid = match1(new_url, 'iid=([^&]+)')
+            self.video_info.append(('tudou',iid))
 
         vids = matchall(content, qq_embed_patterns)
         for vid in vids:

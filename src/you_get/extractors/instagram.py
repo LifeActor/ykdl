@@ -14,12 +14,11 @@ class Instagram(VideoExtractor):
             self.url = 'instagram.com/p/{}'.format(self.vid)
 
         if not self.vid:
-            self.vid = r1(r'instagram.com/p/([^/]+)', self.url)
+            self.vid = match1(self.url, 'instagram.com/p/([^/]+)')
 
-        html = get_html(self.url)
-        description = r1(r'<meta property="og:title" content="([^"]*)"', html)
-        self.title = "{} [{}]".format(description.strip(), vid)
-        stream = r1(r'<meta property="og:video" content="([^"]*)"', html)
+        html = get_content(self.url)
+        self.title = match1(html, '<meta property="og:title" content="([^"]*)"')
+        stream = match1(html, '<meta property="og:video" content="([^"]*)"')
         mime, ext, size = url_info(stream)
         self.streams['current'] = {'container': ext, 'src': [stream], 'size' : size}
         self.stream_types.append('current')

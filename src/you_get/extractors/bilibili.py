@@ -107,7 +107,7 @@ class BiliBili():
 
         html = get_content(self.url)
 
-        list = matchall(html, ['<option value=\'([^\']*)\'>'])
+        list = matchall(html, ['<option value=\'([^\']*)\''])
 
         for l in list:
             next_url = "http://www.bilibili.com{}".format(l)

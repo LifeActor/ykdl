@@ -52,6 +52,13 @@ youtube_embed_patterns = [ 'youtu\.be/([^\"]+)',
                            'youtube\.com/v/([^\"]+)'
                          ]
 
+"""
+Ku6
+"""
+ku6_embed_url = [ '(http://v.ku6vms.com/[^\"]+)'
+                     ]
+
+
 class GeneralEmbed(EmbedExtractor):
 
     def prepare(self, **kwargs):
@@ -86,6 +93,15 @@ class GeneralEmbed(EmbedExtractor):
         for vid in vids:
             found = True
             self.video_info.append(('youtube',vid))
+
+        urls = matchall(content, ku6_embed_url)
+        for url in urls:
+            found = True
+            html = get_content(url)
+            flashvars = matchall(html, ['vid=([^&]+)', 'style=([^&]+)', 'sn=([^&]+)'])
+            data = json.loads(get_content('http://v.ku6vms.com/phpvms/player/forplayer/vid/{}/style/{}/sn/{}'.format(flashvars[0], flashvars[1],flashvars[2])))
+            vid = data['ku6vid']
+            self.video_info.append(('ku6',vid))
 
         tmp = []
         for v in self.video_info:

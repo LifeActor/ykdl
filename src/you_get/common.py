@@ -32,13 +32,6 @@ if sys.stdout.isatty():
 else:
     default_encoding = locale.getpreferredencoding().lower()
 
-def tr(s):
-    if default_encoding == 'utf-8':
-        return s
-    else:
-        return s
-        #return str(s.encode('utf-8'))[2:-1]
-
 # DEPRECATED in favor of match1()
 def r1(pattern, text):
     return match1(text, pattern)
@@ -294,7 +287,7 @@ def url_save(url, filepath, bar, refer = None, is_part = False, faker = False):
             if not is_part:
                 if bar:
                     bar.done()
-                print('Skipping %s: file already exists' % tr(os.path.basename(filepath)))
+                print('Skipping %s: file already exists' % os.path.basename(filepath))
             else:
                 if bar:
                     bar.update_received(file_size)
@@ -303,7 +296,7 @@ def url_save(url, filepath, bar, refer = None, is_part = False, faker = False):
             if not is_part:
                 if bar:
                     bar.done()
-                print('Overwriting %s' % tr(os.path.basename(filepath)), '...')
+                print('Overwriting %s' % os.path.basename(filepath), '...')
     elif not os.path.exists(os.path.dirname(filepath)):
         os.mkdir(os.path.dirname(filepath))
 
@@ -370,7 +363,7 @@ def url_save_chunked(url, filepath, bar, refer = None, is_part = False, faker = 
             if not is_part:
                 if bar:
                     bar.done()
-                print('Skipping %s: file already exists' % tr(os.path.basename(filepath)))
+                print('Skipping %s: file already exists' % os.path.basename(filepath))
             else:
                 if bar:
                     bar.update_received(os.path.getsize(filepath))
@@ -379,7 +372,7 @@ def url_save_chunked(url, filepath, bar, refer = None, is_part = False, faker = 
             if not is_part:
                 if bar:
                     bar.done()
-                print('Overwriting %s' % tr(os.path.basename(filepath)), '...')
+                print('Overwriting %s' % os.path.basename(filepath), '...')
     elif not os.path.exists(os.path.dirname(filepath)):
         os.mkdir(os.path.dirname(filepath))
 
@@ -516,7 +509,7 @@ def download_urls(urls, title, ext, total_size, output_dir='.', refer=None,  fak
             traceback.print_exc(file = sys.stdout)
             pass
 
-    title = tr(get_filename(title))
+    title = get_filename(title)
 
     filename = '%s.%s' % (title, ext)
     filepath = os.path.join(output_dir, filename)
@@ -531,17 +524,16 @@ def download_urls(urls, title, ext, total_size, output_dir='.', refer=None,  fak
 
     if len(urls) == 1:
         url = urls[0]
-        print('Downloading %s ...' % tr(filename))
+        print('Downloading %s ...' % filename)
         url_save(url, filepath, bar, refer = refer, faker = faker)
         bar.done()
     else:
         parts = []
-        print('Downloading %s.%s ...' % (tr(title), ext))
+        print('Downloading %s.%s ...' % (title), ext)
         for i, url in enumerate(urls):
             filename = '%s[%02d].%s' % (title, i, ext)
             filepath = os.path.join(output_dir, filename)
             parts.append(filepath)
-            #print 'Downloading %s [%s/%s]...' % (tr(filename), i + 1, len(urls))
             bar.update_piece(i + 1)
             url_save(url, filepath, bar, refer = refer, is_part = True, faker = faker)
         bar.done()
@@ -559,12 +551,12 @@ def download_one_url(url, title, ext, index, output_dir='.', refer=None, faker=F
         return
 
 
-    title = tr(get_filename(title))
+    title = get_filename(title)
 
     filename = '%s[%02d].%s' % (title, index, ext)
     filepath = os.path.join(output_dir, filename)
 
-    print('Downloading %s ...' % tr(filename))
+    print('Downloading %s ...' % filename)
     url_save(url, filepath, None, refer = refer, faker = faker)
     print()
 
@@ -625,7 +617,7 @@ def print_info(site_info, title, type, size):
         type_info = "Unknown type (%s)" % type
 
     print("Video Site:", site_info)
-    print("Title:     ", unescape_html(tr(title)))
+    print("Title:     ", unescape_html(title))
     print("Type:      ", type_info)
     print("Size:      ", round(size / 1048576, 2), "MiB (" + str(size) + " Bytes)")
     print()

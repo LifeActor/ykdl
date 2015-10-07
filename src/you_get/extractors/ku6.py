@@ -10,17 +10,14 @@ class Ku6(VideoExtractor):
 
     def prepare(self, **kwargs):
         assert self.url or self.vid
-        patterns = [r'http://v.ku6.com/special/show_\d+/(.*)\.\.\.html',
-            r'http://v.ku6.com/show/(.*)\.\.\.html',
-            r'http://my.ku6.com/watch\?.*v=(.*)\.\..*']
         if self.url and not self.vid:
-            self.vid = r1_of(patterns, self.url)
-
+            self.vid = match1(self.url, 'http://v.ku6.com/special/show_\d+/(.*)\.html',
+            'http://v.ku6.com/show/(.*)\.html',
+            'http://my.ku6.com/watch\?.*v=(.*).*')
         self.ku6_download_by_id()
 
     def ku6_download_by_id(self):
-        data = json.loads(get_html('http://v.ku6.com/fetchVideo4Player/%s...html' % self.vid))['data']
-
+        data = json.loads(get_html('http://v.ku6.com/fetchVideo4Player/%s.html' % self.vid))['data']
         self.title = data['t']
         f = data['f']
 

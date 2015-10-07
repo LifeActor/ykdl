@@ -60,24 +60,16 @@ def match1(text, *patterns):
         patterns: Arbitrary number of regex patterns.
 
     Returns:
-        When only one pattern is given, returns a string (None if no match found).
-        When more than one pattern are given, returns a list of strings ([] if no match found).
+        When matches, returns first-subgroups from first match.
+        When no matches, return None
     """
 
-    if len(patterns) == 1:
-        pattern = patterns[0]
+    for pattern in patterns:
         match = re.search(pattern, text)
         if match:
             return match.group(1)
-        else:
-            return None
-    else:
-        ret = []
-        for pattern in patterns:
-            match = re.search(pattern, text)
-            if match:
-                ret.append(match.group(1))
-        return ret
+    return None
+
 
 def matchall(text, patterns):
     """Scans through a string for substrings matched some patterns.

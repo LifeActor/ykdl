@@ -41,16 +41,7 @@ def tr(s):
 
 # DEPRECATED in favor of match1()
 def r1(pattern, text):
-    m = re.search(pattern, text)
-    if m:
-        return m.group(1)
-
-# DEPRECATED in favor of match1()
-def r1_of(patterns, text):
-    for p in patterns:
-        x = r1(p, text)
-        if x:
-            return x
+    return match1(text, pattern)
 
 def match1(text, *patterns):
     """Scans through a string for substrings matched some patterns (first-subgroups only).

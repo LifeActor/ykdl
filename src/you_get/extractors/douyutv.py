@@ -4,7 +4,9 @@ from ..common import *
 from ..extractor import VideoExtractor
 import hashlib
 import time
-
+douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
+                        'data-room_id="([^"]+)'
+                      ]
 class Douyutv(VideoExtractor):
     name = '斗鱼 (DouyuTV)'
 
@@ -33,8 +35,7 @@ class Douyutv(VideoExtractor):
     def download_playlist(self, url, **kwargs):
         self.url = url
         html = get_content(self.url)
-        vids = matchall(html, ['class="hroom_id" value="([^"]+)'])
-
+        vids = matchall(html, douyu_match_pattern)
         for vid in vids:
             self.download_by_vid(vid, **kwargs)
 

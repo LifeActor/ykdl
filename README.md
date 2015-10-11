@@ -7,7 +7,8 @@
     $ you-get http://youtu.be/sGwy8DsUJ4M
 
 这只是一个[You-Get](http://www.soimort.org/you-get)的代码美化版本
-请参考[Upstream](http://www.soimort.org/you-get)以便获得更多信息
+
+请参考[上游](http://www.soimort.org/you-get)以便获得更多信息
 
 ##正题
 ### 为什么会有这个Fork
@@ -15,7 +16,7 @@
 * 接收一些[Upstream](http://www.soimort.org/you-get)暂时没有被合并的代码，以cherry-pick方式
 
 ### 这个Fork的目标是什么
-* 用VideoEctrator重写，目前基本完工，除了几个目前已经坏掉的站点外。
+* 用VideoExctrator重写，目前基本完工，除了几个目前已经坏掉的站点外。
 * 更优美的支持音乐站点
 * 更佳的公共代码结构，以方便维护和阅读
 * 统一的视频格式代码（--format的参数目前是不确定的）
@@ -23,9 +24,9 @@
 
 ### 和上游的区别有哪些
 * 代码更结构化，未来会更结构化
-* 去掉了很多死站，大多时外国网站
+* 去掉了很多死站，大多是外国网站
 * 对腾讯视频, 斗鱼, 优酷的支持比上游好一些
-* -支持湖南卫视（已坏）-
+* ~~支持湖南卫视（已坏）~~
 
 ### 贡献代码
 * 定期从上游cherry-pick patch，所以只需贡献给上游即可

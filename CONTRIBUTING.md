@@ -1,9 +1,6 @@
 ## How to Contribute
 
-### Report an issue
-
-please report issue to [upstream](https://github.com/soimort/you-get), unless it really belongs to here!!
-
-### Pull request
-
-please submit PR to [upstream](https://github.com/soimort/you-get), unless it really belongs to here!!
+* 向上游报告问题（推荐）
+* 在此报告问题
+* 向上游提交代码（推荐）
+* 在此提交代码

@@ -6,40 +6,29 @@
 
     $ you-get http://youtu.be/sGwy8DsUJ4M
 
-this project is forked from: <https://github.com/soimort/you-get>
+这只是一个[You-Get](http://www.soimort.org/you-get)的代码美化版本
+请参考[Upstream](http://www.soimort.org/you-get)以便获得更多信息
 
-## Prerequisites
+##正题
+### 为什么会有这个Fork
+* 因为原代码写得比较散，自己为了练手，决定美化代码
+* 接收一些[Upstream](http://www.soimort.org/you-get)暂时没有被合并的代码，以cherry-pick方式
 
- * Python 3
+### 这个Fork的目标是什么
+* 用VideoEctrator重写，目前基本完工，除了几个目前已经坏掉的站点外。
+* 更优美的支持音乐站点
+* 更佳的公共代码结构，以方便维护和阅读
+* 统一的视频格式代码（--format的参数目前是不确定的）
+* 外部工具的支持
 
-## Installation
+### 和上游的区别有哪些
+* 代码更结构化，未来会更结构化
+* 去掉了很多死站，大多时外国网站
+* 对腾讯视频, 斗鱼, 优酷的支持比上游好一些
+* -支持湖南卫视（已坏）-
 
-### Downloading from GitHub
- * download zip:
-	Download it [here](https://github.com/zhangn1985/you-get/archive/master.zip) or:
-
-		$ wget -O you-get.zip https://github.com/zhangn1985/you-get/archive/master.zip
-		$ unzip you-get.zip
-
-	Use the raw script without installation:
-
-		$ cd you-get-*/
-		$ ./you-get -V
- * git download
-
-        $ git clone https://github.com/zhangn1985/you-get
-
-    update
-
-        $ git pull
-
-  Note, I will always do git push -f. if you find git pull failed, with merge conflict.
-
-  Please use git reset --hard <commit id>, and git pull again.
-
-For more, please goto [upstream](https://github.com/soimort/you-get)
-
-Report issue and submit patch are welcome, but you'd better submit to upstream(https://github.com/soimort/you-get),
-
-otherwise this issue/patch is only for this fork.
+### 贡献代码
+* 定期从上游cherry-pick patch，所以只需贡献给上游即可
+* 不定期从上游的活跃fork cherry-pick重要patch
+* 直接提pull request
 

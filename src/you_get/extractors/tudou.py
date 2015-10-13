@@ -41,27 +41,15 @@ class Tudou(VideoExtractor):
         self.stream_types.append('current')
         self.streams['current'] = {'container': ext, 'video_profile': 'current', 'src' : urls, 'size': size}
 
-    def parse_playlist(self):
-        aid = r1('http://www.tudou.com/playlist/p/a(\d+)(?:i\d+)?\.html', url)
-        html = get_decoded_html(url)
-        if not aid:
-            aid = r1(r"aid\s*[:=]\s*'(\d+)'", html)
-        if re.match(r'http://www.tudou.com/albumcover/', url):
-            atitle = r1(r"title\s*:\s*'([^']+)'", html)
-        elif re.match(r'http://www.tudou.com/playlist/p/', url):
-            atitle = r1(r'atitle\s*=\s*"([^"]+)"', html)
-        else:
-            raise NotImplementedError(url)
-        assert aid
-        assert atitle
-        import json
-        #url = 'http://www.tudou.com/playlist/service/getZyAlbumItems.html?aid='+aid
-        url = 'http://www.tudou.com/playlist/service/getAlbumItems.html?aid='+aid
-        return [(atitle + '-' + x['title'], str(x['itemId'])) for x in json.loads(get_html(url))['message']]
+    def parse_plist(self):
+        html = get_decoded_html(self.url)
+        lcode = r1(r"lcode:\s*'([^']+)'", html)
+        plist_info = json.loads(get_content('http://www.tudou.com/crp/plist.action?lcode=' + lcode))
+        return ([(item['kw'], item['iid']) for item in plist_info['items']])
 
     def download_playlist_by_url(self, url, **kwargs):
         self.url = url
-        videos = parse_playlist()
+        videos = self.parse_plist()
         for i, (title, id) in enumerate(videos):
             print('Processing %s of %s videos...' % (i + 1, len(videos)))
             self.download_by_vid(id, title=title, **kwargs)

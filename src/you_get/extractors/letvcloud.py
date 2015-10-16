@@ -18,8 +18,7 @@ class Letvcloud(VideoExtractor):
         sign_key = '2f9d6924b33a165a6d8b5d3d42f4f987'  #ALL YOUR BASE ARE BELONG TO US
         str2Hash = ''.join([i + argumet_dict[i] for i in sorted(argumet_dict)]) + sign_key
         sign = hashlib.md5(str2Hash.encode('utf-8')).hexdigest()
-        html = get_content('http://api.letvcloud.com/gpc.php?' + '&'.join([i + '=' + argumet_dict[i] for i in argumet_dict]) + '&sign={sign}'.format(sign = sign), decoded = False)
-        print(html)
+        html = get_content('http://api.letvcloud.com/gpc.php?' + '&'.join([i + '=' + argumet_dict[i] for i in argumet_dict]) + '&sign={sign}'.format(sign = sign), charset= 'utf-8')
         info = json.loads(html)
 
         available_stream_type = info['data']['video_info']['media'].keys()

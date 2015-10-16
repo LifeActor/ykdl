@@ -49,9 +49,9 @@ class Sohu(VideoExtractor):
         assert self.url or self.vid
 
         if self.url and not self.vid:
-            self.vid = self.__class__.get_vid_from_content(str(get_decoded_html(self.url)))
+            self.vid = self.__class__.get_vid_from_content(str(get_content(self.url)))
 
-        info = json.loads(get_decoded_html('http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % self.vid))
+        info = json.loads(get_content('http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % self.vid))
         if info['status'] == 1:
             data = info['data']
             self.title = data['tvName']
@@ -60,10 +60,10 @@ class Sohu(VideoExtractor):
                 if lvid == 0:
                     continue
                 if lvid != self.vid :
-                    info = json.loads(get_decoded_html('http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % lvid))
+                    info = json.loads(get_content('http://hot.vrs.sohu.com/vrs_flash.action?vid=%s' % lvid))
                 self.parser_info(info, stream, lvid)
             return
-        info = json.loads(get_decoded_html('http://my.tv.sohu.com/play/videonew.do?vid=%s&referer=http://my.tv.sohu.com' % self.vid))
+        info = json.loads(get_content('http://my.tv.sohu.com/play/videonew.do?vid=%s&referer=http://my.tv.sohu.com' % self.vid))
         if info['status'] == 1:
             data = info['data']
             self.title = data['tvName']
@@ -71,7 +71,7 @@ class Sohu(VideoExtractor):
                 lvid = data[stream]
                 if not lvid:
                     continue
-                info = json.loads(get_decoded_html('http://my.tv.sohu.com/play/videonew.do?vid=%s&referer=http://my.tv.sohu.com' % lvid))
+                info = json.loads(get_content('http://my.tv.sohu.com/play/videonew.do?vid=%s&referer=http://my.tv.sohu.com' % lvid))
                 self.parser_info(info, stream, lvid)
             return
 

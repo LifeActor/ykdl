@@ -113,7 +113,7 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     # Decode the response body
     if charset is None:
         charset = match1(response.getheader('Content-Type'), r'charset=([\w-]+)') or \
-              match1(str(data), r'charset=\"([^\"]+)')
+              match1(str(data), r'charset=\"([^\"]+)', 'charset=([^"]+)')
     if charset is not None:
         try:
             data = data.decode(charset)

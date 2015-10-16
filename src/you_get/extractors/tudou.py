@@ -27,14 +27,14 @@ class Tudou(VideoExtractor):
             else:
                 self.title = self.name + self.vid
 
-        data = json.loads(get_decoded_html('http://www.tudou.com/outplay/goto/getItemSegs.action?iid=%s' % self.vid))
+        data = json.loads(get_content('http://www.tudou.com/outplay/goto/getItemSegs.action?iid=%s' % self.vid))
 
         temp = max([data[i] for i in data if 'size' in data[i][0]], key=lambda x:sum([part['size'] for part in x]))
         vids, size = [t["k"] for t in temp], sum([t["size"] for t in temp])
         urls = [[n.firstChild.nodeValue.strip()
              for n in
                 parseString(
-                    get_html('http://ct.v2.tudou.com/f?id=%s' % vid))
+                    get_content('http://ct.v2.tudou.com/f?id=%s' % vid))
                 .getElementsByTagName('f')][0]
             for vid in vids]
         ext = r1(r'http://[\w.]*/(\w+)/[\w.]*', urls[0])
@@ -42,7 +42,7 @@ class Tudou(VideoExtractor):
         self.streams['current'] = {'container': ext, 'video_profile': 'current', 'src' : urls, 'size': size}
 
     def parse_plist(self):
-        html = get_decoded_html(self.url)
+        html = get_content(self.url)
         lcode = r1(r"lcode:\s*'([^']+)'", html)
         plist_info = json.loads(get_content('http://www.tudou.com/crp/plist.action?lcode=' + lcode))
         return ([(item['kw'], item['iid']) for item in plist_info['items']])

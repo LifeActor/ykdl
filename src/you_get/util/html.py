@@ -84,7 +84,7 @@ def get_location(url):
     # not to do that
     return response.geturl()
 
-def get_content(url, headers=fake_headers, data=None):
+def get_content(url, headers=fake_headers, data=None, charset = None):
     """Gets the content of a URL via sending a HTTP GET request.
 
     Args:
@@ -111,7 +111,8 @@ def get_content(url, headers=fake_headers, data=None):
         data = undeflate(data)
 
     # Decode the response body
-    charset = match1(response.getheader('Content-Type'), r'charset=([\w-]+)') or \
+    if charset is None:
+        charset = match1(response.getheader('Content-Type'), r'charset=([\w-]+)') or \
               match1(str(data), r'charset=\"([^\"]+)')
     if charset is not None:
         try:

@@ -19,7 +19,8 @@ class Letvcloud(VideoExtractor):
         str2Hash = ''.join([i + argumet_dict[i] for i in sorted(argumet_dict)]) + sign_key
         sign = hashlib.md5(str2Hash.encode('utf-8')).hexdigest()
         html = get_content('http://api.letvcloud.com/gpc.php?' + '&'.join([i + '=' + argumet_dict[i] for i in argumet_dict]) + '&sign={sign}'.format(sign = sign), decoded = False)
-        info = json.loads(str(html,"utf-8"))
+        print(html)
+        info = json.loads(html)
 
         available_stream_type = info['data']['video_info']['media'].keys()
         for stream in self.supported_stream_types:

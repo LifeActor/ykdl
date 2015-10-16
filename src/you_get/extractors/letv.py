@@ -53,20 +53,20 @@ class Letv(VideoExtractor):
         #normal process
         self.title = match1(html,r'name="irTitle" content="(.*?)"')
         info_url = 'http://api.letv.com/mms/out/video/playJson?id={}&platid=1&splatid=101&format=1&tkey={}&domain=www.letv.com'.format(self.vid, calcTimeKey(int(time.time())))
-        r = get_content(info_url, decoded=False)
-        info=json.loads(str(r,"utf-8"))
+        r = get_content(info_url)
+        info=json.loads(r)
         available_stream_id = info["playurl"]["dispatch"].keys()
         for stream in self.supported_stream_types:
             if stream in available_stream_id:
                 s_url =info["playurl"]["domain"][0]+info["playurl"]["dispatch"][stream][0]
                 ext = info["playurl"]["dispatch"][stream][1].split('.')[-1]
                 s_url+="&ctv=pc&m3v=1&termid=1&format=1&hwtype=un&ostype=Linux&tag=letv&sign=letv&expect=3&tn={}&pay=0&iscpn=f9051&rateid={}".format(random.random(),stream)
-                r2=get_content(s_url,decoded=False)
-                info2=json.loads(str(r2,"utf-8"))
+                r2=get_content(s_url)
+                info2=json.loads(r2)
 
                 # hold on ! more things to do
                 # to decode m3u8 (encoded)
-                m3u8 = get_content(info2["location"],decoded=False)
+                m3u8 = get_content(info2["location"])
                 m3u8_list = decode(m3u8)
                 urls = re.findall(r'^[^#][^\r]*',m3u8_list,re.MULTILINE)
                 self.streams[stream] = {'container': ext, 'video_profile': stream, 'src': urls, 'size' : 0}

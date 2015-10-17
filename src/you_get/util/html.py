@@ -113,14 +113,13 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     # Decode the response body
     if charset is None:
         charset = match1(response.getheader('Content-Type'), r'charset=([\w-]+)') or \
-              match1(str(data), r'charset=\"([^\"]+)', 'charset=([^"]+)')
-    if charset is not None:
-        try:
-            data = data.decode(charset)
-        except:
-            from .log import w
-            w("wrong charset for {}".format(url))
-            data = str(data)
+              match1(str(data), r'charset=\"([^\"]+)', 'charset=([^"]+)') or 'utf-8'
+    try:
+        data = data.decode(charset)
+    except:
+        from .log import w
+        w("wrong charset for {}".format(url))
+        data = str(data)
     return data
 
 def url_size(url, faker = False):

@@ -17,7 +17,7 @@ youku_embed_patterns = [ 'youku\.com/v_show/id_([a-zA-Z0-9=]+)',
 http://www.tudou.com/programs/view/html5embed.action?type=0&amp;code=3LS_URGvl54&amp;lcode=&amp;resourceId=0_06_05_99
 http://www.tudou.com/v/voahn6inu8k/&resourceId=402221676_04_02_99/v.swf
 """
-tudou_embed_patterns = [ 'tudou\.com[a-zA-Z0-9\/\?=\&\.\;]+code=([^&]+)',
+tudou_embed_patterns = [ 'tudou\.com[a-zA-Z0-9\/\?=\&\.\;\#]+code=([^&]+)',
                          'tudou\.com\/[a-zA-Z]\/([^\/]+)'
                        ]
 
@@ -32,7 +32,7 @@ v.qq.com
 """
 qq_embed_patterns = [ 'v\.qq\.com[a-zA-Z0-9\/\?\.\;]+vid=([a-zA-Z0-9]+)',
                       'v\.qq\.com[a-zA-Z0-9\/\?\.\;]+\/([a-zA-Z0-9]+)\.html',
-                      'TPout\.swf\?\&vid=([a-zA-Z0-9]+)'
+                      'TPout\.swf[\?\&]+vid=([a-zA-Z0-9]+)'
                     ]
 
 

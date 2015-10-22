@@ -145,35 +145,19 @@ class Youku(VideoExtractor):
           match1(url, r'loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)') or \
           match1(url, r'player\.youku\.com/embed/([a-zA-Z0-9=]+)')
 
-    def get_playlist_id_from_url(url):
-        """Extracts playlist ID from URL.
-        """
-        return match1(url, r'youku\.com/playlist_show/id_([a-zA-Z0-9=]+)')
-
     def download_playlist_by_url(self, url, **kwargs):
         self.url = url
 
-        try:
-            playlist_id = self.__class__.get_playlist_id_from_url(self.url)
-            assert playlist_id
+        video_page = get_content(self.url)
+        videos = matchall( video_page, ['href="(http://v\.youku\.com/[^?"]+)'])
 
-            video_page = get_content('http://www.youku.com/playlist_show/id_%s' % playlist_id)
-            videos = set(re.findall(r'href="(http://v\.youku\.com/[^?"]+)', video_page))
+        tmp = []
+        for v in videos:
+            if not v in tmp:
+                tmp.append(v)
 
-            for extra_page_url in set(re.findall('href="(http://www\.youku\.com/playlist_show/id_%s_[^?"]+)' % playlist_id, video_page)):
-                extra_page = get_content(extra_page_url)
-                videos |= set(re.findall(r'href="(http://v\.youku\.com/[^?"]+)', extra_page))
-
-        except:
-            video_page = get_content(url)
-            videos = set(re.findall(r'href="(http://v\.youku\.com/[^?"]+)', video_page))
-
-        self.title = r1(r'<meta name="title" content="([^"]+)"', video_page) or \
-                     r1(r'<title>([^<]+)', video_page)
-        self.p_playlist()
-        for video in videos:
-            index = parse_query_param(video, 'f')
-            self.__class__().download_by_url(video, index=index, **kwargs)
+        for video in tmp:
+            self.download_by_url(video, **kwargs)
 
     def prepare(self, **kwargs):
         assert self.url or self.vid
@@ -184,7 +168,6 @@ class Youku(VideoExtractor):
             if self.vid is None:
                 self.download_playlist_by_url(self.url, **kwargs)
                 exit(0)
-
         meta = json.loads(get_html('http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1' % self.vid))
         if not meta['data']:
             log.wtf('[Failed] Video not found.')

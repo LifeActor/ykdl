@@ -121,11 +121,6 @@ class VideoExtractor():
                 print("    - lang:          {}".format(i['lang']))
                 print("      download-url:  {}\n".format(i['url']))
 
-    def p_playlist(self, stream_id=None):
-        print("site:                %s" % self.__class__.name)
-        print("playlist:            %s" % self.title)
-        print("videos:")
-
     def download(self, **kwargs):
         if 'info_only' in kwargs and kwargs['info_only']:
             if 'stream_id' in kwargs and kwargs['stream_id']:

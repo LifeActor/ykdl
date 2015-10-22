@@ -102,7 +102,7 @@ class YouTube(VideoExtractor):
                             if parse_query_param(video, 'index')],
                         key=lambda video: parse_query_param(video, 'index'))
         self.title = re.search(r'<meta name="title" content="([^"]+)"', video_page).group(1)
-        self.p_playlist()
+
         for video in videos:
             vid = parse_query_param(video, 'v')
             index = parse_query_param(video, 'index')

@@ -529,6 +529,8 @@ def url_to_module(url):
     try:
         m = import_module('.'.join(['you_get','extractors', k]))
         return m ,url
+    except(SyntaxError):
+        log.wtf("SyntaxError in module {}".format(k))
     except:
         import http.client
         conn = http.client.HTTPConnection(video_host)

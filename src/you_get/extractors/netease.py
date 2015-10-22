@@ -18,10 +18,10 @@ class Netease(VideoExtractor):
             html = get_content(self.url)
             topiccid = match1(html, 'topicid : \"([^\"]+)')
             vid = match1(html, 'vid : \"([^\"]+)')
-            threadCountPath = match1(html, 'threadCountPath : \'([^\']+)')
-            code = match1(threadCountPath, 'video_bbs\/([^\/]+)')
-            self.vid = [code[0], code[1], topiccid, vid]
-        video_xml = get_content('http://xml.ws.126.net/video/{}/{}/{}_{}.xml'.format(self.vid[0],self.vid[1],self.vid[2],self.vid[3]))
+            self.vid = (topiccid, vid)
+        topiccid, _vid = self.vid
+        code = _vid[-2:]
+        video_xml = get_content('http://xml.ws.126.net/video/{}/{}/{}_{}.xml'.format(code[0], code[1], topiccid, _vid))
         self.title = unquote(match1(video_xml, '<title>([^<]+)'))
 
         for tp in self.sopported_stream_types:

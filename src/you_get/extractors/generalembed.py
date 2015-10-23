@@ -58,6 +58,12 @@ Ku6
 ku6_embed_url = [ '(http://v.ku6vms.com/[^\"]+)'
                      ]
 
+"""
+163
+"""
+netease_embed_patterns = [ 'v\.163\.com\/[0-9a-zA-Z\/\?\.]+topicid=([^&]+)&amp\;vid=([^&]+)'
+                     ]
+
 
 class GeneralEmbed(EmbedExtractor):
 
@@ -102,6 +108,11 @@ class GeneralEmbed(EmbedExtractor):
             data = json.loads(get_content('http://v.ku6vms.com/phpvms/player/forplayer/vid/{}/style/{}/sn/{}'.format(flashvars[0], flashvars[1],flashvars[2])))
             vid = data['ku6vid']
             self.video_info.append(('ku6',vid))
+        for p in netease_embed_patterns:
+            m = re.search(p, content)
+            if m:
+                found = True
+                self.video_info.append(('netease',(m.group(1), m.group(2))))
 
         tmp = []
         for v in self.video_info:

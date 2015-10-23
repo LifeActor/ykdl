@@ -34,7 +34,7 @@ class EmbedExtractor():
         self.prepare(**kwargs)
 
         if not self.video_info and not self.video_url:
-            raise NotImplementedError(self.url + "is not supported")
+            raise NotImplementedError(self.url + " is not supported")
 
         if self.video_info:
             for v in self.video_info:

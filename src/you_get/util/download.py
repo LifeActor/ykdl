@@ -2,12 +2,12 @@ import os
 from urllib import request
 from .strings import get_filename, unescape_html
 from .progressbar import SimpleProgressBar, PiecesProgressBar
-from .html import url_size
+from .html import urls_size, url_size, fake_headers
 
 force = None
 
-def url_save(url, filepath, bar, refer = None, is_part = False, faker = False):
-    file_size = url_size(url, faker = faker)
+def url_save(url, filepath, bar, refer = None, is_part = False):
+    file_size = url_size(url)
 
     if os.path.exists(filepath):
         if not force and file_size == os.path.getsize(filepath):
@@ -40,10 +40,7 @@ def url_save(url, filepath, bar, refer = None, is_part = False, faker = False):
         open_mode = 'wb'
 
     if received < file_size:
-        if faker:
-            headers = fake_headers
-        else:
-            headers = {}
+        headers = fake_headers
         if received:
             headers['Range'] = 'bytes=' + str(received) + '-'
         if refer:
@@ -84,7 +81,7 @@ def url_save(url, filepath, bar, refer = None, is_part = False, faker = False):
         os.remove(filepath) # on Windows rename could fail if destination filepath exists
     os.rename(temp_filepath, filepath)
 
-def url_save_chunked(url, filepath, bar, refer = None, is_part = False, faker = False):
+def url_save_chunked(url, filepath, bar, refer = None, is_part = False):
     if os.path.exists(filepath):
         if not force:
             if not is_part:
@@ -115,10 +112,7 @@ def url_save_chunked(url, filepath, bar, refer = None, is_part = False, faker = 
     else:
         open_mode = 'wb'
 
-    if faker:
-        headers = fake_headers
-    else:
-        headers = {}
+    headers = fake_headers
     if received:
         headers['Range'] = 'bytes=' + str(received) + '-'
     if refer:
@@ -146,7 +140,7 @@ def url_save_chunked(url, filepath, bar, refer = None, is_part = False, faker = 
 
 
 
-def download_urls(urls, title, ext, total_size, output_dir='.', refer=None,  faker=False):
+def download_urls(urls, title, ext, total_size, output_dir='.', refer=None):
     assert urls
 
     if not total_size:
@@ -174,7 +168,7 @@ def download_urls(urls, title, ext, total_size, output_dir='.', refer=None,  fak
     if len(urls) == 1:
         url = urls[0]
         print('Downloading %s ...' % filename)
-        url_save(url, filepath, bar, refer = refer, faker = faker)
+        url_save(url, filepath, bar, refer = refer)
         bar.done()
     else:
         parts = []
@@ -184,12 +178,12 @@ def download_urls(urls, title, ext, total_size, output_dir='.', refer=None,  fak
             filepath = os.path.join(output_dir, filename)
             parts.append(filepath)
             bar.update_piece(i + 1)
-            url_save(url, filepath, bar, refer = refer, is_part = True, faker = faker)
+            url_save(url, filepath, bar, refer = refer, is_part = True)
         bar.done()
 
     print()
 
-def download_one_url(url, title, ext, index, output_dir='.', refer=None, faker=False):
+def download_one_url(url, title, ext, index, output_dir='.', refer=None):
     assert url
 
     title = get_filename(title)
@@ -198,5 +192,5 @@ def download_one_url(url, title, ext, index, output_dir='.', refer=None, faker=F
     filepath = os.path.join(output_dir, filename)
 
     print('Downloading %s ...' % filename)
-    url_save(url, filepath, None, refer = refer, faker = faker)
+    url_save(url, filepath, None, refer = refer)
     print()

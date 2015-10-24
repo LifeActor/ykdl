@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from .common import match1, download_urls, parse_host, set_proxy, unset_proxy, download_one_url
+from .common import match1, download_urls, download_one_url
 from .util import log
 
 class VideoExtractor():
@@ -22,11 +22,7 @@ class VideoExtractor():
         self.vid= None
         self.stream_types = []
 
-        if 'extractor_proxy' in kwargs and kwargs['extractor_proxy']:
-            set_proxy(parse_host(kwargs['extractor_proxy']))
         self.prepare(**kwargs)
-        if 'extractor_proxy' in kwargs and kwargs['extractor_proxy']:
-            unset_proxy()
 
         if self.iterable:
             self.download_iter(**kwargs)
@@ -39,11 +35,7 @@ class VideoExtractor():
         self.vid = vid
         self.stream_types = []
 
-        if 'extractor_proxy' in kwargs and kwargs['extractor_proxy']:
-            set_proxy(parse_host(kwargs['extractor_proxy']))
         self.prepare(**kwargs)
-        if 'extractor_proxy' in kwargs and kwargs['extractor_proxy']:
-            unset_proxy()
 
         if self.iterable:
             self.download_iter(**kwargs)

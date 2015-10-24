@@ -27,7 +27,8 @@ class EmbedExtractor():
         """
         pass
 
-    def download(self, url, **kwargs):
+    def download(self, url, param, **kwargs):
+        self.param = param
         self.url = url
         self.video_info = []
         self.video_url = []
@@ -42,10 +43,10 @@ class EmbedExtractor():
                 if site in alias.keys():
                     site = alias[site]
                 s = import_module('.'.join(['you_get','extractors',site]))
-                s.site.download_by_vid(vid, title=self.title, **kwargs)
+                s.site.download_by_vid(vid, self.param, title=self.title, **kwargs)
 
         if self.video_url:
-            for l in self.video_url:
-                from .common import any_download
-                #dead loop?
-                any_download(l, title = self.title, **kwargs)
+            for v in self.video_url:
+                from .common import url_to_module
+                m = url_to_module(v)
+                m.download(v, self.param, title=self.title, **kwargs)

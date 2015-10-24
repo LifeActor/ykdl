@@ -2,6 +2,7 @@
 
 from .common import match1, download_urls, download_one_url
 from .util import log
+from .util.wrap import launch_player
 
 class VideoExtractor():
     def __init__(self, *args):
@@ -17,7 +18,8 @@ class VideoExtractor():
         if args:
             self.url = args[0]
 
-    def download_by_url(self, url, **kwargs):
+    def download_by_url(self, url, param, **kwargs):
+        self.param = param
         self.url = url
         self.vid= None
         self.stream_types = []
@@ -30,12 +32,13 @@ class VideoExtractor():
             self.extract(**kwargs)
             self.download(**kwargs)
 
-    def download_by_vid(self, vid, **kwargs):
+    def download_by_vid(self, vid, param, **kwargs):
+        self.param = param
         self.url = None
         self.vid = vid
         self.stream_types = []
 
-        self.prepare(**kwargs)
+        self.prepare()
 
         if self.iterable:
             self.download_iter(**kwargs)
@@ -107,36 +110,30 @@ class VideoExtractor():
                 print("      download-url:  {}\n".format(i['url']))
 
     def download(self, **kwargs):
-        if 'stream_id' in kwargs and kwargs['stream_id']:
-            # Download the stream
-            stream_id = kwargs['stream_id']
-        else:
-            # Download stream with the best quality
-            stream_id = self.stream_types[0]
-        if 'info_only' in kwargs and kwargs['info_only']:
+        stream_id = self.param.stream_id or self.stream_types[0]
+        if self.param.info_only:
             self.p([])
         else:
             self.p(stream_id=stream_id)
             urls = self.streams[stream_id]['src']
             if not urls:
                 log.wtf('[Failed] Cannot extract video source.')
-            # For legacy main()
-            download_urls(urls, self.title, self.streams[stream_id]['container'], self.streams[stream_id]['size'], output_dir=kwargs['output_dir'])
-            # For main_dev()
-            #download_urls(urls, self.title, self.streams[stream_id]['container'], self.streams[stream_id]['size'])
+            if self.param.player:
+                launch_player(self.param.player, urls, self.streams[stream_id]['size'])
+            else:
+                download_urls(urls, self.title, self.streams[stream_id]['container'], self.streams[stream_id]['size'], output_dir=self.param.output_dir)
+
 
     def download_iter(self, **kwargs):
-        if 'stream_id' in kwargs and kwargs['stream_id']:
-            # Download the stream
-            stream_id = kwargs['stream_id']
-        else:
-            # Download stream with the best quality
-            stream_id = self.stream_types[0]
-        if 'info_only' in kwargs and kwargs['info_only']:
+        stream_id = self.param.stream_id or self.stream_types[0]
+        if self.param.info_only:
             self.p([])
         else:
             self.p(stream_id=stream_id)
             i = 0
             for url in self.extract_iter(**kwargs):
-                download_one_url(url, self.title, self.streams[stream_id]['container'], output_dir=kwargs['output_dir'], index = i)
+                if self.param.player:
+                    launch_player(self.param.player, url, self.streams[stream_id]['size'])
+                else:
+                    download_one_url(url, self.title, self.streams[stream_id]['container'], output_dir=self.param.output_dir, index = i)
                 i += 1

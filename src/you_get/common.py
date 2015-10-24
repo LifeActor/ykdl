@@ -72,6 +72,6 @@ def main():
     for url in para.urls:
         m = url_to_module(url)
         if para.playlist:
-            m.download_playlist(url, stream_id=para.stream_id, output_dir=para.output_dir, info_only=para.info_only)
+            m.download_playlist(url, para)
         else:
-            m.download(url, stream_id=para.stream_id, output_dir=para.output_dir, info_only=para.info_only)
+            m.download(url, para)

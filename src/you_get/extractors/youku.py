@@ -137,15 +137,7 @@ class Youku(VideoExtractor):
     def parse_m3u8(m3u8):
         return re.findall('(http://[^\r]+)\r',m3u8)
 
-    def get_vid_from_url(url):
-        """Extracts video ID from URL.
-        """
-        return match1(url, r'youku\.com/v_show/id_([a-zA-Z0-9=]+)') or \
-          match1(url, r'player\.youku\.com/player\.php/sid/([a-zA-Z0-9=]+)/v\.swf') or \
-          match1(url, r'loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)') or \
-          match1(url, r'player\.youku\.com/embed/([a-zA-Z0-9=]+)')
-
-    def download_playlist_by_url(self, url, **kwargs):
+    def download_playlist_by_url(self, url, param, **kwargs):
         self.url = url
 
         video_page = get_content(self.url)
@@ -157,16 +149,19 @@ class Youku(VideoExtractor):
                 tmp.append(v)
 
         for video in tmp:
-            self.download_by_url(video, **kwargs)
+            self.download_by_url(video, param, **kwargs)
 
     def prepare(self, **kwargs):
         assert self.url or self.vid
 
         if self.url and not self.vid:
-            self.vid = self.__class__.get_vid_from_url(self.url)
+            self.vid = match1(self.url, 'youku\.com/v_show/id_([a-zA-Z0-9=]+)', \
+                                        'player\.youku\.com/player\.php/sid/([a-zA-Z0-9=]+)/v\.swf', \
+                                        'loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)', \
+                                        'player\.youku\.com/embed/([a-zA-Z0-9=]+)' )
 
             if self.vid is None:
-                self.download_playlist_by_url(self.url, **kwargs)
+                self.download_playlist_by_url(self.url, self.param, **kwargs)
                 exit(0)
         meta = json.loads(get_html('http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1' % self.vid))
         if not meta['data']:
@@ -216,17 +211,7 @@ class Youku(VideoExtractor):
                     self.stream_types.append(stream_type)
 
     def extract(self, **kwargs):
-        if 'stream_id' in kwargs and kwargs['stream_id']:
-            # Extract the stream
-            stream_id = kwargs['stream_id']
-
-            if stream_id not in self.streams:
-                log.e('[Error] Invalid video format.')
-                log.e('Run \'-i\' command with no specific video format to view all available formats.')
-                exit(2)
-        else:
-            # Extract stream with the best quality
-            stream_id = self.stream_types[0]
+        stream_id = self.param.stream_id or self.stream_types[0]
 
         container = self.streams[stream_id]['container']
         self.streamfileids = self.metadata['streamfileids'][stream_id]
@@ -264,7 +249,7 @@ class Youku(VideoExtractor):
             ))
             m3u8_url = 'http://pl.youku.com/playlist/m3u8?' + m3u8_query
             m3u8 = get_content(m3u8_url)
-        if not kwargs['info_only']:
+        if not self.param.info_only:
             self.streams[stream_id]['src'] = self.__class__.parse_m3u8(m3u8)
             if not self.streams[stream_id]['src'] and self.password_protected:
                 log.e('[Failed] Wrong password.')

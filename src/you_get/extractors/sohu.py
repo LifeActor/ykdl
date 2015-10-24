@@ -76,17 +76,7 @@ class Sohu(VideoExtractor):
             return
 
     def extract(self, **kwargs):
-        if 'stream_id' in kwargs and kwargs['stream_id']:
-            # Extract the stream
-            stream_id = kwargs['stream_id']
-
-            if stream_id not in self.streams:
-                log.e('[Error] Invalid video format.')
-                log.e('Run \'-i\' command with no specific video format to view all available formats.')
-                exit(2)
-        else:
-            # Extract stream with the best quality
-            stream_id = self.stream_types[0]
+        stream_id = self.param.stream_id or self.stream_types[0]
 
 
         urls = []

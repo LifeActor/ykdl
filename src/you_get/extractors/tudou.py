@@ -47,12 +47,12 @@ class Tudou(VideoExtractor):
         plist_info = json.loads(get_content('http://www.tudou.com/crp/plist.action?lcode=' + lcode))
         return ([(item['kw'], item['iid']) for item in plist_info['items']])
 
-    def download_playlist_by_url(self, url, **kwargs):
+    def download_playlist_by_url(self, url, param, **kwargs):
         self.url = url
         videos = self.parse_plist()
         for i, (title, id) in enumerate(videos):
             print('Processing %s of %s videos...' % (i + 1, len(videos)))
-            self.download_by_vid(id, title=title, **kwargs)
+            self.download_by_vid(id, param, title=title, **kwargs)
 
 site = Tudou()
 download = site.download_by_url

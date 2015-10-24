@@ -88,7 +88,7 @@ class YouTube(VideoExtractor):
         return parse_query_param(url, 'list') or \
           parse_query_param(url, 'p')
 
-    def download_playlist_by_url(self, url, **kwargs):
+    def download_playlist_by_url(self, url, param, **kwargs):
         self.url = url
 
         playlist_id = self.__class__.get_playlist_id_from_url(self.url)
@@ -106,7 +106,7 @@ class YouTube(VideoExtractor):
         for video in videos:
             vid = parse_query_param(video, 'v')
             index = parse_query_param(video, 'index')
-            self.__class__().download_by_url(self.__class__.get_url_from_vid(vid), index=index, **kwargs)
+            self.download_by_url(self.__class__.get_url_from_vid(vid), param, index=index, **kwargs)
 
     def prepare(self, **kwargs):
         assert self.url or self.vid
@@ -184,7 +184,7 @@ class YouTube(VideoExtractor):
             # No stream is available
             return
 
-        if 'info_only' in kwargs and kwargs['info_only']:
+        if self.param.info_only:
             for stream_id in self.stream_types:
                 src = self.streams[stream_id]['url']
 
@@ -202,16 +202,7 @@ class YouTube(VideoExtractor):
                 self.streams[stream_id]['size'] = urls_size(self.streams[stream_id]['src'])
             return
 
-        if 'stream_id' in kwargs and kwargs['stream_id']:
-            # Extract the stream
-            stream_id = kwargs['stream_id']
-            if stream_id not in self.streams:
-                log.e('[Error] Invalid video format.')
-                log.e('Run \'-i\' command with no specific video format to view all available formats.')
-                exit(2)
-        else:
-            # Extract stream with the best quality
-            stream_id = self.stream_types[0]
+        stream_id = self.param.stream_id or self.stream_types[0]
 
         src = self.streams[stream_id]['url']
 

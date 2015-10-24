@@ -90,7 +90,7 @@ class BiliBili():
         if args:
             self.url = args[0]
 
-    def download_by_url(self, url, **kwargs):
+    def download_by_url(self, url, param, **kwargs):
         self.url = url
 
         html = get_content(self.url)
@@ -98,11 +98,11 @@ class BiliBili():
         vids = matchall(html, ['cid=([^&]+)'])
 
         if vids:
-            self.orig.download_by_url(self.url, title=self.title, **kwargs)
+            self.orig.download_by_url(self.url, param, title=self.title, **kwargs)
         else:
-            self.embed.download(self.url, **kwargs)
+            self.embed.download(self.url, param, **kwargs)
 
-    def download_playlist_by_url(self, url, **kwargs):
+    def download_playlist_by_url(self, url, param, **kwargs):
         self.url = url
 
         html = get_content(self.url)
@@ -111,7 +111,7 @@ class BiliBili():
 
         for l in list:
             next_url = "http://www.bilibili.com{}".format(l)
-            self.download_by_url(next_url, **kwargs)
+            self.download_by_url(next_url, param, **kwargs)
 
 
 site = BiliBili()

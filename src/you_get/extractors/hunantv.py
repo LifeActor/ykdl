@@ -36,7 +36,7 @@ class Hunantv(VideoExtractor):
             self.stream_types.append(lstream['name'])
 
     def extract(self, **kwargs):
-        if 'info_only' in kwargs and kwargs['info_only']:
+        if self.param.info_only:
           for stream in self.stream_types:
                 meta = ''
                 while True:
@@ -49,19 +49,7 @@ class Hunantv(VideoExtractor):
                 self.streams[stream]['src'] = [meta['info']]
                 self.streams[stream]['size'] = size
         else:
-
-            if 'stream_id' in kwargs and kwargs['stream_id']:
-                # Extract the stream
-                stream_id = kwargs['stream_id']
-
-                if stream_id not in self.streams:
-                    log.e('[Error] Invalid video format.')
-                    log.e('Run \'-i\' command with no specific video format to view all available formats.')
-                    exit(2)
-            else:
-                # Extract stream with the best quality
-                stream_id = self.stream_types[0]
-
+            stream_id = self.param.stream_id or self.stream_types[0]
 
             meta = ''
             while True:

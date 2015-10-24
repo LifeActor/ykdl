@@ -73,7 +73,7 @@ class Letv(VideoExtractor):
                 self.stream_types.append(stream)
 
     def extract(self, **kwargs):
-        if 'info_only' in kwargs and kwargs['info_only']:
+        if self.param.info_only:
             for stream_id in self.streams.keys():
                 size = 0
                 for i in self.streams[stream_id]['src']:
@@ -82,17 +82,7 @@ class Letv(VideoExtractor):
                 self.streams[stream_id]['size'] = size
         return
         #ignore video size in download/play mode, for preformence issue
-        if 'stream_id' in kwargs and kwargs['stream_id']:
-            # Extract the stream
-            stream_id = kwargs['stream_id']
-
-            if stream_id not in self.streams:
-                log.e('[Error] Invalid video format.')
-                log.e('Run \'-i\' command with no specific video format to view all available formats.')
-                exit(2)
-        else:
-            # Extract stream with the best quality
-            stream_id = self.stream_type[0]
+        stream_id = self.param.stream_id or self.stream_type[0]
 
         size = 0
         for i in self.streams[stream_id]['src']:
@@ -100,13 +90,14 @@ class Letv(VideoExtractor):
              size += tmp
              self.streams[stream_id]['size'] = size
 
-    def download_playlist_by_url(self, url, **kwargs):
+    def download_playlist_by_url(self, url, param, **kwargs):
         self.url = url
+        self.param = param
         html = get_content(self.url)
 
         vids = matchall(html, ['vid="(\d+)"'])
         for v in vids:
-            self.download_by_vid(v, **kwargs)
+            self.download_by_vid(v,param, **kwargs)
 
 
 def letvcloud_download_by_vu(vu, uu, title=None, output_dir='.', merge=True, info_only=False, **kwargs):

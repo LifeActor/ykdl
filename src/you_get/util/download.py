@@ -178,7 +178,7 @@ def download_urls(urls, title, ext, total_size, output_dir='.', refer=None,  fak
         bar.done()
     else:
         parts = []
-        print('Downloading %s.%s ...' % (title), ext)
+        print('Downloading %s ...' % filename)
         for i, url in enumerate(urls):
             filename = '%s[%02d].%s' % (title, i, ext)
             filepath = os.path.join(output_dir, filename)

@@ -80,13 +80,6 @@ class VideoExtractor():
 
         print()
 
-    def p_i(self, stream_id):
-        stream = self.streams[stream_id]
-        print("    - title:         %s" % self.title)
-        print("       size:         %s MiB (%s bytes)" % (round(stream['size'] / 1048576, 1), stream['size']))
-        print("        url:         %s" % self.url)
-        print()
-
     def p(self, stream_id=None):
         print("site:                %s" % self.__class__.name)
         print("title:               %s" % self.title)
@@ -114,35 +107,16 @@ class VideoExtractor():
                 print("      download-url:  {}\n".format(i['url']))
 
     def download(self, **kwargs):
-        if 'info_only' in kwargs and kwargs['info_only']:
-            if 'stream_id' in kwargs and kwargs['stream_id']:
-                # Display the stream
-                stream_id = kwargs['stream_id']
-                if 'index' not in kwargs:
-                    self.p(stream_id)
-                else:
-                    self.p_i(stream_id)
-            else:
-                # Display all available streams
-                if 'index' not in kwargs:
-                    self.p([])
-                else:
-                    stream_id = self.stream_types[0]
-                    self.p_i(stream_id)
-
+        if 'stream_id' in kwargs and kwargs['stream_id']:
+            # Download the stream
+            stream_id = kwargs['stream_id']
         else:
-            if 'stream_id' in kwargs and kwargs['stream_id']:
-                # Download the stream
-                stream_id = kwargs['stream_id']
-            else:
-                # Download stream with the best quality
-                stream_id = self.stream_types[0]
-
-            if 'index' not in kwargs:
-                self.p(stream_id)
-            else:
-                self.p_i(stream_id)
-
+            # Download stream with the best quality
+            stream_id = self.stream_types[0]
+        if 'info_only' in kwargs and kwargs['info_only']:
+            self.p([])
+        else:
+            self.p(stream_id=stream_id)
             urls = self.streams[stream_id]['src']
             if not urls:
                 log.wtf('[Failed] Cannot extract video source.')
@@ -152,35 +126,16 @@ class VideoExtractor():
             #download_urls(urls, self.title, self.streams[stream_id]['container'], self.streams[stream_id]['size'])
 
     def download_iter(self, **kwargs):
-        if 'info_only' in kwargs and kwargs['info_only']:
-            if 'stream_id' in kwargs and kwargs['stream_id']:
-                # Display the stream
-                stream_id = kwargs['stream_id']
-                if 'index' not in kwargs:
-                    self.p(stream_id)
-                else:
-                    self.p_i(stream_id)
-            else:
-                # Display all available streams
-                if 'index' not in kwargs:
-                    self.p([])
-                else:
-                    stream_id = self.stream_types[0]
-                    self.p_i(stream_id)
-
+        if 'stream_id' in kwargs and kwargs['stream_id']:
+            # Download the stream
+            stream_id = kwargs['stream_id']
         else:
-            if 'stream_id' in kwargs and kwargs['stream_id']:
-                # Download the stream
-                stream_id = kwargs['stream_id']
-            else:
-                # Download stream with the best quality
-                stream_id = self.stream_types[0]
-
-            if 'index' not in kwargs:
-                self.p(stream_id)
-            else:
-                self.p_i(stream_id)
-
+            # Download stream with the best quality
+            stream_id = self.stream_types[0]
+        if 'info_only' in kwargs and kwargs['info_only']:
+            self.p([])
+        else:
+            self.p(stream_id=stream_id)
             i = 0
             for url in self.extract_iter(**kwargs):
                 download_one_url(url, self.title, self.streams[stream_id]['container'], output_dir=kwargs['output_dir'], index = i)

@@ -118,7 +118,11 @@ class VideoExtractor():
             urls = self.streams[stream_id]['src']
             if not urls:
                 log.wtf('[Failed] Cannot extract video source.')
-            if self.param.player:
+            if self.param.dry_run:
+                print("Real urls:")
+                for u in urls:
+                    print(u)
+            elif self.param.player:
                 launch_player(self.param.player, urls)
             else:
                 download_urls(urls, self.title, self.streams[stream_id]['container'], self.streams[stream_id]['size'], output_dir=self.param.output_dir)
@@ -131,8 +135,12 @@ class VideoExtractor():
         else:
             self.p(stream_id=stream_id)
             i = 0
+            if self.param.dry_run:
+                print("Real urls:")
             for url in self.extract_iter(**kwargs):
-                if self.param.player:
+                if self.param.dry_run:
+                    print(url)
+                elif self.param.player:
                     launch_player(self.param.player, url)
                 else:
                     download_one_url(url, self.title, self.streams[stream_id]['container'], output_dir=self.param.output_dir, index = i)

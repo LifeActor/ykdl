@@ -18,6 +18,46 @@ class VideoExtractor():
         if args:
             self.url = args[0]
 
+    def stream_to_string(self, stream_id):
+        stream = self.streams[stream_id]
+        string  = "    - format:        %s\n" % log.sprint(stream_id, log.NEGATIVE)
+        if 'container' in stream:
+            string += "      container:     %s\n" % stream['container']
+        if 'video_profile' in stream:
+            string += "      video-profile: %s\n" % stream['video_profile']
+        if 'quality' in stream:
+            string += "      quality:       %s\n" % stream['quality']
+        if 'size' in stream:
+            string += "      size:          %s MiB (%s bytes)\n" % (round(stream['size'] / 1048576, 1), stream['size'])
+        string += "    # download-with: %s\n" % log.sprint("you-get --format=%s [URL]" % stream_id, log.UNDERLINE)
+        if self.param.dry_run:
+            string += "Real urls:\n"
+            if self.iterable:
+                for url in self.extract_iter(**kwargs):
+                    string += "%s\n" % url
+            else:
+                for url in stream['src']:
+                    string += "%s\n" % url
+        return string
+
+    def __str__(self):
+        string  = "site:                %s\n" % self.name
+        string += "title:               %s\n" % self.title
+        string += "streams:\n"
+        if not self.param.info_only:
+            stream_id = self.param.stream_id or self.stream_types[0]
+            string += self.stream_to_string(stream_id)
+        else:
+            for stream_id in self.stream_types:
+                string += self.stream_to_string(stream_id)
+
+        if self.audiolang:
+            string += "audio-languages:\n"
+            for i in self.audiolang:
+                string +="    - lang:          {}\n".format(i['lang'])
+                string +="      download-url:  {}\n".format(i['url'])
+        return string
+
     def download_by_url(self, url, param, **kwargs):
         self.param = param
         self.url = url
@@ -38,7 +78,7 @@ class VideoExtractor():
         self.vid = vid
         self.stream_types = []
 
-        self.prepare()
+        self.prepare(**kwargs)
 
         if self.iterable:
             self.download_iter(**kwargs)
@@ -57,91 +97,29 @@ class VideoExtractor():
     def extract_iter(**kwargs):
         pass
 
-    def p_stream(self, stream_id):
-        stream = self.streams[stream_id]
-        if 'itag' in stream:
-            print("    - itag:          %s" % log.sprint(stream_id, log.NEGATIVE))
-        else:
-            print("    - format:        %s" % log.sprint(stream_id, log.NEGATIVE))
-
-        if 'container' in stream:
-            print("      container:     %s" % stream['container'])
-
-        if 'video_profile' in stream:
-            print("      video-profile: %s" % stream['video_profile'])
-
-        if 'quality' in stream:
-            print("      quality:       %s" % stream['quality'])
-
-        if 'size' in stream:
-            print("      size:          %s MiB (%s bytes)" % (round(stream['size'] / 1048576, 1), stream['size']))
-
-        if 'itag' in stream:
-            print("    # download-with: %s" % log.sprint("you-get --itag=%s [URL]" % stream_id, log.UNDERLINE))
-        else:
-            print("    # download-with: %s" % log.sprint("you-get --format=%s [URL]" % stream_id, log.UNDERLINE))
-
-        print()
-
-    def p(self, stream_id=None):
-        print("site:                %s" % self.__class__.name)
-        print("title:               %s" % self.title)
-        if stream_id:
-            # Print the stream
-            print("stream:")
-            self.p_stream(stream_id)
-
-        elif stream_id is None:
-            # Print stream with best quality
-            print("stream:              # Best quality")
-            stream_id = self.stream_types[0]
-            self.p_stream(stream_id)
-
-        elif stream_id == []:
-            # Print all available streams
-            print("streams:             # Available quality and codecs")
-            for stream in self.stream_types:
-                self.p_stream(stream)
-
-        if self.audiolang:
-            print("audio-languages:")
-            for i in self.audiolang:
-                print("    - lang:          {}".format(i['lang']))
-                print("      download-url:  {}\n".format(i['url']))
-
     def download(self, **kwargs):
         stream_id = self.param.stream_id or self.stream_types[0]
-        if self.param.info_only:
-            self.p([])
+        print(self)
+        urls = self.streams[stream_id]['src']
+        if not urls:
+            log.wtf('[Failed] Cannot extract video source.')
+        if self.param.info_only or self.param.dry_run:
+            return
+        elif self.param.player:
+            launch_player(self.param.player, urls)
         else:
-            self.p(stream_id=stream_id)
-            urls = self.streams[stream_id]['src']
-            if not urls:
-                log.wtf('[Failed] Cannot extract video source.')
-            if self.param.dry_run:
-                print("Real urls:")
-                for u in urls:
-                    print(u)
-            elif self.param.player:
-                launch_player(self.param.player, urls)
-            else:
-                download_urls(urls, self.title, self.streams[stream_id]['container'], self.streams[stream_id]['size'], output_dir=self.param.output_dir)
+            download_urls(urls, self.title, self.streams[stream_id]['container'], self.streams[stream_id]['size'], output_dir=self.param.output_dir)
 
 
     def download_iter(self, **kwargs):
         stream_id = self.param.stream_id or self.stream_types[0]
-        if self.param.info_only:
-            self.p([])
-        else:
-            self.p(stream_id=stream_id)
-            i = 0
-            if self.param.dry_run:
-                print("Real urls:")
-            for url in self.extract_iter(**kwargs):
-                if self.param.dry_run:
-                    print(url)
-                elif self.param.player:
-                    launch_player(self.param.player, url)
-                else:
-                    download_one_url(url, self.title, self.streams[stream_id]['container'], output_dir=self.param.output_dir, index = i)
+        print(self)
+        if self.param.info_only or self.param.dry_run:
+            return
+        i = 0
+        for url in self.extract_iter(**kwargs):
+            if self.param.player:
+                launch_player(self.param.player, url)
+            else:
+                download_one_url(url, self.title, self.streams[stream_id]['container'], output_dir=self.param.output_dir, index = i)
                 i += 1

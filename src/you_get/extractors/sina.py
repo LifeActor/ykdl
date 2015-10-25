@@ -1,83 +1,34 @@
 #!/usr/bin/env python
 
-__all__ = ['sina_download', 'sina_download_by_vid', 'sina_download_by_vkey']
+from ..extractor import VideoExtractor
+from ..util import log
+from ..util.match import match1
+from ..util.html import get_content
+from ..common import playlist_not_supported
 
-from ..common import *
+class Sina(VideoExtractor):
+    name = "新浪视频 (sina)"
 
-from hashlib import md5
-from random import randint
-from time import time
+    def prepare(self, **kwargs):
+        assert self.url or self.vid
 
-def get_k(vid, rand):
-    t = str(int('{0:b}'.format(int(time()))[:-6], 2))
-    return md5((vid + 'Z6prk18aWxP278cVAH' + t + rand).encode('utf-8')).hexdigest()[:16] + t
+        if not self.vid:
+            html = get_content(self.url)
+            self.vid = match1(html, 'vid:(\w+)', 'ipad_vid:\'(\w+)\'')
+            self.title = match1(html, '<title>([^<]+)')
+        if not self.vid:
+            log.wtf("can't get vid")
 
-def video_info_xml(vid):
-    rand = "0.{0}{1}".format(randint(10000, 10000000), randint(10000, 10000000))
-    url = 'http://v.iask.com/v_play.php?vid={0}&ran={1}&p=i&k={2}'.format(vid, rand, get_k(vid, rand))
-    xml = get_content(url, headers=fake_headers, decoded=True)
-    return xml
+        url = 'http://v.iask.com/v_play_ipad.php?vid={}'.format(self.vid)
+        title = ""
+        if "title" in kwargs and kwargs["title"]:
+            title = kwargs["title"]
+        else:
+            title = self.name + " VID: " + self.vid
+        self.title = self.title or title
+        self.stream_types.append('current')
+        self.streams['current'] = {'container': 'mp4', 'src': [url], 'size' : 0}
 
-def video_info(xml):
-    urls = re.findall(r'<url>(?:<!\[CDATA\[)?(.*?)(?:\]\]>)?</url>', xml)
-    name = match1(xml, r'<vname>(?:<!\[CDATA\[)?(.+?)(?:\]\]>)?</vname>')
-    vstr = match1(xml, r'<vstr>(?:<!\[CDATA\[)?(.+?)(?:\]\]>)?</vstr>')
-    return urls, name, vstr
-
-def sina_download_by_vid(vid, title=None, output_dir='.',info_only=False):
-    """Downloads a Sina video by its unique vid.
-    http://video.sina.com.cn/
-    """
-
-    xml = video_info_xml(vid)
-    sina_download_by_xml(xml, title, output_dir, info_only)
-
-
-def sina_download_by_xml(xml, title, output_dir, info_only):
-    urls, name, vstr = video_info(xml)
-    title = title or name
-    assert title
-    size = 0
-    for url in urls:
-        _, _, temp = url_info(url)
-        size += temp
-
-    print_info(site_info, title, 'flv', size)
-    if not info_only:
-        download_urls(urls, title, 'flv', size, output_dir = output_dir)
-
-def sina_download_by_vkey(vkey, title=None, output_dir='.',info_only=False):
-    """Downloads a Sina video by its unique vkey.
-    http://video.sina.com/
-    """
-
-    url = 'http://video.sina.com/v/flvideo/%s_0.flv' % vkey
-    type, ext, size = url_info(url)
-
-    print_info(site_info, title, 'flv', size)
-    if not info_only:
-        download_urls([url], title, 'flv', size, output_dir = output_dir)
-
-def sina_download(url, output_dir='.', info_only=False):
-    """Downloads Sina videos by URL.
-    """
-
-    vid = match1(url, r'vid=(\d+)')
-    if vid is None:
-        video_page = get_content(url)
-        vid = hd_vid = match1(video_page, r'hd_vid\s*:\s*\'([^\']+)\'')
-        if hd_vid == '0':
-            vids = match1(video_page, r'[^\w]vid\s*:\s*\'([^\']+)\'').split('|')
-            vid = vids[-1]
-
-    if vid:
-        title = match1(video_page, r'title\s*:\s*\'([^\']+)\'')
-        sina_download_by_vid(vid, title=title, output_dir=output_dir,  info_only=info_only)
-    else:
-        vkey = match1(video_page, r'vkey\s*:\s*"([^"]+)"')
-        title = match1(video_page, r'title\s*:\s*"([^"]+)"')
-        sina_download_by_vkey(vkey, title=title, output_dir=output_dir, info_only=info_only)
-
-site_info = "Sina.com"
-download = sina_download
+site = Sina()
+download = site.download_by_url
 download_playlist = playlist_not_supported('sina')

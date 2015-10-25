@@ -17,11 +17,11 @@ class Facebook(VideoExtractor):
         self.title = match1(html, '<title id="pageTitle">(.+) \| Facebook</title>')
         s2 = parse.unquote(unicodize(r1(r'\["params","([^"]*)"\]', html)))
         data = json.loads(s2)
-        video_data = data["video_data"][0]
+        video_data = data["video_data"]["progressive"]
         available_stream_types = video_data.keys()
         for stream in self.supported_stream_types:
             if stream in available_stream_types:
-                url = video_data[stream]
+                url = video_data[0][stream]
                 _, ext, size = url_info(url)
                 self.stream_types.append(stream)
                 self.streams[stream] = {'container': ext, 'src': [url], 'size' : size}

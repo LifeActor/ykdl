@@ -1,38 +1,39 @@
 #!/usr/bin/env python
 
-__all__ = ['veoh_download']
+from ..util.html import *
+from ..util.match import *
+from ..util import log
+from ..extractor import VideoExtractor
+from ..common import playlist_not_supported
 
-from ..common import *
-import urllib.error
+class Veoh(VideoExtractor):
 
-def veoh_download(url, output_dir = '.', merge = False, info_only = False, **kwargs):
-    '''Get item_id'''
-    if re.match(r'http://www.veoh.com/watch/\w+', url):
-        item_id = match1(url, r'http://www.veoh.com/watch/(\w+)')
-    elif re.match(r'http://www.veoh.com/m/watch.php\?v=\.*', url):
-        item_id = match1(url, r'http://www.veoh.com/m/watch.php\?v=(\w+)')
-    else:
-        raise NotImplementedError('Cannot find item ID')
-    veoh_download_by_id(item_id, output_dir = '.', merge = False, info_only = False, **kwargs)
+    name = 'Veoh'
 
-#----------------------------------------------------------------------
-def veoh_download_by_id(item_id, output_dir = '.', merge = False, info_only = False, **kwargs):
-    """Source: Android mobile"""
-    webpage_url = 'http://www.veoh.com/m/watch.php?v={item_id}&quality=1'.format(item_id = item_id)
+    def prepare(self, **kwargs):
+        assert self.url or self.vid
+
+        if not self.vid:
+            self.vid = match1(self.url, 'http://www.veoh.com/watch/(\w+)', 'http://www.veoh.com/m/watch.php\?v=(\w+)')
+
+        if not self.vid:
+            log.wtf('Cannot find item ID')
+
+        webpage_url = 'http://www.veoh.com/m/watch.php?v={}&quality=1'.format(self.vid)
+
+        #grab download URL
+        a = get_content(webpage_url)
+        url = match1(a, r'<source src="(.*?)\"\W')
     
-    #grab download URL
-    a = get_content(webpage_url, decoded=True)
-    url = match1(a, r'<source src="(.*?)\"\W')
-    
-    #grab title
-    title = match1(a, r'<meta property="og:title" content="([^"]*)"')
+        #grab title
+        self.title = match1(a, r'<meta property="og:title" content="([^"]*)"')
 
-    type_, ext, size = url_info(url)
-    print_info(site_info, title, type_, size)
-    if not info_only:
-        download_urls([url], title, ext, total_size=None, output_dir=output_dir, merge=merge)
+        type_, ext, size = url_info(url)
+
+        self.stream_types.append('current')
+        self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
 
 
-site_info = "Veoh"
-download = veoh_download
+site = Veoh()
+download = site.download_by_url
 download_playlist = playlist_not_supported('veoh')

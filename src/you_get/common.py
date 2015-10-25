@@ -31,7 +31,6 @@ alias = {
         'in': 'alive',
         'kankanews': 'bilibili',
         'smgbb': 'bilibili',
-        'weibo': 'miaopai',
         '7gogo': 'nanagogo'
 }
 def url_to_module(url):

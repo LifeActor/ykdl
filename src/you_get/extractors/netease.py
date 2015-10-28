@@ -16,8 +16,8 @@ class Netease(VideoExtractor):
 
         if not self.vid:
             html = get_content(self.url)
-            topiccid = match1(html, 'topicid : \"([^\"]+)')
-            vid = match1(html, 'vid : \"([^\"]+)')
+            topiccid = match1(html, 'topicid : \"([^\"]+)', 'topicid=([^&]+)')
+            vid = match1(html, 'vid : \"([^\"]+)', 'vid=([^&]+)')
             self.vid = (topiccid, vid)
         topiccid, _vid = self.vid
         code = _vid[-2:]

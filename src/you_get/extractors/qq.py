@@ -228,7 +228,7 @@ class QQ(VideoExtractor):
 
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, 'vid:\"([^\"]+)')
+            self.vid = match1(self.url, 'vid=(\w+)') or match1(html, 'vid:\"([^\"]+)')
 
         assert self.vid
 

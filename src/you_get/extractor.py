@@ -3,6 +3,7 @@
 from .common import match1, download_urls, download_one_url
 from .util import log
 from .util.wrap import launch_player
+import json
 
 class VideoExtractor():
     def __init__(self, *args):
@@ -40,7 +41,22 @@ class VideoExtractor():
                     string += "%s\n" % url
         return string
 
+    def jsonlize(self):
+        json_dict = { 'site'   : self.name,
+                      'title'  : self.title,
+                      'url'    : self.url,
+                      'vid'    : self.vid
+                    }
+        if self.param.info_only:
+            json_dict['streams'] = self.streams
+        else:
+            stream_id = self.param.stream_id or self.stream_types[0]
+            json_dict['streams'] = self.streams[stream_id]
+        return json_dict
+
     def __str__(self):
+        if self.param.json_out:
+            return json.dumps(self.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False)
         string  = "site:                %s\n" % self.name
         string += "title:               %s\n" % self.title
         string += "streams:\n"
@@ -100,11 +116,11 @@ class VideoExtractor():
     def download(self, **kwargs):
         stream_id = self.param.stream_id or self.stream_types[0]
         print(self)
+        if self.param.info_only or self.param.dry_run:
+            return
         urls = self.streams[stream_id]['src']
         if not urls:
             log.wtf('[Failed] Cannot extract video source.')
-        if self.param.info_only or self.param.dry_run:
-            return
         elif self.param.player:
             launch_player(self.param.player, urls)
         else:

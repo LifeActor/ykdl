@@ -24,8 +24,8 @@ help += '''\nDownload options (use with URLs):
 
 class Param():
 
-    short_opts = 'lVhfiuc:nF:o:p:x:y:'
-    opts = ['playlist', 'version', 'help', 'force', 'info', 'url', 'cookies', 'no-proxy', 'debug', 'format=', 'stream=', 'itag=', 'output-dir=', 'player=', 'http-proxy=', 'extractor-proxy=', 'lang=']
+    short_opts = 'lVhfiujc:nF:o:p:x:y:'
+    opts = ['playlist', 'version', 'help', 'force', 'info', 'url', 'cookies', 'no-proxy', 'debug', 'format=', 'stream=', 'itag=', 'output-dir=', 'player=', 'http-proxy=', 'extractor-proxy=', 'lang=', 'json']
 
     def __init__(self, param_string):
         self.dry_run = False
@@ -42,6 +42,7 @@ class Param():
         self.extractor_proxy = None
         self.traceback = False
         self.urls = None
+        self.json_out = False
 
         try:
             opts, self.urls = getopt.getopt(param_string, self.short_opts, self.opts)
@@ -85,6 +86,8 @@ class Param():
                 self.extractor_proxy = a
             elif o in ('--lang',):
                 self.lang = a
+            elif o in ('--json', '-j'):
+                self.json_out = True
             else:
                 log.e("try 'you-get --help' for more options")
                 sys.exit(2)

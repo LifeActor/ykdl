@@ -34,7 +34,7 @@ class VideoExtractor():
         if self.param.dry_run:
             string += "Real urls:\n"
             if self.iterable:
-                for url in self.extract_iter(**kwargs):
+                for url in self.extract_iter():
                     string += "%s\n" % url
             else:
                 for url in stream['src']:
@@ -135,7 +135,7 @@ class VideoExtractor():
         i = 0
         for url in self.extract_iter(**kwargs):
             if self.param.player:
-                launch_player(self.param.player, url)
+                launch_player(self.param.player, [url])
             else:
                 download_one_url(url, self.title, self.streams[stream_id]['container'], output_dir=self.param.output_dir, index = i)
                 i += 1

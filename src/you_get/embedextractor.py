@@ -47,6 +47,8 @@ class EmbedExtractor():
 
         if self.video_url:
             for v in self.video_url:
-                from .common import url_to_module
-                m = url_to_module(v)
-                m.download(v, self.param, title=self.title, **kwargs)
+                site, url = v
+                if site in alias.keys():
+                    site = alias[site]
+                s = import_module('.'.join(['you_get','extractors',site]))
+                s.site.download_by_url(url, self.param, title=self.title, **kwargs)

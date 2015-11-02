@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.html import get_content
+from ..common import playlist_not_supported
+from ..util.match import match1, matchall
 from ..embedextractor import EmbedExtractor
 
+import re
 import json
 
 class Acfun(EmbedExtractor):
@@ -17,13 +20,17 @@ class Acfun(EmbedExtractor):
         videos = matchall(html,["data-vid=\"(\d+)\""])
 
         for video in videos:
-            info = json.loads(get_html('http://www.acfun.tv/video/getVideo.aspx?id=' + video))
+            info = json.loads(get_content('http://www.acfun.tv/video/getVideo.aspx?id=' + video))
             sourceType = info['sourceType']
             sourceId = info['sourceId']
             if sourceType == 'letv':
                 #workaround for letv, because it is letvcloud
                 sourceType = 'letvcloud'
                 sourceId = (sourceId, '2d8c027396')
+            if sourceType == 'zhuzhan':
+                #workaround for letv, because it is letvcloud
+                sourceType = 'acorig'
+                sourceId = video
 
             self.video_info.append((sourceType, sourceId))
 

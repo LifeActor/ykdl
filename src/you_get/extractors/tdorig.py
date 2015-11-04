@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+
+from ..extractor import VideoExtractor
+from ..util.html import get_content
+from ..util.match import match1
+
+import json
+from xml.dom.minidom import parseString
+
+class TDorig(VideoExtractor):
+    name = "土豆原创 (tudou)"
+
+    def prepare(self, **kwargs):
+        assert self.vid
+
+        if 'title' in kwargs and kwargs['title']:
+            self.title = kwargs['title']
+        else:
+            self.title = self.name + "-" + self.vid
+
+        data = json.loads(get_content('http://www.tudou.com/outplay/goto/getItemSegs.action?iid=%s' % self.vid))
+
+        temp = max([data[i] for i in data if 'size' in data[i][0]], key=lambda x:sum([part['size'] for part in x]))
+        vids, size = [t["k"] for t in temp], sum([t["size"] for t in temp])
+        urls = [[n.firstChild.nodeValue.strip()
+             for n in
+                parseString(
+                    get_content('http://ct.v2.tudou.com/f?id=%s' % vid))
+                .getElementsByTagName('f')][0]
+            for vid in vids]
+        ext = match1(urls[0], 'http://[\w.]*/(\w+)/[\w.]*')
+        self.stream_types.append('current')
+        self.streams['current'] = {'container': ext, 'video_profile': 'current', 'src' : urls, 'size': size}
+
+site = TDorig()

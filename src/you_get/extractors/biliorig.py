@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from ..common import playlist_not_supported
+
 from ..extractor import VideoExtractor
 from ..util.html import get_content, url_info
 from ..util.match import match1, matchall
@@ -62,5 +62,3 @@ class BiliOrig(VideoExtractor):
         self.streams['current'] = {'container': ext, 'video_profile': 'current', 'src' : urls, 'size': size}
 
 site = BiliOrig()
-download = site.download_by_url
-download_playlist = playlist_not_supported('bilibili')

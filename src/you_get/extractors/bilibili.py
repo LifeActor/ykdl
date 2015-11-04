@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from ..util.html import get_content
-from ..util.match import match1
+from ..util.match import match1, matchall
 from ..embedextractor import EmbedExtractor
 
 import re
@@ -47,7 +47,7 @@ class BiliBili(EmbedExtractor):
 
         for l in list:
             next_url = "http://www.bilibili.com{}".format(l)
-            self.download_by_url(next_url, param, **kwargs)
+            self.download(next_url, param, **kwargs)
 
 
 site = BiliBili()

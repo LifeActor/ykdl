@@ -119,7 +119,6 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     except:
         from .log import w
         w("wrong charset for {}".format(url))
-        data = str(data)
     return data
 
 def url_size(url, faker = False):

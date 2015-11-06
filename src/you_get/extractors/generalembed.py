@@ -32,7 +32,7 @@ v.qq.com
 """
 qq_embed_patterns = [ 'v\.qq\.com[a-zA-Z0-9\/\?\.\;]+vid=([a-zA-Z0-9]+)',
                       'v\.qq\.com[a-zA-Z0-9\/\?\.\;]+\/([a-zA-Z0-9]+)\.html',
-                      'TPout\.swf[\?\&]+vid=([a-zA-Z0-9]+)'
+                      'TPout\.swf[a-zA-Z0-9=\?\&]+vid=([a-zA-Z0-9]+)'
                     ]
 
 

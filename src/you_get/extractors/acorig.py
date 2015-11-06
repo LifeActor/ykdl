@@ -7,6 +7,8 @@ import json
 class Acorig(VideoExtractor):
     name = "AcFun 原创"
 
+    supported_stream_types = [ 'low', 'mid', 'high' ]
+
     def prepare(self, **kwargs):
         assert self.url or self.vid
 
@@ -17,12 +19,12 @@ class Acorig(VideoExtractor):
 
         info = json.loads(get_content('http://www.acfun.tv/video/getVideo.aspx?id=' + self.vid))
 
-        urls = []
         for v in info['videoList']:
-            urls.append(v['playUrl'])
+            t = self.supported_stream_types[v['bitRate']-1]
+            self.stream_types.append(t)
+            self.streams[t] = {'container': 'mp4', 'video_profile': t, 'src' : [v['playUrl']], 'size': 0}
 
-        self.stream_types.append('current')
-        self.streams['current'] = {'container': 'mp4', 'video_profile': 'current', 'src' : urls, 'size': 0}
+        self.stream_types.reverse()
 
 site = Acorig()
 download = site.download_by_url

@@ -22,15 +22,16 @@ class Acfun(EmbedExtractor):
         for video in videos:
             info = json.loads(get_content('http://www.acfun.tv/video/getVideo.aspx?id=' + video))
             sourceType = info['sourceType']
-            sourceId = info['sourceId']
+
             if sourceType == 'letv':
                 #workaround for letv, because it is letvcloud
                 sourceType = 'letvcloud'
-                sourceId = (sourceId, '2d8c027396')
+                sourceId = (info['sourceId'], '2d8c027396')
             if sourceType == 'zhuzhan':
-                #workaround for letv, because it is letvcloud
                 sourceType = 'acorig'
                 sourceId = video
+            else:
+                sourceId = info['sourceId']
 
             self.video_info.append((sourceType, sourceId))
 

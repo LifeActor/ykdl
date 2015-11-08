@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from ..common import playlist_not_supported
+
 from ..extractor import VideoExtractor
 from ..util.html import get_content
 import json
@@ -7,7 +7,7 @@ import json
 class Acorig(VideoExtractor):
     name = "AcFun 原创"
 
-    supported_stream_types = [ 'low', 'mid', 'high' ]
+    supported_stream_types = [ 'low', 'mid', 'high', 'super' ]
 
     def prepare(self, **kwargs):
         assert self.url or self.vid
@@ -27,5 +27,3 @@ class Acorig(VideoExtractor):
         self.stream_types.reverse()
 
 site = Acorig()
-download = site.download_by_url
-download_playlist = playlist_not_supported('AcFun')

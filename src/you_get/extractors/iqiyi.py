@@ -100,7 +100,7 @@ class Iqiyi(VideoExtractor):
         #authkey -> for password protected video ,replace '' with your password
         #puid user.passportid may empty?
         #TODO: support password protected video
-        tvid, vid = self.vid
+        vid, tvid = self.vid
         tm, sc, src = mix(tvid)
         uid = self.gen_uid
         vmsreq='http://cache.video.qiyi.com/vms?key=fvip&src=1702633101b340d8917a69cf8a4b8c7' +\
@@ -119,7 +119,7 @@ class Iqiyi(VideoExtractor):
             html = get_html(self.url)
             tvid = r1(r'data-player-tvid="([^"]+)"', html) or r1(r'tvid=([^&]+)', self.url)
             videoid = r1(r'data-player-videoid="([^"]+)"', html) or r1(r'vid=([^&]+)', self.url)
-            self.vid = (tvid, videoid)
+            self.vid = (videoid, tvid)
 
         self.gen_uid=uuid4().hex
         info = self.getVMS()

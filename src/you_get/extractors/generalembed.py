@@ -64,45 +64,44 @@ ku6_embed_url = [ '(http://v.ku6vms.com/[^\"]+)'
 netease_embed_patterns = [ 'v\.163\.com\/[0-9a-zA-Z\/\?\.]+topicid=([^&]+)&amp\;vid=([^&]+)'
                      ]
 
+"""
+iqiyi
+"""
+iqiyi_embed_patterns = [ 'definitionID=([^&]+)&tvId=([^&]+)'
+                     ]
+
 
 class GeneralEmbed(EmbedExtractor):
 
     def prepare(self, **kwargs):
         assert self.url
-        found = False
         content = get_content(self.url)
         self.title = match1(content, '<title>([^<>]+)</title>')
 
         vids = matchall(content, youku_embed_patterns)
         for vid in vids:
-            found =True
             self.video_info.append(('youku',vid))
 
         vids = matchall(content, tudou_embed_patterns)
         for vid in vids:
-            found = True
             new_url = get_location("http://tudou.com/v/"+vid)
             iid = match1(new_url, 'iid=([^&]+)')
             self.video_info.append(('tdorig',iid))
 
         vids = matchall(content, qq_embed_patterns)
         for vid in vids:
-            found = True
             self.video_info.append(('qq',vid))
 
         vids = matchall(content, sohu_embed_patterns)
         for vid in vids:
-            found = True
             self.video_info.append(('mysohu',vid))
 
         vids = matchall(content, youtube_embed_patterns)
         for vid in vids:
-            found = True
             self.video_info.append(('youtube',vid))
 
         urls = matchall(content, ku6_embed_url)
         for url in urls:
-            found = True
             html = get_content(url)
             flashvars = matchall(html, ['vid=([^&]+)', 'style=([^&]+)', 'sn=([^&]+)'])
             data = json.loads(get_content('http://v.ku6vms.com/phpvms/player/forplayer/vid/{}/style/{}/sn/{}'.format(flashvars[0], flashvars[1],flashvars[2])))
@@ -113,6 +112,10 @@ class GeneralEmbed(EmbedExtractor):
             if m:
                 found = True
                 self.video_info.append(('netease',(m.group(1), m.group(2))))
+
+        vids = matchall(content, iqiyi_embed_patterns)
+        for v in vids:
+            self.video_info.append(('iqiyi', v))
 
         tmp = []
         for v in self.video_info:

@@ -107,11 +107,9 @@ class GeneralEmbed(EmbedExtractor):
             data = json.loads(get_content('http://v.ku6vms.com/phpvms/player/forplayer/vid/{}/style/{}/sn/{}'.format(flashvars[0], flashvars[1],flashvars[2])))
             vid = data['ku6vid']
             self.video_info.append(('ku6',vid))
-        for p in netease_embed_patterns:
-            m = re.search(p, content)
-            if m:
-                found = True
-                self.video_info.append(('netease',(m.group(1), m.group(2))))
+        vids = matchall(content, netease_embed_patterns)
+        for v in vids:
+            self.video_info.append(('netease', v))
 
         vids = matchall(content, iqiyi_embed_patterns)
         for v in vids:

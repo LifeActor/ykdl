@@ -115,7 +115,8 @@ class GeneralEmbed(EmbedExtractor):
 
         vids = matchall(content, iqiyi_embed_patterns)
         for v in vids:
-            self.video_info.append(('iqiyi', v))
+            videoid, tvid = v
+            self.video_info.append(('iqiyi', (tvid, videoid)))
 
         tmp = []
         for v in self.video_info:

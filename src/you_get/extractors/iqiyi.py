@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.html import get_content
+from ..util.match import matchall, match1
 from ..extractor import VideoExtractor
+
 from uuid import uuid4
 from random import random,randint
 import json
 from math import floor
-from zlib import decompress
 import hashlib
 
 '''
@@ -100,7 +101,7 @@ class Iqiyi(VideoExtractor):
         #authkey -> for password protected video ,replace '' with your password
         #puid user.passportid may empty?
         #TODO: support password protected video
-        vid, tvid = self.vid
+        tvid, vid = self.vid
         tm, sc, src = mix(tvid)
         uid = self.gen_uid
         vmsreq='http://cache.video.qiyi.com/vms?key=fvip&src=1702633101b340d8917a69cf8a4b8c7' +\
@@ -116,10 +117,10 @@ class Iqiyi(VideoExtractor):
         assert self.url or self.vid
 
         if self.url and not self.vid:
-            html = get_html(self.url)
-            tvid = r1(r'data-player-tvid="([^"]+)"', html) or r1(r'tvid=([^&]+)', self.url)
-            videoid = r1(r'data-player-videoid="([^"]+)"', html) or r1(r'vid=([^&]+)', self.url)
-            self.vid = (videoid, tvid)
+            html = get_content(self.url)
+            tvid = match1(html, 'data-player-tvid="([^"]+)"') or match1(self.url, 'tvid=([^&]+)')
+            videoid = match1(html, 'data-player-videoid="([^"]+)"') or match1(self.url, 'vid=([^&]+)')
+            self.vid = (tvid, videoid)
 
         self.gen_uid=uuid4().hex
         info = self.getVMS()
@@ -178,8 +179,17 @@ class Iqiyi(VideoExtractor):
             url="/".join(baseurl)+vlink+'?su='+self.gen_uid+'&qyid='+uuid4().hex+'&client=&z=&bt=&ct=&tn='+str(randint(10000,20000))
             yield json.loads(get_content(url))["l"]
 
+    def download_playlist_by_url(self, url, param, **kwargs):
+        self.url = url
+
+        html = get_content(self.url)
+
+        vids = matchall(html, ['data-tvid=\"([^\"]+)\" data-vid=\"([^\"]+)\"'])
+        for v in vids:
+            self.download_by_vid(v, param, **kwargs)
+
 
 site = Iqiyi()
 download = site.download_by_url
 iqiyi_download_by_vid = site.download_by_vid
-download_playlist = playlist_not_supported('iqiyi')
+download_playlist = site.download_playlist_by_url

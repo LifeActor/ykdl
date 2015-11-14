@@ -1,7 +1,9 @@
-__all__ = ['embed_download']
-
-from ..common import *
+from ..util.html import get_content
+from ..util.match import matchall, match1
 from ..embedextractor import EmbedExtractor
+from ..common import playlist_not_supported
+
+import json
 
 """
 refer to http://open.youku.com/tools

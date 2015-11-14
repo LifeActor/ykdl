@@ -117,6 +117,11 @@ class Iqiyi(VideoExtractor):
         assert self.url or self.vid
 
         if self.url and not self.vid:
+            vid = matchall(self.url, ['curid=([^_]+)_([\w]+)'])
+            if vid:
+                self.vid = vid[0]
+
+        if self.url and not self.vid:
             html = get_content(self.url)
             tvid = match1(html, 'data-player-tvid="([^"]+)"') or match1(self.url, 'tvid=([^&]+)')
             videoid = match1(html, 'data-player-videoid="([^"]+)"') or match1(self.url, 'vid=([^&]+)')

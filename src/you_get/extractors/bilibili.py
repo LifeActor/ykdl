@@ -33,6 +33,9 @@ class BiliBili(EmbedExtractor):
         if vid:
             self.video_info.append(('youku', vid))
 
+        if self.video_info:
+            return
+
         vid = match1(html, 'cid=([^&]+)')
 
         if vid:

@@ -1,4 +1,4 @@
-from ..util.html import get_content
+from ..util.html import get_content, get_location
 from ..util.match import matchall, match1
 from ..embedextractor import EmbedExtractor
 from ..common import playlist_not_supported

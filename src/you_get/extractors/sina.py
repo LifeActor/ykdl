@@ -2,9 +2,18 @@
 
 from ..extractor import VideoExtractor
 from ..util import log
-from ..util.match import match1
-from ..util.html import get_content
-from ..common import playlist_not_supported
+from ..util.match import match1, matchall
+from ..util.html import get_content, get_location
+
+import json
+
+def get_realurl(url):
+    location = get_location(url)
+    if location != url:
+        return location
+    else:
+       html = get_content(url)
+       return matchall(html, ['CDATA\[([^\]]+)'])[1]
 
 class Sina(VideoExtractor):
     name = "新浪视频 (sina)"
@@ -14,21 +23,36 @@ class Sina(VideoExtractor):
 
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, 'vid:(\w+)', 'ipad_vid:\'(\w+)\'')
-            self.title = match1(html, '<title>([^<]+)')
+            self.vid = match1(html, 'video_id:\'([^\']+)')
         if not self.vid:
             log.wtf("can't get vid")
 
-        url = 'http://v.iask.com/v_play_ipad.php?vid={}'.format(self.vid)
-        title = ""
-        if "title" in kwargs and kwargs["title"]:
-            title = kwargs["title"]
-        else:
-            title = self.name + " VID: " + self.vid
-        self.title = self.title or title
-        self.stream_types.append('current')
-        self.streams['current'] = {'container': 'mp4', 'src': [url], 'size' : 0}
+        api_url = 'http://s.video.sina.com.cn/video/h5play?video_id={}'.format(self.vid)
+        info = json.loads(get_content(api_url))['data']
+        self.title = info['title']
+        for t in ['mp4', '3gp', 'flv']:
+            if t in info['videos']:
+                video_info = info['videos'][t]
+                break
+
+        for profile in video_info:
+            if not profile in self.stream_types:
+                v = video_info[profile]
+                tp = v['type']
+                url = v['file_api']+'?vid='+v['file_id']
+                r_url = get_realurl(url)
+                self.stream_types.append(profile)
+                self.streams[profile] = {'container': tp, 'video_profile': profile, 'src': [r_url], 'size' : 0}
+
+    def download_playlist_by_url(self, url, param, **kwargs):
+        self.url = url
+
+        html = get_content(self.url)
+        vids = matchall(html, ['video_id: ([^,]+)'])
+        print(vids)
+        for v in vids:
+            self.download_by_vid(v, param, **kwargs)
 
 site = Sina()
 download = site.download_by_url
-download_playlist = playlist_not_supported('sina')
+download_playlist = site.download_playlist_by_url

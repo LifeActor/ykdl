@@ -54,5 +54,5 @@ class BiliBili(EmbedExtractor):
 
 
 site = BiliBili()
-download = site.download
+download = site.download_by_url
 download_playlist = site.download_playlist_by_url

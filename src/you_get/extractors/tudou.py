@@ -4,11 +4,17 @@ from ..util.html import get_content
 from ..embedextractor import EmbedExtractor
 from ..util.match import match1
 
+import re
+
 class Tudou(EmbedExtractor):
     name = "土豆 (tudou)"
 
     def prepare(self, **kwargs):
         assert self.url
+
+        if re.search('acfun', self.url):
+            self.video_url.append(('acfun', self.url))
+            return
 
         html = get_content(self.url)
         self.title = match1(html, '<title>([^<]+)')
@@ -35,5 +41,5 @@ class Tudou(EmbedExtractor):
             self.download_by_vid(id, param, title=title, **kwargs)
 
 site = Tudou()
-download = site.download
+download = site.download_by_url
 download_playlist = site.download_playlist_by_url

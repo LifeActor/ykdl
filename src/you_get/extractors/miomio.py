@@ -19,5 +19,5 @@ class Miomio(EmbedExtractor):
         self.video_info.append((t, id))
 
 site = Miomio()
-download = site.download
+download = site.download_by_url
 download_playlist = playlist_not_supported('miomio')

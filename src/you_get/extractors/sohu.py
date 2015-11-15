@@ -16,5 +16,5 @@ class Sohu(EmbedExtractor):
 
 
 site = Sohu()
-download = site.download
+download = site.download_by_url
 download_playlist = playlist_not_supported('sohu')

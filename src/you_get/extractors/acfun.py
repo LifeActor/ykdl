@@ -33,10 +33,10 @@ class Acfun(EmbedExtractor):
         html = get_content(self.url)
 
         videos = matchall(html, ['href="([\/a-zA-Z0-9_]+)" title="Part'])
-        print(videos)
+
         for v in videos:
             next_url = "http://www.acfun.tv/{}".format(v)
-            self.download(next_url, param, **kwargs)
+            self.download_by_url(next_url, param, **kwargs)
 
 site = Acfun()
 download = site.download_by_url

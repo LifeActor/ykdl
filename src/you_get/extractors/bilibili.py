@@ -50,7 +50,7 @@ class BiliBili(EmbedExtractor):
 
         for l in list:
             next_url = "http://www.bilibili.com{}".format(l)
-            self.download(next_url, param, **kwargs)
+            self.download_by_url(next_url, param, **kwargs)
 
 
 site = BiliBili()

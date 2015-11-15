@@ -1,42 +1,42 @@
 #!/usr/bin/env python
 
-__all__ = ['cntv_download', 'cntv_download_by_id']
-
-from ..common import *
+from ..common import playlist_not_supported
+from ..util.html import get_content
+from ..util.match import match1, matchall
+from ..extractor import VideoExtractor
+from ..util import log
 
 import json
 import re
 
-def cntv_download_by_id(id, title = None, output_dir = '.', merge = True, info_only = False):
-    assert id
-    info = json.loads(get_html('http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid=' + id))
-    title = title or info['title']
-    video = info['video']
-    alternatives = [x for x in video.keys() if x.endswith('hapters')]
-    #assert alternatives in (['chapters'], ['lowChapters', 'chapters'], ['chapters', 'lowChapters']), alternatives
-    chapters = video['chapters'] if 'chapters' in video else video['lowChapters']
-    urls = [x['url'] for x in chapters]
-    ext = r1(r'\.([^.]+)$', urls[0])
-    assert ext in ('flv', 'mp4')
-    size = 0
-    for url in urls:
-        _, _, temp = url_info(url)
-        size += temp
-    
-    print_info(site_info, title, ext, size)
-    if not info_only:
-        download_urls(urls, title, ext, size, output_dir = output_dir)
+class CNTV(VideoExtractor):
+    name = '央视网 (cntv)'
 
-def cntv_download(url, output_dir = '.', merge = True, info_only = False):
-    if re.match(r'http://\w+\.cntv\.cn/(\w+/\w+/(classpage/video/)?)?\d+/\d+\.shtml', url) or re.match(r'http://\w+.cntv.cn/(\w+/)*VIDE\d+.shtml', url):
-        id = r1(r'videoCenterId","(\w+)"', get_html(url))
-    elif re.match(r'http://xiyou.cntv.cn/v-[\w-]+\.html', url):
-        id = r1(r'http://xiyou.cntv.cn/v-([\w-]+)\.html', url)
-    else:
-        raise NotImplementedError(url)
-    
-    cntv_download_by_id(id, output_dir = output_dir, merge = merge, info_only = info_only)
+    supported_stream_types = ['normal', 'low']
+    type_2_cpt = { 'normal':'chapters', 'low':'lowChapters' }
 
-site_info = "CNTV.com"
-download = cntv_download
+    def prepare(self, **kwargs):
+        assert self.url or self.vid
+
+        if self.url and not self.vid:
+            content = get_content(self.url)
+            self.vid = match1(content, 'videoId:"([^"]+)', '_guid="([^"]+)')
+        if not self.vid:
+            log.wtf('cant find vid')
+
+        html = get_content('http://vdn.apps.cntv.cn/api/getIpadVideoInfo.do?pid={}&tai=ipad&from=html5'.format(self.vid))
+        data = json.loads(match1(html, '\'([^\']+)'))
+        video_data = data['video']
+        self.title = data['title']
+
+        for t in self.supported_stream_types:
+            if self.type_2_cpt[t] in video_data:
+                urls = []
+                for v in video_data[self.type_2_cpt[t]]:
+                   urls.append(v['url'])
+                self.stream_types.append(t)
+                self.streams[t] = {'container': 'mp4', 'video_profile': t, 'src': urls, 'size' : 0}
+
+site = CNTV()
+download = site.download_by_url
 download_playlist = playlist_not_supported('cntv')

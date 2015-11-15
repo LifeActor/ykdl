@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.html import get_content
+from ..util.match import match1
 from ..extractor import VideoExtractor
+from ..common import playlist_not_supported
+
 from random import randint
 import json
-import re
 
 class Hunantv(VideoExtractor):
     name = "芒果TV (HunanTV)"
@@ -19,7 +21,8 @@ class Hunantv(VideoExtractor):
 
         rn = randint(0, 99999999)
         api_url = 'http://v.api.hunantv.com/player/video?video_id={}&random={}'.format(self.vid,rn)
-        meta = json.loads(get_html(api_url))
+        meta = json.loads(get_content(api_url))
+
         if meta['status'] != 200:
             log.wtf('[failed] status: {}, msg: {}'.format(meta['status'],meta['msg']))
         if not meta['data']:
@@ -37,30 +40,17 @@ class Hunantv(VideoExtractor):
 
     def extract(self, **kwargs):
         if self.param.info_only:
-          for stream in self.stream_types:
-                meta = ''
-                while True:
-                    rn = randint(0, 99999999)
-                    meta = json.loads(get_html("{}&random={}".format((self.streams[stream]['url']),rn)))
-                    if meta['status'] == 'ok':
-                        if meta['info'].startswith('http://pcfastvideo.imgo.tv/'):
-                            break
-                size = url_size(meta['info'])
+            for stream in self.stream_types:
+                meta = json.loads(get_content(self.streams[stream]['url']))
                 self.streams[stream]['src'] = [meta['info']]
-                self.streams[stream]['size'] = size
+                self.streams[stream]['size'] = 0
+            return
         else:
             stream_id = self.param.stream_id or self.stream_types[0]
 
-            meta = ''
-            while True:
-                rn = randint(0, 99999999)
-                meta = json.loads(get_html("{}&random={}".format((self.streams[stream_id]['url']),rn)))
-                if meta['status'] == 'ok':
-                    if meta['info'].startswith('http://pcfastvideo.imgo.tv/'):
-                        break
-            size = url_size(meta['info'])
-            self.streams[stream_id]['src'] = [meta['info']]
-            self.streams[stream_id]['size'] = size
+        meta = json.loads(get_content(self.streams[stream_id]['url']))
+        self.streams[stream_id]['src'] = [meta['info']]
+        self.streams[stream_id]['size'] = 0
 
 site = Hunantv()
 download = site.download_by_url

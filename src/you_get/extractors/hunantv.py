@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from ..util.html import get_content
-from ..util.match import match1
+from ..util.match import match1, matchall
 from ..extractor import VideoExtractor
-from ..common import playlist_not_supported
+from ..util import log
 
 from random import randint
 import json
@@ -52,6 +52,16 @@ class Hunantv(VideoExtractor):
         self.streams[stream_id]['src'] = [meta['info']]
         self.streams[stream_id]['size'] = 0
 
+    def download_playlist_by_url(self, url, param, **kwargs):
+        self.url = url
+
+        html = get_content(self.url, headers={})
+
+        urls = matchall(html, ['"a-pic-play" href="([^"]+)"'])
+
+        for url in urls:
+            self.download_by_url(url, param, **kwargs)
+
 site = Hunantv()
 download = site.download_by_url
-download_playlist = playlist_not_supported('hunantv')
+download_playlist = site.download_playlist_by_url

@@ -31,7 +31,7 @@ class SohuBase(VideoExtractor):
         assert len(data['clipsURL']) == len(data['clipsBytes']) == len(data['su'])
         for new, clip, ck, in zip(data['su'], data['clipsURL'], data['ck']):
             clipURL = urlparse(clip).path
-            self.realurls[stream].append('http://'+host+'/?prot=9&prod=flash&pt=1&file='+clipURL+'&new='+new +'&key='+ ck+'&vid='+str(self.vid)+'&uid='+str(int(time.time()*1000))+'&t='+str(random()))
+            self.realurls[stream].append('http://'+host+'/?prot=9&prod=flash&pt=1&file='+clipURL+'&new='+new +'&key='+ ck+'&vid='+str(self.vid)+'&uid='+str(int(time.time()*1000))+'&t='+str(random())+'&rb=1')
         self.streams[stream] = {'container': 'mp4', 'video_profile': stream, 'size' : size}
         self.stream_types.append(stream)
 

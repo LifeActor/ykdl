@@ -1,28 +1,43 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..common import *
+from ..util.html import get_content, parse_query_param
+from ..util.match import match1, matchall
 from ..extractor import VideoExtractor
 
 import base64
 import time
 import traceback
+import json
+from urllib import parse
 
 class Youku(VideoExtractor):
     name = "优酷 (Youku)"
 
     # Last updated: 2015-11-24
-    stream_types = [
-        {'id': 'mp4hd3', 'alias-of' : 'hd3'},
-        {'id': 'hd3',    'container': 'flv', 'video_profile': '1080P'},
-        {'id': 'mp4hd2', 'alias-of' : 'hd2'},
-        {'id': 'hd2',    'container': 'flv', 'video_profile': '超清'},
-        {'id': 'mp4hd',  'alias-of' : 'mp4'},
-        {'id': 'mp4',    'container': 'mp4', 'video_profile': '高清'},
-        {'id': 'flvhd',  'container': 'flv', 'video_profile': '标清'},
-        {'id': 'flv',    'container': 'flv', 'video_profile': '标清'},
-        {'id': '3gphd',  'container': '3gp', 'video_profile': '标清（3GP）'},
-    ]
+    supported_stream_types = [ 'mp4hd3', 'hd3', 'mp4hd2', 'hd2', 'mp4hd', 'mp4', 'flvhd', 'flv', '3gphd' ]
+    stream_alias = {
+        'mp4hd3': 'hd3',
+        'hd3'   : 'hd3',
+        'mp4hd2': 'hd2',
+        'hd2'   : 'hd2',
+        'mp4hd' : 'mp4',
+        'mp4'   : 'mp4',
+        'flvhd' : 'flvhd',
+        'flv'   : 'flv',
+        '3gphd' : '3gphd'
+    }
+    stream_types_to_profiles = {
+        'mp4hd3': '1080p',
+        'hd3'   : '1080P',
+        'mp4hd2': '超清',
+        'hd2'   : '超清',
+        'mp4hd' : '高清',
+        'mp4'   : '高清',
+        'flvhd' : '标清',
+        'flv'   : '标清',
+        '3gphd' : '标清（3GP）'
+    }
 
     def generate_ep(vid, ep):
         f_code_1 = 'becaf9be'
@@ -54,47 +69,28 @@ class Youku(VideoExtractor):
         new_ep = trans_e(f_code_2, '%s_%s_%s' % (sid, vid, token))
         return base64.b64encode(bytes(new_ep, 'latin')), sid, token
 
-    def parse_m3u8(m3u8):
-        return re.findall(r'(http://[^?]+)\?ts_start=0', m3u8)
-
-    def get_vid_from_url(url):
-        """Extracts video ID from URL.
-        """
-        return match1(url, r'youku\.com/v_show/id_([a-zA-Z0-9=]+)') or \
-          match1(url, r'player\.youku\.com/player\.php/sid/([a-zA-Z0-9=]+)/v\.swf') or \
-          match1(url, r'loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)') or \
-          match1(url, r'player\.youku\.com/embed/([a-zA-Z0-9=]+)')
-
-    def get_playlist_id_from_url(url):
-        """Extracts playlist ID from URL.
-        """
-        return match1(url, r'youku\.com/playlist_show/id_([a-zA-Z0-9=]+)')
-
-    def download_playlist_by_url(self, url, **kwargs):
+    def download_playlist_by_url(self, url, param,  **kwargs):
         self.url = url
 
         try:
-            playlist_id = self.__class__.get_playlist_id_from_url(self.url)
+            playlist_id = match1(self.url, 'youku\.com/playlist_show/id_([a-zA-Z0-9=]+)')
             assert playlist_id
 
             video_page = get_content('http://www.youku.com/playlist_show/id_%s' % playlist_id)
-            videos = set(re.findall(r'href="(http://v\.youku\.com/[^?"]+)', video_page))
+            videos = matchall(video_page, ['a href="(http://v\.youku\.com/[^?"]+)'])
 
-            for extra_page_url in set(re.findall('href="(http://www\.youku\.com/playlist_show/id_%s_[^?"]+)' % playlist_id, video_page)):
+            for extra_page_url in matchall(video_page, ['href="(http://www\.youku\.com/playlist_show/id_%s_[^?"]+)' % playlist_id]):
                 extra_page = get_content(extra_page_url)
-                videos |= set(re.findall(r'href="(http://v\.youku\.com/[^?"]+)', extra_page))
+                videos += matchall(extra_page, ['a href="(http://v\.youku\.com/[^?"]+)'])
 
         except:
             video_page = get_content(url)
-            videos = set(re.findall(r'href="(http://v\.youku\.com/[^?"]+)', video_page))
+            videos = matchall(video_page, ['a href="(http://v\.youku\.com/[^?"]+)'])
 
-        self.title = r1(r'<meta name="title" content="([^"]+)"', video_page) or \
-                     r1(r'<title>([^<]+)', video_page)
-        self.p_playlist()
         for video in videos:
             index = parse_query_param(video, 'f')
             try:
-                self.__class__().download_by_url(video, index=index, **kwargs)
+                self.download_by_url(video, param, **kwargs)
             except KeyboardInterrupt:
                 raise
             except:
@@ -105,7 +101,11 @@ class Youku(VideoExtractor):
         assert self.url or self.vid
 
         if self.url and not self.vid:
-            self.vid = self.__class__.get_vid_from_url(self.url)
+            self.vid = match1(self.url, 'youku\.com/v_show/id_([a-zA-Z0-9=]+)' ,\
+                                        'player\.youku\.com/player\.php/sid/([a-zA-Z0-9=]+)/v\.swf',\
+                                        'loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',\
+                                        'loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',\
+                                        'player\.youku\.com/embed/([a-zA-Z0-9=]+)')
 
             if self.vid is None:
                 self.download_playlist_by_url(self.url, **kwargs)
@@ -113,7 +113,7 @@ class Youku(VideoExtractor):
 
         api_url = 'http://play.youku.com/play/get.json?vid=%s&ct=12' % self.vid
         try:
-            meta = json.loads(get_html(api_url))
+            meta = json.loads(get_content(api_url))
             data = meta['data']
             assert 'stream' in data
         except:
@@ -137,14 +137,13 @@ class Youku(VideoExtractor):
         stream_types = dict([(i['id'], i) for i in self.stream_types])
         for stream in data['stream']:
             stream_id = stream['stream_type']
-            if stream_id in stream_types:
-                if 'alias-of' in stream_types[stream_id]:
-                    stream_id = stream_types[stream_id]['alias-of']
+            if stream_id in self.supported_stream_types:
                 self.streams[stream_id] = {
-                    'container': stream_types[stream_id]['container'],
-                    'video_profile': stream_types[stream_id]['video_profile'],
+                    'container': 'mp4',
+                    'video_profile': self.stream_types_to_profiles[stream_id],
                     'size': stream['size']
                 }
+                self.stream_types.append(stream_id)
 
         # Audio languages
         if 'dvd' in data and 'audiolang' in data['dvd']:
@@ -152,19 +151,10 @@ class Youku(VideoExtractor):
             for i in self.audiolang:
                 i['url'] = 'http://v.youku.com/v_show/id_{}'.format(i['vid'])
 
+        self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
+
     def extract(self, **kwargs):
-        if 'stream_id' in kwargs and kwargs['stream_id']:
-            # Extract the stream
-            stream_id = kwargs['stream_id']
-
-            if stream_id not in self.streams:
-                log.e('[Error] Invalid video format.')
-                log.e('Run \'-i\' command with no specific video format to view all available formats.')
-                exit(2)
-        else:
-            # Extract stream with the best quality
-            stream_id = self.streams_sorted[0]['id']
-
+        stream_id = self.param.stream_id or self.stream_types[0]
         new_ep, sid, token = self.__class__.generate_ep(self.vid, self.ep)
         m3u8_query = parse.urlencode(dict(
             ctype=12,
@@ -175,24 +165,20 @@ class Youku(VideoExtractor):
             sid=sid,
             token=token,
             ts=int(time.time()),
-            type=stream_id,
+            type=self.stream_alias[stream_id],
             vid=self.vid,
         ))
         m3u8_url = 'http://pl.youku.com/playlist/m3u8?' + m3u8_query
 
-        if not kwargs['info_only']:
+        if not self.param.info_only:
             if self.password_protected:
                 m3u8_url += '&password={}'.format(self.password)
 
-            m3u8 = get_html(m3u8_url)
-
-            self.streams[stream_id]['src'] = self.__class__.parse_m3u8(m3u8)
+            m3u8 = get_content(m3u8_url)
+            self.streams[stream_id]['src'] = matchall(m3u8, ['(http://[^?]+)\?ts_start=0'])
             if not self.streams[stream_id]['src'] and self.password_protected:
                 log.e('[Failed] Wrong password.')
 
 site = Youku()
 download = site.download_by_url
 download_playlist = site.download_playlist_by_url
-
-youku_download_by_vid = site.download_by_vid
-# Used by: acfun.py bilibili.py miomio.py tudou.py

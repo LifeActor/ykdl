@@ -4,12 +4,18 @@
 from ..util.html import get_content, parse_query_param
 from ..util.match import match1, matchall
 from ..extractor import VideoExtractor
+import ..util.log
 
 import base64
 import time
 import traceback
 import json
 from urllib import parse
+
+a1 = '4'
+a2 = '1'
+a3 = 'b4et'
+a4 = 'boa4'
 
 def Ba(b):
     if not b:
@@ -148,6 +154,16 @@ def J(b):
         c += allchr[(h & 15) << 2 | (j & 192) >> 6]
         c += allchr[j & 63]
     return c
+
+def init(encrypt_string):
+    sid_create_list = [19, 1, 4, 7, 30, 14, 28, 8, 24, 17, 6, 35, 34, 16, 9, 10, 13, 22, 32, 29, 31, 21, 18, 3, 2, 23, 25, 27, 11, 20, 5, 15, 12, 0, 33, 26]
+    g = L(M(a3 + 'o0b' + a1, sid_create_list), Ba(encrypt_string))
+    g = g.split('_')
+    if len(g) < 2:
+        log.wtf("数据解析错误")
+    sid = g[0]
+    token = g[1]
+    return sid, token
 
 class Youku(VideoExtractor):
     name = "优酷 (Youku)"

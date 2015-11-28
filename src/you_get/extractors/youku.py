@@ -117,6 +117,38 @@ def M(b, d):
         tmp += str(x)
     return tmp
 
+def J(b):
+    allchr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    if not b:
+        return ''
+    b = str(b)
+    g = len(b)
+    e = 0
+    c = ''
+    while e < g:
+        f = ord(b[e]) & 255
+        e += 1
+        if e == g:
+            c += allchr[f>>2]
+            c += allchr[(f&3)<<4]
+            c += '=='
+            break
+        h = ord(b[e])
+        e += 1
+        if e == g:
+            c += allchr[f>>2]
+            c += allchr[(f&3)<<4 | (h & 240) >> 4]
+            c += allchr[(h & 15) << 2]
+            c += '=='
+            break
+        j = ord(b[e])
+        e += 1
+        c += allchr[f>>2]
+        c += allchr[(f&3)<<4 | (h & 240) >> 4]
+        c += allchr[(h & 15) << 2 | (j & 192) >> 6]
+        c += allchr[j & 63]
+    return c
+
 class Youku(VideoExtractor):
     name = "优酷 (Youku)"
 

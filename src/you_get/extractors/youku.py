@@ -6,18 +6,21 @@ from ..util.match import match1, matchall
 from ..extractor import VideoExtractor
 from ..util import log
 
+from .youkujs import *
+
 import base64
 import time
 import traceback
 import json
 from urllib import parse
+import random
 
 class Youku(VideoExtractor):
     name = "优酷 (Youku)"
 
     # Last updated: 2015-11-24
     supported_stream_types = [ 'mp4hd3', 'hd3', 'mp4hd2', 'hd2', 'mp4hd', 'mp4', 'flvhd', 'flv', '3gphd' ]
-    stream_alias = {
+    stream_to_code = {
         'mp4hd3': 'hd3',
         'hd3'   : 'hd3',
         'mp4hd2': 'hd2',
@@ -28,16 +31,34 @@ class Youku(VideoExtractor):
         'flv'   : 'flv',
         '3gphd' : '3gphd'
     }
-    stream_types_to_profiles = {
-        'mp4hd3': '1080p',
+    code_to_profiles = {
         'hd3'   : '1080P',
-        'mp4hd2': '超清',
         'hd2'   : '超清',
-        'mp4hd' : '高清',
         'mp4'   : '高清',
         'flvhd' : '标清',
         'flv'   : '标清',
         '3gphd' : '标清（3GP）'
+    }
+
+    code_to_hd = {
+        'hd3': 3,
+        'hd2': 2,
+        'mp4': 1,
+        'flvhd': 1,
+        'flv': 0,
+        '3gphd': 0
+    }
+
+    code_to_container = {
+      'flv': 'flv',
+      'mp4': 'mp4',
+      'hd2': 'flv',
+      'mp4hd': 'mp4',
+      'mp4hd2': 'mp4',
+      '3gphd': 'mp4',
+      '3gp': 'flv',
+      'flvhd': 'flv',
+      'hd3': 'flv'
     }
 
     def generate_ep(vid, ep):
@@ -112,9 +133,10 @@ class Youku(VideoExtractor):
                 self.download_playlist_by_url(self.url, **kwargs)
                 exit(0)
 
-        api_url = 'http://play.youku.com/play/get.json?vid=%s&ct=12' % self.vid
+        api_url = 'http://play.youku.com/play/get.json?vid={}&ct=12&ran={}'.format(self.vid, random.randint(0,9999))
         try:
-            meta = json.loads(get_content(api_url))
+            content = get_content(api_url)
+            meta = json.loads(content)
             data = meta['data']
             assert 'stream' in data
         except:
@@ -134,15 +156,16 @@ class Youku(VideoExtractor):
         self.title = data['video']['title']
         self.ep = data['security']['encrypt_string']
         self.ip = data['security']['ip']
-
-        stream_types = dict([(i['id'], i) for i in self.stream_types])
         for stream in data['stream']:
             stream_id = stream['stream_type']
             if stream_id in self.supported_stream_types:
                 self.streams[stream_id] = {
-                    'container': 'mp4',
-                    'video_profile': self.stream_types_to_profiles[stream_id],
-                    'size': stream['size']
+                    'container': self.code_to_container[self.stream_to_code[stream_id]],
+                    'video_profile': self.code_to_profiles[self.stream_to_code[stream_id]],
+                    'size': stream['size'],
+                    'segs': stream['segs'],
+                    'stream_fileid': stream['stream_fileid'],
+                    'hd' : self.code_to_hd[self.stream_to_code[stream_id]]
                 }
                 self.stream_types.append(stream_id)
 
@@ -156,30 +179,19 @@ class Youku(VideoExtractor):
 
     def extract(self, **kwargs):
         stream_id = self.param.stream_id or self.stream_types[0]
-        new_ep, sid, token = self.__class__.generate_ep(self.vid, self.ep)
-        m3u8_query = parse.urlencode(dict(
-            ctype=12,
-            ep=new_ep,
-            ev=1,
-            keyframe=1,
-            oip=self.ip,
-            sid=sid,
-            token=token,
-            ts=int(time.time()),
-            type=self.stream_alias[stream_id],
-            vid=self.vid,
-        ))
-        m3u8_url = 'http://pl.youku.com/playlist/m3u8?' + m3u8_query
-
-        if not self.param.info_only:
-            if self.password_protected:
-                m3u8_url += '&password={}'.format(self.password)
-
-            m3u8 = get_content(m3u8_url)
-            print(m3u8)
-            self.streams[stream_id]['src'] = matchall(m3u8, ['(http://[^?]+)\?ts_start=0'])
-            if not self.streams[stream_id]['src'] and self.password_protected:
-                log.e('[Failed] Wrong password.')
+        sid, token = init(self.ep)
+        i = 0
+        urls = []
+        for seg in self.streams[stream_id]['segs']:
+            index = '%02d' % i
+            fileid = getFileid(self.streams[stream_id]['stream_fileid'], i)
+            new_ep = create_ep(sid, fileid, token)
+            ts = int(int(seg['total_milliseconds_video']) / 1000)
+            seg_get_url = 'http://k.youku.com/player/getFlvPath/sid/{}_{}/st/{}/fileid/{}?K={}&hd={}&myp=0&ts={}&ymovie=1&ypp=0&ctype=12&ev=1&token={}&oip={}&ep={}&yxon=1&special=true'.format(sid, index, self.streams[stream_id]['container'], fileid, seg['key'], self.streams[stream_id]['hd'], ts, token, self.ip, new_ep)
+            info = json.loads(get_content(seg_get_url))
+            urls.append(info[0]['server'])
+            i += 1
+        self.streams[stream_id]['src'] = urls
 
 site = Youku()
 download = site.download_by_url

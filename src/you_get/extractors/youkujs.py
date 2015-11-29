@@ -95,7 +95,7 @@ def M(b, d):
             i = int(b[g]) +26
         f = 0
         while f < 36 and f < len(d):
-            if d[f].isnumeric() and int(d[f]) == i:
+            if (isinstance(d[f], int) or d[f].isnumeric()) and int(d[f]) == i:
                 i = f
                 break
             f += 1
@@ -141,12 +141,27 @@ def J(b):
         c += allchr[j & 63]
     return c
 
+translate = M
+rc4 = L
+encode64 = J
+decode64 = Ba
+
 def init(encrypt_string):
     sid_create_list = [19, 1, 4, 7, 30, 14, 28, 8, 24, 17, 6, 35, 34, 16, 9, 10, 13, 22, 32, 29, 31, 21, 18, 3, 2, 23, 25, 27, 11, 20, 5, 15, 12, 0, 33, 26]
     g = L(M(a3 + 'o0b' + a1, sid_create_list), Ba(encrypt_string))
     g = g.split('_')
-    if len(g) < 2:
-        log.wtf("数据解析错误")
     sid = g[0]
     token = g[1]
     return sid, token
+
+def getFileid(b, d):
+    c = b[0:8]
+    g = '%02d' % d
+    g = g.upper()
+    i = b[10:]
+    return c + g + i
+
+def create_ep(sid, fileid, token):
+    ep_create_list = [19, 1, 4, 7, 30, 14, 28, 8, 24, 17, 6, 35, 34, 16, 9, 10, 13, 22, 32, 29, 31, 21, 18, 3, 2, 23, 25, 27, 11, 20, 5, 15, 12, 0, 33, 26]
+    ep = J(L(M(a4 + 'poz' + a2, ep_create_list), sid + '_' + fileid + '_' + token))
+    return ep

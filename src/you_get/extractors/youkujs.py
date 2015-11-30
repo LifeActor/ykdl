@@ -156,7 +156,7 @@ def init(encrypt_string):
 
 def getFileid(b, d):
     c = b[0:8]
-    g = '%02d' % d
+    g = '%02x' % d
     g = g.upper()
     i = b[10:]
     return c + g + i

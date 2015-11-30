@@ -68,8 +68,15 @@ class Letv(VideoExtractor):
                 # to decode m3u8 (encoded)
                 m3u8 = get_content(info2["location"])
                 m3u8_list = decode(m3u8)
-                urls = re.findall(r'^[^#][^\r]*',m3u8_list,re.MULTILINE)
-                self.streams[stream] = {'container': ext, 'video_profile': stream, 'src': urls, 'size' : 0}
+                self.streams[stream] = {'container': ext, 'video_profile': stream, 'size' : 0}
+                if self.param.player:
+                    import tempfile
+                    self.streams[stream]['tmp'] = tempfile.NamedTemporaryFile(mode='w+t', suffix='.m3u8')
+                    self.streams[stream]['tmp'].write(m3u8_list)
+                    self.streams[stream]['src'] = [self.streams[stream]['tmp'].name]
+                else:
+                    urls = re.findall(r'^[^#][^\r]*',m3u8_list,re.MULTILINE)
+                    self.streams[stream]['src'] = urls
                 self.stream_types.append(stream)
 
     def extract(self, **kwargs):

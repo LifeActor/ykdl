@@ -122,16 +122,17 @@ class Youku(VideoExtractor):
 
         for stream in data1['stream']:
             stream_id = stream['stream_type']
-            self.streams_parameter[stream_id] = {
-                'fileid': stream['stream_fileid'],
-                'segs': stream['segs']
-            }
-            self.streams[stream_id] = {
-                'container': self.stream_type_to_container[self.stream_code_to_type[stream_id]],
-                'video_profile': self.stream_code_to_profiles[stream_id],
-                'size': stream['size']
-            }
-            self.stream_types.append(stream_id)
+            if not stream_id in self.stream_types:
+                self.streams_parameter[stream_id] = {
+                    'fileid': stream['stream_fileid'],
+                    'segs': stream['segs']
+                }
+                self.streams[stream_id] = {
+                    'container': self.stream_type_to_container[self.stream_code_to_type[stream_id]],
+                    'video_profile': self.stream_code_to_profiles[stream_id],
+                    'size': stream['size']
+                }
+                self.stream_types.append(stream_id)
 
 
         # Audio languages

@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..common import *
+from ..util.html import get_content, parse_query_param
+from ..util.match import match1, matchall
+from ..util import log
 from ..extractor import VideoExtractor
+from .youkujs import *
 
 import base64
 import time
 import traceback
 import urllib.parse
 import math
+import json
 
 class Youku(VideoExtractor):
     name = "优酷 (Youku)"
@@ -45,60 +49,6 @@ class Youku(VideoExtractor):
          'flv' : 'flv',
          '3gphd': 'mp4'
     }
-    def trans_e(a, c):
-        f = h = 0
-        b = list(range(256))
-        result = ''
-        while h < 256:
-            f = (f + b[h] + ord(a[h % len(a)])) % 256
-            b[h], b[f] = b[f], b[h]
-            h += 1
-        q = f = h = 0
-        while q < len(c):
-            h = (h + 1) % 256
-            f = (f + b[h]) % 256
-            b[h], b[f] = b[f], b[h]
-            if isinstance(c[q], int):
-                result += chr(c[q] ^ b[(b[h] + b[f]) % 256])
-            else:
-                result += chr(ord(c[q]) ^ b[(b[h] + b[f]) % 256])
-            q += 1
-
-        return result
-
-    def generate_ep(no,streamfileids,sid,token):
-        f_code_2 = 'bf7e5f01'
-
-        def trans_e(a, c):
-            f = h = 0
-            b = list(range(256))
-            result = ''
-            while h < 256:
-                f = (f + b[h] + ord(a[h % len(a)])) % 256
-                b[h], b[f] = b[f], b[h]
-                h += 1
-            q = f = h = 0
-            while q < len(c):
-                h = (h + 1) % 256
-                f = (f + b[h]) % 256
-                b[h], b[f] = b[f], b[h]
-                if isinstance(c[q], int):
-                    result += chr(c[q] ^ b[(b[h] + b[f]) % 256])
-                else:
-                    result += chr(ord(c[q]) ^ b[(b[h] + b[f]) % 256])
-                q += 1
-
-            return result
-
-
-        number = hex(int(str(no),10))[2:].upper()
-        if len(number) == 1:
-            number = '0' + number
-        fileId = streamfileids[0:8] + number + streamfileids[10:]
-
-        ep = urllib.parse.quote(base64.b64encode(''.join(trans_e(f_code_2,sid+'_'+fileId+'_'+token)).encode('latin1')),safe='~()*!.\'')
-        return fileId,ep
-
 
     def download_playlist_by_url(self, url, param,  **kwargs):
         self.url = url
@@ -195,27 +145,31 @@ class Youku(VideoExtractor):
 
     def extract(self, **kwargs):
         stream_id = self.param.stream_id or self.stream_types[0]
-
-        f_code_1 = 'becaf9be'
-        e_code = self.__class__.trans_e(f_code_1, base64.b64decode(bytes(self.ep, 'ascii')))
-        sid, token = e_code.split('_')
+        sid, token = init(self.ep)
         segs = self.streams_parameter[stream_id]['segs']
         streamfileid = self.streams_parameter[stream_id]['fileid']
         urls = []
-        for no in range(0,len(segs)):
-            k = segs[no]['key']
+        no = 0
+        for seg in segs:
+            k = seg['key']
             if k == -1:
                 log.e('Error')
                 exit()
-            fileId,ep  = self.__class__.generate_ep(no,streamfileid ,sid,token)
+            fileId = getFileid(streamfileid, no)
+            ep  = urllib.parse.quote(create_ep(sid, fileId, token), safe='~()*!.\'')
+            if no < 10:
+                nu = '0'+str(no)
+            else:
+                nu = str(no)
             m3u8 = ''
-            m3u8  += 'http://k.youku.com/player/getFlvPath/sid/'+ sid
-            m3u8+='_00/st/'+ self.streams[stream_id]['container']
+            m3u8  += 'http://k.youku.com/player/getFlvPath/sid/'+ sid + '_' + nu
+            m3u8+= '/st/'+ self.streams[stream_id]['container']
             m3u8+='/fileid/'+ fileId
             m3u8+='?K='+ k
             m3u8+='&ctype=12&ev=1&token='+ token
             m3u8+='&oip='+ str(self.ip)
             m3u8+='&ep='+ ep
+            no += 1
             urls.append(m3u8)
 
         if not self.param.info_only:
@@ -223,20 +177,6 @@ class Youku(VideoExtractor):
             if not self.streams[stream_id]['src'] and self.password_protected:
                 log.e('[Failed] Wrong password.')
 
-
-#        if not kwargs['info_only']:
-#            if self.password_protected:
-#                m3u8_url += '&password={}'.format(self.password)
-#
-#            m3u8 = get_html(m3u8_url)
-#
-#            self.streams[stream_id]['src'] = self.__class__.parse_m3u8(m3u8)
-#            if not self.streams[stream_id]['src'] and self.password_protected:
-#                log.e('[Failed] Wrong password.')
-
 site = Youku()
 download = site.download_by_url
 download_playlist = site.download_playlist_by_url
-
-youku_download_by_vid = site.download_by_vid
-# Used by: acfun.py bilibili.py miomio.py tudou.py

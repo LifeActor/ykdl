@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..util.html import get_content, parse_query_param
+from ..util.html import get_content, parse_query_param, fake_headers
 from ..util.match import match1, matchall
 from ..util import log
 from ..extractor import VideoExtractor
@@ -13,6 +13,9 @@ import traceback
 import urllib.parse
 import math
 import json
+
+youku_headers = fake_headers
+youku_headers['Referer'] = 'v.youku.com'
 
 class Youku(VideoExtractor):
     name = "优酷 (Youku)"
@@ -57,15 +60,15 @@ class Youku(VideoExtractor):
             playlist_id = match1(self.url, 'youku\.com/playlist_show/id_([a-zA-Z0-9=]+)')
             assert playlist_id
 
-            video_page = get_content('http://www.youku.com/playlist_show/id_%s' % playlist_id)
+            video_page = get_content('http://www.youku.com/playlist_show/id_%s' % playlist_id, headers=youku_headers)
             videos = matchall(video_page, ['a href="(http://v\.youku\.com/[^?"]+)'])
 
             for extra_page_url in matchall(video_page, ['href="(http://www\.youku\.com/playlist_show/id_%s_[^?"]+)' % playlist_id]):
-                extra_page = get_content(extra_page_url)
+                extra_page = get_content(extra_page_url, headers=youku_headers)
                 videos += matchall(extra_page, ['a href="(http://v\.youku\.com/[^?"]+)'])
 
         except:
-            video_page = get_content(url)
+            video_page = get_content(url, headers=youku_headers)
             videos = videos = matchall(video_page, ['a href="(http://v\.youku\.com/[^?"]+)'])
 
         for video in videos:
@@ -92,8 +95,8 @@ class Youku(VideoExtractor):
         api_url = 'http://play.youku.com/play/get.json?vid=%s&ct=12' % self.vid
         api_url1 = 'http://play.youku.com/play/get.json?vid=%s&ct=10' % self.vid
         try:
-            meta = json.loads(get_content(api_url))
-            meta1 = json.loads(get_content(api_url1))
+            meta = json.loads(get_content(api_url, headers=youku_headers))
+            meta1 = json.loads(get_content(api_url1, headers=youku_headers))
             data = meta['data']
             data1 = meta1['data']
             assert 'stream' in data
@@ -105,8 +108,8 @@ class Youku(VideoExtractor):
                     self.password = input(log.sprint('Password: ', log.YELLOW))
                     api_url += '&pwd={}'.format(self.password)
                     api_url1 += '&pwd={}'.format(self.password)
-                    meta1 = json.loads(get_content(api_url1))
-                    meta = json.loads(get_content(api_url))
+                    meta1 = json.loads(get_content(api_url1, headers=youku_headers))
+                    meta = json.loads(get_content(api_url, headers=youku_headers))
                     data1 = meta1['data']
                     data = meta['data']
                 else:

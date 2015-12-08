@@ -24,6 +24,18 @@ def playlist_not_supported(name):
         raise NotImplementedError('Playlist is not supported for ' + name)
     return f
 
+def mime_to_container(mime):
+    mapping = {
+        'video/3gpp': '3gp',
+        'video/mp4': 'mp4',
+        'video/webm': 'webm',
+        'video/x-flv': 'flv',
+    }
+    if mime in mapping:
+        return mapping[mime]
+    else:
+        return mime.split('/')[1]
+
 alias = {
         '163': 'netease',
         'fun': 'funshion',

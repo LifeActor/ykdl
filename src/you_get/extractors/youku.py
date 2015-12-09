@@ -23,7 +23,7 @@ class Youku(VideoExtractor):
     name = "优酷 (Youku)"
 
     # Last updated: 2015-11-24
-    supported_stream_code = [ 'mp4hd2', 'hd2', 'mp4hd', 'mp4', 'flvhd', 'flv', '3gphd' ]
+    supported_stream_code = [ 'mp4hd3', 'hd3', 'mp4hd2', 'hd2', 'mp4hd', 'mp4', 'flvhd', 'flv', '3gphd' ]
     stream_code_to_type = {
         'mp4hd3': 'hd3',
         'hd3'   : 'hd3',
@@ -134,7 +134,7 @@ class Youku(VideoExtractor):
 
         for stream in data1['stream']:
             stream_id = stream['stream_type']
-            if not stream_id in self.stream_types and stream_id in self.supported_stream_code:
+            if not stream_id in self.stream_types:
                 self.streams_parameter[stream_id] = {
                     'fileid': stream['stream_fileid'],
                     'segs': stream['segs']

@@ -10,9 +10,11 @@ from .youkujs import *
 import base64
 import time
 import traceback
-import urllib.parse
+from urllib import parse, request
 import math
 import json
+import ssl
+
 
 youku_headers = fake_headers
 youku_headers['Referer'] = 'v.youku.com'
@@ -82,6 +84,13 @@ class Youku(VideoExtractor):
                 traceback.print_exception(exc_type, exc_value, exc_traceback)
 
     def prepare(self, **kwargs):
+        # Hot-plug cookie handler
+        ssl_context = request.HTTPSHandler(
+            context=ssl.SSLContext(ssl.PROTOCOL_TLSv1))
+        cookie_handler = request.HTTPCookieProcessor()
+        opener = request.build_opener(ssl_context, cookie_handler)
+        request.install_opener(opener)
+
         self.streams_parameter = {}
         assert self.url or self.vid
 
@@ -156,22 +165,28 @@ class Youku(VideoExtractor):
         no = 0
         for seg in segs:
             k = seg['key']
-            if k == -1:
-                log.e('Error')
-                exit()
+            assert k != -1
             fileId = getFileid(streamfileid, no)
-            ep  = urllib.parse.quote(create_ep(sid, fileId, token), safe='~()*!.\'')
+            ep  = create_ep(sid, fileId, token)
+            q = parse.urlencode(dict(
+                ctype = 12,
+                ev    = 1,
+                K     = k,
+                ep    = ep,
+                oip   = str(self.ip),
+                token = token
+            ))
             nu = '%02x' % no
-            m3u8 = ''
-            m3u8  += 'http://k.youku.com/player/getFlvPath/sid/'+ sid + '_' + nu
-            m3u8+= '/st/'+ self.streams[stream_id]['container']
-            m3u8+='/fileid/'+ fileId
-            m3u8+='?K='+ k
-            m3u8+='&ctype=12&ev=1&token='+ token
-            m3u8+='&oip='+ str(self.ip)
-            m3u8+='&ep='+ ep
+            u = 'http://k.youku.com/player/getFlvPath/sid/{sid}_{nu}' \
+                '/st/{container}/fileid/{fileid}?{q}'.format(
+                sid       = sid,
+                nu        = nu,
+                container = self.streams[stream_id]['container'],
+                fileid    = fileId,
+                q         = q
+            )
             no += 1
-            urls.append(m3u8)
+            urls.append(u)
 
         if not self.param.info_only:
             self.streams[stream_id]['src'] = urls

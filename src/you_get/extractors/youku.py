@@ -174,7 +174,8 @@ class Youku(VideoExtractor):
                 K     = k,
                 ep    = ep,
                 oip   = str(self.ip),
-                token = token
+                token = token,
+                yxon  = 1
             ))
             nu = '%02x' % no
             u = 'http://k.youku.com/player/getFlvPath/sid/{sid}_{nu}' \
@@ -186,7 +187,8 @@ class Youku(VideoExtractor):
                 q         = q
             )
             no += 1
-            urls.append(u)
+            url = json.loads(get_content(u))[0]['server']
+            urls.append(url)
 
         if not self.param.info_only:
             self.streams[stream_id]['src'] = urls

@@ -161,10 +161,7 @@ class Youku(VideoExtractor):
                 exit()
             fileId = getFileid(streamfileid, no)
             ep  = urllib.parse.quote(create_ep(sid, fileId, token), safe='~()*!.\'')
-            if no < 10:
-                nu = '0'+str(no)
-            else:
-                nu = str(no)
+            nu = '%02x' % no
             m3u8 = ''
             m3u8  += 'http://k.youku.com/player/getFlvPath/sid/'+ sid + '_' + nu
             m3u8+= '/st/'+ self.streams[stream_id]['container']

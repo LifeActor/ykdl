@@ -72,6 +72,13 @@ iqiyi
 iqiyi_embed_patterns = [ 'definitionID=([^&]+)&tvId=([^&]+)'
                      ]
 
+"""
+Letv Cloud
+"""
+lecloud_embed_patterns = [ 'letvcloud_player_conf={"uu":"([^\"]+)","vu":"([^\"]+)"'
+                     ]
+
+
 
 class GeneralEmbed(EmbedExtractor):
 
@@ -117,6 +124,11 @@ class GeneralEmbed(EmbedExtractor):
         for v in vids:
             videoid, tvid = v
             self.video_info.append(('iqiyi', (tvid, videoid)))
+
+        vids = matchall(content, lecloud_embed_patterns)
+        for v in vids:
+            uu, vu = v
+            self.video_info.append(('letvcloud', (vu, uu)))
 
         tmp = []
         for v in self.video_info:

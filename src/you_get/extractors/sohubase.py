@@ -49,7 +49,7 @@ class SohuBase(VideoExtractor):
             self.title = data['tvName']
             for stream in self.supported_stream_types:
                 lvid = data[stream]
-                if lvid == 0:
+                if lvid == 0 or not lvid:
                     continue
                 if lvid != self.vid :
                     info = json.loads(get_content(self.apiurl % lvid))

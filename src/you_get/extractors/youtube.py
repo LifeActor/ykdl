@@ -51,8 +51,10 @@ class YouTube(VideoExtractor):
             code = re.sub(r'(\w+).split\(""\)', r'list(\1)', code)
             return code
 
+        js = js.replace('\n', ' ')
         f1 = match1(js, r'\w+\.sig\|\|([$\w]+)\(\w+\.\w+\)')
-        f1def = match1(js, r'(function %s\(\w+\)\{[^\{]+\})' % re.escape(f1))
+        f1def = match1(js, r'function %s(\(\w+\)\{[^\{]+\})' % re.escape(f1)) or \
+                match1(js, r'\W%s=function(\(\w+\)\{[^\{]+\})' % re.escape(f1))
         f1def = re.sub(r'([$\w]+\.)([$\w]+\(\w+,\d+\))', r'\2', f1def)
         code = tr_js(f1def)
         f2s = set(re.findall(r'([$\w]+)\(\w+,\d+\)', f1def))

@@ -11,7 +11,7 @@ class HuomaoTv(VideoExtractor):
 
     stream_2_profile = { 'TD': '超清', 'HD': '高清', 'SD': '标清' }
 
-    live_base = "http://www.huomaotv.com/swf/live_data"
+    live_base = "http://www.huomaotv.cn/swf/live_data"
 
     def prepare(self, **kwargs):
         assert self.url

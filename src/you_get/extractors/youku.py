@@ -98,6 +98,7 @@ class Youku(VideoExtractor):
             context=ssl.SSLContext(ssl.PROTOCOL_TLSv1))
         cookie_handler = request.HTTPCookieProcessor()
         opener = request.build_opener(ssl_context, cookie_handler)
+        opener.addheaders = [('Cookie','r=fuck_youku')]
         request.install_opener(opener)
 
 

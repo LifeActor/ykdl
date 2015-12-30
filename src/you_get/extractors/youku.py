@@ -54,6 +54,15 @@ class Youku(VideoExtractor):
          'flv' : 'flv',
          '3gphd': 'mp4'
     }
+    stream_type_to_hd = {
+      'flv': 0,
+      'flvhd': 0,
+      'mp4': 1,
+      'hd2': 2,
+      '3gphd': 1,
+      '3gp': 0,
+      'hd3': 3
+    }
 
     def download_playlist_by_url(self, url, param,  **kwargs):
         self.url = url
@@ -90,6 +99,7 @@ class Youku(VideoExtractor):
         cookie_handler = request.HTTPCookieProcessor()
         opener = request.build_opener(ssl_context, cookie_handler)
         request.install_opener(opener)
+
 
         self.streams_parameter = {}
         assert self.url or self.vid
@@ -157,6 +167,8 @@ class Youku(VideoExtractor):
 
 
     def extract(self, **kwargs):
+        if self.param.info_only:
+            return
         stream_id = self.param.stream_id or self.stream_types[0]
         sid, token = init(self.ep)
         segs = self.streams_parameter[stream_id]['segs']
@@ -175,7 +187,13 @@ class Youku(VideoExtractor):
                 ep    = ep,
                 oip   = str(self.ip),
                 token = token,
-                yxon  = 1
+                yxon  = 1,
+                myp   = 0,
+                ymovie= 1,
+                ts    = seg['total_milliseconds_audio'][:-3],
+                hd    = self.stream_type_to_hd[self.stream_code_to_type[stream_id]],
+                special = 'true',
+                yyp   = 2
             ))
             nu = '%02x' % no
             u = 'http://k.youku.com/player/getFlvPath/sid/{sid}_{nu}' \

@@ -14,15 +14,13 @@ class Panda(VideoExtractor):
     def prepare(self, **kwargs):
         assert self.url
 
-        html = get_content(self.url)
-        self.title = match1(html, '<title>([^<]+)')
-
         self.vid = match1(self.url, 'panda.tv/(\w+)')
 
         content = get_content(self.api_url.format(self.vid))
         stream_data = json.loads(content)
         if stream_data["errno"] == 0:
             room_key = stream_data['data']['videoinfo']['room_key']
+            self.title = stream_data['data']['roominfo']['name']
         else:
            from ..util import log
            log.e("error: {}, {}".format(stream_data["errno"], stream_data["errmsg"]))

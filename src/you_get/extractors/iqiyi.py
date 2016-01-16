@@ -3,6 +3,7 @@
 from ..util.html import get_content
 from ..util.match import matchall, match1
 from ..extractor import VideoExtractor
+from ..util import log
 
 from uuid import uuid4
 from random import random,randint

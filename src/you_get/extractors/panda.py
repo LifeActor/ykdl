@@ -12,9 +12,10 @@ class Panda(VideoExtractor):
     api_url = "http://www.panda.tv/api_room?roomid={}"
 
     def prepare(self, **kwargs):
-        assert self.url
+        assert self.url or self.vid
 
-        self.vid = match1(self.url, 'panda.tv/(\w+)')
+        if not self.vid:
+            self.vid = match1(self.url, 'panda.tv/(\w+)')
 
         content = get_content(self.api_url.format(self.vid))
         stream_data = json.loads(content)

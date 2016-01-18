@@ -118,7 +118,7 @@ class GeneralEmbed(EmbedExtractor):
             self.video_info.append(('ku6',vid))
         vids = matchall(content, netease_embed_patterns)
         for v in vids:
-            self.video_info.append(('netease', v))
+            self.video_info.append(('neteasevideo', v))
 
         vids = matchall(content, iqiyi_embed_patterns)
         for v in vids:

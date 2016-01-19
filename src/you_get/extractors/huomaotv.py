@@ -7,9 +7,9 @@ import json
 class HuomaoTv(VideoExtractor):
     name = '火猫 (Huomao)'
 
-    supported_stream_types = [ 'TD', 'HD', 'SD' ]
+    supported_stream_types = ['TD', 'HD', 'SD', 'BD' ]
 
-    stream_2_profile = { 'TD': '超清', 'HD': '高清', 'SD': '标清' }
+    stream_2_profile = {'TD': '超清', 'HD': '高清', 'SD': '标清',  'BD':"unknown" }
 
     live_base = "http://www.huomaotv.cn/swf/live_data"
 

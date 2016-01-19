@@ -19,12 +19,12 @@ class Panda(VideoExtractor):
 
         content = get_content(self.api_url.format(self.vid))
         stream_data = json.loads(content)
-        if stream_data["errno"] == 0:
+        if stream_data['data']['videoinfo']['status'] == '2':
             room_key = stream_data['data']['videoinfo']['room_key']
             self.title = stream_data['data']['roominfo']['name']
         else:
            from ..util import log
-           log.e("error: {}, {}".format(stream_data["errno"], stream_data["errmsg"]))
+           log.e("error: (⊙o⊙)主播暂时不在家，看看其他精彩直播吧！")
            exit(1)
 
         self.stream_types.append('current')

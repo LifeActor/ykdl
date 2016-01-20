@@ -19,8 +19,12 @@ class Acorig(VideoExtractor):
             self.title = kwargs['title']
         else:
             self.title = self.name + "-" + self.vid
-
-        info = json.loads(get_content('http://api.aixifan.com/plays/{}/realSource'.format(self.vid), headers = acorg_headers))
+        try:
+            info = json.loads(get_content('http://api.aixifan.com/plays/{}/realSource'.format(self.vid), headers = acorg_headers))
+            assert info['code'] == 200
+        except:
+            from ..util import log
+            log.wtf(info['message'])
         video = info['data']['files']
 
         for v in video:

@@ -122,7 +122,7 @@ class Youku(VideoExtractor):
             assert 'stream' in data1
         except:
             if 'error' in data1:
-                if data['error']['code'] == -202:
+                if data1['error']['code'] == -202:
                     # Password protected
                     self.password_protected = True
                     self.password = input(log.sprint('Password: ', log.YELLOW))

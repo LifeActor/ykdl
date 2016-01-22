@@ -1,6 +1,0 @@
-include *.rst
-include *.txt
-include Makefile
-include README.md
-include you-get
-include you-get.json

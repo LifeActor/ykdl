@@ -1,35 +1,37 @@
 #!/usr/bin/env python
 
-__all__ = ['ifeng_download', 'ifeng_download_by_id']
+from ..common import playlist_not_supported
+from ..extractor import VideoExtractor
+from xml.dom.minidom import parseString
+from ..util.html import get_content
+from ..util.match import match1
 
-from ..common import *
+class Ifeng(VideoExtractor):
+    name = '凤凰视频 (ifeng)'
 
-def ifeng_download_by_id(id, title = None, output_dir = '.', info_only = False):
-    assert r1(r'([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})', id), id
-    url = 'http://v.ifeng.com/video_info_new/%s/%s/%s.xml' % (id[-2], id[-2:], id)
-    xml = get_html(url, 'utf-8')
-    title = r1(r'Name="([^"]+)"', xml)
-    title = unescape_html(title)
-    url = r1(r'VideoPlayUrl="([^"]+)"', xml)
-    from random import randint
-    r = randint(10, 19)
-    url = url.replace('http://video.ifeng.com/', 'http://video%s.ifeng.com/' % r)
-    type, ext, size = url_info(url)
-    
-    print_info(site_info, title, ext, size)
-    if not info_only:
-        download_urls([url], title, ext, size, output_dir)
+    supported_stream_types = ['500k', '350k']
 
-def ifeng_download(url, output_dir = '.', merge = True, info_only = False):
-    id = r1(r'/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\.shtml$', url)
-    if id:
-        return ifeng_download_by_id(id, None, output_dir = output_dir, info_only = info_only)
-    
-    html = get_html(url)
-    id = r1(r'var vid="([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"', html)
-    assert id, "can't find video info"
-    return ifeng_download_by_id(id, None, output_dir = output_dir, info_only = info_only)
+    def prepare(self, **kwargs):
+        assert self.vid or self.url
 
-site_info = "ifeng.com"
-download = ifeng_download
+        if not self.vid:
+            self.vid= match1(self.url, '#([a-zA-Z0-9\-]+)', '/([a-zA-Z0-9\-]+).shtml')
+
+        xml = get_content('http://v.ifeng.com/video_info_new/{}/{}/{}.xml'.format(self.vid[-2], self.vid[-2:], self.vid))
+        doc = parseString(xml.encode('utf-8'))
+        self.title = doc.getElementsByTagName('item')[0].getAttribute("Name")
+        videos = doc.getElementsByTagName('videos')
+        for v in videos[0].getElementsByTagName('video'):
+            if v.getAttribute("mediaType") == 'mp4':
+                _t = v.getAttribute("type")
+                _u = v.getAttribute("VideoPlayUrl")
+                self.stream_types.append(_t)
+                self.streams[_t] = {'container': 'mp4', 'video_profile': _t, 'src' : [_u], 'size': 0}
+
+        self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
+
+
+
+site = Ifeng()
+download = site.download_by_url
 download_playlist = playlist_not_supported('ifeng')

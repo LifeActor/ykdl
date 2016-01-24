@@ -78,6 +78,12 @@ Letv Cloud
 lecloud_embed_patterns = [ 'letvcloud_player_conf={"uu":"([^\"]+)","vu":"([^\"]+)"'
                      ]
 
+"""
+ifeng
+"""
+ifeng_embed_patterns = [ 'v\.ifeng\.com\/[a-zA-Z\=\/\?\&\.]+guid=([^\"]+)'
+                     ]
+
 
 
 class GeneralEmbed(EmbedExtractor):
@@ -129,6 +135,10 @@ class GeneralEmbed(EmbedExtractor):
         for v in vids:
             uu, vu = v
             self.video_info.append(('letvcloud', (vu, uu)))
+
+        vids = matchall(content, ifeng_embed_patterns)
+        for v in vids:
+            self.video_info.append(('ifeng', v))
 
         tmp = []
         for v in self.video_info:

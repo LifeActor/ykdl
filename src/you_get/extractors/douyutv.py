@@ -29,7 +29,7 @@ class Douyutv(VideoExtractor):
         show_status = data.get('show_status')
         if show_status is not "1":
             log.e("The live stream is not online! (Errno:%s)" % show_status, show_status)
-        real_url = data.get('hls_url')
+        real_url = data.get('rtmp_url')+'/'+data.get('rtmp_live')
         self.stream_types.append('current')
         self.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [real_url], 'size': float('inf')}
 

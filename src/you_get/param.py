@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import getopt
 import sys
+from .util import log
 
 version = 'You-Get, a video downloader.'
 help = 'Usage: You-Get [OPTION]... [URL]...\n'

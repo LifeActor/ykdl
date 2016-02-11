@@ -8,7 +8,7 @@ class Zhanqi(VideoExtractor):
 
     live = False
 
-    live_base = "http://wshdl.load.cdn.zhanqi.tv/zqlive"
+    live_base = "http://dlhls.cdn.zhanqi.tv/zqlive/"
     vod_base = "http://dlvod.cdn.zhanqi.tv"
     def prepare(self, **kwargs):
         assert self.url
@@ -23,8 +23,7 @@ class Zhanqi(VideoExtractor):
         self.title = match1(html, '<title>([^<]+)')
         if self.live:
             rtmp_id = match1(html, 'videoId":"([^"]+)"').replace('\\/','/')
-            request_url = self.live_base+'/'+rtmp_id+'.flv?get_url=1'
-            real_url = [get_html(request_url)]
+            real_url = [self.live_base+'/'+rtmp_id+'.m3u8']
             self.stream_types.append('current')
             self.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : real_url, 'size': float('inf')}
         else:

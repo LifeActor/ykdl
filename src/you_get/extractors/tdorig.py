@@ -22,12 +22,12 @@ class TDorig(VideoExtractor):
 
         temp = max([data[i] for i in data if 'size' in data[i][0]], key=lambda x:sum([part['size'] for part in x]))
         vids, size = [t["k"] for t in temp], sum([t["size"] for t in temp])
-        urls = [[n.firstChild.nodeValue.strip()
-             for n in
-                parseString(
-                    get_content('http://ct.v2.tudou.com/f?id=%s' % vid))
-                .getElementsByTagName('f')][0]
-            for vid in vids]
+
+        urls = []
+        for vid in vids:
+            for i in parseString(get_content('http://ct.v2.tudou.com/f?id=%s' % vid)).getElementsByTagName('f'):
+                urls.append(i.firstChild.nodeValue.strip())
+
         ext = match1(urls[0], 'http://[\w.]*/(\w+)/[\w.]*')
         self.stream_types.append('current')
         self.streams['current'] = {'container': ext, 'video_profile': 'current', 'src' : urls, 'size': size}

@@ -60,7 +60,7 @@ def url_to_module(url):
         k = alias[k]
     try:
         m = import_module('.'.join(['you_get','extractors', k]))
-        return m
+        return m, url
     except(SyntaxError):
         log.wtf("SyntaxError in module {}".format(k))
     except:
@@ -79,10 +79,11 @@ def url_to_module(url):
 def main():
 
     para = Param(sys.argv[1:])
-
     for url in para.urls:
-        m = url_to_module(url)
+        m,u = url_to_module(url)
+        if not u == url:
+            para.urls[para.urls.index(url)]  = u
         if para.playlist:
-            m.download_playlist(url, para)
+            m.download_playlist(u, para)
         else:
-            m.download(url, para)
+            m.download(u, para)

@@ -15,9 +15,9 @@ class Miaopai(VideoExtractor):
         assert self.url or self.vid
 
         if not self.vid:
-            self.vid = match1(self.url, 'http://www.miaopai.com/show/channel/(\w+)', \
-                                        'http://www.miaopai.com/show/(\w+)', \
-                                        'http://m.miaopai.com/show/channel/(\w+)')
+            self.vid = match1(self.url, 'http://www.miaopai.com/show/channel/([^.]+)', \
+                                        'http://www.miaopai.com/show/([^.]+)', \
+                                        'http://m.miaopai.com/show/channel/([^.]+)')
         content = json.loads(get_content('http://api.miaopai.com/m/v2_channel.json?fillType=259&scid={}&vend=miaopai'.format(self.vid)))
         if content['status'] != 200:
             log.wtf("something error!")

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-from .common import *
+from .util.html import get_content, fake_headers, url_info
+from .util.match import match1
 from .extractor import VideoExtractor
 
 class SimpleExtractor(VideoExtractor):
@@ -16,11 +17,15 @@ class SimpleExtractor(VideoExtractor):
 
         self.url_pattern = ''
 
+        self.headers = fake_headers
+
     def get_title(self):
-        self.title = match1(self.html, self.title_pattern)
+        if self.title_pattern:
+            self.title = match1(self.html, self.title_pattern)
 
     def get_url(self):
-        self.v_url = [match1(self.html, self.url_pattern)]
+        if self.url_pattern:
+            self.v_url = [match1(self.html, self.url_pattern)]
 
     def get_info(self):
         size=0
@@ -36,7 +41,7 @@ class SimpleExtractor(VideoExtractor):
     def prepare(self, **kwargs):
         assert self.url
         self.l_assert()
-        self.html = get_content(self.url)
+        self.html = get_content(self.url, headers=self.headers)
         self.get_title()
         self.get_url()
         ext, size = self.get_info()

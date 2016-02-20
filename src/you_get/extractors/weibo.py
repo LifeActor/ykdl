@@ -10,19 +10,12 @@ class Weibo(SimpleExtractor):
 
     def __init__(self, *args):
         SimpleExtractor.__init__(self, *args)
-        self.title_pattern = '<meta name="description" content="(.*?)\"\W'
+        self.title= self.name
+        self.headers['Cookie'] = 'SUB=_2AkMhFM7jf8NhqwJRmPgSxGjgbo9-wwHEiebDAHzsJxJjHn8Y7T9S2ly7eBeF6R30KmjZVAl34ha-NA..'
 
     def get_url(self):
-        url_raw = match1(self.html, 'flashvars="list=([^"]+)')
-        self.v_url = [unquote(url_raw)]
-
-    def get_info(self):
-        """
-        sometime url_info will fail
-        but url is availible
-        so use fake
-        """
-        return 'mp4', 1
+        url_raw = match1(self.html, 'file=([^"]+)')
+        self.v_url = [unquote(url_raw[:-1])]
 
 site = Weibo()
 download = site.download_by_url

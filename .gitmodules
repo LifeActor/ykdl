@@ -1,0 +1,3 @@
+[submodule "external/m3u8"]
+	path = external/m3u8
+	url = https://github.com/globocom/m3u8.git

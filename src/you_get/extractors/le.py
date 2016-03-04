@@ -40,10 +40,10 @@ class Letv(VideoExtractor):
         assert self.url or self.vid
 
         if self.vid:
-            self.url = "http://www.letv.com/ptv/vplay/{}.html".format(self.vid)
+            self.url = "http://www.le.com/ptv/vplay/{}.html".format(self.vid)
         html = get_content(self.url)
         if not self.vid:
-            self.vid = match1(self.url, r'http://www.letv.com/ptv/vplay/(\d+).html')
+            self.vid = match1(self.url, r'http://www.le.com/ptv/vplay/(\d+).html')
         if not self.vid:
            #self embed
            vids = matchall(html, ['vid="(\d+)"'])
@@ -52,7 +52,7 @@ class Letv(VideoExtractor):
 
         #normal process
         self.title = match1(html,r'name="irTitle" content="(.*?)"')
-        info_url = 'http://api.letv.com/mms/out/video/playJson?id={}&platid=1&splatid=101&format=1&tkey={}&domain=www.letv.com'.format(self.vid, calcTimeKey(int(time.time())))
+        info_url = 'http://api.le.com/mms/out/video/playJson?id={}&platid=1&splatid=101&format=1&tkey={}&domain=www.le.com'.format(self.vid, calcTimeKey(int(time.time())))
         r = get_content(info_url)
         info=json.loads(r)
         available_stream_id = info["playurl"]["dispatch"].keys()
@@ -60,7 +60,7 @@ class Letv(VideoExtractor):
             if stream in available_stream_id:
                 s_url =info["playurl"]["domain"][0]+info["playurl"]["dispatch"][stream][0]
                 ext = info["playurl"]["dispatch"][stream][1].split('.')[-1]
-                s_url+="&ctv=pc&m3v=1&termid=1&format=1&hwtype=un&ostype=Linux&tag=letv&sign=letv&expect=3&tn={}&pay=0&iscpn=f9051&rateid={}".format(random.random(),stream)
+                s_url+="&ctv=pc&m3v=1&termid=1&format=1&hwtype=un&ostype=Linux&tag=le&sign=le&expect=3&tn={}&pay=0&iscpn=f9051&rateid={}".format(random.random(),stream)
                 r2=get_content(s_url)
                 info2=json.loads(r2)
 
@@ -74,6 +74,7 @@ class Letv(VideoExtractor):
                     self.streams[stream]['tmp'] = tempfile.NamedTemporaryFile(mode='w+t', suffix='.m3u8')
                     self.streams[stream]['tmp'].write(m3u8_list)
                     self.streams[stream]['src'] = [self.streams[stream]['tmp'].name]
+                    self.streams[stream]['tmp'].flush()
                 else:
                     urls = re.findall(r'^[^#][^\r]*',m3u8_list,re.MULTILINE)
                     self.streams[stream]['src'] = urls

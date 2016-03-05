@@ -3,9 +3,9 @@
 
 import os, sys
 
-_srcdir = 'src/'
+
 _filepath = os.path.dirname(sys.argv[0])
-sys.path.insert(1, os.path.join(_filepath, _srcdir))
+sys.path.insert(1, _filepath)
 
 
 if sys.version_info[0] == 3:

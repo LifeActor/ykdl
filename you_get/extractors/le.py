@@ -43,7 +43,7 @@ class Letv(VideoExtractor):
             self.url = "http://www.le.com/ptv/vplay/{}.html".format(self.vid)
         html = get_content(self.url)
         if not self.vid:
-            self.vid = match1(self.url, r'http://www.le.com/ptv/vplay/(\d+).html')
+            self.vid = match1(self.url, r'http://www.le.com/ptv/vplay/(\d+).html', '#record/(\d+)')
         if not self.vid:
            #self embed
            vids = matchall(html, ['vid="(\d+)"'])

@@ -45,5 +45,4 @@ class Letvcloud(VideoExtractor):
 
 site = Letvcloud()
 download = site.download_by_url
-letvcloud_download_by_vid = site.download_by_vid
 download_playlist = playlist_not_supported('letvcloud')

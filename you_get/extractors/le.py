@@ -107,11 +107,6 @@ class Letv(VideoExtractor):
         for v in vids:
             self.download_by_vid(v,param, **kwargs)
 
-
-def letvcloud_download_by_vu(vu, uu, title=None, output_dir='.', merge=True, info_only=False, **kwargs):
-    from .letvcloud import letvcloud_download_by_vid
-    letvcloud_download_by_vid((vu, uu), title=title, output_dir=output_dir, merge=merge, info_only=info_only,**kwargs)
-
 site = Letv()
 download = site.download_by_url
 letv_download_by_vid = site.download_by_vid

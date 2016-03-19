@@ -48,5 +48,5 @@ class SimpleExtractor(VideoExtractor):
         self.stream_types.append('current')
         self.streams['current'] = {'container': ext, 'src': self.v_url, 'size' : size}
 
-    def download_by_vid(self, **kwargs):
+    def download_by_vid(self, param, **kwargs):
         pass

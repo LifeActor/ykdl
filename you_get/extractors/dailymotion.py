@@ -22,7 +22,7 @@ class Dailymotion(VideoExtractor):
                 self.stream_types.append(stream)
                 self.streams[stream] = {'container': ext, 'src': [url], 'size' : size}
 
-    def download_by_vid(self, **kwargs):
+    def download_by_vid(self, param, **kwargs):
         pass
 
 site = Dailymotion()

@@ -39,7 +39,7 @@ class Douyutv(VideoExtractor):
         html = get_content(self.url)
         vids = matchall(html, douyu_match_pattern)
         for vid in vids:
-            self.download_by_vid(vid, **kwargs)
+            self.download_by_vid(vid, param, **kwargs)
 
 site = Douyutv()
 download = site.download_by_url

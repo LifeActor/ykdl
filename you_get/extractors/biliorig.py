@@ -7,9 +7,7 @@ from ..util.match import match1, matchall
 import hashlib
 import re
 
-# API key provided by cnbeining
-appkey='85eb6835b0a1034e';
-secretkey = '2ad42749773c441109bdc0191257a664'
+appkey='8e9fc618fbd41e28'
 
 def parse_cid_playurl(xml):
     from xml.dom.minidom import parseString
@@ -43,8 +41,7 @@ class BiliOrig(VideoExtractor):
             if re.search('live', self.url):
                 self.live = True
         if not self.live:
-            sign_this = hashlib.md5(bytes('appkey=' + appkey + '&cid=' + self.vid + secretkey, 'utf-8')).hexdigest()
-            api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid + '&sign=' + sign_this
+            api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid
             urls = parse_cid_playurl(get_content(api_url))
 
             ext = ''

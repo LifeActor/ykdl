@@ -84,6 +84,13 @@ ifeng
 ifeng_embed_patterns = [ 'v\.ifeng\.com\/[a-zA-Z\=\/\?\&\.]+guid=([^\"]+)'
                      ]
 
+"""
+weibo
+"""
+weibo_embed_patterns = [ 'http://video.weibo.com/player/1034:(\w{32})\w*'
+                     ]
+
+
 
 
 class GeneralEmbed(EmbedExtractor):
@@ -139,6 +146,10 @@ class GeneralEmbed(EmbedExtractor):
         vids = matchall(content, ifeng_embed_patterns)
         for v in vids:
             self.video_info.append(('ifeng', v))
+
+        vids = matchall(content, weibo_embed_patterns)
+        for v in vids:
+            self.video_url.append(('weibo','http://weibo.com/p/' + v))
 
         tmp = []
         for v in self.video_info:

@@ -7,15 +7,23 @@ from urllib.parse import unquote
 class Weibo(SimpleExtractor):
     name = "微博秒拍 (Weibo)"
 
-
     def __init__(self, *args):
         SimpleExtractor.__init__(self, *args)
-        self.title= self.name
-        self.headers['Cookie'] = 'SUB=_2AkMhFM7jf8NhqwJRmPgSxGjgbo9-wwHEiebDAHzsJxJjHn8Y7T9S2ly7eBeF6R30KmjZVAl34ha-NA..'
+        self.headers = {
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Charset': 'UTF-8,*;q=0.5',
+            'Accept-Encoding': 'gzip,deflate,sdch',
+            'Accept-Language': 'en-US,en;q=0.8',
+            'User-Agent': 'Mozilla/5.0 (Linux; Android 4.4.2; Nexus 4 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.114 Mobile Safari/537.36'
+        }
+        self.url_pattern = '<video src="(.*?)\"\W'
+        self.title_pattern = '<meta name="description" content="([\s\S]*?)\"\W'
 
-    def get_url(self):
-        url_raw = match1(self.html, 'file=([^"]+)')
-        self.v_url = [unquote(url_raw[:-1])]
+    def l_assert(self):
+        self.url = 'http://video.weibo.com/show?fid=1034:' + self.url[-32:] + '&type=mp4'
+
+    def get_title(self):
+        self.title = SimpleExtractor.get_title(self) or self.name
 
 site = Weibo()
 download = site.download_by_url

@@ -7,6 +7,8 @@ from .html import fake_headers, add_header
 def simple_hook(arg1, arg2, arg3):
     if arg3 > 0:
         percent = int(arg1 * arg2 * 100 / arg3)
+        if percent > 100:
+            percent = 100
         sys.stdout.write('\r %3d' % percent + '%')
         sys.stdout.flush()
     else:

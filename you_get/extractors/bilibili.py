@@ -13,7 +13,7 @@ class BiliBili(EmbedExtractor):
         assert self.url
 
         if re.search('live', self.url):
-            self.video_url.append(('biliorig', self.url))
+            self.video_info.append(('biliorig', self.url))
             return
 
         html = get_content(self.url)

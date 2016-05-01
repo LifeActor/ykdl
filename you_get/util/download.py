@@ -24,6 +24,9 @@ def save_url(url, name, reporthook = simple_hook):
     response = request.urlopen(req, None)
     if "content-length" in response.headers:
         size = int(response.headers["Content-Length"])
+    if os.path.exists(name) and os.path.getsize(name) == size:
+        print('Skipped: file already downloaded')
+        return
     reporthook(blocknum, bs, size)
     tfp = open(name, 'wb')
     while True:
@@ -40,9 +43,6 @@ def save_urls(urls, name, ext):
     for u in urls:
         print("Download: " + name + " part %d" % no)
         n = name + '_%02d_.' % no + ext
-        if os.path.exists(n):
-            print('Skipping Part %d: file already exists', no)
-        else:
-            save_url(u, n)
-            print()
+        save_url(u, n)
+        print()
         no += 1

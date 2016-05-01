@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.html import get_content, url_info
+from ..util.match import match1, matchall
 from ..extractor import VideoExtractor
 
 class Joy(VideoExtractor):
@@ -8,7 +9,7 @@ class Joy(VideoExtractor):
     name = '激动网 (Joy)'
 
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if not self.vid:
@@ -16,7 +17,7 @@ class Joy(VideoExtractor):
         if not self.url:
             self.url = "http://www.joy.cn/video?resourceId={}".format(self.vid)
 
-        html= get_html(self.url, faker = True)
+        html= get_content(self.url)
 
         self.title = match1(html, '<meta content=\"([^\"]+)')
 
@@ -28,5 +29,3 @@ class Joy(VideoExtractor):
         self.streams['current'] = {'container': ext, 'src': [url], 'size': size }
 
 site = Joy()
-download = site.download_by_url
-download_playlist = playlist_not_supported('joy')

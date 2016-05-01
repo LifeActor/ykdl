@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from ..common import playlist_not_supported
+
 from ..extractor import VideoExtractor
 from ..util.html import get_content
 from ..util.match import match1
@@ -11,7 +11,7 @@ class Panda(VideoExtractor):
     live_base = "http://pl3.live.panda.tv/live_panda/{}.flv"
     api_url = "http://www.panda.tv/api_room?roomid={}"
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if not self.vid:
@@ -31,5 +31,3 @@ class Panda(VideoExtractor):
         self.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [self.live_base.format(room_key)], 'size': float('inf')}
 
 site = Panda()
-download = site.download_by_url
-download_playlist = playlist_not_supported('Panda')

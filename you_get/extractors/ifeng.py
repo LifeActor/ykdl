@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from ..common import playlist_not_supported
 from ..extractor import VideoExtractor
 from xml.dom.minidom import parseString
 from ..util.html import get_content
@@ -11,7 +10,7 @@ class Ifeng(VideoExtractor):
 
     supported_stream_types = ['500k', '350k']
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.vid or self.url
 
         if not self.vid:
@@ -30,8 +29,4 @@ class Ifeng(VideoExtractor):
 
         self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
 
-
-
 site = Ifeng()
-download = site.download_by_url
-download_playlist = playlist_not_supported('ifeng')

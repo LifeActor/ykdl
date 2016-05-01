@@ -6,7 +6,7 @@ from ..embedextractor import EmbedExtractor
 
 class Acfun(EmbedExtractor):
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url
 
         html = get_content(self.url)
@@ -27,7 +27,7 @@ class Acfun(EmbedExtractor):
 
         self.video_info.append((sourceType, sourceId))
 
-    def download_playlist_by_url(self, url, param, **kwargs):
+    def download_playlist(self, url, param):
         self.url = url
 
         html = get_content(self.url)
@@ -36,8 +36,6 @@ class Acfun(EmbedExtractor):
 
         for v in videos:
             next_url = "http://www.acfun.tv/{}".format(v)
-            self.download_by_url(next_url, param, **kwargs)
+            self.download(next_url, param)
 
 site = Acfun()
-download = site.download_by_url
-download_playlist = site.download_playlist_by_url

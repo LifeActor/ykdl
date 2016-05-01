@@ -4,7 +4,8 @@ import json
 import random
 import base64, time, re
 
-from ..common import *
+from ..util.html import get_content, url_info
+from ..util.match import match1, matchall
 from ..extractor import VideoExtractor
 
 def calcTimeKey(t):
@@ -36,7 +37,7 @@ class Letv(VideoExtractor):
     supported_stream_types = [ '1080p', '1300', '1000', '720p', '350' ]
 
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if self.vid:
@@ -48,7 +49,7 @@ class Letv(VideoExtractor):
            #self embed
            vids = matchall(html, ['vid="(\d+)"'])
            for v in vids:
-               self.download_by_vid(v, **kwargs)
+               self.download(v, self.param)
 
         #normal process
         self.title = match1(html,r'name="irTitle" content="(.*?)"')
@@ -80,7 +81,7 @@ class Letv(VideoExtractor):
                     self.streams[stream]['src'] = urls
                 self.stream_types.append(stream)
 
-    def extract(self, **kwargs):
+    def extract(self):
         if self.param.info_only:
             for stream_id in self.streams.keys():
                 size = 0
@@ -98,16 +99,13 @@ class Letv(VideoExtractor):
              size += tmp
              self.streams[stream_id]['size'] = size
 
-    def download_playlist_by_url(self, url, param, **kwargs):
+    def download_playlist(self, url, param):
         self.url = url
         self.param = param
         html = get_content(self.url)
 
         vids = matchall(html, ['vid="(\d+)"'])
         for v in vids:
-            self.download_by_vid(v,param, **kwargs)
+            self.download(v,param)
 
 site = Letv()
-download = site.download_by_url
-letv_download_by_vid = site.download_by_vid
-download_playlist = site.download_playlist_by_url

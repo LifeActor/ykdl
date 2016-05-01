@@ -10,6 +10,11 @@ fake_headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0 Iceweasel/38.2.1'
 }
 
+def add_header(key, value):
+    global fake_headers
+    fake_headers[key] = value
+
+
 def parse_query_param(url, param):
     """Parses the query string of a URL and returns the value of a parameter.
 

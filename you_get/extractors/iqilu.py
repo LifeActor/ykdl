@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-from ..common import *
 from ..simpleextractor import SimpleExtractor
+import re
 
 class Iqilu(SimpleExtractor):
     name = "齐鲁网 (iqilu)"
 
-    def __init__(self, *args):
-        SimpleExtractor.__init__(self, *args)
+    def __init__(self):
+        SimpleExtractor.__init__(self)
         self.title_pattern = '<meta name="description" content="(.*?)\"\W'
         self.url_pattern = "<input type='hidden' id='playerId' url='(.+)'"
 
@@ -15,5 +15,3 @@ class Iqilu(SimpleExtractor):
         assert re.match(r'http://v.iqilu.com/\w+', self.url)
 
 site = Iqilu()
-download = site.download_by_url
-download_playlist = playlist_not_supported('iqilu')

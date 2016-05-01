@@ -1,7 +1,6 @@
 from ..util.html import get_content, get_location
 from ..util.match import matchall, match1
 from ..embedextractor import EmbedExtractor
-from ..common import playlist_not_supported
 
 import json
 
@@ -95,7 +94,7 @@ weibo_embed_patterns = [ 'http://video.weibo.com/player/1034:(\w{32})\w*'
 
 class GeneralEmbed(EmbedExtractor):
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url
         content = get_content(self.url)
         self.title = match1(content, '<title>([^<>]+)</title>')
@@ -149,7 +148,7 @@ class GeneralEmbed(EmbedExtractor):
 
         vids = matchall(content, weibo_embed_patterns)
         for v in vids:
-            self.video_url.append(('weibo','http://weibo.com/p/' + v))
+            self.video_info.append(('weibo','http://weibo.com/p/' + v))
 
         tmp = []
         for v in self.video_info:
@@ -158,5 +157,3 @@ class GeneralEmbed(EmbedExtractor):
         self.video_info = tmp
 
 site = GeneralEmbed()
-download = site.download_by_url
-download_playlist = playlist_not_supported('any.any')

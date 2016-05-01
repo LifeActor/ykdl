@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.html import get_content, url_info
 from ..extractor import VideoExtractor
 import json
 
 class Blip(VideoExtractor):
     name = "Blip"
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url
         p_url = self.url + "?skin=json&version=2&no_wrap=1"
-        html = get_html(p_url)
+        html = get_content(p_url)
         metadata = json.loads(html)
 
         self.title = metadata['Post']['title']
@@ -20,5 +20,3 @@ class Blip(VideoExtractor):
         self.streams['current'] = {'container': ext, 'src': [url], 'size' : size}
 
 site = Blip()
-download = site.download_by_url
-download_playlist = playlist_not_supported('Blip')

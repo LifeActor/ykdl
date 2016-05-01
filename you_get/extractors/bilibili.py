@@ -9,7 +9,7 @@ import re
 
 class BiliBili(EmbedExtractor):
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url
 
         if re.search('live', self.url):
@@ -41,7 +41,7 @@ class BiliBili(EmbedExtractor):
         if vid:
             self.video_info.append(('biliorig', vid))
 
-    def download_playlist_by_url(self, url, param, **kwargs):
+    def download_playlist(self, url, param):
         self.url = url
 
         html = get_content(self.url)
@@ -50,9 +50,7 @@ class BiliBili(EmbedExtractor):
 
         for l in list:
             next_url = "http://www.bilibili.com{}".format(l)
-            self.download_by_url(next_url, param, **kwargs)
+            self.download(next_url, param)
 
 
 site = BiliBili()
-download = site.download_by_url
-download_playlist = site.download_playlist_by_url

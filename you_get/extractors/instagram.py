@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.match import match1
+from ..util.html import get_content
 from ..extractor import VideoExtractor
 
 
 class Instagram(VideoExtractor):
     name = "Instagram"
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if not self.url:
@@ -25,5 +26,3 @@ class Instagram(VideoExtractor):
 
 
 site = Instagram()
-download = site.download_by_url
-download_playlist = playlist_not_supported('instagram')

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-from ..common import *
-import urllib.error
+from ..util.match import match1
 from urllib.parse import unquote
 from ..simpleextractor import SimpleExtractor
 import re
@@ -9,8 +8,8 @@ import re
 class Metacafe(SimpleExtractor):
     name = "Metacafe"
 
-    def __init__(self, *args):
-        SimpleExtractor.__init__(self, *args)
+    def __init__(self):
+        SimpleExtractor.__init__(self)
         self.title_pattern = '<meta property="og:title" content="([^"]*)"'
 
     def l_assert(self):
@@ -21,5 +20,3 @@ class Metacafe(SimpleExtractor):
         self.v_url = [unquote(url_raw)]
 
 site = Metacafe()
-download = site.download_by_url
-download_playlist = playlist_not_supported('metacafe')

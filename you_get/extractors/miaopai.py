@@ -11,7 +11,7 @@ class Miaopai(VideoExtractor):
 
     name = '秒拍 (Miaopai)'
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if not self.vid:
@@ -29,13 +29,11 @@ class Miaopai(VideoExtractor):
         self.stream_types.append('current')
         self.streams['current'] = {'container': ext, 'src': [url], 'size' : 0}
 
-    def download_playlist_by_url(self, url, param, **kwargs):
+    def download_playlist(self, url, param):
         html = get_content(url)
         video_list = match1(html, 'video_list=\[([^\]]+)')
         vids = matchall(video_list, ['\"([^\",]+)'])
         for vid in vids:
-            self.download_by_vid(vid, param, **kwargs)
+            self.download(vid, param)
 
 site = Miaopai()
-download = site.download_by_url
-download_playlist = site.download_playlist_by_url

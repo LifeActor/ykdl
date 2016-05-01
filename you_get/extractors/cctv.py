@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 
-from ..common import playlist_not_supported
 from ..util.html import get_content
-from ..util.match import match1, matchall
+from ..util.match import match1
 from ..extractor import VideoExtractor
 from ..util import log
 
 import json
-import re
 
 class CNTV(VideoExtractor):
     name = '央视网 (cntv)'
@@ -15,7 +13,7 @@ class CNTV(VideoExtractor):
     supported_stream_types = ['normal', 'low']
     type_2_cpt = { 'normal':'chapters', 'low':'lowChapters' }
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if self.url and not self.vid:
@@ -38,5 +36,3 @@ class CNTV(VideoExtractor):
                 self.streams[t] = {'container': 'mp4', 'video_profile': t, 'src': urls, 'size' : 0}
 
 site = CNTV()
-download = site.download_by_url
-download_playlist = playlist_not_supported('cntv')

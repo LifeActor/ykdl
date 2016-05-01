@@ -12,12 +12,10 @@ class Acorig(VideoExtractor):
 
     supported_stream_types = ['原画', '超清', '高清', '标清']
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
-        if 'title' in kwargs and kwargs['title']:
-            self.title = kwargs['title']
-        else:
+        if not self.title:
             self.title = self.name + "-" + self.vid
         try:
             info = json.loads(get_content('http://api.aixifan.com/plays/{}/realSource'.format(self.vid), headers = acorg_headers))

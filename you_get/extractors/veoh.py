@@ -4,13 +4,12 @@ from ..util.html import *
 from ..util.match import *
 from ..util import log
 from ..extractor import VideoExtractor
-from ..common import playlist_not_supported
 
 class Veoh(VideoExtractor):
 
     name = 'Veoh'
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if not self.vid:
@@ -35,5 +34,3 @@ class Veoh(VideoExtractor):
 
 
 site = Veoh()
-download = site.download_by_url
-download_playlist = playlist_not_supported('veoh')

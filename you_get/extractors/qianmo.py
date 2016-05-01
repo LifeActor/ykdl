@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.html import get_content, url_size
 from ..extractor import VideoExtractor
 import json
+import re
 
 class Qianmo(VideoExtractor):
     name = "阡陌 (qianmo)"
@@ -10,11 +11,11 @@ class Qianmo(VideoExtractor):
     supported_stream_types = [ 'hd' ]
 
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if self.url and not self.vid:
-            html = get_html(self.url)
+            html = get_content(self.url)
             match = re.search(r'(.+?)var video =(.+?);', html)
             if match:
                 video_info_json = json.loads(match.group(2))
@@ -38,5 +39,3 @@ class Qianmo(VideoExtractor):
                 self.stream_types.append(stream)
 
 site = Qianmo()
-download = site.download_by_url
-download_playlist = playlist_not_supported('qianmo')

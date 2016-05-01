@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
-from ..common import *
 from ..simpleextractor import SimpleExtractor
 from urllib.parse import unquote
 
 class Weibo(SimpleExtractor):
     name = "微博秒拍 (Weibo)"
 
-    def __init__(self, *args):
-        SimpleExtractor.__init__(self, *args)
+    def __init__(self):
+        SimpleExtractor.__init__(self)
         self.headers = {
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
             'Accept-Charset': 'UTF-8,*;q=0.5',
@@ -26,5 +25,3 @@ class Weibo(SimpleExtractor):
         self.title = SimpleExtractor.get_title(self) or self.name
 
 site = Weibo()
-download = site.download_by_url
-download_playlist = playlist_not_supported('Weibo')

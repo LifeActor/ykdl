@@ -223,7 +223,7 @@ class QQ(VideoExtractor):
 
         return fmt_name, type_name, urls, size
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if not self.vid:
@@ -239,12 +239,10 @@ class QQ(VideoExtractor):
                 self.stream_types.append(fmt_name)
         self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
 
-    def download_playlist(self, url, param, **kwargs):
+    def download_playlist(self, url, param):
         html = get_content(url)
         vids = matchall(html, ['id=\"([^\"]+)\S title'])
         for vid in vids:
-            self.download_by_vid(vid, param, **kwargs)
+            self.download(vid, param)
 
 site = QQ()
-download = site.download_by_url
-download_playlist = site.download_playlist

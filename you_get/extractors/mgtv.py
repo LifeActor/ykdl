@@ -13,7 +13,7 @@ class Hunantv(VideoExtractor):
 
     supported_stream_types = [ '超清', '高清', '标清' ]
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if self.url and not self.vid:
@@ -38,7 +38,7 @@ class Hunantv(VideoExtractor):
             self.streams[lstream['name']] = {'container': 'fhv', 'video_profile': lstream['name'], 'url' : lstream['url']}
             self.stream_types.append(lstream['name'])
 
-    def extract(self, **kwargs):
+    def extract(self):
         if self.param.info_only:
             for stream in self.stream_types:
                 meta = json.loads(get_content(self.streams[stream]['url']))
@@ -52,7 +52,7 @@ class Hunantv(VideoExtractor):
         self.streams[stream_id]['src'] = [meta['info']]
         self.streams[stream_id]['size'] = 0
 
-    def download_playlist_by_url(self, url, param, **kwargs):
+    def download_playlist(self, url, param):
         self.url = url
 
         html = get_content(self.url, headers={})
@@ -60,8 +60,6 @@ class Hunantv(VideoExtractor):
         urls = matchall(html, ['"a-pic-play" href="([^"]+)"'])
 
         for url in urls:
-            self.download_by_url(url, param, **kwargs)
+            self.download(url, params)
 
 site = Hunantv()
-download = site.download_by_url
-download_playlist = site.download_playlist_by_url

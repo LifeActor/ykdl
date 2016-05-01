@@ -11,7 +11,7 @@ douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
 class Douyutv(VideoExtractor):
     name = '斗鱼 (DouyuTV)'
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if self.url:
@@ -33,14 +33,12 @@ class Douyutv(VideoExtractor):
         self.stream_types.append('current')
         self.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [real_url], 'size': float('inf')}
 
-    def download_playlist(self, url, param, **kwargs):
+    def download_playlist(self, url, param):
         self.url = url
         self.param = param
         html = get_content(self.url)
         vids = matchall(html, douyu_match_pattern)
         for vid in vids:
-            self.download_by_vid(vid, param, **kwargs)
+            self.download(vid, param)
 
 site = Douyutv()
-download = site.download_by_url
-download_playlist = site.download_playlist

@@ -8,8 +8,8 @@ class SimpleExtractor(VideoExtractor):
 
     name = "SimpleExtractor"
 
-    def __init__(self, *args):
-        VideoExtractor.__init__(self, *args)
+    def __init__(self):
+        VideoExtractor.__init__(self)
 
         self.html = ''
 
@@ -38,7 +38,7 @@ class SimpleExtractor(VideoExtractor):
     def l_assert(self):
         pass
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url
         self.l_assert()
         self.html = get_content(self.url, headers=self.headers)
@@ -47,6 +47,3 @@ class SimpleExtractor(VideoExtractor):
         ext, size = self.get_info()
         self.stream_types.append('current')
         self.streams['current'] = {'container': ext, 'src': self.v_url, 'size' : size}
-
-    def download_by_vid(self, param, **kwargs):
-        pass

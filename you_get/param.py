@@ -25,23 +25,18 @@ help += '''\nDownload options (use with URLs):
 
 class Param():
 
-    short_opts = 'lVhfiujc:nF:o:p:x:y:'
-    opts = ['playlist', 'version', 'help', 'force', 'info', 'url', 'cookies', 'no-proxy', 'debug', 'format=', 'stream=', 'itag=', 'output-dir=', 'player=', 'http-proxy=', 'extractor-proxy=', 'lang=', 'json']
+    short_opts = 'lVhfiujF:o:p:'
+    opts = ['playlist', 'version', 'help', 'force', 'info', 'url', 'format=', 'output-dir=', 'player=', 'json']
 
     def __init__(self, param_string):
         self.dry_run = False
         self.force = False
         self.player = None
-        self.cookies_txt = None
         self.stream_id = None
-        self.lang = None
         self.info_only = False
         self.playlist = False
         self.lang = None
         self.output_dir = '.'
-        self.proxy = None
-        self.extractor_proxy = None
-        self.traceback = False
         self.urls = None
         self.json_out = False
 
@@ -65,26 +60,14 @@ class Param():
                 self.info_only = True
             elif o in ('-u', '--url'):
                 self.dry_run = True
-            elif o in ('-c', '--cookies'):
-                from http import cookiejar
-                self.cookies_txt = cookiejar.MozillaCookieJar(a)
-                self.cookies_txt.load()
             elif o in ('-l', '--playlist'):
                 self.playlist = True
-            elif o in ('--no-proxy',):
-                self.proxy = ''
-            elif o in ('--debug',):
-                self.traceback = True
-            elif o in ('-F', '--format', '--stream', '--itag'):
+            elif o in ('-F', '--format'):
                 self.stream_id = a
             elif o in ('-o', '--output-dir'):
                 self.output_dir = a
             elif o in ('-p', '--player'):
                 self.player = a
-            elif o in ('-x', '--http-proxy'):
-                self.proxy = a
-            elif o in ('-y', '--extractor-proxy'):
-                self.extractor_proxy = a
             elif o in ('--lang',):
                 self.lang = a
             elif o in ('--json', '-j'):

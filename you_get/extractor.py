@@ -1,23 +1,24 @@
 #!/usr/bin/env python
+import json
+import os
 
-from .common import match1, download_urls, download_one_url
+from .util.download import save_url, save_urls
 from .util import log
 from .util.wrap import launch_player
-import json
+
+
 
 class VideoExtractor():
-    def __init__(self, *args):
+    def __init__(self):
         self.url = None
-        self.title = None
         self.vid = None
-        self.streams = {}
-        self.audiolang = None
+        self.param = None
         self.password_protected = False
         self.iterable = False
+        self.title = None
         self.stream_types = []
+        self.streams = {}
 
-        if args:
-            self.url = args[0]
 
     def stream_to_string(self, stream_id):
         stream = self.streams[stream_id]
@@ -67,53 +68,50 @@ class VideoExtractor():
             for stream_id in self.stream_types:
                 string += self.stream_to_string(stream_id)
 
-        if self.audiolang:
-            string += "audio-languages:\n"
-            for i in self.audiolang:
-                string +="    - lang:          {}\n".format(i['lang'])
-                string +="      download-url:  {}\n".format(i['url'])
         return string
 
-    def download_by_url(self, url, param, **kwargs):
-        self.param = param
-        self.url = url
-        self.vid= None
-        self.stream_types = []
+    def download(self, url, param):
+        if isinstance(url, str) and url.startswith('http'):
+            self.url = url
+            self.vid= None
+        else:
+            self.url = None
+            self.vid= url
 
-        self.prepare(**kwargs)
+        self.param = param
+        self.stream_types = []
+        #mkdir and cd to output dir
+        if not self.param.output_dir == '.':
+            if not os.path.exists(self.param.output_dir):
+                try:
+                    os.mkdir(self.param.output_dir)
+                except:
+                    print("No permission or Not found " + param_dict['output_dir'])
+                    print("use current folder")
+                    self.param.output_dir = '.'
+        if os.path.exists(self.param.output_dir):
+            os.chdir(self.param.output_dir)
+
+        self.prepare()
 
         if self.iterable:
-            self.download_iter(**kwargs)
+            self.download_iter()
         else:
-            self.extract(**kwargs)
-            self.download(**kwargs)
+            self.download_normal()
 
-    def download_by_vid(self, vid, param, **kwargs):
-        self.param = param
-        self.url = None
-        self.vid = vid
-        self.stream_types = []
-
-        self.prepare(**kwargs)
-
-        if self.iterable:
-            self.download_iter(**kwargs)
-        else:
-            self.extract(**kwargs)
-            self.download(**kwargs)
-
-    def prepare(self, **kwargs):
+    def prepare(self):
         pass
         #raise NotImplementedError()
 
-    def extract(self, **kwargs):
+    def extract(self):
         pass
         #raise NotImplementedError()
 
-    def extract_iter(**kwargs):
+    def extract_iter(self):
         pass
 
-    def download(self, **kwargs):
+    def download_normal(self):
+        self.extract()
         stream_id = self.param.stream_id or self.stream_types[0]
         print(self)
         if self.param.info_only or self.param.dry_run:
@@ -124,18 +122,23 @@ class VideoExtractor():
         elif self.param.player:
             launch_player(self.param.player, urls)
         else:
-            download_urls(urls, self.title, self.streams[stream_id]['container'], self.streams[stream_id]['size'], output_dir=self.param.output_dir)
+            save_urls(urls, self.title, self.streams[stream_id]['container'])
 
 
-    def download_iter(self, **kwargs):
+    def download_iter(self):
         stream_id = self.param.stream_id or self.stream_types[0]
         print(self)
         if self.param.info_only or self.param.dry_run:
             return
         i = 0
-        for url in self.extract_iter(**kwargs):
+        for url in self.extract_iter():
             if self.param.player:
                 launch_player(self.param.player, [url])
             else:
-                download_one_url(url, self.title, self.streams[stream_id]['container'], output_dir=self.param.output_dir, index = i)
+                print("Download: " + name + " part %d" % no)
+                save_url(url, self.title, self.streams[stream_id]['container'])
+                print()
                 i += 1
+
+    def download_playlist(self, url, param):
+        raise NotImplementedError('Playlist is not supported for ' + self.name)

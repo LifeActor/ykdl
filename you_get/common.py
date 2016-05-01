@@ -19,11 +19,6 @@ from .util.html import *
 from .util.download import *
 from .param import Param
 
-def playlist_not_supported(name):
-    def f(*args, **kwargs):
-        raise NotImplementedError('Playlist is not supported for ' + name)
-    return f
-
 def mime_to_container(mime):
     mapping = {
         'video/3gpp': '3gp',
@@ -58,19 +53,17 @@ def url_to_module(url):
     k = match1(domain, '([^.]+)')
     if k in alias.keys():
         k = alias[k]
+    m = import_module('.'.join(['you_get','extractors', k])).site
     try:
-        m = import_module('.'.join(['you_get','extractors', k]))
+        m = import_module('.'.join(['you_get','extractors', k])).site
         return m, url
     except(SyntaxError):
         log.wtf("SyntaxError in module {}".format(k))
     except:
-        import http.client
-        conn = http.client.HTTPConnection(video_host)
-        conn.request("HEAD", video_url)
-        res = conn.getresponse()
+        res = request.urlopen(url)
         location = res.getheader('location')
         if location is None:
-            return import_module('you_get.extractors.generalembed'), url
+            return import_module('you_get.extractors.generalembed').site, url
         elif location != url:
             return url_to_module(location)
         else:

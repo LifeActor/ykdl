@@ -30,19 +30,15 @@ class Letvcloud(VideoExtractor):
                 self.stream_types.append(stream)
                 self.streams[stream] = {'container': ext, 'video_profile': stream, 'src': urls, 'size' : size}
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if self.url and not self.vid:
             #maybe error!!
             self.vid = (vu, uu) = matchall(self.url, ["vu=([^&]+)","uu=([^&]+)"])
         _, vu = self.vid
-        if 'title' in kwargs and kwargs['title']:
-            self.title = kwargs['title']
-        else:
+        if not self.title:
             self.title = "LeTV - {}".format(vu)
         self.letvcloud_download_by_vu()
 
 site = Letvcloud()
-download = site.download_by_url
-download_playlist = playlist_not_supported('letvcloud')

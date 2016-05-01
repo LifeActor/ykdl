@@ -64,7 +64,7 @@ class Youku(VideoExtractor):
       'hd3': 3
     }
 
-    def download_playlist_by_url(self, url, param,  **kwargs):
+    def download_playlist(self, url, param):
         self.url = url
 
         try:
@@ -85,14 +85,14 @@ class Youku(VideoExtractor):
         for video in videos:
             index = parse_query_param(video, 'f')
             try:
-                self.download_by_url(video, param, **kwargs)
+                self.download(video, param)
             except KeyboardInterrupt:
                 raise
             except:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 traceback.print_exception(exc_type, exc_value, exc_traceback)
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         # Hot-plug cookie handler
         ssl_context = request.HTTPSHandler(
             context=ssl.SSLContext(ssl.PROTOCOL_TLSv1))
@@ -157,17 +157,10 @@ class Youku(VideoExtractor):
                 }
                 self.stream_types.append(stream_id)
 
-
-        # Audio languages
-        if 'dvd' in data and 'audiolang' in data['dvd']:
-            self.audiolang = data['dvd']['audiolang']
-            for i in self.audiolang:
-                i['url'] = 'http://v.youku.com/v_show/id_{}'.format(i['vid'])
-
         self.stream_types = sorted(self.stream_types, key = self.supported_stream_code.index)
 
 
-    def extract(self, **kwargs):
+    def extract(self):
         if self.param.info_only:
             return
         stream_id = self.param.stream_id or self.stream_types[0]
@@ -215,5 +208,3 @@ class Youku(VideoExtractor):
                 log.e('[Failed] Wrong password.')
 
 site = Youku()
-download = site.download_by_url
-download_playlist = site.download_playlist_by_url

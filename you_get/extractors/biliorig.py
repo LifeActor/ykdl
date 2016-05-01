@@ -21,7 +21,7 @@ def parse_cid_playurl(xml):
 class BiliOrig(VideoExtractor):
     name = '哔哩哔哩 (Bilibili)'
     live = False
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if not self.vid:
@@ -30,9 +30,7 @@ class BiliOrig(VideoExtractor):
             self.title = match1(html, '<title>([^<]+)')
 
         else:
-            if 'title' in kwargs and kwargs['title']:
-                self.title = kwargs['title']
-            else:
+            if not self.title:
                 self.title = self.name + "-" + self.vid
 
         assert self.vid

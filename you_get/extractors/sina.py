@@ -18,7 +18,7 @@ def get_realurl(url):
 class Sina(VideoExtractor):
     name = "新浪视频 (sina)"
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if not self.vid:
@@ -44,15 +44,13 @@ class Sina(VideoExtractor):
                 self.stream_types.append(profile)
                 self.streams[profile] = {'container': tp, 'video_profile': profile, 'src': [r_url], 'size' : 0}
 
-    def download_playlist_by_url(self, url, param, **kwargs):
+    def download_playlist(self, url, param):
         self.url = url
 
         html = get_content(self.url)
         vids = matchall(html, ['video_id: ([^,]+)'])
         print(vids)
         for v in vids:
-            self.download_by_vid(v, param, **kwargs)
+            self.download(v, param)
 
 site = Sina()
-download = site.download_by_url
-download_playlist = site.download_playlist_by_url

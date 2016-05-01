@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.match import match1
+from ..util.html import get_content, fake_headers
 from ..extractor import VideoExtractor
 import urllib.parse
-import re
 
 class Isuntv(VideoExtractor):
     name = "阳光卫视 (SunTV)"
 
     API_URL = "http://www.isuntv.com/ajaxpro/SunTv.pro_vod_playcatemp4,App_Web_playcatemp4.ascx.9f08f04f.ashx"
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url
 
         itemid = match1(self.url, r'http://www.isuntv.com/pro/ct(\d+).html')
@@ -32,10 +32,5 @@ class Isuntv(VideoExtractor):
         self.stream_types.append('current')
         self.streams['current'] = {'container': 'mp4', 'src': [video_url], 'size' : url_size(video_url)}
 
-    def download_by_vid(self, **kwargs):
-        pass
-
 
 site = Isuntv()
-download = site.download_by_url
-download_playlist = playlist_not_supported('isuntv')

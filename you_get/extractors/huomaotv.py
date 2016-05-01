@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-from ..common import *
+from ..util.html import get_content
+from ..util.match import match1
 from ..extractor import VideoExtractor
 import urllib.parse
 import json
@@ -13,7 +14,7 @@ class HuomaoTv(VideoExtractor):
 
     live_base = "http://www.huomaotv.cn/swf/live_data"
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url
 
         html = get_content(self.url)
@@ -41,9 +42,4 @@ class HuomaoTv(VideoExtractor):
 
         self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
 
-    def download_by_vid(self):
-        pass
-
 site = HuomaoTv()
-download = site.download_by_url
-download_playlist = playlist_not_supported('HuomaoTv')

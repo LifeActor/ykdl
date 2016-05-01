@@ -1,23 +1,23 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.html import get_content, url_info
+from ..util.match import match1
+from ..extractor import VideoExtractor
 
 import json
-from ..extractor import VideoExtractor
+import re
 
 class Ku6(VideoExtractor):
     name = "酷6 (Ku6)"
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
         if self.url and not self.vid:
             self.vid = match1(self.url, 'http://v.ku6.com/special/show_\d+/(.*)\.html',
             'http://v.ku6.com/show/(.*)\.html',
             'http://my.ku6.com/watch\?.*v=(.*).*')
-        self.ku6_download_by_id()
 
-    def ku6_download_by_id(self):
-        data = json.loads(get_html('http://v.ku6.com/fetchVideo4Player/%s.html' % self.vid))['data']
+        data = json.loads(get_content('http://v.ku6.com/fetchVideo4Player/%s.html' % self.vid))['data']
         self.title = data['t']
         f = data['f']
 
@@ -35,5 +35,3 @@ class Ku6(VideoExtractor):
         self.stream_types.append('current')
 
 site = Ku6()
-download = site.download_by_url
-download_playlist = playlist_not_supported('ku6')

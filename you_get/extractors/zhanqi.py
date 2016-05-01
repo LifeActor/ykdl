@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-from ..common import *
+from ..util.html import *
+from ..util.match import *
 from ..extractor import VideoExtractor
 import re
 
@@ -10,7 +11,7 @@ class Zhanqi(VideoExtractor):
 
     live_base = "http://dlhls.cdn.zhanqi.tv/zqlive/"
     vod_base = "http://dlvod.cdn.zhanqi.tv"
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url
 
         html = get_content(self.url)
@@ -28,7 +29,7 @@ class Zhanqi(VideoExtractor):
             self.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : real_url, 'size': float('inf')}
         else:
             vod_m3u8_request = self.vod_base + match1(html, 'VideoID":"([^"]+)').replace('\\/','/')
-            vod_m3u8 = get_html(vod_m3u8_request)
+            vod_m3u8 = get_content(vod_m3u8_request)
             part_url = re.findall(r'(/[^#]+)\.ts',vod_m3u8)
             real_url = []
             for i in part_url:
@@ -41,9 +42,5 @@ class Zhanqi(VideoExtractor):
                 size += temp or 0
             self.stream_types.append('current')
             self.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : real_url, 'size': size}
-    def download_by_vid(self):
-        pass
 
 site = Zhanqi()
-download = site.download_by_url
-download_playlist = playlist_not_supported('zhanqi')

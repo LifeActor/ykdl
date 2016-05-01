@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.html import *
 from ..extractor import VideoExtractor
 
 class Vk(VideoExtractor):
@@ -8,7 +8,7 @@ class Vk(VideoExtractor):
 
     supported_stream_types = ['1080', '720', '480', '360', '240']
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url
         video_page = get_content(self.url)
         self.title = unescape_html(match1(video_page, '"title":"([^"]+)"'))
@@ -21,5 +21,3 @@ class Vk(VideoExtractor):
                 self.streams[quality] = {'container': ext, 'video_profile': quality, 'src': [url], 'size': size }
 
 site = Vk()
-download = site.download_by_url
-download_playlist = playlist_not_supported('vk')

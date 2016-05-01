@@ -114,7 +114,7 @@ class Iqiyi(VideoExtractor):
 
 
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if self.url and not self.vid:
@@ -170,7 +170,7 @@ class Iqiyi(VideoExtractor):
                     self.stream_types.append(stream)
                     break
 
-    def extract_iter(self, **kwargs):
+    def extract_iter(self):
         stream_id = self.param.stream_id or self.stream_types[0]
 
         urls=[]
@@ -185,17 +185,14 @@ class Iqiyi(VideoExtractor):
             url="/".join(baseurl)+vlink+'?su='+self.gen_uid+'&qyid='+uuid4().hex+'&client=&z=&bt=&ct=&tn='+str(randint(10000,20000))
             yield json.loads(get_content(url))["l"]
 
-    def download_playlist_by_url(self, url, param, **kwargs):
+    def download_playlist(self, url, param):
         self.url = url
 
         html = get_content(self.url)
 
         vids = matchall(html, ['data-tvid=\"([^\"]+)\" data-vid=\"([^\"]+)\"'])
         for v in vids:
-            self.download_by_vid(v, param, **kwargs)
+            self.download(v, param)
 
 
 site = Iqiyi()
-download = site.download_by_url
-iqiyi_download_by_vid = site.download_by_vid
-download_playlist = site.download_playlist_by_url

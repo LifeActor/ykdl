@@ -35,7 +35,7 @@ class SohuBase(VideoExtractor):
         self.streams[stream] = {'container': 'mp4', 'video_profile': stream, 'size' : size}
         self.stream_types.append(stream)
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url or self.vid
 
         if self.url and not self.vid:
@@ -55,7 +55,7 @@ class SohuBase(VideoExtractor):
                     info = json.loads(get_content(self.apiurl % lvid))
                 self.parser_info(info, stream, lvid)
 
-    def extract(self, **kwargs):
+    def extract(self):
         stream_id = self.param.stream_id or self.stream_types[0]
 
 

@@ -10,12 +10,10 @@ from xml.dom.minidom import parseString
 class TDorig(VideoExtractor):
     name = "土豆原创 (tudou)"
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.vid
 
-        if 'title' in kwargs and kwargs['title']:
-            self.title = kwargs['title']
-        else:
+        if not self.title:
             self.title = self.name + "-" + self.vid
 
         data = json.loads(get_content('http://www.tudou.com/outplay/goto/getItemSegs.action?iid=%s' % self.vid))

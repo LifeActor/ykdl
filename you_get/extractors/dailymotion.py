@@ -1,6 +1,8 @@
 #!/usr/bin/env python
+import json
 
-from ..common import *
+from ..util.match import match1
+from ..util.html import get_content, url_info
 from ..extractor import VideoExtractor
 
 
@@ -9,7 +11,7 @@ class Dailymotion(VideoExtractor):
 
     supported_stream_types = ['720', '480', '380', '240' ]
 
-    def prepare(self, **kwargs):
+    def prepare(self):
         assert self.url
         html = get_content(self.url)
         info = json.loads(match1(html, r'qualities":({.+?}),"'))
@@ -22,9 +24,4 @@ class Dailymotion(VideoExtractor):
                 self.stream_types.append(stream)
                 self.streams[stream] = {'container': ext, 'src': [url], 'size' : size}
 
-    def download_by_vid(self, param, **kwargs):
-        pass
-
 site = Dailymotion()
-download = site.download_by_url
-download_playlist = playlist_not_supported('dailymotion')

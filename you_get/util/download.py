@@ -10,7 +10,7 @@ def simple_hook(arg1, arg2, arg3):
         sys.stdout.write('\r %3d' % percent + '%')
         sys.stdout.flush()
     else:
-        sys.stdout.write('\r' + str(arg1 * arg2))
+        sys.stdout.write('\r' + str(round(arg1 * arg2 / 1048576, 1)) + 'MB')
         sys.stdout.flush()
 
 def save_url(url, name, reporthook = simple_hook):

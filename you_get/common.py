@@ -1,22 +1,11 @@
 #!/usr/bin/env python
 
-import getopt
-import json
-import locale
-import os
-import platform
-import re
 import sys
-from urllib import request, parse
+from urllib import request
 from importlib import import_module
 
-from .version import __version__
-from .util import log
-from .util.strings import get_filename, unescape_html
-from .util.progressbar import SimpleProgressBar, PiecesProgressBar
-from .util.match import match1, matchall, r1
-from .util.html import *
-from .util.download import *
+from .util.match import match1
+from .util.html import fake_headers
 from .param import Param
 
 def mime_to_container(mime):
@@ -53,15 +42,14 @@ def url_to_module(url):
     k = match1(domain, '([^.]+)')
     if k in alias.keys():
         k = alias[k]
-    m = import_module('.'.join(['you_get','extractors', k])).site
     try:
         m = import_module('.'.join(['you_get','extractors', k])).site
         return m, url
     except(SyntaxError):
         raise
     except:
-        res = request.urlopen(url)
-        location = res.getheader('location')
+        res = request.urlopen(request.Request(url, headers = fake_headers))
+        location = res.geturl()
         if location is None:
             return import_module('you_get.extractors.generalembed').site, url
         elif location != url:

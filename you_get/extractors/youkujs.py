@@ -1,8 +1,54 @@
+#default stream defines
+supported_stream_code = [ 'mp4hd3', 'hd3', 'mp4hd2', 'hd2', 'mp4hd', 'mp4', 'flvhd', 'flv', '3gphd' ]
+stream_code_to_type = {
+    'mp4hd3': 'hd3',
+    'hd3'   : 'hd3',
+    'mp4hd2': 'hd2',
+    'hd2'   : 'hd2',
+    'mp4hd' : 'mp4',
+    'mp4'   : 'mp4',
+    'flvhd' : 'flvhd',
+    'flv'   : 'flv',
+    '3gphd' : '3gphd'
+}
+stream_code_to_profiles = {
+    'mp4hd3': '1080p',
+    'hd3'   : '1080P',
+    'mp4hd2': '超清',
+    'hd2'   : '超清',
+    'mp4hd' : '高清',
+    'mp4'   : '高清',
+    'flvhd' : '标清',
+    'flv'   : '标清',
+    '3gphd' : '标清（3GP）'
+}
+stream_type_to_container = {
+    'hd3' : 'flv',
+    'hd2' : 'flv',
+    'mp4' : 'mp4',
+    'flvhd': 'flv',
+    'flv' : 'flv',
+    '3gphd': 'mp4'
+}
+stream_type_to_hd = {
+    'flv': 0,
+    'flvhd': 0,
+    'mp4': 1,
+    'hd2': 2,
+    '3gphd': 1,
+    '3gp': 0,
+    'hd3': 3
+}
+
+#default acode
 a1 = '4'
 a2 = '1'
 a3 = 'b4et'
 a4 = 'boa4'
+a5 = 'o0b'
+a6 = 'poz'
 
+#functions
 def Ba(b):
     if not b:
         return ''
@@ -148,7 +194,7 @@ decode64 = Ba
 
 def init(encrypt_string):
     sid_create_list = [19, 1, 4, 7, 30, 14, 28, 8, 24, 17, 6, 35, 34, 16, 9, 10, 13, 22, 32, 29, 31, 21, 18, 3, 2, 23, 25, 27, 11, 20, 5, 15, 12, 0, 33, 26]
-    g = L(M(a3 + 'o0b' + a1, sid_create_list), Ba(encrypt_string))
+    g = L(M(a3 + a5 + a1, sid_create_list), Ba(encrypt_string))
     g = g.split('_')
     sid = g[0]
     token = g[1]
@@ -163,5 +209,14 @@ def getFileid(b, d):
 
 def create_ep(sid, fileid, token):
     ep_create_list = [19, 1, 4, 7, 30, 14, 28, 8, 24, 17, 6, 35, 34, 16, 9, 10, 13, 22, 32, 29, 31, 21, 18, 3, 2, 23, 25, 27, 11, 20, 5, 15, 12, 0, 33, 26]
-    ep = J(L(M(a4 + 'poz' + a2, ep_create_list), sid + '_' + fileid + '_' + token))
+    ep = J(L(M(a4 + a6 + a2, ep_create_list), sid + '_' + fileid + '_' + token))
     return ep
+
+def install_acode(_a1, _a2, _a3, _a4, _a5, _a6):
+    global a1, a2, a3, a4, a5, a6
+    a1 = _a1
+    a2 = _a2
+    a3 = _a3
+    a4 = _a4
+    a5 = _a5
+    a6 = _a6

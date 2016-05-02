@@ -1,34 +1,28 @@
 #!/usr/bin/env python
 
-from ..extractor import VideoExtractor
+from .youkubase import YoukuBase
 from ..util.html import get_content, fake_headers
+from .youkujs import install_acode
 import json
+from urllib import parse
 
-acorg_headers = fake_headers
-acorg_headers['deviceType'] = '1'
 
-class Acorig(VideoExtractor):
-    name = "AcFun 原创"
+class Acorig(YoukuBase):
+    name = "AcFun 优酷合作视频"
 
-    supported_stream_types = ['原画', '超清', '高清', '标清']
+    client_id = '908a519d032263f8'
+    ct = 86
 
-    def prepare(self):
-        assert self.url or self.vid
+    def setup(self):
+        assert self.vid
 
         if not self.title:
             self.title = self.name + "-" + self.vid
-        try:
-            info = json.loads(get_content('http://api.aixifan.com/plays/{}/realSource'.format(self.vid), headers = acorg_headers))
-            assert info['code'] == 200
-        except:
-            from ..util import log
-            log.wtf(info['message'])
-        video = info['data']['files']
 
-        for v in video:
-            self.stream_types.append(v['description'])
-            self.streams[v['description']] = {'container': 'mp4', 'video_profile': v['description'], 'src' : v['url'], 'size': 0}
+        self.vid = json.loads(get_content('http://www.acfun.tv/video/getVideo.aspx?id={}'.format(self.vid)))['sourceId']
+        install_acode('v', 'b', '1z4i', '86rv', 'ogb', 'ail')
+        self.get_custom_sign()
+        self.get_custom_stream()
 
-        self.stream_types.reverse()
 
 site = Acorig()

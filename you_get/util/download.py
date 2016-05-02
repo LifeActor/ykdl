@@ -1,8 +1,7 @@
 import os
 from urllib import request
 import sys
-from .html import fake_headers, add_header
-
+from .html import fake_headers
 
 def simple_hook(arg1, arg2, arg3):
     if arg3 > 0:
@@ -20,15 +19,23 @@ def save_url(url, name, reporthook = simple_hook):
     size = -1
     read = 0
     blocknum = 0
+    open_mode = 'wb'
     req = request.Request(url, headers = fake_headers)
     response = request.urlopen(req, None)
     if "content-length" in response.headers:
         size = int(response.headers["Content-Length"])
-    if os.path.exists(name) and os.path.getsize(name) == size:
-        print('Skipped: file already downloaded')
-        return
+    if os.path.exists(name):
+        filesize = os.path.getsize(name)
+        if filesize == size:
+            print('Skipped: file already downloaded')
+            return
+        elif -1 != size:
+            req.add_header('Range', 'bytes=%d-' % filesize)
+            blocknum = int(filesize / bs)
+            response = request.urlopen(req, None)
+            open_mode = 'ab'
     reporthook(blocknum, bs, size)
-    tfp = open(name, 'wb')
+    tfp = open(name, open_mode)
     while True:
         block = response.read(bs)
         if not block:

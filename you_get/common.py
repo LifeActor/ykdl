@@ -4,7 +4,7 @@ import sys
 from importlib import import_module
 
 from .util.match import match1
-from .util.html import get_location
+from .util.html import fake_headers
 from .param import Param
 
 def mime_to_container(mime):
@@ -47,7 +47,11 @@ def url_to_module(url):
     except(SyntaxError):
         raise
     except:
-        location = get_location(url)
+        import http.client
+        conn = http.client.HTTPConnection(video_host)
+        conn.request("HEAD", video_url, headers=fake_headers)
+        res = conn.getresponse()
+        location = res.getheader('location')
         if location is None:
             return import_module('you_get.extractors.generalembed').site, url
         elif location != url:

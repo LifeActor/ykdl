@@ -9,7 +9,6 @@ from .youkujs import *
 
 import base64
 import time
-import traceback
 from urllib import parse, request
 import math
 import json
@@ -83,14 +82,7 @@ class Youku(VideoExtractor):
             videos = videos = matchall(video_page, ['a href="(http://v\.youku\.com/[^?"]+)'])
 
         for video in videos:
-            index = parse_query_param(video, 'f')
-            try:
-                self.download(video, param)
-            except KeyboardInterrupt:
-                raise
-            except:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                traceback.print_exception(exc_type, exc_value, exc_traceback)
+            self.download(video, param)
 
     def prepare(self):
         # Hot-plug cookie handler
@@ -98,7 +90,7 @@ class Youku(VideoExtractor):
             context=ssl.SSLContext(ssl.PROTOCOL_TLSv1))
         cookie_handler = request.HTTPCookieProcessor()
         opener = request.build_opener(ssl_context, cookie_handler)
-        opener.addheaders = [('Cookie','__ysuid=fuck_youku')]
+        opener.addheaders = [('Cookie','__ysuid=%d' % time.time())]
         request.install_opener(opener)
 
 

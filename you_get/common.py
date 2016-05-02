@@ -58,7 +58,7 @@ def url_to_module(url):
         m = import_module('.'.join(['you_get','extractors', k])).site
         return m, url
     except(SyntaxError):
-        log.wtf("SyntaxError in module {}".format(k))
+        raise
     except:
         res = request.urlopen(url)
         location = res.getheader('location')

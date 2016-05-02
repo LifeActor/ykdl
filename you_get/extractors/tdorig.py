@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from ..extractor import VideoExtractor
-from ..util.html import get_content
+from ..util.html import get_content, add_header
 from ..util.match import match1
 
 import json
@@ -15,6 +15,7 @@ class TDorig(VideoExtractor):
 
         if not self.title:
             self.title = self.name + "-" + self.vid
+        add_header('User-Agent', '')
 
         data = json.loads(get_content('http://www.tudou.com/outplay/goto/getItemSegs.action?iid=%s' % self.vid))
 

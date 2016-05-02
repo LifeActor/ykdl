@@ -5,6 +5,7 @@ import os
 from .util.download import save_url, save_urls
 from .util import log
 from .util.wrap import launch_player
+from .util.fs import legitimize
 
 
 
@@ -122,7 +123,7 @@ class VideoExtractor():
         elif self.param.player:
             launch_player(self.param.player, urls)
         else:
-            save_urls(urls, self.title, self.streams[stream_id]['container'])
+            save_urls(urls, legitimize(self.title), self.streams[stream_id]['container'])
 
 
     def download_iter(self):
@@ -136,7 +137,7 @@ class VideoExtractor():
                 launch_player(self.param.player, [url])
             else:
                 print("Download: " + self.title + " part %d" % i)
-                save_url(url, self.title + '_%02d_' % i + self.streams[stream_id]['container'])
+                save_url(url, legitimize(self.title + '_%02d_' % i + self.streams[stream_id]['container']))
                 print()
                 i += 1
 

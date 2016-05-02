@@ -6,7 +6,11 @@ def main(**kwargs):
     you-get (legacy)
     """
     from .common import main
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print()
+        print('Interrupted by Ctrl-C')
 
 if __name__ == '__main__':
     main()

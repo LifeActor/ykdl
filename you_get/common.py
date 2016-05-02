@@ -70,7 +70,6 @@ def url_to_module(url):
             raise ConnectionResetError(url)
 
 def main():
-
     para = Param(sys.argv[1:])
     for url in para.urls:
         m,u = url_to_module(url)

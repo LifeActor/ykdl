@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.html import get_content
+from ..util.match import match1, matchall
 from ..extractor import VideoExtractor
 import json
-import base64, hashlib, time, re
+import base64, hashlib, time
 
 class Letvcloud(VideoExtractor):
     name = "乐视云 (Letvcloud)"

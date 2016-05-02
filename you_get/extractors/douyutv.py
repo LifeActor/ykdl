@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.html import get_content
+from ..util.match import match1, matchall
 from ..extractor import VideoExtractor
 from ..util import log
+
 import hashlib
 import time
+import json
+
 douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
                         'data-room_id="([^"]+)'
                       ]

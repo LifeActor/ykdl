@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-from ..common import *
+from ..util.html import get_content
+from ..util.match import match1, matchall
 from ..extractor import VideoExtractor
 
 import xml.etree.ElementTree as ET
@@ -9,6 +10,7 @@ import random
 import base64
 import struct
 import uuid
+import os
 
 PLAYER_PLATFORM = 1
 PLAYER_VERSION = '3.2.18.286'

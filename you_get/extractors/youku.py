@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..util.html import get_content, parse_query_param, fake_headers
+from ..util.html import get_content, fake_headers
 from ..util.match import match1, matchall
 from ..util import log
 from ..extractor import VideoExtractor

@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
 import sys
-from urllib import request
 from importlib import import_module
 
 from .util.match import match1
-from .util.html import fake_headers
+from .util.html import get_location
 from .param import Param
 
 def mime_to_container(mime):
@@ -48,8 +47,7 @@ def url_to_module(url):
     except(SyntaxError):
         raise
     except:
-        res = request.urlopen(request.Request(url, headers = fake_headers))
-        location = res.geturl()
+        location = get_location(url)
         if location is None:
             return import_module('you_get.extractors.generalembed').site, url
         elif location != url:

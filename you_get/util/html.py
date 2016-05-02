@@ -1,4 +1,4 @@
-from urllib import request, parse
+from urllib import request
 import re
 
 from .match import match1
@@ -14,27 +14,8 @@ def add_header(key, value):
     global fake_headers
     fake_headers[key] = value
 
-
-def parse_query_param(url, param):
-    """Parses the query string of a URL and returns the value of a parameter.
-
-    Args:
-        url: A URL.
-        param: A string representing the name of the parameter.
-
-    Returns:
-        The value of the parameter.
-    """
-
-    try:
-        return parse.parse_qs(parse.urlparse(url).query)[param][0]
-    except:
-        return None
-
 def unicodize(text):
     return re.sub(r'\\u([0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])', lambda x: chr(int(x.group(0)[2:], 16)), text)
-
-
 
 def ungzip(data):
     """Decompresses data for Content-Encoding: gzip.
@@ -53,38 +34,8 @@ def undeflate(data):
     decompressobj = zlib.decompressobj(-zlib.MAX_WBITS)
     return decompressobj.decompress(data)+decompressobj.flush()
 
-# DEPRECATED in favor of get_content()
-def get_response(url, faker = False):
-    if faker:
-        response = request.urlopen(request.Request(url, headers = fake_headers), None)
-    else:
-        response = request.urlopen(url)
-
-    data = response.read()
-    if response.info().get('Content-Encoding') == 'gzip':
-        data = ungzip(data)
-    elif response.info().get('Content-Encoding') == 'deflate':
-        data = undeflate(data)
-    response.data = data
-    return response
-
-# DEPRECATED in favor of get_content()
-def get_html(url, encoding = None, faker = False):
-    content = get_response(url, faker).data
-    return str(content, 'utf-8', 'ignore')
-
-# DEPRECATED in favor of get_content()
-def get_decoded_html(url, faker = False):
-    response = get_response(url, faker)
-    data = response.data
-    charset = match1(response.headers['content-type'], 'charset=([\w-]+)')
-    if charset:
-        return data.decode(charset, 'ignore')
-    else:
-        return data
-
-def get_location(url):
-    response = request.urlopen(url)
+def get_location(url, headers = fake_headers):
+    response = request.urlopen(request.Request(url, headers = fake_headers))
     # urllib will follow redirections and it's too much code to tell urllib
     # not to do that
     return response.geturl()
@@ -126,72 +77,12 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
         w("wrong charset for {}".format(url))
     return data
 
+#DEPRECATED below, return None or 0
 def url_size(url, faker = False):
-    if faker:
-        response = request.urlopen(request.Request(url, headers = fake_headers), None)
-    else:
-        response = request.urlopen(url)
+    return 0
 
-    size = response.headers['content-length']
-    return int(size) if size!=None else float('inf')
-
-# TO BE DEPRECATED
-# urls_size() does not have a faker
-# also it takes too long time
 def urls_size(urls):
     return sum(map(url_size, urls))
 
 def url_info(url, faker = False):
-    if faker:
-        response = request.urlopen(request.Request(url, headers = fake_headers), None)
-    else:
-        response = request.urlopen(request.Request(url))
-
-    headers = response.headers
-
-    type = headers['content-type']
-    mapping = {
-        'video/3gpp': '3gp',
-        'video/f4v': 'flv',
-        'video/mp4': 'mp4',
-        'video/MP2T': 'ts',
-        'video/quicktime': 'mov',
-        'video/webm': 'webm',
-        'video/x-flv': 'flv',
-        'video/x-ms-asf': 'asf',
-        'audio/mp4': 'mp4',
-        'audio/mpeg': 'mp3'
-    }
-    if type in mapping:
-        ext = mapping[type]
-    else:
-        type = None
-        if headers['content-disposition']:
-            try:
-                filename = parse.unquote(match1(headers['content-disposition'], 'filename="?([^"]+)"?'))
-                if len(filename.split('.')) > 1:
-                    ext = filename.split('.')[-1]
-                else:
-                    ext = None
-            except:
-                ext = None
-        else:
-            ext = None
-
-    if headers['transfer-encoding'] != 'chunked':
-        size = headers['content-length'] and int(headers['content-length'])
-    else:
-        size = None
-
-    return type, ext, size
-
-def url_locations(urls, faker = False):
-    locations = []
-    for url in urls:
-        if faker:
-            response = request.urlopen(request.Request(url, headers = fake_headers), None)
-        else:
-            response = request.urlopen(request.Request(url))
-
-        locations.append(response.url)
-    return locations
+    return '', '', 0

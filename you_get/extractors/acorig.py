@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
 from .youkubase import YoukuBase
-from ..util.html import get_content, fake_headers
+from ..util.html import get_content
 from .youkujs import install_acode
 import json
-from urllib import parse
-
 
 class Acorig(YoukuBase):
     name = "AcFun 优酷合作视频"

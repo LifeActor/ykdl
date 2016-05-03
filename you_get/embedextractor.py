@@ -42,3 +42,6 @@ class EmbedExtractor():
                 s = import_module('.'.join(['you_get','extractors',site])).site
                 s.title = self.title
                 s.download(vid, self.param)
+
+    def download_playlist(self, url, param):
+        raise NotImplementedError('Playlist is not supported for ' + self.name)

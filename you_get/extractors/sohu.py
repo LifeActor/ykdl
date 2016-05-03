@@ -6,6 +6,8 @@ import re
 
 class Sohu(EmbedExtractor):
 
+    name = 'Sohu（搜狐)'
+
     def prepare(self):
         assert self.url
 

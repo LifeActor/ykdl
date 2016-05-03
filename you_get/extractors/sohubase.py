@@ -23,6 +23,8 @@ class SohuBase(VideoExtractor):
     realurls = { 'oriVid': [], 'superVid': [], 'highVid': [], 'norVid': [], 'relativeId': []}
 
     def parser_info(self, info, stream, lvid):
+        if not 'allot' in info:
+            return
         host = info['allot']
         prot = info['prot']
         tvid = info['tvid']
@@ -43,7 +45,6 @@ class SohuBase(VideoExtractor):
             self.vid = match1(html, '\/([0-9]+)\/v\.swf', '\&id=(\d+)')
 
         info = json.loads(get_content(self.apiurl % self.vid))
-
         if info['status'] == 1:
             data = info['data']
             self.title = data['tvName']
@@ -53,6 +54,7 @@ class SohuBase(VideoExtractor):
                     continue
                 if lvid != self.vid :
                     info = json.loads(get_content(self.apiurl % lvid))
+
                 self.parser_info(info, stream, lvid)
 
     def extract(self):

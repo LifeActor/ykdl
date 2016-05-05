@@ -8,7 +8,7 @@ from ..util import log
 import json
 
 class CNTV(VideoExtractor):
-    name = '央视网 (cntv)'
+    name = '央视网 (cctv)'
 
     supported_stream_types = ['normal', 'low']
     type_2_cpt = { 'normal':'chapters', 'low':'lowChapters' }
@@ -18,12 +18,13 @@ class CNTV(VideoExtractor):
 
         if self.url and not self.vid:
             content = get_content(self.url)
-            self.vid = match1(content, 'videoId:"([^"]+)', '_guid="([^"]+)')
+            self.vid = match1(content, 'guid = "([^"]+)')
         if not self.vid:
             log.wtf('cant find vid')
 
-        html = get_content('http://vdn.apps.cntv.cn/api/getIpadVideoInfo.do?pid={}&tai=ipad&from=html5'.format(self.vid))
-        data = json.loads(match1(html, '\'([^\']+)'))
+        html = get_content('http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid={}'.format(self.vid))
+        data = json.loads(html)
+
         video_data = data['video']
         self.title = data['title']
 

@@ -35,7 +35,7 @@ class Hunantv(VideoExtractor):
             for lstream in data['stream']:
                 if stream == lstream['name']:
                     break;
-            self.streams[lstream['name']] = {'container': 'fhv', 'video_profile': lstream['name'], 'url' : lstream['url']}
+            self.streams[lstream['name']] = {'container': 'm3u8', 'video_profile': lstream['name'], 'url' : lstream['url']}
             self.stream_types.append(lstream['name'])
 
     def extract(self):

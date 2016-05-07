@@ -17,6 +17,7 @@ class VideoExtractor():
         self.password_protected = False
         self.iterable = False
         self.title = None
+        self.artist = None
         self.stream_types = []
         self.streams = {}
 
@@ -61,6 +62,7 @@ class VideoExtractor():
             return json.dumps(self.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False)
         string  = "site:                %s\n" % self.name
         string += "title:               %s\n" % self.title
+        string += "artist:              %s\n" % self.artist
         string += "streams:\n"
         if not self.param.info_only:
             stream_id = self.param.stream_id or self.stream_types[0]

@@ -11,4 +11,10 @@ class Baidu(EmbedExtractor):
         if self.url.startswith("http://music"):
             self.video_info.append(("baidumusic", self.url))
 
+    def prepare_playlist(self):
+        assert self.url
+
+        if self.url.startswith("http://music"):
+            self.video_info.append(("baidumusic", self.url))
+
 site = Baidu()

@@ -12,7 +12,6 @@ class Acorig(YoukuBase):
     ct = 86
 
     def setup(self):
-        assert self.vid
 
         if not self.title:
             self.title = self.name + "-" + self.vid

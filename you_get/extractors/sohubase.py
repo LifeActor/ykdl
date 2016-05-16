@@ -38,7 +38,6 @@ class SohuBase(VideoExtractor):
         self.stream_types.append(stream)
 
     def prepare(self):
-        assert self.url or self.vid
 
         if self.url and not self.vid:
             html = get_content(self.url)

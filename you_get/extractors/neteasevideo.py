@@ -10,7 +10,6 @@ class NeteaseVideo(VideoExtractor):
     stream_2_profile = {'shd':'超清', 'hd':'高清', 'flv':'标清'}
 
     def prepare(self):
-        assert self.url or self.vid
 
         if not self.vid:
             html = get_content(self.url)

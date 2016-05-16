@@ -19,7 +19,6 @@ class Sina(VideoExtractor):
     name = "新浪视频 (sina)"
 
     def prepare(self):
-        assert self.url or self.vid
 
         if not self.vid:
             html = get_content(self.url)

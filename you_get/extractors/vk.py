@@ -9,7 +9,6 @@ class Vk(VideoExtractor):
     supported_stream_types = ['1080', '720', '480', '360', '240']
 
     def prepare(self):
-        assert self.url
         video_page = get_content(self.url)
         self.title = unescape_html(match1(video_page, '"title":"([^"]+)"'))
         info = dict(re.findall(r'\\"url(\d+)\\":\\"([^"]+)\\"', video_page))

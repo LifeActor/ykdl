@@ -11,7 +11,6 @@ class TDorig(VideoExtractor):
     name = "土豆原创 (tudou)"
 
     def prepare(self):
-        assert self.vid
 
         if not self.title:
             self.title = self.name + "-" + self.vid

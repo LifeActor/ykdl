@@ -14,7 +14,6 @@ class CNTV(VideoExtractor):
     type_2_cpt = { 'normal':'chapters', 'low':'lowChapters' }
 
     def prepare(self):
-        assert self.url or self.vid
 
         if self.url and not self.vid:
             content = get_content(self.url)

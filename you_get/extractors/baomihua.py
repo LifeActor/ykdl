@@ -11,7 +11,6 @@ class Baomihua(VideoExtractor):
     name = "爆米花（Baomihua)"
 
     def prepare(self):
-        assert self.url or self.vid
 
 
         if self.url and not self.vid:

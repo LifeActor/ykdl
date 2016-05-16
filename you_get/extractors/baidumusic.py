@@ -12,7 +12,6 @@ class BaiduMusic(VideoExtractor):
 
 
     def prepare(self):
-        assert self.url or self.vid
 
         if not self.vid:
             self.vid = match1(self.url, 'http://music.baidu.com/song/([\d]+)')

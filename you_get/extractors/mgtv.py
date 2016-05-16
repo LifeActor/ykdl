@@ -14,7 +14,6 @@ class Hunantv(VideoExtractor):
     supported_stream_types = [ '超清', '高清', '标清' ]
 
     def prepare(self):
-        assert self.url or self.vid
 
         if self.url and not self.vid:
             self.vid = match1(self.url, "/([0-9]+).html")

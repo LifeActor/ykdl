@@ -22,7 +22,6 @@ class BiliOrig(VideoExtractor):
     name = '哔哩哔哩 (Bilibili)'
     live = False
     def prepare(self):
-        assert self.url or self.vid
 
         if not self.vid:
             html = get_content(self.url)
@@ -33,7 +32,6 @@ class BiliOrig(VideoExtractor):
             if not self.title:
                 self.title = self.name + "-" + self.vid
 
-        assert self.vid
 
         if self.url:
             if re.search('live', self.url):

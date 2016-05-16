@@ -7,7 +7,6 @@ from ..embedextractor import EmbedExtractor
 class Acfun(EmbedExtractor):
 
     def prepare(self):
-        assert self.url
 
         html = get_content(self.url)
 

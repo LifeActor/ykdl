@@ -8,7 +8,6 @@ class Vine(VideoExtractor):
     name = 'Vine'
 
     def prepare(self):
-        assert self.url or self.vid
 
         if self.url and not self.vid:
             self.vid = match1(self.url, 'vine.co/v/([^/]+)')

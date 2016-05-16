@@ -11,7 +11,6 @@ class YinYueTai(VideoExtractor):
     name = 'YinYueTai (音乐台)'
     supported_stream_types = ['sh', 'he', 'hd', 'hc' ]
     def prepare(self):
-        assert self.url or self.vid
 
         if not self.vid:
             self.vid = match1(self.url, 'http://\w+.yinyuetai.com/video/(\d+)')

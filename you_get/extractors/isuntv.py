@@ -11,7 +11,6 @@ class Isuntv(VideoExtractor):
     API_URL = "http://www.isuntv.com/ajaxpro/SunTv.pro_vod_playcatemp4,App_Web_playcatemp4.ascx.9f08f04f.ashx"
 
     def prepare(self):
-        assert self.url
 
         itemid = match1(self.url, r'http://www.isuntv.com/pro/ct(\d+).html')
 

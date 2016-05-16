@@ -12,7 +12,6 @@ class Zhanqi(VideoExtractor):
     live_base = "http://dlhls.cdn.zhanqi.tv/zqlive/"
     vod_base = "http://dlvod.cdn.zhanqi.tv"
     def prepare(self):
-        assert self.url
 
         html = get_content(self.url)
         video_type = match1(html, 'VideoType":"([^"]+)"')

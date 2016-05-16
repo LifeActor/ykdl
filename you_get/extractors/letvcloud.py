@@ -32,7 +32,6 @@ class Letvcloud(VideoExtractor):
                 self.streams[stream] = {'container': ext, 'video_profile': stream, 'src': urls, 'size' : size}
 
     def prepare(self):
-        assert self.url or self.vid
 
         if self.url and not self.vid:
             #maybe error!!

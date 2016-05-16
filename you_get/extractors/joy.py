@@ -10,7 +10,6 @@ class Joy(VideoExtractor):
 
 
     def prepare(self):
-        assert self.url or self.vid
 
         if not self.vid:
             self.vid = match1(self.url, 'resourceId=([0-9]+)')

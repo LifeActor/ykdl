@@ -9,7 +9,6 @@ class Instagram(VideoExtractor):
     name = "Instagram"
 
     def prepare(self):
-        assert self.url or self.vid
 
         if not self.url:
             self.url = 'instagram.com/p/{}'.format(self.vid)

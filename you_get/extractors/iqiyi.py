@@ -115,7 +115,6 @@ class Iqiyi(VideoExtractor):
 
 
     def prepare(self):
-        assert self.url or self.vid
 
         if self.url and not self.vid:
             vid = matchall(self.url, ['curid=([^_]+)_([\w]+)'])

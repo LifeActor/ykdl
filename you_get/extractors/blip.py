@@ -8,7 +8,6 @@ class Blip(VideoExtractor):
     name = "Blip"
 
     def prepare(self):
-        assert self.url
         p_url = self.url + "?skin=json&version=2&no_wrap=1"
         html = get_content(p_url)
         metadata = json.loads(html)

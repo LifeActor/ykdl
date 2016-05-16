@@ -2,7 +2,6 @@ from ..embedextractor import EmbedExtractor
 
 class Netease(EmbedExtractor):
     def prepare(self):
-        assert self.url
 
         if self.url.startswith("http://cc"):
             self.video_info.append(("neteaselive", self.url))

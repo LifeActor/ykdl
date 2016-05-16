@@ -11,7 +11,6 @@ class Facebook(VideoExtractor):
     supported_stream_types = [ 'hd_src', 'sd_src' ]
 
     def prepare(self):
-        assert self.url
 
         html = get_content(self.url)
         self.title = match1(html, '<title id="pageTitle">(.+) \| Facebook</title>')

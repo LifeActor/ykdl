@@ -95,7 +95,6 @@ weibo_embed_patterns = [ 'http://video.weibo.com/player/1034:(\w{32})\w*'
 class GeneralEmbed(EmbedExtractor):
 
     def prepare(self):
-        assert self.url
         content = get_content(self.url)
         self.title = match1(content, '<title>([^<>]+)</title>')
 

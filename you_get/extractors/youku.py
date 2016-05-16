@@ -53,7 +53,6 @@ class Youku(YoukuBase):
 
 
 
-        assert self.url or self.vid
         install_acode('4', '1', 'b4et', 'boa4', 'o0b', 'poz')
         if self.url and not self.vid:
              self.vid = match1(self.url, 'youku\.com/v_show/id_([a-zA-Z0-9=]+)' ,\

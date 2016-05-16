@@ -10,7 +10,6 @@ class Veoh(VideoExtractor):
     name = 'Veoh'
 
     def prepare(self):
-        assert self.url or self.vid
 
         if not self.vid:
             self.vid = match1(self.url, 'http://www.veoh.com/watch/(\w+)', 'http://www.veoh.com/m/watch.php\?v=(\w+)')

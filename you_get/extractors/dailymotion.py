@@ -12,7 +12,6 @@ class Dailymotion(VideoExtractor):
     supported_stream_types = ['720', '480', '380', '240' ]
 
     def prepare(self):
-        assert self.url
         html = get_content(self.url)
         info = json.loads(match1(html, r'qualities":({.+?}),"'))
         self.title = match1(html, r'"video_title"\s*:\s*"(.+?)",')

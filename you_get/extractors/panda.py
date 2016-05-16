@@ -12,7 +12,6 @@ class Panda(VideoExtractor):
     api_url = "http://www.panda.tv/api_room?roomid={}"
 
     def prepare(self):
-        assert self.url or self.vid
 
         if not self.vid:
             self.vid = match1(self.url, 'panda.tv/(\w+)')

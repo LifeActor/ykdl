@@ -10,7 +10,6 @@ import re
 class BiliBili(EmbedExtractor):
 
     def prepare(self):
-        assert self.url
 
         if re.search('live', self.url):
             self.video_info.append(('biliorig', self.url))

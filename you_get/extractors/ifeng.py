@@ -11,7 +11,6 @@ class Ifeng(VideoExtractor):
     supported_stream_types = ['500k', '350k']
 
     def prepare(self):
-        assert self.vid or self.url
 
         if not self.vid:
             self.vid= match1(self.url, '#([a-zA-Z0-9\-]+)', '/([a-zA-Z0-9\-]+).shtml')

@@ -39,7 +39,6 @@ class SimpleExtractor(VideoExtractor):
         pass
 
     def prepare(self):
-        assert self.url
         self.l_assert()
         self.html = get_content(self.url, headers=self.headers)
         self.get_title()

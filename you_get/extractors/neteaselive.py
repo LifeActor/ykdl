@@ -7,7 +7,6 @@ class NeteaseLive(VideoExtractor):
     name = "网易直播 (163)"
 
     def prepare(self):
-        assert self.url or self.vid
 
         if not self.vid:
             html = get_content(self.url)

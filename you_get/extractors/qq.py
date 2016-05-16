@@ -226,13 +226,11 @@ class QQ(VideoExtractor):
         return fmt_name, type_name, urls, size
 
     def prepare(self):
-        assert self.url or self.vid
 
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(self.url, 'vid=(\w+)') or match1(html, 'vid:\"([^\"]+)')
 
-        assert self.vid
 
         for stream in self.supported_stream_types:
             fmt_name, type_name, urls, size = self.get_stream_info(stream)

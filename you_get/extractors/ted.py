@@ -10,7 +10,6 @@ class Ted(VideoExtractor):
     supported_stream_types = ['high', 'medium', 'low']
 
     def prepare(self):
-        assert self.url
         html = get_content(self.url)
         metadata = json.loads(match1(html, r'({"talks"(.*)})\)'))
         self.title = metadata['talks'][0]['title']

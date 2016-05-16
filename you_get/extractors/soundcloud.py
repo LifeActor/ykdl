@@ -8,7 +8,6 @@ class SoundCloud(VideoExtractor):
     name = "SoundCloud"
 
     def prepare(self):
-        assert self.url or self.vid
 
         if self.url and not self.vid:
             metadata = get_content('https://api.soundcloud.com/resolve.json?url=' + self.url + '&client_id=02gUJC0hH2ct1EGOcYXQIzRFU91c72Ea')

@@ -10,7 +10,6 @@ class Tudou(EmbedExtractor):
     name = "土豆 (tudou)"
 
     def prepare(self):
-        assert self.url
 
         if re.search('acfun', self.url):
             self.video_url.append(('acfun', self.url))

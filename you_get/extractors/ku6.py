@@ -11,7 +11,6 @@ class Ku6(VideoExtractor):
     name = "酷6 (Ku6)"
 
     def prepare(self):
-        assert self.url or self.vid
         if self.url and not self.vid:
             self.vid = match1(self.url, 'http://v.ku6.com/special/show_\d+/(.*)\.html',
             'http://v.ku6.com/show/(.*)\.html',

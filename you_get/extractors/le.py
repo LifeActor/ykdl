@@ -38,7 +38,6 @@ class Letv(VideoExtractor):
 
 
     def prepare(self):
-        assert self.url or self.vid
 
         if self.vid:
             self.url = "http://www.le.com/ptv/vplay/{}.html".format(self.vid)

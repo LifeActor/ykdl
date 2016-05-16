@@ -12,7 +12,6 @@ class Miaopai(VideoExtractor):
     name = '秒拍 (Miaopai)'
 
     def prepare(self):
-        assert self.url or self.vid
 
         if not self.vid:
             self.vid = match1(self.url, 'http://www.miaopai.com/show/channel/([^.]+)', \

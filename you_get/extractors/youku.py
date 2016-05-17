@@ -3,7 +3,6 @@
 
 from ..util.html import get_content, fake_headers
 from ..util.match import match1, matchall
-from ..util import log
 from .youkubase import YoukuBase
 from .youkujs import install_acode
 
@@ -82,9 +81,9 @@ class Youku(YoukuBase):
                     data1 = meta1['data']
                     data = meta['data']
                 else:
-                    log.wtf('[Failed] ' + data1['error']['note'])
+                    raise AssertionError('[Failed] ' + data1['error']['note'])
             else:
-                log.wtf('[Failed] Video not found.')
+                raise AssertionError('[Failed] Video not found.')
 
         self.title = data['video']['title']
         self.ep = data['security']['encrypt_string']

@@ -89,8 +89,8 @@ class VideoExtractor():
                 try:
                     os.mkdir(self.param.output_dir)
                 except:
-                    print("No permission or Not found " + param_dict['output_dir'])
-                    print("use current folder")
+                    log.w("No permission or Not found " + param_dict['output_dir'])
+                    log.w("use current folder")
                     self.param.output_dir = '.'
         if os.path.exists(self.param.output_dir):
             os.chdir(self.param.output_dir)
@@ -121,7 +121,7 @@ class VideoExtractor():
             return
         urls = self.streams[stream_id]['src']
         if not urls:
-            log.wtf('[Failed] Cannot extract video source.')
+            raise RuntimeError(self.name+ ': [Failed] Cannot extract video source from: ' + self.url if self.url else str(self.vid))
         elif self.param.player:
             launch_player(self.param.player, urls)
         else:

@@ -6,6 +6,7 @@ from importlib import import_module
 from .util.match import match1
 from .util.html import fake_headers
 from .param import Param
+from .util import log
 
 def mime_to_container(mime):
     mapping = {
@@ -62,10 +63,17 @@ def url_to_module(url):
 def main():
     para = Param(sys.argv[1:])
     for url in para.urls:
-        m,u = url_to_module(url)
-        if not u == url:
-            para.urls[para.urls.index(url)]  = u
-        if para.playlist:
-            m.download_playlist(u, para)
-        else:
-            m.download(u, para)
+        try:
+            m,u = url_to_module(url)
+            if not u == url:
+                para.urls[para.urls.index(url)]  = u
+            if para.playlist:
+                m.download_playlist(u, para)
+            else:
+                m.download(u, para)
+        except AssertionError as e:
+            log.wtf(str(e))
+        except RuntimeError as e:
+            log.e(str(e))
+        except NotImplementedError as e:
+            log.e(str(e))

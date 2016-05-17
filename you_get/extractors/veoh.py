@@ -2,7 +2,6 @@
 
 from ..util.html import *
 from ..util.match import *
-from ..util import log
 from ..extractor import VideoExtractor
 
 class Veoh(VideoExtractor):
@@ -14,8 +13,7 @@ class Veoh(VideoExtractor):
         if not self.vid:
             self.vid = match1(self.url, 'http://www.veoh.com/watch/(\w+)', 'http://www.veoh.com/m/watch.php\?v=(\w+)')
 
-        if not self.vid:
-            log.wtf('Cannot find item ID')
+        assert self.vid, 'Cannot find item ID'
 
         webpage_url = 'http://www.veoh.com/m/watch.php?v={}&quality=1'.format(self.vid)
 

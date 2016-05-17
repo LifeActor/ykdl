@@ -11,8 +11,6 @@ def main(**kwargs):
     except KeyboardInterrupt:
         print()
         print('Interrupted by Ctrl-C')
-    except NotImplementedError as e:
-        print(e)
 
 if __name__ == '__main__':
     main()

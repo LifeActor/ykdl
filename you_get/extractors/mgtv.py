@@ -3,7 +3,6 @@
 from ..util.html import get_content
 from ..util.match import match1, matchall
 from ..extractor import VideoExtractor
-from ..util import log
 
 from random import randint
 import json
@@ -22,10 +21,9 @@ class Hunantv(VideoExtractor):
         api_url = 'http://v.api.hunantv.com/player/video?video_id={}&random={}'.format(self.vid,rn)
         meta = json.loads(get_content(api_url))
 
-        if meta['status'] != 200:
-            log.wtf('[failed] status: {}, msg: {}'.format(meta['status'],meta['msg']))
-        if not meta['data']:
-            log.wtf('[Failed] Video not found.')
+        assert meta['status'] == 200, '[failed] status: {}, msg: {}'.format(meta['status'],meta['msg'])
+        assert meta['data'], '[Failed] Video not found.'
+
         data = meta['data']
 
         info = data['info']

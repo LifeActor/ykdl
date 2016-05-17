@@ -3,7 +3,6 @@
 from ..util.html import get_content
 from ..util.match import matchall, match1
 from ..extractor import VideoExtractor
-from ..util import log
 
 from uuid import uuid4
 from random import random,randint
@@ -130,9 +129,8 @@ class Iqiyi(VideoExtractor):
         self.gen_uid=uuid4().hex
         info = self.getVMS()
 
-        if info["code"] != "A000000":
-            log.e("[error] outdated iQIYI key")
-            log.wtf("is your you-get up-to-date?")
+        assert info["code"] == "A000000", "[error] outdated iQIYI key\nis your you-get up-to-date?"
+
 
         self.title = info["data"]["vi"]["vn"]
 
@@ -143,12 +141,7 @@ class Iqiyi(VideoExtractor):
 
         #for highest qualities
         #for http://www.iqiyi.com/v_19rrmmz5yw.html  not vp -> np
-        try:
-            if info["data"]['vp']["tkl"]=='' :
-                raise ValueError
-        except:
-            log.e("[Error] Do not support for iQIYI VIP video.")
-            exit(-1)
+        assert info["data"]['vp']["tkl"], "[Error] Do not support for iQIYI VIP video."
 
         vs = info["data"]["vp"]["tkl"][0]["vs"]
         self.baseurl=info["data"]["vp"]["du"].split("/")

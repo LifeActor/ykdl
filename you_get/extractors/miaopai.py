@@ -2,7 +2,6 @@
 
 from ..util.html import *
 from ..util.match import *
-from ..util import log
 from ..extractor import VideoExtractor
 
 import json
@@ -18,8 +17,9 @@ class Miaopai(VideoExtractor):
                                         'http://www.miaopai.com/show/([^.]+)', \
                                         'http://m.miaopai.com/show/channel/([^.]+)')
         content = json.loads(get_content('http://api.miaopai.com/m/v2_channel.json?fillType=259&scid={}&vend=miaopai'.format(self.vid)))
-        if content['status'] != 200:
-            log.wtf("something error!")
+
+        assert content['status'] == 200, "something error!"
+
         content = content['result']
         self.title = content['ext']['t']
         url = content['stream']['base']

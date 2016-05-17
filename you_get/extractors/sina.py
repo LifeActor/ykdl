@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from ..extractor import VideoExtractor
-from ..util import log
 from ..util.match import match1, matchall
 from ..util.html import get_content, get_location
 
@@ -23,8 +22,8 @@ class Sina(VideoExtractor):
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'video_id:\'([^\']+)')
-        if not self.vid:
-            log.wtf("can't get vid")
+
+        assert self.vid, "can't get vid"
 
         api_url = 'http://s.video.sina.com.cn/video/h5play?video_id={}'.format(self.vid)
         info = json.loads(get_content(api_url))['data']

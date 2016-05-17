@@ -3,7 +3,6 @@
 from ..util.html import get_content
 from ..util.match import match1
 from ..extractor import VideoExtractor
-from ..util import log
 
 import json
 
@@ -18,8 +17,8 @@ class CNTV(VideoExtractor):
         if self.url and not self.vid:
             content = get_content(self.url)
             self.vid = match1(content, 'guid = "([^"]+)')
-        if not self.vid:
-            log.wtf('cant find vid')
+
+        assert self.vid: 'cant find vid'
 
         html = get_content('http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid={}'.format(self.vid))
         data = json.loads(html)

@@ -139,7 +139,7 @@ class VideoExtractor():
                 launch_player(self.param.player, [url])
             else:
                 print("Download: " + self.title + " part %d" % i)
-                save_url(url, legitimize(self.title + '_%02d_' % i + self.streams[stream_id]['container']))
+                save_url(url, legitimize(self.title + '_%02d_.' % i + self.streams[stream_id]['container']))
                 print()
                 i += 1
 

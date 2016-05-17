@@ -35,15 +35,15 @@ def save_url(url, name, reporthook = simple_hook):
             response = request.urlopen(req, None)
             open_mode = 'ab'
     reporthook(blocknum, bs, size)
-    tfp = open(name, open_mode)
-    while True:
-        block = response.read(bs)
-        if not block:
-            break
-        read += len(block)
-        tfp.write(block)
-        blocknum += 1
-        reporthook(blocknum, bs, size)
+    with open(name, open_mode) as tfp:
+        while True:
+            block = response.read(bs)
+            if not block:
+                break
+            read += len(block)
+            tfp.write(block)
+            blocknum += 1
+            reporthook(blocknum, bs, size)
 
 def save_urls(urls, name, ext):
     no = 0

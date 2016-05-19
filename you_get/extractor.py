@@ -34,7 +34,7 @@ class VideoExtractor():
         if 'size' in stream:
             string += "      size:          %s MiB (%s bytes)\n" % (round(stream['size'] / 1048576, 1), stream['size'])
         string += "    # download-with: %s\n" % log.sprint("you-get --format=%s [URL]" % stream_id, log.UNDERLINE)
-        if self.param.dry_run:
+        if self.param.url:
             string += "Real urls:\n"
             if self.iterable:
                 for url in self.extract_iter():
@@ -50,22 +50,22 @@ class VideoExtractor():
                       'url'    : self.url,
                       'vid'    : self.vid
                     }
-        if self.param.info_only:
+        if self.param.info:
             json_dict['streams'] = self.streams
         else:
-            stream_id = self.param.stream_id or self.stream_types[0]
+            stream_id = self.param.format or self.stream_types[0]
             json_dict['streams'] = self.streams[stream_id]
         return json_dict
 
     def __str__(self):
-        if self.param.json_out:
+        if self.param.json:
             return json.dumps(self.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False)
         string  = "site:                %s\n" % self.name
         string += "title:               %s\n" % self.title
         string += "artist:              %s\n" % self.artist
         string += "streams:\n"
-        if not self.param.info_only:
-            stream_id = self.param.stream_id or self.stream_types[0]
+        if not self.param.info:
+            stream_id = self.param.format or self.stream_types[0]
             string += self.stream_to_string(stream_id)
         else:
             for stream_id in self.stream_types:
@@ -115,9 +115,9 @@ class VideoExtractor():
 
     def download_normal(self):
         self.extract()
-        stream_id = self.param.stream_id or self.stream_types[0]
+        stream_id = self.param.format or self.stream_types[0]
         print(self)
-        if self.param.info_only or self.param.dry_run:
+        if self.param.info or self.param.url:
             return
         urls = self.streams[stream_id]['src']
         if not urls:
@@ -129,9 +129,9 @@ class VideoExtractor():
 
 
     def download_iter(self):
-        stream_id = self.param.stream_id or self.stream_types[0]
+        stream_id = self.param.format or self.stream_types[0]
         print(self)
-        if self.param.info_only or self.param.dry_run:
+        if self.param.info or self.param.url:
             return
         i = 0
         for url in self.extract_iter():

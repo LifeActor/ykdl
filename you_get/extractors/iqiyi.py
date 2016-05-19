@@ -163,7 +163,7 @@ class Iqiyi(VideoExtractor):
                     break
 
     def extract_iter(self):
-        stream_id = self.param.stream_id or self.stream_types[0]
+        stream_id = self.param.format or self.stream_types[0]
 
         urls=[]
         for i in self.stream_urls[stream_id]:

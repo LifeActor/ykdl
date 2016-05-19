@@ -5,7 +5,7 @@ from importlib import import_module
 
 from .util.match import match1
 from .util.html import fake_headers
-from .param import Param
+from .param import arg_parser
 from .util import log
 
 def mime_to_container(mime):
@@ -61,16 +61,16 @@ def url_to_module(url):
             raise ConnectionResetError(url)
 
 def main():
-    para = Param(sys.argv[1:])
-    for url in para.urls:
+    args = arg_parser()
+    for url in args.video_urls:
         try:
             m,u = url_to_module(url)
             if not u == url:
-                para.urls[para.urls.index(url)]  = u
-            if para.playlist:
-                m.download_playlist(u, para)
+                args.video_urls[args.video_urls.index(url)]  = u
+            if args.playlist:
+                m.download_playlist(u, args)
             else:
-                m.download(u, para)
+                m.download(u, args)
         except AssertionError as e:
             log.wtf(str(e))
         except RuntimeError as e:

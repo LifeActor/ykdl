@@ -81,7 +81,7 @@ class Letv(VideoExtractor):
                 self.stream_types.append(stream)
 
     def extract(self):
-        if self.param.info_only:
+        if self.param.info:
             for stream_id in self.streams.keys():
                 size = 0
                 for i in self.streams[stream_id]['src']:
@@ -90,7 +90,7 @@ class Letv(VideoExtractor):
                 self.streams[stream_id]['size'] = size
         return
         #ignore video size in download/play mode, for preformence issue
-        stream_id = self.param.stream_id or self.stream_type[0]
+        stream_id = self.param.format or self.stream_type[0]
 
         size = 0
         for i in self.streams[stream_id]['src']:

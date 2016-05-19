@@ -18,7 +18,7 @@ class CNTV(VideoExtractor):
             content = get_content(self.url)
             self.vid = match1(content, 'guid = "([^"]+)')
 
-        assert self.vid: 'cant find vid'
+        assert self.vid, 'cant find vid'
 
         html = get_content('http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid={}'.format(self.vid))
         data = json.loads(html)

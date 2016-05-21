@@ -49,11 +49,7 @@ def url_to_module(url):
         else:
             site = m.site
         return site, url
-    except(SyntaxError):
-        raise
-    except(NotImplementedError):
-        raise
-    except:
+    except(ImportError):
         import http.client
         conn = http.client.HTTPConnection(video_host)
         conn.request("HEAD", video_url, headers=fake_headers)
@@ -82,4 +78,6 @@ def main():
         except RuntimeError as e:
             log.e(str(e))
         except NotImplementedError as e:
+            log.e(str(e))
+        except SyntaxError as e:
             log.e(str(e))

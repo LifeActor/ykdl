@@ -43,9 +43,15 @@ def url_to_module(url):
     if k in alias.keys():
         k = alias[k]
     try:
-        m = import_module('.'.join(['you_get','extractors', k])).site
-        return m, url
+        m = import_module('.'.join(['you_get','extractors', k]))
+        if hasattr(m, "get_extractor"):
+            site = m.get_extractor(url)
+        else:
+            site = m.site
+        return site, url
     except(SyntaxError):
+        raise
+    except(NotImplementedError):
         raise
     except:
         import http.client

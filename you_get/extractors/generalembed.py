@@ -115,7 +115,7 @@ class GeneralEmbed(EmbedExtractor):
 
         vids = matchall(content, sohu_embed_patterns)
         for vid in vids:
-            self.video_info.append(('mysohu',vid))
+            self.video_info.append(('sohu.my',vid))
 
         vids = matchall(content, youtube_embed_patterns)
         for vid in vids:

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from ..util.match import match1
-from ..util.html import get_content
-from ..extractor import VideoExtractor
+from you_get.util.match import match1
+from you_get.util.html import get_content
+from you_get.extractor import VideoExtractor
 import time
 from  urllib import parse
 import json

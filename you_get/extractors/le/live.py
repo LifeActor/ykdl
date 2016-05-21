@@ -14,7 +14,7 @@ from you_get.extractor import VideoExtractor
 class LeLive(VideoExtractor):
     name = "Le Live (乐视轮播)"
 
-    supported_stream_types = ['flv_1300', 'flv_1000', 'flv_720p', 'flv_350']
+    supported_stream_types = ['flv_1080p3m', 'flv_1080p', 'flv_1300', 'flv_1000', 'flv_720p', 'flv_350']
 
     def prepare(self):
         if not self.vid:

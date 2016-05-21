@@ -1,6 +1,6 @@
-from ..util.html import get_content
-from ..util.match import match1
-from ..extractor import VideoExtractor
+from you_get.util.html import get_content
+from you_get.util.match import match1
+from you_get.extractor import VideoExtractor
 
 from urllib.parse import unquote
 

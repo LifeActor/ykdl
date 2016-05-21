@@ -4,9 +4,9 @@ import json
 import random
 import base64, time, re
 
-from ..util.html import get_content, url_info
-from ..util.match import match1, matchall
-from ..extractor import VideoExtractor
+from you_get.util.html import get_content, url_info
+from you_get.util.match import match1, matchall
+from you_get.extractor import VideoExtractor
 
 def calcTimeKey(t):
     ror = lambda val, r_bits, : ((val & (2**32-1)) >> r_bits%32) |  (val << (32-(r_bits%32)) & (2**32-1))
@@ -90,7 +90,7 @@ class Letv(VideoExtractor):
                 self.streams[stream_id]['size'] = size
         return
         #ignore video size in download/play mode, for preformence issue
-        stream_id = self.param.format or self.stream_type[0]
+        stream_id = self.param.format or self.stream_types[0]
 
         size = 0
         for i in self.streams[stream_id]['src']:

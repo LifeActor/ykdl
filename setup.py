@@ -1,4 +1,15 @@
 from distutils.core import setup
+
+import os
+
+def find_packages(*tops):
+    packages = []
+    for d in tops:
+        for root, dirs, files in os.walk(d, followlinks=True):
+            if '__init__.py' in files:
+                packages.append(root)
+    return packages
+
 setup(
     name = "you-get",
     version = "v1.0.6:0.3.34@soimort",
@@ -8,7 +19,7 @@ setup(
     license = "MIT",
     description = "a video downloader written in Python 3",
     keywords = "video download youtube youku",
-    packages = ['you_get', 'you_get.util', 'you_get.extractors'],
+    packages = find_packages('you_get'),
     platforms = 'any',
     classifiers = [
         "Development Status :: 4 - Beta",

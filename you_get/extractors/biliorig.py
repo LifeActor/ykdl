@@ -11,12 +11,13 @@ appkey='8e9fc618fbd41e28'
 
 def parse_cid_playurl(xml):
     from xml.dom.minidom import parseString
-    try:
-        doc = parseString(xml.encode('utf-8'))
-        urls = [durl.getElementsByTagName('url')[0].firstChild.nodeValue for durl in doc.getElementsByTagName('durl')]
-        return urls
-    except:
-        return []
+    urls = []
+    size = 0
+    doc = parseString(xml.encode('utf-8'))
+    for durl in doc.getElementsByTagName('durl'):
+        urls.append(durl.getElementsByTagName('url')[0].firstChild.nodeValue)
+        size += int(durl.getElementsByTagName('size')[0].firstChild.nodeValue)
+    return urls, size
 
 class BiliOrig(VideoExtractor):
     name = '哔哩哔哩 (Bilibili)'
@@ -38,13 +39,9 @@ class BiliOrig(VideoExtractor):
                 self.live = True
         if not self.live:
             api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid
-            urls = parse_cid_playurl(get_content(api_url))
+            urls, size = parse_cid_playurl(get_content(api_url))
+            ext = 'flv'
 
-            ext = ''
-            size = 0
-            for url in urls:
-                _, ext, temp = url_info(url)
-                size += temp
         else:
             info = get_content('http://live.bilibili.com/api/playurl?cid={}'.format(self.vid))
             urls = [matchall(info, ['CDATA\[([^\]]+)'])[1]]

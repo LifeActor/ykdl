@@ -36,14 +36,14 @@ class Hunantv(VideoExtractor):
             self.stream_types.append(lstream['name'])
 
     def extract(self):
-        if self.param.info_only:
+        if self.param.info:
             for stream in self.stream_types:
                 meta = json.loads(get_content(self.streams[stream]['url']))
                 self.streams[stream]['src'] = [meta['info']]
                 self.streams[stream]['size'] = 0
             return
         else:
-            stream_id = self.param.stream_id or self.stream_types[0]
+            stream_id = self.param.format or self.stream_types[0]
 
         meta = json.loads(get_content(self.streams[stream_id]['url']))
         self.streams[stream_id]['src'] = [meta['info']]

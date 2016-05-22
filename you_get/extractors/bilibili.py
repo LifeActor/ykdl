@@ -20,7 +20,7 @@ class BiliBili(EmbedExtractor):
         self.title = match1(html, '<title>([^<]+)')
         vid = match1(html, '&vid=([^\"]+)')
         if vid:
-            self.video_info.append(('letv', vid))
+            self.video_info.append(('le.le', vid))
 
         vid = match1(html, '&video_id=([^\"]+)')
 

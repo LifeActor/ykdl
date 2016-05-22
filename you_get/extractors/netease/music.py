@@ -61,15 +61,17 @@ class NeteaseMusic(VideoExtractor):
         vid =  match1(url, 'id=(.*)')
         if "album" in url:
            api_url = "http://music.163.com/api/album/{}?id={}&csrf_token=".format(vid, vid)
+           listdata = json.loads(get_content(api_url))
+           playlist = listdata['album']['songs']
         elif "playlist" in url:
            api_url = "http://music.163.com/api/playlist/detail?id={}&csrf_token=".format(vid)
+           listdata = json.loads(get_content(api_url))
+           playlist = listdata['result']['tracks']
+        elif "toplist" in url:
+           api_url = "http://music.163.com/api/playlist/detail?id={}&csrf_token=".format(vid)
+           listdata = json.loads(get_content(api_url))
+           playlist = listdata['result']['tracks']
 
-        listdata = json.loads(get_content(api_url))
-
-        if 'result' in listdata:
-            playlist = listdata['result']['tracks']
-        elif 'album' in listdata:
-            playlist = listdata['album']['songs']
 
         for music in playlist:
             self.title = music['name']

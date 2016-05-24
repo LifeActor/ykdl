@@ -1,41 +1,37 @@
 #!/usr/bin/env python
 
-__all__ = ['lizhi_download']
+from you_get.extractor import VideoExtractor
+from you_get.util.html import get_content
+from you_get.util.match import match1
+
 import json
-from ..common import *
 
-def lizhi_download_playlist(url, output_dir = '.', merge = True, info_only = False):
-    # like this http://www.lizhi.fm/#/31365/
-    #api desc: s->start l->length band->some radio
-    #http://www.lizhi.fm/api/radio_audios?s=0&l=100&band=31365
-    band_id = match1(url,r'#/(\d+)')
-    #try to get a considerable large l to reduce html parsing task.
-    api_url = 'http://www.lizhi.fm/api/radio_audios?s=0&l=65535&band='+band_id
-    content_json = json.loads(get_content(api_url))
-    for sound in content_json:
-        title = sound["name"]
-        res_url = sound["url"]
-        songtype, ext, size = url_info(res_url,faker=True)
-        print_info(site_info, title, songtype, size)
-        if not info_only:
-            #no referer no speed!
-            download_urls([res_url], title, ext, size, output_dir, merge=merge ,refer = 'http://www.lizhi.fm',faker=True)    
-    pass
+class Lizhi(VideoExtractor):
+    name = "Lizhi FM (荔枝电台)"
+    audio_content = None
+    def prepare(self):
+        # url like http://www.lizhi.fm/#/549759/18864883431656710
+        self.vid = match1(self.url, '/(\d+/\d+)')
+        api_url = 'http://www.lizhi.fm/api/audio/'+ self.vid
+        self.audio_content = json.loads(get_content(api_url))["audio"]
 
-def lizhi_download(url, output_dir = '.', merge = True, info_only = False):
-    # url like http://www.lizhi.fm/#/549759/18864883431656710
-    api_id = match1(url,r'#/(\d+/\d+)')
-    api_url = 'http://www.lizhi.fm/api/audio/'+api_id
-    content_json = json.loads(get_content(api_url))
-    title = content_json["audio"]["name"]
-    res_url = content_json["audio"]["url"]
-    songtype, ext, size = url_info(res_url,faker=True)
-    print_info(site_info, title, songtype, size)
-    if not info_only:
-        #no referer no speed!
-        download_urls([res_url], title, ext, size, output_dir, merge=merge ,refer = 'http://www.lizhi.fm',faker=True)    
+    def extract(self):
+        self.title = self.audio_content["name"]
+        res_url = self.audio_content["url"]
+        self.stream_types.append('current')
+        self.streams['current'] = {'container': 'mp3', 'video_profile': 'current', 'src' : [res_url], 'size': 0}
 
+    def download_playlist(self, url, param):
+        # like this http://www.lizhi.fm/#/31365/
+        #api desc: s->start l->length band->some radio
+        #http://www.lizhi.fm/api/radio_audios?s=0&l=100&band=31365
+        self.param = param
+        band_id = match1(url, '/(\d+)')
+        #try to get a considerable large l to reduce html parsing task.
+        api_url = 'http://www.lizhi.fm/api/radio_audios?s=0&l=65535&band='+band_id
+        content_json = json.loads(get_content(api_url))
+        for sound in content_json:
+            self.audio_content = sound
+            self.download_normal()
 
-site_info = "lizhi.fm"
-download = lizhi_download
-download_playlist = lizhi_download_playlist
+site = Lizhi()

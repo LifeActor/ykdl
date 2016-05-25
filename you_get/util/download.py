@@ -1,6 +1,10 @@
 import os
-from urllib import request
 import sys
+if sys.version_info[0] == 3:
+    from urllib.request import Request, urlopen
+else:
+    from urllib2 import Request, urlopen
+
 from .html import fake_headers
 
 def simple_hook(arg1, arg2, arg3):
@@ -20,8 +24,8 @@ def save_url(url, name, reporthook = simple_hook):
     read = 0
     blocknum = 0
     open_mode = 'wb'
-    req = request.Request(url, headers = fake_headers)
-    response = request.urlopen(req, None)
+    req = Request(url, headers = fake_headers)
+    response = urlopen(req, None)
     if "content-length" in response.headers:
         size = int(response.headers["Content-Length"])
     if os.path.exists(name):
@@ -32,7 +36,7 @@ def save_url(url, name, reporthook = simple_hook):
         elif -1 != size:
             req.add_header('Range', 'bytes=%d-' % filesize)
             blocknum = int(filesize / bs)
-            response = request.urlopen(req, None)
+            response = urlopen(req, None)
             open_mode = 'ab'
     reporthook(blocknum, bs, size)
     with open(name, open_mode) as tfp:

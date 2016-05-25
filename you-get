@@ -8,12 +8,7 @@ _filepath = os.path.dirname(sys.argv[0])
 sys.path.insert(1, _filepath)
 
 
-if sys.version_info[0] == 3:
-    import you_get
-    if __name__ == '__main__':
-        you_get.main(repo_path=_filepath)
-else:
-    from you_get.util import log
-    log.wtf("""
-    [Fatal] Python 3 is required.
-    If Python 3 is already installed on your machine, try to run this script using 'python3 you-get'.""")
+
+import you_get
+if __name__ == '__main__':
+    you_get.main(repo_path=_filepath)

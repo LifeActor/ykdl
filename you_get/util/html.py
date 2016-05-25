@@ -1,4 +1,9 @@
-from urllib import request
+import sys
+if sys.version_info[0] == 3:
+    from urllib.request import Request, urlopen
+else:
+    from urllib2 import Request, urlopen
+
 import re
 
 from .match import match1
@@ -52,15 +57,16 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
         The content as a string.
     """
 
-    req = request.Request(url, headers=headers, data=data)
+    req = Request(url, headers=headers, data=data)
     #if cookies_txt:
     #    cookies_txt.add_cookie_header(req)
     #    req.headers.update(req.unredirected_hdrs)
-    response = request.urlopen(req)
+    response = urlopen(req)
     data = response.read()
 
     # Handle HTTP compression for gzip and deflate (zlib)
-    content_encoding = response.getheader('Content-Encoding')
+    resheader = response.info()
+    content_encoding = resheader['Content-Encoding']
     if content_encoding == 'gzip':
         data = ungzip(data)
     elif content_encoding == 'deflate':
@@ -68,7 +74,7 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
 
     # Decode the response body
     if charset is None:
-        charset = match1(response.getheader('Content-Type'), r'charset=([\w-]+)') or \
+        charset = match1(resheader['Content-Type'], r'charset=([\w-]+)') or \
               match1(str(data), r'charset=\"([^\"]+)', 'charset=([^"]+)') or 'utf-8'
     try:
         data = data.decode(charset)

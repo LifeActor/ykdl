@@ -51,8 +51,11 @@ def url_to_module(url):
             site = m.site
         return site, url
     except(ImportError):
-        import http.client
-        conn = http.client.HTTPConnection(video_host)
+        if sys.version_info[0] == 3:
+            from http.client import HTTPConnection
+        else:
+            from httplib import HTTPConnection
+        conn = HTTPConnection(video_host)
         conn.request("HEAD", video_url, headers=fake_headers)
         res = conn.getresponse()
         location = res.getheader('location')

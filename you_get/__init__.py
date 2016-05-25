@@ -9,8 +9,7 @@ def main(**kwargs):
     try:
         main()
     except KeyboardInterrupt:
-        print()
-        print('Interrupted by Ctrl-C')
+        print('\nInterrupted by Ctrl-C')
 
 if __name__ == '__main__':
     main()

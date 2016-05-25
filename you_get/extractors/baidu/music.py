@@ -1,10 +1,15 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from you_get.util.match import match1
 from you_get.util.html import get_content
 from you_get.extractor import VideoExtractor
 import time
-from  urllib import parse
+import sys
+if sys.version_info[0] == 3:
+    from urllib.parse import urlencode
+else:
+    from urllib import urlencode
 import json
 
 class BaiduMusic(VideoExtractor):
@@ -16,7 +21,7 @@ class BaiduMusic(VideoExtractor):
         if not self.vid:
             self.vid = match1(self.url, 'http://music.baidu.com/song/([\d]+)')
 
-        param = parse.urlencode({'songIds': self.vid})
+        param = urlencode({'songIds': self.vid})
 
         song_data = json.loads(get_content('http://play.baidu.com/data/music/songlink', data=bytes(param, 'utf-8')))['data']['songList'][0]
 

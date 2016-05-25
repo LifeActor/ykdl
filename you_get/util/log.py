@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# This file is Python 2 compliant.
+# -*- coding: utf-8 -*-
 
 from .. import __name__ as library_name
 

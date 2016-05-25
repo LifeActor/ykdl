@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from you_get.util.html import get_content
 from you_get.util.match import match1
@@ -7,7 +8,11 @@ from you_get.extractor import VideoExtractor
 import json
 import time
 from random import random
-from urllib.parse import urlparse
+import sys
+if sys.version_info[0] == 3:
+    from urllib.parse import urlparse
+else:
+    from urlparse import urlparse
 
 '''
 Changelog:

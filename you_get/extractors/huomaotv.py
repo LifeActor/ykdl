@@ -1,8 +1,15 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from ..util.html import get_content
 from ..util.match import match1
 from ..extractor import VideoExtractor
-import urllib.parse
+import sys
+import sys
+if sys.version_info[0] == 3:
+    from urllib.parse import urlencode
+else:
+    from urllib import urlencode
 import json
 
 class HuomaoTv(VideoExtractor):
@@ -24,7 +31,7 @@ class HuomaoTv(VideoExtractor):
                    'VideoIDS': video_name,
                    'cdns' : '1'
                 }
-        form = urllib.parse.urlencode(params)
+        form = urlencode(params)
         content = get_content(self.live_base,data=bytes(form, 'utf-8'),charset = 'utf-8')
         stream_data = json.loads(content)
         if stream_data["roomStatus"] == "1":

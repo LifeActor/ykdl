@@ -1,10 +1,15 @@
-#!/user/bin/env python3
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from ..extractor import VideoExtractor
 from .youkujs import *
 from ..util.html import get_content
 
-from urllib import parse
+import sys
+if sys.version_info[0] == 3:
+    from urllib.parse import urlencode
+else:
+    from urllib import urlencode
 import json
 from random import randint
 
@@ -58,7 +63,7 @@ class YoukuBase(VideoExtractor):
             assert k != -1
             fileId = getFileid(streamfileid, no)
             ep  = create_ep(sid, fileId, token)
-            q = parse.urlencode(dict(
+            q = urlencode(dict(
                 ctype = self.ct,
                 ev    = 1,
                 K     = k,

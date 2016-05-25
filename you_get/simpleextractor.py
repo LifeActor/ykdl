@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from .util.html import get_content, fake_headers, url_info
 from .util.match import match1

@@ -1,11 +1,16 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from ..util.html import get_content
 from ..util.match import match1, matchall
 from ..extractor import VideoExtractor
 
 import xml.etree.ElementTree as ET
-import urllib.parse
+import sys
+if sys.version_info[0] == 3:
+    from urllib.parse import urlencode
+else:
+    from urllib import urlencode
 import random
 import base64
 import struct
@@ -109,7 +114,7 @@ def qq_get_final_url(url, fmt_name, type_name, br, form, fn):
         'fmt': fmt_name,
         'sp': sp,
     }
-    form = urllib.parse.urlencode(params)
+    form = urlencode(params)
     return "%s?%s" % (url, form)
 
 
@@ -148,7 +153,7 @@ class QQ(VideoExtractor):
             'vids': self.vid
         }
 
-        form = urllib.parse.urlencode(params)
+        form = urlencode(params)
         content = get_content('http://vv.video.qq.com/getinfo',data=bytes(form, 'utf-8'))
         tree = ET.fromstring(content)
         fmt_id = None
@@ -199,7 +204,7 @@ class QQ(VideoExtractor):
                 'cKey': "",
             }
 
-            form = urllib.parse.urlencode(params)
+            form = urlencode(params)
             clip_url = '%s%s' % (cdn_url, filename)
             urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, filename))
 
@@ -219,7 +224,7 @@ class QQ(VideoExtractor):
                     'format': fmt_id,
                     'cKey': "",
                 }
-                form = urllib.parse.urlencode(params)
+                form = urlencode(params)
                 clip_url = '%s%s' % (cdn_url, fn)
                 urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, fn))
 

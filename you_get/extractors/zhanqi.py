@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from ..util.html import *
 from ..util.match import *
 from ..extractor import VideoExtractor

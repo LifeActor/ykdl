@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from ..util.html import get_content, get_location
 from ..util.match import matchall, match1
 from ..embedextractor import EmbedExtractor

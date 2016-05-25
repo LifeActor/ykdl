@@ -1,9 +1,13 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from ..util.html import get_content
 from ..util.match import match1
 from ..simpleextractor import SimpleExtractor
-from urllib import request
+if sys.version_info[0] == 3:
+    from urllib.request import build_opener, HTTPCookieProcessor, install_opener
+else:
+    from urllib2 import build_opener, HTTPCookieProcessor, install_opener
 
 class BoBo(SimpleExtractor):
     name = "bobo娱乐 美女直播"
@@ -12,8 +16,8 @@ class BoBo(SimpleExtractor):
         SimpleExtractor.__init__(self)
         self.title_pattern = '<title>([^<]+)'
         self.url_pattern = 'CDNUrl: "([^"]+)'
-        cookie_handler = request.HTTPCookieProcessor()
-        opener = request.build_opener(cookie_handler)
-        request.install_opener(opener)
+        cookie_handler = HTTPCookieProcessor()
+        opener = build_opener(cookie_handler)
+        install_opener(opener)
 
 site = BoBo()

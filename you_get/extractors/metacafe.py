@@ -1,8 +1,14 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from ..util.match import match1
-from urllib.parse import unquote
 from ..simpleextractor import SimpleExtractor
+
+import sys
+if sys.version_info[0] == 3:
+    from urllib.parse import unquote
+else:
+    from urlparse import unquote
 import re
 
 class Metacafe(SimpleExtractor):

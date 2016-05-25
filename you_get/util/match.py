@@ -1,8 +1,7 @@
-import re
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-# DEPRECATED in favor of match1()
-def r1(pattern, text):
-    return match1(text, pattern)
+import re
 
 def match1(text, *patterns):
     """Scans through a string for substrings matched some patterns (first-subgroups only).

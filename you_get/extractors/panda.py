@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from ..extractor import VideoExtractor
 from ..util.html import get_content

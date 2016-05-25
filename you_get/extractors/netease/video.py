@@ -1,8 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from you_get.util.html import get_content
 from you_get.util.match import match1
 from you_get.extractor import VideoExtractor
 
-from urllib.parse import unquote
+import sys
+if sys.version_info[0] == 3:
+    from urllib.parse import unquote
+else:
+    from urlparse import unquote
 
 class NeteaseVideo(VideoExtractor):
     name = "网易视频 (163)"

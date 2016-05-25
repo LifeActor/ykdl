@@ -7,7 +7,12 @@ from .youkubase import YoukuBase
 from .youkujs import install_acode
 
 import time
-from urllib import parse, request
+
+import sys
+if sys.version_info[0] == 3:
+    from urllib.request import HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener
+else:
+    from urllib2 import HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener
 import json
 import ssl
 
@@ -43,12 +48,12 @@ class Youku(YoukuBase):
 
     def setup(self):
         # Hot-plug cookie handler
-        ssl_context = request.HTTPSHandler(
+        ssl_context = HTTPSHandler(
             context=ssl.SSLContext(ssl.PROTOCOL_TLSv1))
-        cookie_handler = request.HTTPCookieProcessor()
-        opener = request.build_opener(ssl_context, cookie_handler)
+        cookie_handler = HTTPCookieProcessor()
+        opener = build_opener(ssl_context, cookie_handler)
         opener.addheaders = [('Cookie','__ysuid=%d' % time.time())]
-        request.install_opener(opener)
+        install_opener(opener)
 
 
 

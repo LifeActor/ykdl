@@ -7,7 +7,11 @@ from you_get.util.match import match1, matchall
 
 
 from xml.dom.minidom import parseString
-from urllib import parse
+import sys
+if sys.version_info[0] == 3:
+    from urllib.parse import unquote
+else:
+    from urlparse import unquote
 
 def location_dec(string):
     head = int(string[0])
@@ -26,7 +30,7 @@ def location_dec(string):
             else:
                 char = string[cols*full_row+(r-full_row)*(cols-1)+c]
             out += char
-    return parse.unquote(out).replace("^", "0")
+    return unquote(out).replace("^", "0")
 
 class Xiami(VideoExtractor):
     name = "Xiami (虾米音乐)"

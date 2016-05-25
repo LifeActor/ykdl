@@ -1,9 +1,10 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from ..util.match import match1
 from ..util.html import get_content, fake_headers
 from ..extractor import VideoExtractor
-import urllib.parse
+
 
 class Isuntv(VideoExtractor):
     name = "阳光卫视 (SunTV)"

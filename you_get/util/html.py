@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import sys
 if sys.version_info[0] == 3:
     from urllib.request import Request, urlopen
@@ -66,7 +69,10 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
 
     # Handle HTTP compression for gzip and deflate (zlib)
     resheader = response.info()
-    content_encoding = resheader['Content-Encoding']
+    if 'Content-Encoding' in resheader:
+        content_encoding = resheader['Content-Encoding']
+    else:
+        content_encoding = None
     if content_encoding == 'gzip':
         data = ungzip(data)
     elif content_encoding == 'deflate':

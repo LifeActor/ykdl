@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from .youkubase import YoukuBase
 from ..util.html import get_content

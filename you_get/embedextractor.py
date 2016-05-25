@@ -46,13 +46,15 @@ class EmbedExtractor():
             raise NotImplementedError(self.url + " is not supported")
 
         if self.video_info:
+            n = 0
             for v in self.video_info:
                 site, vid = v
                 if site in alias.keys():
                     site = alias[site]
                 s = import_module('.'.join(['you_get','extractors',site])).site
-                s.title = self.title
+                s.title = self.title + " %02d" % n
                 s.download(vid, self.param)
+                n += 1
 
     def download_playlist(self, url, param):
         self.param = param

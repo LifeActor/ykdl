@@ -9,7 +9,7 @@ from .util import log
 from .util.wrap import launch_player
 from .util.fs import legitimize
 
-
+import sys
 
 class VideoExtractor():
     def __init__(self):
@@ -118,7 +118,8 @@ class VideoExtractor():
     def download_normal(self):
         self.extract()
         stream_id = self.param.format or self.stream_types[0]
-        print(self)
+        if sys.version_info[0] == 3:
+            print(self)
         if self.param.info or self.param.url:
             return
         urls = self.streams[stream_id]['src']
@@ -132,7 +133,8 @@ class VideoExtractor():
 
     def download_iter(self):
         stream_id = self.param.format or self.stream_types[0]
-        print(self)
+        if sys.version_info[0] == 3:
+            print(self)
         if self.param.info or self.param.url:
             return
         i = 0

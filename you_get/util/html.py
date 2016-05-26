@@ -1,13 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
-if sys.version_info[0] == 3:
-    from urllib.request import Request, urlopen
-else:
-    from urllib2 import Request, urlopen
-
 import re
+from you_get.compact import Request, urlopen
 
 from .match import match1
 

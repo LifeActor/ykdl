@@ -7,11 +7,7 @@ from you_get.util.match import match1, matchall
 
 
 from xml.dom.minidom import parseString
-import sys
-if sys.version_info[0] == 3:
-    from urllib.parse import unquote
-else:
-    from urlparse import unquote
+from you_get.compact import unquote
 
 def location_dec(string):
     head = int(string[0])

@@ -6,11 +6,9 @@ from ..util.match import match1, matchall
 from ..extractor import VideoExtractor
 
 import xml.etree.ElementTree as ET
-import sys
-if sys.version_info[0] == 3:
-    from urllib.parse import urlencode
-else:
-    from urllib import urlencode
+
+from you_get.compact import urlencode
+
 import random
 import base64
 import struct

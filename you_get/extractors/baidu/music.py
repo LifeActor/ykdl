@@ -4,12 +4,9 @@
 from you_get.util.match import match1
 from you_get.util.html import get_content
 from you_get.extractor import VideoExtractor
+from you_get.compact import urlencode
+
 import time
-import sys
-if sys.version_info[0] == 3:
-    from urllib.parse import urlencode
-else:
-    from urllib import urlencode
 import json
 
 class BaiduMusic(VideoExtractor):

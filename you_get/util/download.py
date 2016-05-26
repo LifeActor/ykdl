@@ -3,10 +3,7 @@
 
 import os
 import sys
-if sys.version_info[0] == 3:
-    from urllib.request import Request, urlopen
-else:
-    from urllib2 import Request, urlopen
+from you_get.compact import Request, urlopen
 
 from .html import fake_headers
 

@@ -4,12 +4,8 @@
 from ..util.html import get_content
 from ..util.match import match1
 from ..extractor import VideoExtractor
-import sys
-import sys
-if sys.version_info[0] == 3:
-    from urllib.parse import urlencode
-else:
-    from urllib import urlencode
+from you_get.compact import urlencode
+
 import json
 
 class HuomaoTv(VideoExtractor):

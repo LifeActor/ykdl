@@ -5,11 +5,8 @@ from ..extractor import VideoExtractor
 from .youkujs import *
 from ..util.html import get_content
 
-import sys
-if sys.version_info[0] == 3:
-    from urllib.parse import urlencode
-else:
-    from urllib import urlencode
+from you_get.compact import urlencode
+
 import json
 from random import randint
 

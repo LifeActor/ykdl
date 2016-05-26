@@ -4,11 +4,7 @@
 from ..util.match import match1
 from ..simpleextractor import SimpleExtractor
 
-import sys
-if sys.version_info[0] == 3:
-    from urllib.parse import unquote
-else:
-    from urlparse import unquote
+from you_get.compact import unquote
 import re
 
 class Metacafe(SimpleExtractor):

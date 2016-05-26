@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys
 from importlib import import_module
 
 from .util.match import match1
@@ -51,10 +50,7 @@ def url_to_module(url):
             site = m.site
         return site, url
     except(ImportError):
-        if sys.version_info[0] == 3:
-            from http.client import HTTPConnection
-        else:
-            from httplib import HTTPConnection
+        from you_get.compact import HTTPConnection
         conn = HTTPConnection(video_host)
         conn.request("HEAD", video_url, headers=fake_headers)
         res = conn.getresponse()

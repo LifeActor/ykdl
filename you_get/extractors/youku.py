@@ -5,14 +5,9 @@ from ..util.html import get_content, fake_headers
 from ..util.match import match1, matchall
 from .youkubase import YoukuBase
 from .youkujs import install_acode
+from you_get.compact import HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener
 
 import time
-
-import sys
-if sys.version_info[0] == 3:
-    from urllib.request import HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener
-else:
-    from urllib2 import HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener
 import json
 import ssl
 

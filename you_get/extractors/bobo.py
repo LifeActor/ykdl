@@ -4,10 +4,8 @@
 from ..util.html import get_content
 from ..util.match import match1
 from ..simpleextractor import SimpleExtractor
-if sys.version_info[0] == 3:
-    from urllib.request import build_opener, HTTPCookieProcessor, install_opener
-else:
-    from urllib2 import build_opener, HTTPCookieProcessor, install_opener
+
+from you_get.compact import build_opener, HTTPCookieProcessor, install_opener
 
 class BoBo(SimpleExtractor):
     name = "bobo娱乐 美女直播"

@@ -4,15 +4,11 @@
 from you_get.util.html import get_content
 from you_get.util.match import match1
 from you_get.extractor import VideoExtractor
+from you_get.compact import urlparse
 
 import json
 import time
 from random import random
-import sys
-if sys.version_info[0] == 3:
-    from urllib.parse import urlparse
-else:
-    from urlparse import urlparse
 
 '''
 Changelog:

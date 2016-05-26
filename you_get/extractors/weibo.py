@@ -2,11 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from ..simpleextractor import SimpleExtractor
-import sys
-if sys.version_info[0] == 3:
-    from urllib.parse import unquote
-else:
-    from urlparse import unquote
+from you_get.compact import unquote
 
 class Weibo(SimpleExtractor):
     name = "微博秒拍 (Weibo)"

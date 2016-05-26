@@ -24,27 +24,26 @@ class VideoExtractor():
         self.streams = {}
 
 
-    def stream_to_string(self, stream_id):
+    def print_stream_info(self, stream_id):
         stream = self.streams[stream_id]
-        string  = "    - format:        %s\n" % log.sprint(stream_id, log.NEGATIVE)
+        print("    - format:        %s" % log.sprint(stream_id, log.NEGATIVE))
         if 'container' in stream:
-            string += "      container:     %s\n" % stream['container']
+            print("      container:     %s" % stream['container'])
         if 'video_profile' in stream:
-            string += "      video-profile: %s\n" % stream['video_profile']
+            print("      video-profile: %s" % stream['video_profile'])
         if 'quality' in stream:
-            string += "      quality:       %s\n" % stream['quality']
+            print("      quality:       %s" % stream['quality'])
         if 'size' in stream:
-            string += "      size:          %s MiB (%s bytes)\n" % (round(stream['size'] / 1048576, 1), stream['size'])
-        string += "    # download-with: %s\n" % log.sprint("you-get --format=%s [URL]" % stream_id, log.UNDERLINE)
+            print("      size:          %s MiB (%s bytes)" % (round(stream['size'] / 1048576, 1), stream['size']))
+        print("    # download-with: %s" % log.sprint("you-get --format=%s [URL]" % stream_id, log.UNDERLINE))
         if self.param.url:
-            string += "Real urls:\n"
+            print("Real urls:")
             if self.iterable:
                 for url in self.extract_iter():
-                    string += "%s\n" % url
+                    print("%s" % url)
             else:
                 for url in stream['src']:
-                    string += "%s\n" % url
-        return string
+                    print("%s" % url)
 
     def jsonlize(self):
         json_dict = { 'site'   : self.name,
@@ -59,21 +58,17 @@ class VideoExtractor():
             json_dict['streams'] = self.streams[stream_id]
         return json_dict
 
-    def __str__(self):
-        if self.param.json:
-            return json.dumps(self.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False)
-        string  = "site:                %s\n" % self.name
-        string += "title:               %s\n" % self.title
-        string += "artist:              %s\n" % self.artist
-        string += "streams:\n"
+    def print_info(self):
+        print("site:                %s" % self.name)
+        print("title:               %s" % self.title)
+        print("artist:              %s" % self.artist)
+        print("streams:")
         if not self.param.info:
             stream_id = self.param.format or self.stream_types[0]
-            string += self.stream_to_string(stream_id)
+            self.print_stream_info(stream_id)
         else:
             for stream_id in self.stream_types:
-                string += self.stream_to_string(stream_id)
-
-        return string
+                self.print_stream_info(stream_id)
 
     def download(self, url, param):
         if isinstance(url, str) and url.startswith('http'):
@@ -118,8 +113,11 @@ class VideoExtractor():
     def download_normal(self):
         self.extract()
         stream_id = self.param.format or self.stream_types[0]
-        if sys.version_info[0] == 3:
-            print(self)
+        if self.param.json:
+            ensure_ascii = False if sys.version_info[0] == 3 else True
+            print(json.dumps(self.jsonlize(), indent=4, sort_keys=True, ensure_ascii=ensure_ascii))
+        else:
+            self.print_info()
         if self.param.info or self.param.url:
             return
         urls = self.streams[stream_id]['src']
@@ -133,10 +131,11 @@ class VideoExtractor():
 
     def download_iter(self):
         stream_id = self.param.format or self.stream_types[0]
-        if sys.version_info[0] == 3:
-            print(self)
-        if self.param.info or self.param.url:
-            return
+        if self.param.json:
+            ensure_ascii = False if sys.version_info[0] == 3 else True
+            print(json.dumps(self.jsonlize(), indent=4, sort_keys=True, ensure_ascii=ensure_ascii))
+        else:
+            self.print_info()
         i = 0
         for url in self.extract_iter():
             if self.param.player:

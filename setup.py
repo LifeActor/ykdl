@@ -15,7 +15,7 @@ def find_packages(*tops):
 
 setup(
     name = "you-get",
-    version = "v1.0.6:0.3.34@soimort",
+    version = "v1.0.8:0.3.34@soimort",
     author = "Mort Yao, Zhang Ning",
     author_email = "mort.yao@gmail.com, zhangn1985@gmail.com",
     url = "https://github.com/zhangn1985/you-get",

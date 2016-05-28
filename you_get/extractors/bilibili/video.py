@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 from you_get.extractor import VideoExtractor
-from you_get.util.html import get_content
+from you_get.util.html import get_content, add_header
 from you_get.util.match import match1, matchall
 
 import hashlib
 import re
-
+import json
 appkey='8e9fc618fbd41e28'
 
 def parse_cid_playurl(xml):
@@ -24,17 +24,19 @@ class BiliVideo(VideoExtractor):
     name = '哔哩哔哩 (Bilibili)'
     supported_stream_types = ['超清', '高清', '流畅']
     def prepare(self):
-
+        page = 1
         if not self.vid:
+            self.vid = match1(self.url, 'av(\d+)')
+            page = match1(self.url, 'page=(\d+)', '_(\d+).html') or 1
             html = get_content(self.url)
-            self.vid = match1(html, 'cid=([^&]+)')
-            self.title = match1(html, '<title>([^<]+)')
-        for q in self.supported_stream_types:
-            api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid + '&quality=' + str(3-self.supported_stream_types.index(q))
-            urls, size = parse_cid_playurl(get_content(api_url))
-            ext = 'flv'
 
-            self.stream_types.append(q)
-            self.streams[q] = {'container': ext, 'video_profile': q, 'src' : urls, 'size': size}
+            self.title = match1(html, '<title>([^<]+)')
+
+        api_url = 'http://www.bilibili.com/m/html5?aid={}&page={}'.format(self.vid,page)
+        json_data = json.loads(get_content(api_url))
+        urls = [json_data['src']]
+        ext = 'flv'
+        self.stream_types.append('current')
+        self.streams['current'] = {'container': ext, 'video_profile': 'current', 'src' : urls, 'size': 0}
 
 site = BiliVideo()

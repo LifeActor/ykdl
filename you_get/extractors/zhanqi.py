@@ -3,6 +3,7 @@
 
 from ..util.html import *
 from ..util.match import *
+from you_get.util.m3u8 import load_m3u8_playlist
 from ..extractor import VideoExtractor
 import re
 
@@ -25,9 +26,8 @@ class Zhanqi(VideoExtractor):
         self.title = match1(html, '<title>([^<]+)')
         if self.live:
             rtmp_id = match1(html, 'videoId":"([^"]+)"').replace('\\/','/')
-            real_url = [self.live_base+'/'+rtmp_id+'.m3u8']
-            self.stream_types.append('current')
-            self.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : real_url, 'size': float('inf')}
+            real_url = self.live_base+'/'+rtmp_id+'.m3u8'
+            self.stream_types, self.streams = load_m3u8_playlist(real_url)
         else:
             vod_m3u8_request = self.vod_base + match1(html, 'VideoID":"([^"]+)').replace('\\/','/')
             vod_m3u8 = get_content(vod_m3u8_request)

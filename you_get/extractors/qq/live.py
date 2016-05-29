@@ -18,7 +18,11 @@ class QQLive(VideoExtractor):
 
         if not self.vid:
             self.vid = match1(self.url, '/(\d+)')
+        if not self.vid:
+            html = get_content(self.url)
+            self.vid = match1(html, '"room_id":(\d+)')
 
+        #from upstream!!
         api_url = 'http://www.qie.tv/api/v1/room/{}'.format(self.vid)
 
         metadata = json.loads(get_content(api_url))

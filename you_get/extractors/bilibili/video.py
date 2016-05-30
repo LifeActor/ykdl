@@ -37,4 +37,9 @@ class BiliVideo(VideoExtractor):
             self.stream_types.append(q)
             self.streams[q] = {'container': ext, 'video_profile': q, 'src' : urls, 'size': size}
 
+    def prepare_list(self):
+        html = get_content(self.url)
+        video_list = matchall(html, ['<option value=\'([^\']*)\''])
+        return ['http://www.bilibili.com'+v for v in video_list]
+
 site = BiliVideo()

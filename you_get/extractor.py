@@ -146,5 +146,13 @@ class VideoExtractor():
                 print()
                 i += 1
 
+    def prepare_list(self):
+        pass
+
     def download_playlist(self, url, param):
-        raise NotImplementedError('Playlist is not supported for ' + self.name)
+        self.url = url
+        video_list = self.prepare_list()
+        if not video_list:
+            raise NotImplementedError('Playlist is not supported for ' + self.name)
+        for v in video_list[param.start:]:
+            self.download(v, param)

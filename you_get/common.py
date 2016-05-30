@@ -8,6 +8,9 @@ from .util.html import fake_headers
 from .param import arg_parser
 from .util import log
 
+import socket
+from you_get.compact import ProxyHandler, build_opener, install_opener
+
 def mime_to_container(mime):
     mapping = {
         'video/3gpp': '3gp',
@@ -64,6 +67,15 @@ def url_to_module(url):
 
 def main():
     args = arg_parser()
+    if args.timeout:
+        socket.setdefaulttimeout(args.timeout)
+    if args.proxy:
+        proxy_handler = ProxyHandler({
+            'http': args.proxy,
+            'https': args.proxy
+        })
+        opener = build_opener(proxy_handler)
+        install_opener(opener)
     for url in args.video_urls:
         try:
             m,u = url_to_module(url)

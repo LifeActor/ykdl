@@ -13,6 +13,8 @@ def arg_parser():
     parser.add_argument('-o', '--output-dir', default='.', help="Set the output directory for downloaded videos.")
     parser.add_argument('-p', '--player', help="Directly play the video with PLAYER like vlc/smplayer")
     parser.add_argument('-s', '--start', type=int, default=0, help="start from INDEX to play/download playlist")
+    parser.add_argument('--proxy', type=str, default='', help="set proxy HOST:PORT for http(s) transfer")
+    parser.add_argument('-t', '--timeout', type=int, default=60, help="set socket timeout seconds, default 60s")
     parser.add_argument('video_urls', type=str, nargs='+', help="video urls")
     args = parser.parse_args()
     return args

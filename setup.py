@@ -14,15 +14,15 @@ def find_packages(*tops):
     return packages
 
 setup(
-    name = "you-get",
+    name = "ykdl",
     version = "v1.0.8:0.3.34@soimort",
     author = "Mort Yao, Zhang Ning",
     author_email = "mort.yao@gmail.com, zhangn1985@gmail.com",
-    url = "https://github.com/zhangn1985/you-get",
+    url = "https://github.com/zhangn1985/ykdl",
     license = "MIT",
     description = "a video downloader written in Python 3",
     keywords = "video download youtube youku",
-    packages = find_packages('you_get'),
+    packages = find_packages('ykdl'),
     platforms = 'any',
     classifiers = [
         "Development Status :: 4 - Beta",
@@ -48,5 +48,5 @@ setup(
         "Topic :: Multimedia :: Video",
         "Topic :: Utilities"
     ],
-    scripts = ['you-get']
+    scripts = ['bin/ykdl']
 )

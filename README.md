@@ -1,19 +1,19 @@
 # You-Get
 
-[You-Get](http://www.soimort.org/you-get) is a video downloader for [YouTube](http://www.youtube.com), [Youku](http://www.youku.com), [niconico](http://www.nicovideo.jp) and a few other sites.
+[You-Get](http://www.soimort.org/ykdl) is a video downloader for [YouTube](http://www.youtube.com), [Youku](http://www.youku.com), [niconico](http://www.nicovideo.jp) and a few other sites.
 
-`you-get` is a command-line program, written completely in Python 3. Its prospective users are those who prefer CLI over GUI. With `you-get`, downloading a video is just one command away:
+`ykdl` is a command-line program, written completely in Python 3. Its prospective users are those who prefer CLI over GUI. With `ykdl`, downloading a video is just one command away:
 
-    $ you-get http://youtu.be/sGwy8DsUJ4M
+    $ ykdl http://youtu.be/sGwy8DsUJ4M
 
-这只是一个[You-Get](http://www.soimort.org/you-get)的代码美化版本
+这只是一个[You-Get](http://www.soimort.org/ykdl)的代码美化版本
 
-请参考[上游](http://www.soimort.org/you-get)以便获得更多信息
+请参考[上游](http://www.soimort.org/ykdl)以便获得更多信息
 
 ##正题
 ### 为什么会有这个Fork
 * 因为原代码写得比较散，自己为了练手，决定美化代码
-* 接收一些[Upstream](http://www.soimort.org/you-get)暂时没有被合并的代码，以cherry-pick方式
+* 接收一些[Upstream](http://www.soimort.org/ykdl)暂时没有被合并的代码，以cherry-pick方式
 
 ### 这个Fork的目标是什么
 * 用VideoExctrator重写，目前基本完工，除了几个目前已经坏掉的站点外。

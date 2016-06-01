@@ -5,14 +5,26 @@ import time
 try:
 
     import m3u8
+    import signal
+    stop = False
+    def m3u8_live_stopper():
+        default_INT_handle = None
+        def handle(sig, x):
+            print("stopping m3u8 live download!!")
+            global stop
+            stop = True
+            if default_INT_handle:
+                signal.signal(signal.SIGINT, default_INT_handle)
+
+        default_INT_handle = signal.signal(signal.SIGINT, handle)
 
     def load_m3u8_playlist(url):
         stream_types = []
         streams = {}
         m = m3u8.load(url).playlists
         for l in m:
-            stream_types.append(l.stream_info.bandwidth)
-            streams[l.stream_info.bandwidth] = {'container': 'm3u8', 'video_profile': l.stream_info.bandwidth, 'src' : [l.absolute_uri], 'size': 0}
+            stream_types.append(str(l.stream_info.bandwidth))
+            streams[str(l.stream_info.bandwidth)] = {'container': 'm3u8', 'video_profile': str(l.stream_info.bandwidth), 'src' : [l.absolute_uri], 'size': 0}
         stream_types.sort()
         return stream_types, streams
 
@@ -29,7 +41,11 @@ try:
             the stream is live stream. so we use sleep to simulate player. but not perfact!
             """
             i = 0
+            m3u8_live_stopper()
             while True:
+                if stop:
+                    print('stopped!!')
+                    raise StopIteration
                 if i < len(m.segments):
                     delta = d -( time.time() - now)
                     if (delta) > 0:

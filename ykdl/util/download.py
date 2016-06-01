@@ -6,7 +6,6 @@ import sys
 from ykdl.compact import Request, urlopen
 
 from .html import fake_headers
-from .m3u8 import load_m3u8
 
 def simple_hook(arg1, arg2, arg3):
     if arg3 > 0:
@@ -51,13 +50,10 @@ def save_url(url, name, reporthook = simple_hook):
             reporthook(blocknum, bs, size)
 
 def save_urls(urls, name, ext):
-    if ext == 'm3u8':
-        ext = 'ts'
-        urls = load_m3u8(urls[0])
     no = 0
     for u in urls:
         print("Download: " + name + " part %d" % no)
         n = name + '_%02d_.' % no + ext
         save_url(u, n)
-        print()
+        print("")
         no += 1

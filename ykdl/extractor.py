@@ -8,6 +8,7 @@ from .util.download import save_url, save_urls
 from .util import log
 from .util.wrap import launch_player
 from .util.fs import legitimize
+from ykdl.util.m3u8_wrap import load_m3u8, load_live_m3u8
 
 import sys
 import datetime
@@ -135,6 +136,12 @@ class VideoExtractor():
             launch_player(self.param.player, urls)
         else:
             name = '_'.join([legitimize(self.title), stream_id, self.name_suffix()])
+            if self.streams[stream_id]['container'] == 'm3u8':
+                self.streams[stream_id]['container'] = 'ts'
+                if self.live:
+                    urls = load_live_m3u8(urls[0])
+                else:
+                    urls = load_m3u8(urls[0])
             save_urls(urls, name, self.streams[stream_id]['container'])
 
 

@@ -3,7 +3,7 @@
 
 from ..util.html import *
 from ..util.match import *
-from ykdl.util.m3u8 import load_m3u8_playlist
+from ykdl.util.m3u8_wrap import load_m3u8_playlist
 from ..extractor import VideoExtractor
 import re
 

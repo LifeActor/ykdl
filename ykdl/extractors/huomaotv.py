@@ -18,7 +18,7 @@ class HuomaoTv(VideoExtractor):
     live_base = "http://www.huomaotv.cn/swf/live_data"
 
     def prepare(self):
-
+        self.live = True
         html = get_content(self.url)
         self.title = match1(html, '<title>([^<]+)')
 

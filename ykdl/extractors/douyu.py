@@ -17,7 +17,7 @@ class Douyutv(VideoExtractor):
     name = '斗鱼 (DouyuTV)'
 
     def prepare(self):
-
+        self.live = True
         if self.url:
             self.vid = self.url[self.url.rfind('/')+1:]
 

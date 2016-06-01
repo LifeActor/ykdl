@@ -15,7 +15,7 @@ class QQLive(VideoExtractor):
     bitrate_2_type = {'middle2': 'mid', 'middle': 'low'}
 
     def prepare(self):
-
+        self.live = True
         if not self.vid:
             self.vid = match1(self.url, '/(\d+)')
         if not self.vid:

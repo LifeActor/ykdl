@@ -10,6 +10,7 @@ from .util.wrap import launch_player
 from .util.fs import legitimize
 
 import sys
+import datetime
 
 class VideoExtractor():
     def __init__(self):
@@ -22,6 +23,7 @@ class VideoExtractor():
         self.artist = None
         self.stream_types = []
         self.streams = {}
+        self.live = False
 
 
     def print_stream_info(self, stream_id):
@@ -110,6 +112,12 @@ class VideoExtractor():
     def extract_iter(self):
         pass
 
+    def name_suffix(self):
+        if self.live:
+            return datetime.datetime.now().isoformat()
+        else:
+            return ''
+
     def download_normal(self):
         self.extract()
         stream_id = self.param.format or self.stream_types[0]
@@ -126,7 +134,8 @@ class VideoExtractor():
         elif self.param.player:
             launch_player(self.param.player, urls)
         else:
-            save_urls(urls, legitimize(self.title), self.streams[stream_id]['container'])
+            name = '_'.join([legitimize(self.title), stream_id, self.name_suffix()])
+            save_urls(urls, name, self.streams[stream_id]['container'])
 
 
     def download_iter(self):
@@ -137,12 +146,13 @@ class VideoExtractor():
         else:
             self.print_info()
         i = 0
+        name = '_'.join([legitimize(self.title), stream_id, self.name_suffix()])
         for url in self.extract_iter():
             if self.param.player:
                 launch_player(self.param.player, [url])
             else:
                 print("Download: " + self.title + " part %d" % i)
-                save_url(url, legitimize(self.title + '_%02d_.' % i + self.streams[stream_id]['container']))
+                save_url(url, name + '_%02d_.' % i + self.streams[stream_id]['container'])
                 print()
                 i += 1
 

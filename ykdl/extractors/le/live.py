@@ -18,6 +18,7 @@ class LeLive(VideoExtractor):
     supported_stream_types = ['flv_1080p3m', 'flv_1080p', 'flv_1300', 'flv_1000', 'flv_720p', 'flv_350']
 
     def prepare(self):
+        self.live = True
         if not self.vid:
             self.vid = match1(self.url, 'channel=([\d]+)')
 

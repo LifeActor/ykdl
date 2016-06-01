@@ -10,7 +10,7 @@ class NeteaseLive(VideoExtractor):
     name = "网易直播 (163)"
 
     def prepare(self):
-
+        self.live = True
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, "anchorCcId : \'([^\']+)")

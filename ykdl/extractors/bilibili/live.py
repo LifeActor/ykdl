@@ -8,8 +8,9 @@ from ykdl.util.match import match1, matchall
 
 class BiliLive(VideoExtractor):
     name = "Bilibili live (哔哩哔哩 直播)"
-    def prepare(self):
 
+    def prepare(self):
+        self.live = True
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'cid=([^&]+)')

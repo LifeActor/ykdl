@@ -18,7 +18,11 @@ class HuyaVideo(VideoExtractor):
     def prepare(self):
 
         if not self.vid:
-            self.vid = match1(self.url, 'play/(\d+).html')
+            self.vid = match1(self.url, 'play/(\d+)')
+
+        if not self.vid:
+            html = get_content(self.url)
+            self.vid = match1(html, 'data-vid="(\d+)')
 
         api_url = 'http://playapi.v.duowan.com/index.php?vid={}&partner=&r=play%2Fvideo'.format(self.vid)
         data = json.loads(get_content(api_url))['result']['items']

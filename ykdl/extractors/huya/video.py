@@ -9,7 +9,7 @@ from ykdl.compact import compact_str
 import json
 
 class HuyaVideo(VideoExtractor):
-    name = "huya video (虎牙视频)"
+    name = u"huya video (虎牙视频)"
 
     supported_stream_types = ['BD', 'TD', 'HD', 'SD']
 
@@ -32,6 +32,6 @@ class HuyaVideo(VideoExtractor):
             self.stream_types.append(p)
             self.streams[p] = {'container': 'mp4', 'video_profile': s, 'src': [d['urls'][0]], 'size' : int(d['size'])}
 
-        self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)        
+        self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
 
 site = HuyaVideo()

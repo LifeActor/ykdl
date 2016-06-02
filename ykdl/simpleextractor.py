@@ -18,11 +18,17 @@ class SimpleExtractor(VideoExtractor):
 
         self.url_pattern = ''
 
+        self.artist_pattern = ''
+
         self.headers = fake_headers
 
     def get_title(self):
         if self.title_pattern:
             self.title = match1(self.html, self.title_pattern)
+
+    def get_artist(self):
+        if self.artist_pattern:
+            self.artist = match1(self.html, self.artist_pattern)
 
     def get_url(self):
         if self.url_pattern:
@@ -43,6 +49,7 @@ class SimpleExtractor(VideoExtractor):
         self.l_assert()
         self.html = get_content(self.url, headers=self.headers)
         self.get_title()
+        self.get_artist()
         self.get_url()
         ext, size = self.get_info()
         self.stream_types.append('current')

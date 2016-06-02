@@ -15,7 +15,7 @@ def find_packages(*tops):
 
 setup(
     name = "ykdl",
-    version = "v1.0.8:0.3.34@soimort",
+    version = "1.0.8",
     author = "Zhang Ning",
     author_email = "zhangn1985@gmail.com",
     url = "https://github.com/zhangn1985/ykdl",

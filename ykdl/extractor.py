@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import json
-import os
 
 from .util.download import save_url, save_urls
 from .util import log
@@ -83,17 +82,6 @@ class VideoExtractor():
 
         self.param = param
         self.stream_types = []
-        #mkdir and cd to output dir
-        if not self.param.output_dir == '.':
-            if not os.path.exists(self.param.output_dir):
-                try:
-                    os.mkdir(self.param.output_dir)
-                except:
-                    log.w("No permission or Not found " + param_dict['output_dir'])
-                    log.w("use current folder")
-                    self.param.output_dir = '.'
-        if os.path.exists(self.param.output_dir):
-            os.chdir(self.param.output_dir)
 
         self.prepare()
 

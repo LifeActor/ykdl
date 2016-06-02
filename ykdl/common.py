@@ -9,6 +9,7 @@ from .param import arg_parser
 from .util import log
 
 import socket
+import os
 from ykdl.compact import ProxyHandler, build_opener, install_opener
 
 def mime_to_container(mime):
@@ -76,6 +77,19 @@ def main():
         })
         opener = build_opener(proxy_handler)
         install_opener(opener)
+
+    #mkdir and cd to output dir
+    if not args.output_dir == '.':
+        if not os.path.exists(args.output_dir):
+            try:
+                os.mkdir(args.output_dir)
+            except:
+                log.w("No permission or Not found " + param_dict['output_dir'])
+                log.w("use current folder")
+                args.output_dir = '.'
+    if os.path.exists(args.output_dir):
+        os.chdir(args.output_dir)
+
     for url in args.video_urls:
         try:
             m,u = url_to_module(url)

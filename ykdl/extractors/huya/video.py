@@ -4,13 +4,16 @@
 from ykdl.extractor import VideoExtractor
 from ykdl.util.html import get_content
 from ykdl.util.match import match1
+from ykdl.compact import compact_str
 
 import json
 
 class HuyaVideo(VideoExtractor):
     name = "huya video (虎牙视频)"
 
-    supported_stream_types = ['原画', '超清', '高清', '流畅']
+    supported_stream_types = ['BD', 'TD', 'HD', 'SD']
+
+    stream_2_profile = {u'原画':"BD", u'超清': 'TD', u'高清': 'HD', u'流畅': 'SD' }
 
     def prepare(self):
 
@@ -24,8 +27,10 @@ class HuyaVideo(VideoExtractor):
 
         for i in data:
             d = i['transcode']
-            self.stream_types.append(i['task_name'])
-            self.streams[i['task_name']] = {'container': 'mp4', 'src': [d['urls'][0]], 'size' : int(d['size'])}
+            s = i['task_name'][0:2]
+            p = self.stream_2_profile[compact_str(s)]
+            self.stream_types.append(p)
+            self.streams[p] = {'container': 'mp4', 'video_profile': s, 'src': [d['urls'][0]], 'size' : int(d['size'])}
 
         self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)        
 

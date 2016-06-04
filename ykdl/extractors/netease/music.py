@@ -83,6 +83,7 @@ class NeteaseMusic(VideoExtractor):
             self.artist = music['artists'][0]['name']
             for st in self.supported_stream_types:
                 if st in music:
+                    self.stream_types = []
                     self.stream_types.append(st)
                     self.song_date[st] = music[st]
             self.download_normal()

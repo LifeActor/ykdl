@@ -27,6 +27,7 @@ class DoubanMusic(VideoExtractor):
         self.song_info = data['songs'][0]
 
     def extract(self):
+        self.stream_types = []
         song = self.song_info
         self.title = song['title']
         self.artist = song['artist_name']

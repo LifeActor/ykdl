@@ -42,6 +42,7 @@ class Xiami(VideoExtractor):
         self.song_data = doc.getElementsByTagName("track")[0]
 
     def extract(self):
+        self.stream_types = []
         i = self.song_data
         self.artist = i.getElementsByTagName("artist")[0].firstChild.nodeValue
         self.title = i.getElementsByTagName("songName")[0].firstChild.nodeValue

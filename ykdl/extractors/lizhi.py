@@ -17,6 +17,7 @@ class Lizhi(VideoExtractor):
         self.audio_content = json.loads(get_content(api_url))["audio"]
 
     def extract(self):
+        self.stream_types = []
         self.title = self.audio_content["name"]
         res_url = self.audio_content["url"]
         self.stream_types.append('current')

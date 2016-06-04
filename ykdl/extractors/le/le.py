@@ -72,7 +72,7 @@ class Letv(VideoExtractor):
 
                 # hold on ! more things to do
                 # to decode m3u8 (encoded)
-                m3u8 = get_content(info2["location"])
+                m3u8 = get_content(info2["location"], charset = 'ignore')
                 m3u8_list = decode(m3u8)
                 self.streams[stream] = {'container': 'm3u8', 'video_profile': stream, 'size' : 0}
                 import tempfile

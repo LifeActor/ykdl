@@ -84,13 +84,7 @@ class VideoExtractor():
         self.stream_types = []
 
         self.prepare()
-        self.extract()
-        if self.param.json:
-            print(json.dumps(self.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False))
-        else:
-            self.print_info()
-        if self.param.info or self.param.url:
-            return
+
         if self.iterable:
             self.download_iter()
         else:
@@ -114,7 +108,14 @@ class VideoExtractor():
             return ''
 
     def download_normal(self):
+        self.extract()
         stream_id = self.param.format or self.stream_types[0]
+        if self.param.json:
+            print(json.dumps(self.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False))
+        else:
+            self.print_info()
+        if self.param.info or self.param.url:
+            return
         urls = self.streams[stream_id]['src']
         if not urls:
             raise RuntimeError(self.name+ ': [Failed] Cannot extract video source from: ' + self.url if self.url else str(self.vid))
@@ -132,6 +133,11 @@ class VideoExtractor():
 
 
     def download_iter(self):
+        stream_id = self.param.format or self.stream_types[0]
+        if self.param.json:
+            print(json.dumps(self.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False))
+        else:
+            self.print_info()
         i = 0
         name = '_'.join([legitimize(self.title), stream_id, self.name_suffix()])
         for url in self.extract_iter():

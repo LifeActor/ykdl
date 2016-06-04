@@ -3,7 +3,13 @@
 
 import json
 import random
-import base64, time, re
+import base64, time
+import sys
+
+if sys.version_info[0] == 3:
+    WR_ord = int
+else:
+    WR_ord = ord
 
 from ykdl.util.html import get_content, url_info
 from ykdl.util.match import match1, matchall
@@ -21,8 +27,8 @@ def decode(data):
         length = len(loc2)
         loc4 = [0]*(2*length)
         for i in range(length):
-            loc4[2*i] = loc2[i] >> 4
-            loc4[2*i+1]= loc2[i] & 15;
+            loc4[2*i] = WR_ord(loc2[i]) >> 4
+            loc4[2*i+1]= WR_ord(loc2[i]) & 15;
         loc6 = loc4[len(loc4)-11:]+loc4[:len(loc4)-11]
         loc7 = [0]*length
         for i in range(length):
@@ -60,7 +66,6 @@ class Letv(VideoExtractor):
         for stream in self.supported_stream_types:
             if stream in available_stream_id:
                 s_url =info["playurl"]["domain"][0]+info["playurl"]["dispatch"][stream][0]
-                ext = info["playurl"]["dispatch"][stream][1].split('.')[-1]
                 s_url+="&ctv=pc&m3v=1&termid=1&format=1&hwtype=un&ostype=Linux&tag=le&sign=le&expect=3&tn={}&pay=0&iscpn=f9051&rateid={}".format(random.random(),stream)
                 r2=get_content(s_url)
                 info2=json.loads(r2)
@@ -69,16 +74,12 @@ class Letv(VideoExtractor):
                 # to decode m3u8 (encoded)
                 m3u8 = get_content(info2["location"])
                 m3u8_list = decode(m3u8)
-                self.streams[stream] = {'container': ext, 'video_profile': stream, 'size' : 0}
-                if self.param.player:
-                    import tempfile
-                    self.streams[stream]['tmp'] = tempfile.NamedTemporaryFile(mode='w+t', suffix='.m3u8')
-                    self.streams[stream]['tmp'].write(m3u8_list)
-                    self.streams[stream]['src'] = [self.streams[stream]['tmp'].name]
-                    self.streams[stream]['tmp'].flush()
-                else:
-                    urls = re.findall(r'^[^#][^\r]*',m3u8_list,re.MULTILINE)
-                    self.streams[stream]['src'] = urls
+                self.streams[stream] = {'container': 'm3u8', 'video_profile': stream, 'size' : 0}
+                import tempfile
+                self.streams[stream]['tmp'] = tempfile.NamedTemporaryFile(mode='w+t', suffix='.m3u8')
+                self.streams[stream]['tmp'].write(m3u8_list)
+                self.streams[stream]['src'] = [self.streams[stream]['tmp'].name]
+                self.streams[stream]['tmp'].flush()
                 self.stream_types.append(stream)
 
     def extract(self):

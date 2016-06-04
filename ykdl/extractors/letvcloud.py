@@ -8,7 +8,7 @@ import json
 import base64, hashlib, time
 
 class Letvcloud(VideoExtractor):
-    name = "乐视云 (Letvcloud)"
+    name = u"乐视云 (Letvcloud)"
 
     supported_stream_types = ['yuanhua', 'supper', 'high', 'low']
 

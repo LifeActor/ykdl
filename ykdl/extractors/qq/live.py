@@ -8,7 +8,7 @@ from ykdl.extractor import VideoExtractor
 import json
 
 class QQLive(VideoExtractor):
-    name = 'QQ Live (企鹅直播)'
+    name = u'QQ Live (企鹅直播)'
 
     mutli_bitrate = ['middle2', 'middle']
 

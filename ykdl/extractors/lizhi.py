@@ -8,7 +8,7 @@ from ykdl.util.match import match1
 import json
 
 class Lizhi(VideoExtractor):
-    name = "Lizhi FM (荔枝电台)"
+    name = u"Lizhi FM (荔枝电台)"
     audio_content = None
     def prepare(self):
         # url like http://www.lizhi.fm/#/549759/18864883431656710

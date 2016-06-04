@@ -16,7 +16,7 @@ youku_headers = fake_headers
 youku_headers['Referer'] = 'v.youku.com'
 
 class Youku(YoukuBase):
-    name = "优酷 (Youku)"
+    name = u"优酷 (Youku)"
 
     ct = 12
 

@@ -9,7 +9,7 @@ import json
 import re
 
 class Ku6(VideoExtractor):
-    name = "酷6 (Ku6)"
+    name = u"酷6 (Ku6)"
 
     def prepare(self):
         if self.url and not self.vid:

@@ -79,7 +79,7 @@ def getDispathKey(rid):
     return hashlib.new("md5",bytes(t+tp+rid,"utf-8")).hexdigest()
 
 class Iqiyi(VideoExtractor):
-    name = "爱奇艺 (Iqiyi)"
+    name = u"爱奇艺 (Iqiyi)"
 
     supported_stream_types = [ '4k', 'fullhd', 'suprt-high', 'super', 'high', 'standard', 'topspeed' ]
 

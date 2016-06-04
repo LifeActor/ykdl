@@ -29,7 +29,7 @@ def location_dec(string):
     return unquote(out).replace("^", "0")
 
 class Xiami(VideoExtractor):
-    name = "Xiami (虾米音乐)"
+    name = u"Xiami (虾米音乐)"
 
     song_data = None
 

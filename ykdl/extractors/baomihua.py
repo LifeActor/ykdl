@@ -10,7 +10,7 @@ from ..extractor import VideoExtractor
 
 class Baomihua(VideoExtractor):
 
-    name = "爆米花（Baomihua)"
+    name = u"爆米花（Baomihua)"
 
     def prepare(self):
 

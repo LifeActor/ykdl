@@ -9,7 +9,7 @@ from ..util import log
 import json
 
 class YinYueTai(VideoExtractor):
-    name = 'YinYueTai (音乐台)'
+    name = u'YinYueTai (音乐台)'
     supported_stream_types = ['sh', 'he', 'hd', 'hc' ]
     def prepare(self):
 

@@ -7,7 +7,7 @@ from ..extractor import VideoExtractor
 
 
 class Isuntv(VideoExtractor):
-    name = "阳光卫视 (SunTV)"
+    name = u"阳光卫视 (SunTV)"
 
     API_URL = "http://www.isuntv.com/ajaxpro/SunTv.pro_vod_playcatemp4,App_Web_playcatemp4.ascx.9f08f04f.ashx"
 

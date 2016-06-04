@@ -7,7 +7,7 @@ from .youkujs import install_acode
 import json
 
 class Acorig(YoukuBase):
-    name = "AcFun 优酷合作视频"
+    name = u"AcFun 优酷合作视频"
 
     client_id = '908a519d032263f8'
     ct = 86

@@ -7,7 +7,7 @@ from ykdl.util.match import match1, matchall
 
 
 class BiliLive(VideoExtractor):
-    name = "Bilibili live (哔哩哔哩 直播)"
+    name = u"Bilibili live (哔哩哔哩 直播)"
 
     def prepare(self):
         self.live = True

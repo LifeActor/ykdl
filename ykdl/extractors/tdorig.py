@@ -9,7 +9,7 @@ import json
 from xml.dom.minidom import parseString
 
 class TDorig(VideoExtractor):
-    name = "土豆原创 (tudou)"
+    name = u"土豆原创 (tudou)"
 
     def prepare(self):
 

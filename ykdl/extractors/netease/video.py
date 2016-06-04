@@ -8,9 +8,9 @@ from ykdl.extractor import VideoExtractor
 from ykdl.compact import unquote
 
 class NeteaseVideo(VideoExtractor):
-    name = "网易视频 (163)"
+    name = u"网易视频 (163)"
     sopported_stream_types = ['shd', 'hd', 'flv']
-    stream_2_profile = {'shd':'超清', 'hd':'高清', 'flv':'标清'}
+    stream_2_profile = {'shd': u'超清', 'hd': u'高清', 'flv': u'标清'}
 
     def prepare(self):
 

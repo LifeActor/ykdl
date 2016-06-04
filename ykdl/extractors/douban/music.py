@@ -9,7 +9,7 @@ from ykdl.compact import urlencode
 import json
 
 class DoubanMusic(VideoExtractor):
-    name = 'Douban Music (豆瓣音乐)'
+    name = u'Douban Music (豆瓣音乐)'
 
     song_info = {}
 

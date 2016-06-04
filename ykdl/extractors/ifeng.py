@@ -7,7 +7,7 @@ from ..util.html import get_content
 from ..util.match import match1
 
 class Ifeng(VideoExtractor):
-    name = '凤凰视频 (ifeng)'
+    name = u'凤凰视频 (ifeng)'
 
     supported_stream_types = ['500k', '350k']
 

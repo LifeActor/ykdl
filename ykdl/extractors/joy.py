@@ -7,7 +7,7 @@ from ..extractor import VideoExtractor
 
 class Joy(VideoExtractor):
 
-    name = '激动网 (Joy)'
+    name = u'激动网 (Joy)'
 
 
     def prepare(self):

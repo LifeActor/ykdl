@@ -21,21 +21,22 @@ def parse_cid_playurl(xml):
     return urls, size
 
 class BiliVideo(VideoExtractor):
-    name = '哔哩哔哩 (Bilibili)'
-    supported_stream_types = ['超清', '高清', '流畅']
+    name = u'哔哩哔哩 (Bilibili)'
+    supported_stream_profile = [u'超清', u'高清', u'流畅']
+    profile_2_type = {u'超清': 'TD', u'高清': 'HD', u'流畅' :'SD'}
     def prepare(self):
 
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'cid=([^&]+)')
             self.title = match1(html, '<title>([^<]+)')
-        for q in self.supported_stream_types:
-            api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid + '&quality=' + str(3-self.supported_stream_types.index(q))
+        for q in self.supported_stream_profile:
+            api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid + '&quality=' + str(3-self.supported_stream_profile.index(q))
             urls, size = parse_cid_playurl(get_content(api_url))
             ext = 'flv'
 
-            self.stream_types.append(q)
-            self.streams[q] = {'container': ext, 'video_profile': q, 'src' : urls, 'size': size}
+            self.stream_types.append(self.profile_2_type[q])
+            self.streams[self.profile_2_type[q]] = {'container': ext, 'video_profile': q, 'src' : urls, 'size': size}
 
     def prepare_list(self):
         html = get_content(self.url)

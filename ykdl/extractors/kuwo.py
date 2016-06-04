@@ -6,7 +6,7 @@ from ykdl.util.html import get_content
 from ykdl.extractor import VideoExtractor
 
 class Kuwo(VideoExtractor):
-    name = 'KuWo (酷我音乐)'
+    name = u'KuWo (酷我音乐)'
     supported_stream_types = ['aac', 'mp3']
     def prepare(self):
         if not self.vid:

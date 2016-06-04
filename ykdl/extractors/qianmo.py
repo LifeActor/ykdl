@@ -7,7 +7,7 @@ import json
 import re
 
 class Qianmo(VideoExtractor):
-    name = "阡陌 (qianmo)"
+    name = u"阡陌 (qianmo)"
 
     supported_stream_types = [ 'hd' ]
 

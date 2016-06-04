@@ -16,7 +16,7 @@ def get_realurl(url):
        return matchall(html, ['CDATA\[([^\]]+)'])[1]
 
 class Sina(VideoExtractor):
-    name = "新浪视频 (sina)"
+    name = u"新浪视频 (sina)"
 
     def prepare(self):
 

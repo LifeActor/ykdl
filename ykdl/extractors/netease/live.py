@@ -7,7 +7,7 @@ from ykdl.extractor import VideoExtractor
 import json
 
 class NeteaseLive(VideoExtractor):
-    name = "网易直播 (163)"
+    name = u"网易直播 (163)"
 
     def prepare(self):
         self.live = True

@@ -6,7 +6,7 @@ from ..simpleextractor import SimpleExtractor
 from ykdl.compact import build_opener, HTTPCookieProcessor, install_opener
 
 class BoBo(SimpleExtractor):
-    name = "bobo娱乐 美女直播"
+    name = u"bobo娱乐 美女直播"
 
     def __init__(self):
         SimpleExtractor.__init__(self)

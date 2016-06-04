@@ -14,7 +14,7 @@ douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
                         'data-room_id="([^"]+)'
                       ]
 class Douyutv(VideoExtractor):
-    name = '斗鱼 (DouyuTV)'
+    name = u'斗鱼 (DouyuTV)'
 
     def prepare(self):
         self.live = True

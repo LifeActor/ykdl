@@ -119,11 +119,11 @@ def qq_get_final_url(url, fmt_name, type_name, br, form, fn):
 
 class QQ(VideoExtractor):
 
-    name = "腾讯视频 (QQ)"
+    name = u"腾讯视频 (QQ)"
 
     supported_stream_types = [ 'shd', 'mp4', 'hd', 'flv','sd' ]
 
-    stream_2_profile = { 'shd': '超清', 'mp4': '高清mp4', 'hd': '高清', 'flv': '高清flv', 'sd': '标清' }
+    stream_2_profile = { 'shd': u'超清', 'mp4': u'高清mp4', 'hd': u'高清', 'flv': u'高清flv', 'sd': u'标清' }
 
 
     def get_stream_info(self, profile):

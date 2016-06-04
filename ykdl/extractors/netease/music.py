@@ -31,7 +31,7 @@ def make_url(dfsId):
     return mp3_url
 
 class NeteaseMusic(VideoExtractor):
-    name = "Netease Music (网易云音乐)"
+    name = u"Netease Music (网易云音乐)"
 
     supported_stream_types = ['hMusic', 'bMusic', 'mMusic', 'lMusic']
     song_date = {}

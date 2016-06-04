@@ -8,7 +8,7 @@ from ..extractor import VideoExtractor
 import json
 
 class CNTV(VideoExtractor):
-    name = '央视网 (cctv)'
+    name = u'央视网 (cctv)'
 
     supported_stream_types = ['normal', 'low']
     type_2_cpt = { 'normal':'chapters', 'low':'lowChapters' }

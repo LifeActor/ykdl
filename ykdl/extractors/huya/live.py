@@ -6,7 +6,7 @@ from ykdl.util.html import get_content, add_header
 from ykdl.util.match import match1, matchall
 
 class HuyaLive(SimpleExtractor):
-    name = "Huya Live (虎牙直播)"
+    name = u"Huya Live (虎牙直播)"
 
     def __init__(self):
         SimpleExtractor.__init__(self)

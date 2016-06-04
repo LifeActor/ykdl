@@ -10,7 +10,7 @@ import time
 import json
 
 class BaiduMusic(VideoExtractor):
-    name = 'BaiduMusic (百度音乐)'
+    name = u'BaiduMusic (百度音乐)'
 
 
     def prepare(self):

@@ -9,7 +9,7 @@ import time
 import json
 
 class LongzhuLive(VideoExtractor):
-    name = 'Longzhu Live (龙珠直播)'
+    name = u'Longzhu Live (龙珠直播)'
 
     def prepare(self):
         self.live = True

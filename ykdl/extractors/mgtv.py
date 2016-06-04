@@ -9,9 +9,11 @@ from random import randint
 import json
 
 class Hunantv(VideoExtractor):
-    name = "芒果TV (HunanTV)"
+    name = u"芒果TV (HunanTV)"
 
-    supported_stream_types = [ '超清', '高清', '标清' ]
+    supported_stream_profile = [ u'超清', u'高清', u'标清' ]
+    supported_stream_types = [ 'TD', 'HD', 'SD' ]
+    profile_2_types = { u'超清': 'TD', u'高清': 'HD', u'标清': 'SD' }
 
     def prepare(self):
 
@@ -29,12 +31,10 @@ class Hunantv(VideoExtractor):
 
         info = data['info']
         self.title = info['title']
-        for stream in self.supported_stream_types:
-            for lstream in data['stream']:
-                if stream == lstream['name']:
-                    break;
-            self.streams[lstream['name']] = {'container': 'm3u8', 'video_profile': lstream['name'], 'url' : lstream['url']}
-            self.stream_types.append(lstream['name'])
+        for lstream in data['stream']:
+            self.streams[self.profile_2_types[lstream['name']]] = {'container': 'm3u8', 'video_profile': lstream['name'], 'url' : lstream['url']}
+            self.stream_types.append(self.profile_2_types[lstream['name']])
+        self.stream_types= sorted(self.stream_types, key = self.supported_stream_types.index)
 
     def extract(self):
         if self.param.info:

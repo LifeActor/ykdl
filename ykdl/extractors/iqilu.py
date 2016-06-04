@@ -5,7 +5,7 @@ from ..simpleextractor import SimpleExtractor
 import re
 
 class Iqilu(SimpleExtractor):
-    name = "齐鲁网 (iqilu)"
+    name = u"齐鲁网 (iqilu)"
 
     def __init__(self):
         SimpleExtractor.__init__(self)

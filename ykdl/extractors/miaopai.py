@@ -9,7 +9,7 @@ import json
 
 class Miaopai(VideoExtractor):
 
-    name = '秒拍 (Miaopai)'
+    name = u'秒拍 (Miaopai)'
 
     def prepare(self):
 

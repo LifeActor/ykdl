@@ -9,11 +9,11 @@ from ykdl.compact import urlencode
 import json
 
 class HuomaoTv(VideoExtractor):
-    name = '火猫 (Huomao)'
+    name = u'火猫 (Huomao)'
 
     supported_stream_types = ['BD', 'TD', 'HD', 'SD' ]
 
-    stream_2_profile = {'BD':"原画", 'TD': '超清', 'HD': '高清', 'SD': '标清' }
+    stream_2_profile = {'BD': u"原画", 'TD': u'超清', 'HD': u'高清', 'SD': u'标清' }
 
     live_base = "http://www.huomaotv.cn/swf/live_data"
 

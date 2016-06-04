@@ -33,7 +33,7 @@ def decode(data):
         return data
 
 class Letv(VideoExtractor):
-    name = "乐视 (Letv)"
+    name = u"乐视 (Letv)"
 
     supported_stream_types = [ '1080p', '1300', '1000', '720p', '350' ]
 

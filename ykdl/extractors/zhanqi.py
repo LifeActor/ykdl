@@ -8,7 +8,7 @@ from ..extractor import VideoExtractor
 import re
 
 class Zhanqi(VideoExtractor):
-    name = '战旗 (zhanqi)'
+    name = u'战旗 (zhanqi)'
 
     live = False
 

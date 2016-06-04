@@ -37,7 +37,7 @@ class Xiami(VideoExtractor):
         if not self.vid:
             self.vid = match1(self.url, 'http://www.xiami.com/song/(\d+)', 'http://www.xiami.com/song/detail/id/(\d+)')
 
-        xml = get_content('http://www.xiami.com/song/playlist/id/{}/object_name/default/object_id/0'.format(self.vid))
+        xml = get_content('http://www.xiami.com/song/playlist/id/{}/object_name/default/object_id/0'.format(self.vid) , charset = 'ignore')
         doc = parseString(xml)
         self.song_data = doc.getElementsByTagName("track")[0]
 
@@ -59,7 +59,7 @@ class Xiami(VideoExtractor):
             _id =match1(url, 'http://www.xiami.com/collect/(\d+)')
             t = '3'
 
-        xml = get_content('http://www.xiami.com/song/playlist/id/{}/type/{}'.format(_id, t))
+        xml = get_content('http://www.xiami.com/song/playlist/id/{}/type/{}'.format(_id, t), charset = 'ignore')
         doc = parseString(xml)
         tracks = doc.getElementsByTagName("trackList")[0]
 

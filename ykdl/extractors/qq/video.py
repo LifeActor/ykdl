@@ -95,7 +95,7 @@ def load_key():
 
 def qq_get_final_url(url, fmt_name, type_name, br, form, fn):
 
-    content = get_content('http://vv.video.qq.com/getkey',data=compact_bytes(form, 'utf-8'))
+    content = get_content('http://vv.video.qq.com/getkey',data=compact_bytes(form, 'utf-8'), charset = 'ignore')
     tree = ET.fromstring(content)
 
     vkey = tree.find('./key').text
@@ -152,7 +152,7 @@ class QQ(VideoExtractor):
         }
 
         form = urlencode(params)
-        content = get_content('http://vv.video.qq.com/getinfo',data=compact_bytes(form, 'utf-8'))
+        content = get_content('http://vv.video.qq.com/getinfo',data=compact_bytes(form, 'utf-8'), charset = 'ignore')
         tree = ET.fromstring(content)
         fmt_id = None
         fmt_name = None

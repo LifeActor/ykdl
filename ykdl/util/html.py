@@ -73,6 +73,9 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     elif content_encoding == 'deflate':
         data = undeflate(data)
 
+    if charset == 'ignore':
+        return data
+
     # Decode the response body
     if charset is None:
         charset = match1(resheader['Content-Type'], r'charset=([\w-]+)') or \

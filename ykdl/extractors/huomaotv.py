@@ -4,7 +4,7 @@
 from ..util.html import get_content
 from ..util.match import match1
 from ..extractor import VideoExtractor
-from ykdl.compact import urlencode
+from ykdl.compact import urlencode, compact_bytes
 
 import json
 
@@ -28,7 +28,7 @@ class HuomaoTv(VideoExtractor):
                    'cdns' : '1'
                 }
         form = urlencode(params)
-        content = get_content(self.live_base,data=bytes(form, 'utf-8'),charset = 'utf-8')
+        content = get_content(self.live_base,data=compact_bytes(form, 'utf-8'),charset = 'utf-8')
         stream_data = json.loads(content)
         if stream_data["roomStatus"] == "1":
             for stream in stream_data["streamList"]:

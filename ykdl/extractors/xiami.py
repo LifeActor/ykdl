@@ -38,7 +38,6 @@ class Xiami(VideoExtractor):
             self.vid = match1(self.url, 'http://www.xiami.com/song/(\d+)', 'http://www.xiami.com/song/detail/id/(\d+)')
 
         xml = get_content('http://www.xiami.com/song/playlist/id/{}/object_name/default/object_id/0'.format(self.vid))
-        print(xml)
         doc = parseString(xml)
         self.song_data = doc.getElementsByTagName("track")[0]
 

@@ -4,7 +4,7 @@
 from ykdl.util.match import match1
 from ykdl.util.html import get_content
 from ykdl.extractor import VideoExtractor
-from ykdl.compact import urlencode
+from ykdl.compact import urlencode, compact_bytes
 
 import json
 
@@ -23,7 +23,7 @@ class DoubanMusic(VideoExtractor):
             "ck" : ""
         }
         form = urlencode(params)
-        data = json.loads(get_content('https://music.douban.com/j/artist/playlist', data = bytes(form, 'utf-8')))
+        data = json.loads(get_content('https://music.douban.com/j/artist/playlist', data = compact_bytes(form, 'utf-8')))
         self.song_info = data['songs'][0]
 
     def extract(self):
@@ -43,7 +43,7 @@ class DoubanMusic(VideoExtractor):
             "ck" : ""
         }
         form = urlencode(params)
-        data = json.loads(get_content('https://music.douban.com/j/artist/playlist', data = bytes(form, 'utf-8')))
+        data = json.loads(get_content('https://music.douban.com/j/artist/playlist', data = compact_bytes(form, 'utf-8')))
 
         for s in data['songs']:
            self.song_info = s

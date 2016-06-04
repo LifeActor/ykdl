@@ -4,7 +4,7 @@
 from ykdl.util.match import match1
 from ykdl.util.html import get_content
 from ykdl.extractor import VideoExtractor
-from ykdl.compact import urlencode
+from ykdl.compact import urlencode, compact_bytes
 
 import time
 import json
@@ -20,7 +20,7 @@ class BaiduMusic(VideoExtractor):
 
         param = urlencode({'songIds': self.vid})
 
-        song_data = json.loads(get_content('http://play.baidu.com/data/music/songlink', data=bytes(param, 'utf-8')))['data']['songList'][0]
+        song_data = json.loads(get_content('http://play.baidu.com/data/music/songlink', data=compact_bytes(param, 'utf-8')))['data']['songList'][0]
 
         self.title = song_data['songName']
         self.artist = song_data['artistName']

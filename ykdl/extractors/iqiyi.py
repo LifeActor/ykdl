@@ -11,6 +11,8 @@ import json
 from math import floor
 import hashlib
 
+from ykdl.compact import compact_bytes
+
 '''
 Changelog:
 -> http://www.iqiyi.com/common/flashplayer/20150916/MainPlayer_5_2_28_c3_3_7_4.swf
@@ -49,7 +51,7 @@ bid meaning for quality
 def mix(tvid):
     salt = '4a1caba4b4465345366f28da7c117d20'
     tm = str(randint(2000,4000))
-    sc = hashlib.new('md5', bytes(salt + tm + tvid, 'utf-8')).hexdigest()
+    sc = hashlib.new('md5', compact_bytes(salt + tm + tvid, 'utf-8')).hexdigest()
     return tm, sc, 'eknas'
 
 def getVRSXORCode(arg1,arg2):
@@ -76,7 +78,7 @@ def getDispathKey(rid):
     tp=")(*&^flash@#$%a"  #magic from swf
     time=json.loads(get_content("http://data.video.qiyi.com/t?tn="+str(random())))["t"]
     t=str(int(floor(int(time)/(10*60.0))))
-    return hashlib.new("md5",bytes(t+tp+rid,"utf-8")).hexdigest()
+    return hashlib.new("md5",compact_bytes(t+tp+rid,"utf-8")).hexdigest()
 
 class Iqiyi(VideoExtractor):
     name = u"爱奇艺 (Iqiyi)"
@@ -109,7 +111,7 @@ class Iqiyi(VideoExtractor):
                 "&tvId="+tvid+"&vid="+vid+"&vinfo=1&tm="+tm+\
                 "&enc="+sc+\
                 "&qyid="+uid+"&tn="+str(random()) +"&um=1" +\
-                "&authkey="+hashlib.new('md5',bytes(hashlib.new('md5', b'').hexdigest()+str(tm)+tvid,'utf-8')).hexdigest()
+                "&authkey="+hashlib.new('md5',compact_bytes(hashlib.new('md5', b'').hexdigest()+str(tm)+tvid,'utf-8')).hexdigest()
         return json.loads(get_content(vmsreq))
 
 

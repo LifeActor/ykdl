@@ -5,7 +5,7 @@ from ykdl.util.html import get_content
 from ykdl.util.match import match1
 from ykdl.extractor import VideoExtractor
 
-from ykdl.compact import unquote
+from ykdl.compact import compact_unquote
 
 class NeteaseVideo(VideoExtractor):
     name = u"网易视频 (163)"
@@ -22,7 +22,7 @@ class NeteaseVideo(VideoExtractor):
         topiccid, _vid = self.vid
         code = _vid[-2:]
         video_xml = get_content('http://xml.ws.126.net/video/{}/{}/{}_{}.xml'.format(code[0], code[1], topiccid, _vid))
-        self.title = unquote(match1(video_xml, '<title>([^<]+)'))
+        self.title = compact_unquote(match1(video_xml, '<title>([^<]+)'))
 
         for tp in self.sopported_stream_types:
             searchcode = '<{}Url><flv>([^<]+)'.format(tp)

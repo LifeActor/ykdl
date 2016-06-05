@@ -3,7 +3,6 @@
 
 from ..simpleextractor import SimpleExtractor
 from ykdl.util.html import add_header
-from ykdl.compact import unquote
 
 class Weibo(SimpleExtractor):
     name = u"微博秒拍 (Weibo)"

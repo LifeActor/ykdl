@@ -4,7 +4,7 @@
 from ..util.match import match1
 from ..simpleextractor import SimpleExtractor
 
-from ykdl.compact import unquote
+from ykdl.compact import compact_unquote
 import re
 
 class Metacafe(SimpleExtractor):
@@ -19,6 +19,6 @@ class Metacafe(SimpleExtractor):
 
     def get_url(self):
         url_raw = match1(html, '&videoURL=([^&]+)')
-        self.v_url = [unquote(url_raw)]
+        self.v_url = [compact_unquote(url_raw)]
 
 site = Metacafe()

@@ -7,7 +7,7 @@ from ykdl.util.match import match1, matchall
 
 
 from xml.dom.minidom import parseString
-from ykdl.compact import unquote
+from ykdl.compact import compact_unquote
 
 def location_dec(string):
     head = int(string[0])
@@ -26,7 +26,7 @@ def location_dec(string):
             else:
                 char = string[cols*full_row+(r-full_row)*(cols-1)+c]
             out += char
-    return unquote(out).replace("^", "0")
+    return compact_unquote(out).replace("^", "0")
 
 class Xiami(VideoExtractor):
     name = u"Xiami (虾米音乐)"

@@ -34,8 +34,8 @@ class LeLive(VideoExtractor):
 
         self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
 
-    def extract(self):
-        stream_id = self.param.format or self.stream_types[0]
+    def extract_single(self, stream_id):
+
         date = datetime.datetime.now()
 
         streamUrl = self.streams[stream_id]['streamUrl'] + '&format=1&expect=2&termid=1&hwtype=un&platid=10&splatid=1001&playid=1sign=live_web&&ostype={}&p1=1&p2=10&p3=-&vkit={}&station={}&tm={}'.format(platform.platform(), date.strftime("%Y%m%d"), self.vid, int(time.time()))
@@ -43,6 +43,14 @@ class LeLive(VideoExtractor):
         data = json.loads(get_content(streamUrl))
 
         self.streams[stream_id]['src'] = [data['location']]
+
+    def extract(self):
+        if not self.param.info:
+            stream_id = self.param.format or self.stream_types[0]
+            self.extract_single(stream_id)
+        else:
+            for stream_id in self.stream_types:
+                self.extract_single(stream_id)
 
 site = LeLive()
         

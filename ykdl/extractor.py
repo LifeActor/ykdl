@@ -138,6 +138,8 @@ class VideoExtractor():
             print(json.dumps(self.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False))
         else:
             self.print_info()
+        if self.param.info or self.param.url:
+            return
         i = 0
         name = '_'.join([legitimize(self.title), stream_id, self.name_suffix()])
         for url in self.extract_iter():

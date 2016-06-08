@@ -47,9 +47,14 @@ class YoukuBase(VideoExtractor):
         self.stream_types = sorted(self.stream_types, key = supported_stream_code.index)
 
     def extract(self):
-        if self.param.info:
-            return
-        stream_id = self.param.format or self.stream_types[0]
+        if not self.param.info:
+            stream_id = self.param.format or self.stream_types[0]
+            self. extract_single(stream_id)
+        else:
+            for stream_id in self.stream_types:
+                self. extract_single(stream_id)
+
+    def extract_single(self, stream_id):
         sid, token = init(self.ep)
         segs = self.streams_parameter[stream_id]['segs']
         streamfileid = self.streams_parameter[stream_id]['fileid']
@@ -88,8 +93,7 @@ class YoukuBase(VideoExtractor):
             url = json.loads(get_content(u))[0]['server']
             urls.append(url)
 
-        if not self.param.info:
-            self.streams[stream_id]['src'] = urls
-            if not self.streams[stream_id]['src'] and self.password_protected:
-                log.e('[Failed] Wrong password.')
+        self.streams[stream_id]['src'] = urls
+        if not self.streams[stream_id]['src'] and self.password_protected:
+            log.e('[Failed] Wrong password.')
 

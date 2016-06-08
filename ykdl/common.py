@@ -10,6 +10,7 @@ from .util import log
 
 import socket
 import os
+import sys
 from ykdl.compact import ProxyHandler, build_opener, install_opener
 
 def mime_to_container(mime):
@@ -90,6 +91,7 @@ def main():
     if os.path.exists(args.output_dir):
         os.chdir(args.output_dir)
 
+    e = None
     for url in args.video_urls:
         try:
             m,u = url_to_module(url)
@@ -107,3 +109,5 @@ def main():
             log.e(str(e))
         except SyntaxError as e:
             log.e(str(e))
+    if e:
+        sys.exit(1)

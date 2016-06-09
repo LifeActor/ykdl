@@ -91,7 +91,7 @@ def main():
     if os.path.exists(args.output_dir):
         os.chdir(args.output_dir)
 
-    e = None
+    exit = 0
     for url in args.video_urls:
         try:
             m,u = url_to_module(url)
@@ -103,11 +103,14 @@ def main():
                 m.download(u, args)
         except AssertionError as e:
             log.wtf(str(e))
+            exit = 1
         except RuntimeError as e:
             log.e(str(e))
+            exit = 1
         except NotImplementedError as e:
             log.e(str(e))
+            exit = 1
         except SyntaxError as e:
             log.e(str(e))
-    if e:
-        sys.exit(1)
+            exit = 1
+    sys.exit(exit)

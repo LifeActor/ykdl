@@ -4,8 +4,9 @@
 import json
 
 from ..util.match import match1
-from ..util.html import get_content
+from ..util.html import get_content, add_header
 from ..extractor import VideoExtractor
+from ykdl.compact import compact_unquote
 
 
 class Baomihua(VideoExtractor):
@@ -15,35 +16,20 @@ class Baomihua(VideoExtractor):
     def prepare(self):
 
 
-        if self.url and not self.vid:
-            html = get_content(self.url)
-            self.vid = match1(html, r'flvid = (\d+);')
-            self.title = match1(html, '<title>(.*)</title>')
+        if self.url:
+            self.vid = match1(self.url, '_(\d+)', 'm/(\d+)')
 
-        if not self.url:
-            self.title = self.name + str(self.vid)
+        add_header('Referer', 'http://m.video.baomihua.com/')
+        html = get_content('http://play.baomihua.com/getvideourl.aspx?flvid={}&datatype=json&devicetype=wap'.format(self.vid))
+        data = json.loads(html)
+        self.title = compact_unquote(data["title"])
+        host = data['host']
+        stream_name = data['stream_name']
+        t = data['videofiletype']
+        size = int(data['videofilesize'])
 
-        html = ''
-        while(True):
-            html = get_content('http://play.baomihua.com/getvideourl.aspx?flvid=%s' % self.vid)
-
-            try:
-               #do not go json!!
-               json.load(html)
-               continue
-            except:
-               break
-
-        host = match1(html, 'host=([^&]*)')
-        assert host
-        type = match1(html, 'videofiletype=([^&]*)')
-        assert type
-        id = match1(html, '&stream_name=([^&]*)')
-        assert id
-        size = int(match1(html, '&videofilesize=([^&]*)'))
-
-        url = "http://%s/pomoho_video/%s.%s" % (host, id, type)
+        url = "http://{}/pomoho_video/{}.{}".format(host, stream_name, t)
         self.stream_types.append('current')
-        self.streams['current'] = {'container': type, 'src': [url], 'size' : size}
+        self.streams['current'] = {'video_profile': 'current', 'container': t, 'src': [url], 'size' : size}
 
 site = Baomihua()

@@ -36,7 +36,7 @@ test_kuwo:
 	${PYTHON} bin/ykdl -iu http://www.kuwo.cn/yinyue/7119332?catalog=yueku2016
 
 test_lizhi:
-	${PYTHON} bin/ykdl -iu http://www.lizhi.fm/202840/
+	${PYTHON} bin/ykdl -iu http://www.lizhi.fm/202840/29101368624039686
 
 test_sina:
 	${PYTHON} bin/ykdl -iu 'http://video.sina.com.cn/ent/#250623748' -t 300

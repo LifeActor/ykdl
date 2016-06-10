@@ -29,6 +29,7 @@ class Douyutv(VideoExtractor):
         if server_status is not 0:
             raise ValueError("Server returned error:%s" % server_status)
         self.title = data.get('room_name')
+        self.artist= data.get('nickname')
         show_status = data.get('show_status')
         assert show_status == "1", "The live stream is not online! (Errno:%s)" % show_status
         real_url = data.get('rtmp_url')+'/'+data.get('rtmp_live')

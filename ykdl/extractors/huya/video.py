@@ -23,11 +23,10 @@ class HuyaVideo(VideoExtractor):
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'data-vid="(\d+)')
+            self.title = match1(html, '<title>([^<]+)').split('_')[0]
 
         api_url = 'http://playapi.v.duowan.com/index.php?vid={}&partner=&r=play%2Fvideo'.format(self.vid)
         data = json.loads(get_content(api_url))['result']['items']
-        #lazy title
-        self.title = self.name + '_' + self.vid
 
         for i in data:
             d = i['transcode']

@@ -14,9 +14,8 @@ class NeteaseLive(VideoExtractor):
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, "anchorCcId : \'([^\']+)")
-            self.title = match1(html, "<title>([^<]+)")
-        else:
-            self.title = self.name + str(self.vid)
+            self.title = match1(html, "title: \'([^\']+)")
+            self.artist = match1(html, "anchorName : \'([^\']+)")
 
         info = json.loads(get_content("http://cgi.v.cc.163.com/video_play_url/{}".format(self.vid)))
 

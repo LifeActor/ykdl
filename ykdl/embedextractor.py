@@ -17,7 +17,6 @@ class EmbedExtractor():
 
     def __init__(self):
         self.video_info = []
-        self.title = None
 
     def prepare(self):
         """
@@ -52,7 +51,6 @@ class EmbedExtractor():
                 if site in alias.keys():
                     site = alias[site]
                 s = import_module('.'.join(['ykdl','extractors',site])).site
-                s.title = self.title + " %02d" % n
                 s.download(vid, self.param)
                 n += 1
 

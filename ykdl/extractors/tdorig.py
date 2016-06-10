@@ -13,8 +13,6 @@ class TDorig(VideoExtractor):
 
     def prepare(self):
 
-        if not self.title:
-            self.title = self.name + "-" + self.vid
         add_header('User-Agent', '')
 
         data = json.loads(get_content('http://www.tudou.com/outplay/goto/getItemSegs.action?iid=%s' % self.vid))

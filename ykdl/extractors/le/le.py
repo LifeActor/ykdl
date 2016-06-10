@@ -46,22 +46,15 @@ class Letv(VideoExtractor):
 
     def prepare(self):
 
-        if self.vid:
-            self.url = "http://www.le.com/ptv/vplay/{}.html".format(self.vid)
-        html = get_content(self.url)
         if not self.vid:
             self.vid = match1(self.url, r'http://www.le.com/ptv/vplay/(\d+).html', '#record/(\d+)')
-        if not self.vid:
-           #self embed
-           vids = matchall(html, ['vid="(\d+)"'])
-           for v in vids:
-               self.download(v, self.param)
 
         #normal process
-        self.title = match1(html,r'name="irTitle" content="(.*?)"')
         info_url = 'http://api.le.com/mms/out/video/playJson?id={}&platid=1&splatid=101&format=1&tkey={}&domain=www.le.com'.format(self.vid, calcTimeKey(int(time.time())))
         r = get_content(info_url)
         info=json.loads(r)
+
+        self.title = info['playurl']['title']
         available_stream_id = info["playurl"]["dispatch"].keys()
         for stream in self.supported_stream_types:
             if stream in available_stream_id:

@@ -13,8 +13,6 @@ class Acfun(EmbedExtractor):
 
         html = get_content(self.url)
 
-        self.title = match1(html, '<h1 id="txt-title-view">([^<>]+)<')
-
         sourceVid = match1(html, "data-vid=\"([a-zA-Z0-9=]+)\" data-scode=")
 
         data = json.loads(get_content('http://www.acfun.tv/video/getVideo.aspx?id={}'.format(sourceVid)))

@@ -73,17 +73,20 @@ class VideoExtractor():
                 self.print_stream_info(stream_id)
 
     def download(self, url, param):
+        self.__init__()
         if isinstance(url, str) and url.startswith('http'):
             self.url = url
-            self.vid= None
         else:
-            self.url = None
             self.vid= url
 
         self.param = param
         self.stream_types = []
 
         self.prepare()
+
+        if not self.title:
+            t = self.vid or self.url[-5:]
+            self.title = self.name + '_' + t
 
         if self.iterable:
             self.download_iter()

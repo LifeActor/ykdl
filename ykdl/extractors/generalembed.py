@@ -100,7 +100,6 @@ class GeneralEmbed(EmbedExtractor):
 
     def prepare(self):
         content = get_content(self.url)
-        self.title = match1(content, '<title>([^<>]+)</title>')
 
         vids = matchall(content, youku_embed_patterns)
         for vid in vids:

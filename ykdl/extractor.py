@@ -138,7 +138,6 @@ class VideoExtractor():
                 lenth = len(urls)
             else: #generator
                 lenth = live_m3u8_lenth()
-            print(lenth)
             if self.param.merge and lenth > 1:
                 launch_ffmpeg(name,  self.streams[stream_id]['container'], lenth)
 

@@ -29,7 +29,7 @@ class BiliVideo(VideoExtractor):
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'cid=([^&]+)')
-            self.title = match1(html, '<title>([^<]+)')
+            self.title = match1(html, '<title>([^<]+)').split("_")[0]
         for q in self.supported_stream_profile:
             api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid + '&quality=' + str(3-self.supported_stream_profile.index(q))
             urls, size = parse_cid_playurl(get_content(api_url))

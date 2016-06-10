@@ -14,11 +14,9 @@ class BiliLive(VideoExtractor):
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'cid=([^&]+)')
-            self.title = match1(html, '<title>([^<]+)')
-
-        else:
-            if not self.title:
-                self.title = self.name + "-" + self.vid
+            t = match1(html, '<title>([^<]+)').split('-')
+            self.title = t[0]
+            self.artist = t[1]
 
         info = get_content('http://live.bilibili.com/api/playurl?cid={}'.format(self.vid))
         urls = [matchall(info, ['CDATA\[([^\]]+)'])[1]]

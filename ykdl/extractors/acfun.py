@@ -5,6 +5,8 @@ from ..util.html import get_content
 from ..util.match import match1, matchall
 from ..embedextractor import EmbedExtractor
 
+import json
+
 class Acfun(EmbedExtractor):
 
     def prepare(self):
@@ -13,13 +15,16 @@ class Acfun(EmbedExtractor):
 
         self.title = match1(html, '<h1 id="txt-title-view">([^<>]+)<')
 
-        sourceType = match1(html, "data-from=\"([a-zA-Z0-9]+)\" data-did=")
-        sourceId = match1(html, "data-did=\"\" data-sid=\"([a-zA-Z0-9=]+)\"")
         sourceVid = match1(html, "data-vid=\"([a-zA-Z0-9=]+)\" data-scode=")
+
+        data = json.loads(get_content('http://www.acfun.tv/video/getVideo.aspx?id={}'.format(sourceVid)))
+
+        sourceType = data['sourceType']
+        sourceId = data['sourceId']
 
         if sourceType == 'zhuzhan':
             sourceType = 'acorig'
-            sourceId = sourceVid
+            sourceId = sourceId
         elif sourceType == 'letv':
             #workaround for letv, because it is letvcloud
             sourceType = 'letvcloud'

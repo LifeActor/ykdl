@@ -33,12 +33,19 @@ try:
             urls.append(seg.absolute_uri)
         return urls
 
+    __lenth__ = 0
+
+    def live_m3u8_lenth():
+        global __lenth__
+        return __lenth__
+
     def load_live_m3u8(url):
         """
         the stream is live stream. so we use sleep to simulate player. but not perfact!
         """
+        global __lenth__
         m =  m3u8.load(url)
-        now = d = 0
+        __lenth__ = now = d = 0
         i = 0
         m3u8_live_stopper()
         while True:
@@ -53,6 +60,7 @@ try:
                 now = time.time()
                 d = m.segments[i].duration
                 i += 1
+                __lenth__ += 1
                 yield segurl
             else:
                 i = 0
@@ -72,4 +80,7 @@ except:
 
     def load_live_m3u8(url):
         return [url]
+
+    def live_m3u8_lenth():
+        return 0
 

@@ -53,7 +53,7 @@ def save_urls(urls, name, ext):
     no = 0
     for u in urls:
         print("Download: " + name + " part %d" % no)
-        n = name + '_%02d_.' % no + ext
+        n = name + '_%d_.' % no + ext
         save_url(u, n)
         print("")
         no += 1

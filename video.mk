@@ -1,4 +1,4 @@
-test_video1: test_youku test_acfun test_bilibili test_ifeng test_163m test_sohutv test_cctv
+test_video1: test_youku test_acfun test_bilibili test_ifeng test_163m test_sohutv test_cctv test_tudou
 test_video2: test_iqilu test_iqiyi test_joy test_ku6 test_kuwo test_sina test_qq test_sohumy test_baomihua
 test_video3: test_xiami test_yinyuetai test_baidu test_douban test_huya test_163v test_le test_mgtv
 
@@ -76,3 +76,6 @@ test_sohumy:
 
 test_mgtv:
 	${PYTHON} bin/ykdl -iu http://www.mgtv.com/v/2/293140/c/3269011.html
+
+test_tudou:
+	${PYTHON} bin/ykdl -iu http://www.tudou.com/listplay/91csQ5vcKbg/lwLGzPNUWuQ/

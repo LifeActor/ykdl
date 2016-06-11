@@ -98,30 +98,30 @@ weibo_embed_patterns = [ 'http://video.weibo.com/player/1034:(\w{32})\w*'
 
 class GeneralEmbed(EmbedExtractor):
 
-    def prepare(self):
+    def prepare_playlist(self):
         content = get_content(self.url)
 
         vids = matchall(content, youku_embed_patterns)
         for vid in vids:
-            self.video_info.append(('youku',vid))
+            self.video_info_list.append(('youku',vid))
 
         vids = matchall(content, tudou_embed_patterns)
         for vid in vids:
             new_url = get_location("http://tudou.com/v/"+vid)
             iid = match1(new_url, 'iid=([^&]+)')
-            self.video_info.append(('tdorig',iid))
+            self.video_info_list.append(('tdorig',iid))
 
         vids = matchall(content, qq_embed_patterns)
         for vid in vids:
-            self.video_info.append(('qq',vid))
+            self.video_info_list.append(('qq',vid))
 
         vids = matchall(content, sohu_embed_patterns)
         for vid in vids:
-            self.video_info.append(('sohu.my',vid))
+            self.video_info_list.append(('sohu.my',vid))
 
         vids = matchall(content, youtube_embed_patterns)
         for vid in vids:
-            self.video_info.append(('youtube',vid))
+            self.video_info_list.append(('youtube',vid))
 
         urls = matchall(content, ku6_embed_url)
         for url in urls:
@@ -129,33 +129,35 @@ class GeneralEmbed(EmbedExtractor):
             flashvars = matchall(html, ['vid=([^&]+)', 'style=([^&]+)', 'sn=([^&]+)'])
             data = json.loads(get_content('http://v.ku6vms.com/phpvms/player/forplayer/vid/{}/style/{}/sn/{}'.format(flashvars[0], flashvars[1],flashvars[2])))
             vid = data['ku6vid']
-            self.video_info.append(('ku6',vid))
+            self.video_info_list.append(('ku6',vid))
         vids = matchall(content, netease_embed_patterns)
         for v in vids:
-            self.video_info.append(('netease.video', v))
+            self.video_info_list.append(('netease.video', v))
 
         vids = matchall(content, iqiyi_embed_patterns)
         for v in vids:
             videoid, tvid = v
-            self.video_info.append(('iqiyi', (tvid, videoid)))
+            self.video_info_list.append(('iqiyi', (tvid, videoid)))
 
         vids = matchall(content, lecloud_embed_patterns)
         for v in vids:
             uu, vu = v
-            self.video_info.append(('letvcloud', (vu, uu)))
+            self.video_info_list.append(('letvcloud', (vu, uu)))
 
         vids = matchall(content, ifeng_embed_patterns)
         for v in vids:
-            self.video_info.append(('ifeng', v))
+            self.video_info_list.append(('ifeng', v))
 
         vids = matchall(content, weibo_embed_patterns)
         for v in vids:
-            self.video_info.append(('weibo','http://weibo.com/p/' + v))
+            self.video_info_list.append(('weibo','http://weibo.com/p/' + v))
 
         tmp = []
-        for v in self.video_info:
+        for v in self.video_info_list:
             if not v in tmp:
                 tmp.append(v)
-        self.video_info = tmp
+        self.video_info_list = tmp
+
+    download = EmbedExtractor.download_playlist
 
 site = GeneralEmbed()

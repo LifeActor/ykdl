@@ -16,7 +16,7 @@ class EmbedExtractor():
     """
 
     def __init__(self):
-        self.video_info = []
+        self.video_info = None
 
     def prepare(self):
         """
@@ -38,36 +38,32 @@ class EmbedExtractor():
         self.param = param
         if isinstance(url, str) and url.startswith('http'):
             self.url = url
-        self.video_info = []
+        self.video_info = None
         self.prepare()
 
         if not self.video_info:
             raise NotImplementedError(self.url + " is not supported")
 
-        if self.video_info:
-            n = 0
-            for v in self.video_info:
-                site, vid = v
-                if site in alias.keys():
-                    site = alias[site]
-                s = import_module('.'.join(['ykdl','extractors',site])).site
-                s.download(vid, self.param)
-                n += 1
+        site, vid = self.video_info
+        if site in alias.keys():
+            site = alias[site]
+        s = import_module('.'.join(['ykdl','extractors',site])).site
+        s.download(vid, self.param)
 
     def download_playlist(self, url, param):
         self.param = param
         if isinstance(url, str) and url.startswith('http'):
             self.url = url
-        self.video_info = []
+        self.video_info_list = []
         self.prepare_playlist()
 
-        if not self.video_info:
+        if not self.video_info_list:
             raise NotImplementedError('Playlist is not supported for ' + self.name)
 
-        if self.video_info:
-            for v in self.video_info:
-                site, vid = v
-                if site in alias.keys():
-                    site = alias[site]
-                s = import_module('.'.join(['ykdl','extractors',site])).site
-                s.download_playlist(vid, self.param)
+
+        for v in self.video_info_list:
+            site, vid = v
+            if site in alias.keys():
+                site = alias[site]
+            s = import_module('.'.join(['ykdl','extractors',site])).site
+            s.download(vid, self.param)

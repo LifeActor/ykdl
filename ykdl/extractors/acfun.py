@@ -28,7 +28,7 @@ class Acfun(EmbedExtractor):
             sourceType = 'letvcloud'
             sourceId = (sourceId, '2d8c027396')
 
-        self.video_info.append((sourceType, sourceId))
+        self.video_info=(sourceType, sourceId)
 
     def download_playlist(self, url, param):
         self.url = url

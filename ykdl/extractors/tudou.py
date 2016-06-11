@@ -19,11 +19,11 @@ class Tudou(EmbedExtractor):
         html = get_content(self.url)
         vcode = match1(html, 'vcode\s*[:=]\s*\'([^\']+)\'')
         if vcode:
-            self.video_info.append(('youku', vcode))
+            self.video_info = ('youku', vcode)
         else:
             vid = match1(html, 'iid\s*[:=]\s*(\d+)')
             if vid:
-                self.video_info.append(('tdorig', vid))
+                self.video_info = ('tdorig', vid)
 
     def parse_plist(self):
         html = get_content(self.url)

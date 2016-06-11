@@ -18,13 +18,12 @@ class YinYueTai(VideoExtractor):
 
         data = json.loads(get_content('http://ext.yinyuetai.com/main/get-h-mv-info?json=true&videoId={}'.format(self.vid)))
 
-        if data['error']:
-            log.e('some error happens')
+        assert not data['error'], 'some error happens'
 
         video_data = data['videoInfo']['coreVideoInfo']
 
         self.title = video_data['videoName']
-
+        self.artist = video_data['artistNames']
         for s in video_data['videoUrlModels']:
             self.stream_types.append(s['qualityLevel'])
             self.streams[s['qualityLevel']] = {'container': 'flv', 'video_profile': s['qualityLevelName'], 'src' : [s['videoUrl']], 'size': s['fileSize']}

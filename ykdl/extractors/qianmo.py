@@ -23,8 +23,6 @@ class Qianmo(VideoExtractor):
                 self.vid = video_info_json['ext_video_id']
             else:
                 raise ValueError
-        else:
-            self.title = title or self.vid
 
         html = get_content('http://v.qianmo.com/player/{}'.format(self.vid))
         c = json.loads(html)

@@ -22,6 +22,7 @@ class Panda(VideoExtractor):
         assert stream_data['data']['videoinfo']['status'] == '2', u"error: (⊙o⊙)主播暂时不在家，看看其他精彩直播吧！"
         room_key = stream_data['data']['videoinfo']['room_key']
         self.title = stream_data['data']['roominfo']['name']
+        self.artist = stream_data['data']['hostinfo']['name']
 
 
         self.stream_types.append('current')

@@ -11,6 +11,9 @@ import json
 class LongzhuLive(VideoExtractor):
     name = u'Longzhu Live (龙珠直播)'
 
+    supported_stream_types = ['SD', 'HD', 'TD', 'BD']
+    types_2_profile = {'SD': '标清', 'HD':'高清', 'TD':'超清', 'BD':'原画'}
+
     def prepare(self):
         self.live = True
 
@@ -26,7 +29,13 @@ class LongzhuLive(VideoExtractor):
 
         for i in data:
             if i['ext'] == 'flv':
-                self.stream_types.append("current")
-                self.streams["current"] = {'container': 'flv', 'video_profile': 'current', 'src' : [i['securityUrl']], 'size': 0}
+                stream_id = self.supported_stream_types[i['rateLevel'] -1]
+                self.stream_types.append(stream_id)
+                self.streams[stream_id] = {'container': 'flv', 'video_profile': self.types_2_profile[stream_id], 'src' : [i['securityUrl']], 'size': 0}
+
+        #sort stream_types
+        types = self.supported_stream_types
+        types.reverse()
+        self.stream_types = sorted(self.stream_types, key=types.index)
 
 site = LongzhuLive()

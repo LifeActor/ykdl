@@ -5,6 +5,11 @@ try:
 except:
     from distutils.core import setup
 
+try:
+    import wheel
+except:
+    pass
+
 import os
 
 def find_packages(*tops):
@@ -31,6 +36,7 @@ setup(
     requires = ['m3u8'],
     install_requires = ['m3u8'],
     platforms = 'any',
+    zip_safe = True,
     classifiers = [
         "Development Status :: 4 - Beta",
         "Environment :: Console",

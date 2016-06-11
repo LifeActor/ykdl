@@ -13,9 +13,11 @@ def find_packages(*tops):
                 packages.append(root)
     return packages
 
+from ykdl import __version__
+
 setup(
     name = "ykdl",
-    version = "1.0.9.2",
+    version = __version__,
     author = "Zhang Ning",
     author_email = "zhangn1985@gmail.com",
     url = "https://github.com/zhangn1985/ykdl",
@@ -24,6 +26,7 @@ setup(
     long_description = "a video downloader written in Python",
     keywords = "video download youtube youku",
     packages = find_packages('ykdl'),
+    requires = ['m3u8'],
     platforms = 'any',
     classifiers = [
         "Development Status :: 4 - Beta",

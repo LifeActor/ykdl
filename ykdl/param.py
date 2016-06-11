@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from argparse import ArgumentParser
-
-from ykdl import __version__
+try:
+    from ykdl.version import __version__
+except:
+    __version__ = ""
 
 def arg_parser():
     parser = ArgumentParser(description="YouKuDownLoader(ykdl {}), a video downloader. Forked form you-get 0.3.34@soimort".format(__version__))

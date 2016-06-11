@@ -24,7 +24,7 @@ def find_packages(*tops):
                 packages.append(root)
     return packages
 
-from ykdl import __version__
+from ykdl.version import __version__
 
 setup(
     name = "ykdl",

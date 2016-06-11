@@ -5,13 +5,6 @@ from importlib import import_module
 
 from .util.match import match1
 from .util.html import fake_headers
-from .param import arg_parser
-from .util import log
-
-import socket
-import os
-import sys
-from ykdl.compact import ProxyHandler, build_opener, install_opener
 
 def mime_to_container(mime):
     mapping = {
@@ -66,51 +59,3 @@ def url_to_module(url):
             return url_to_module(location)
         else:
             raise ConnectionResetError(url)
-
-def main():
-    args = arg_parser()
-    if args.timeout:
-        socket.setdefaulttimeout(args.timeout)
-    if args.proxy:
-        proxy_handler = ProxyHandler({
-            'http': args.proxy,
-            'https': args.proxy
-        })
-        opener = build_opener(proxy_handler)
-        install_opener(opener)
-
-    #mkdir and cd to output dir
-    if not args.output_dir == '.':
-        if not os.path.exists(args.output_dir):
-            try:
-                os.mkdir(args.output_dir)
-            except:
-                log.w("No permission or Not found " + param_dict['output_dir'])
-                log.w("use current folder")
-                args.output_dir = '.'
-    if os.path.exists(args.output_dir):
-        os.chdir(args.output_dir)
-
-    exit = 0
-    for url in args.video_urls:
-        try:
-            m,u = url_to_module(url)
-            if not u == url:
-                args.video_urls[args.video_urls.index(url)]  = u
-            if args.playlist:
-                m.download_playlist(u, args)
-            else:
-                m.download(u, args)
-        except AssertionError as e:
-            log.wtf(str(e))
-            exit = 1
-        except RuntimeError as e:
-            log.e(str(e))
-            exit = 1
-        except NotImplementedError as e:
-            log.e(str(e))
-            exit = 1
-        except SyntaxError as e:
-            log.e(str(e))
-            exit = 1
-    sys.exit(exit)

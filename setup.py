@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-from distutils.core import setup
+try:
+    from setuptools import setup
+except:
+    from distutils.core import setup
 
 import os
 
@@ -27,6 +29,7 @@ setup(
     keywords = "video download youtube youku",
     packages = find_packages('ykdl'),
     requires = ['m3u8'],
+    install_requires = ['m3u8'],
     platforms = 'any',
     classifiers = [
         "Development Status :: 4 - Beta",

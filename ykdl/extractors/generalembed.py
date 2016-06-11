@@ -93,10 +93,17 @@ weibo
 weibo_embed_patterns = [ 'http://video.weibo.com/player/1034:(\w{32})\w*'
                      ]
 
+"""
+Sina
+"""
+sina_embed_patterns = [ 'http://video.sina.com.cn/share/video/(\d+).swf'
+                     ]
+
 
 
 
 class GeneralEmbed(EmbedExtractor):
+    name = u"GeneralEmbed (通用嵌入视频)"
 
     def prepare_playlist(self):
         content = get_content(self.url)
@@ -152,6 +159,11 @@ class GeneralEmbed(EmbedExtractor):
         vids = matchall(content, weibo_embed_patterns)
         for v in vids:
             self.video_info_list.append(('weibo','http://weibo.com/p/' + v))
+
+        vids = matchall(content, sina_embed_patterns)
+        for v in vids:
+            v  = v.split('&')[0]
+            self.video_info_list.append(('sina', v))
 
         tmp = []
         for v in self.video_info_list:

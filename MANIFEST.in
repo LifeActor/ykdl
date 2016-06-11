@@ -1,2 +1,4 @@
 include LICENSE.txt
 include requirements.txt
+include README
+include CHANGELOG

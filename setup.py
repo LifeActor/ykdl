@@ -13,7 +13,7 @@ except:
 import os, codecs
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = codecs.open(os.path.join(here, 'README'), encoding='utf8').read()
+README = codecs.open(os.path.join(here, 'README.rst'), encoding='utf8').read()
 CHANGES = codecs.open(os.path.join(here, 'CHANGELOG'), encoding='utf8').read()
 
 def find_packages(*tops):

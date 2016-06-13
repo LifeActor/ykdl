@@ -22,7 +22,6 @@ _*/
 *.ts
 *.webm
 README.html
-README.rst
 
 *.DS_Store
 *.swp

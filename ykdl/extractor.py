@@ -125,7 +125,12 @@ class VideoExtractor():
         elif self.param.player:
             launch_player(self.param.player, urls)
         else:
-            name = '_'.join([legitimize(self.title), stream_id, self.name_suffix()])
+            name_list = [self.title]
+            if not stream_id == 'current':
+                name_list.append(stream_id)
+            if self.name_suffix():
+                name_list.append(self.name_suffix())
+            name = legitimize('_'.join(name_list))
             if self.streams[stream_id]['container'] == 'm3u8':
                 self.streams[stream_id]['container'] = 'ts'
                 if self.live:
@@ -151,7 +156,11 @@ class VideoExtractor():
         if self.param.info or self.param.url:
             return
         i = 0
-        name = '_'.join([legitimize(self.title), stream_id, self.name_suffix()])
+        name_list = [self.title]
+        if not stream_id == 'current':
+            name_list.append(stream_id)
+        if self.name_suffix():
+            name_list.append(self.name_suffix())
         for url in self.extract_iter():
             if self.param.player:
                 launch_player(self.param.player, [url])

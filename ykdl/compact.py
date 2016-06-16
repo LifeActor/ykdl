@@ -17,7 +17,7 @@ else:
     from httplib import HTTPConnection
     compact_str = unicode
     def compact_bytes(string, encode):
-        return string
+        return string.encode(encode)
 
     def compact_unquote(string, encoding = 'utf-8'):
         from urllib import unquote

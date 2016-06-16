@@ -3,6 +3,8 @@ YouKuDownLoader
 
 .. image:: https://img.shields.io/pypi/v/ykdl.svg
    :target: https://pypi.python.org/pypi/ykdl
+.. image:: https://travis-ci.org/zhangn1985/ykdl.svg
+   :target: https://travis-ci.org/zhangn1985/ykdl
 
 
 a video downloader focus on China mainland video sites.

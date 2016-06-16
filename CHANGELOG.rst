@@ -1,6 +1,14 @@
 Change Log for ykdl
 ===================
 
+1.1.0.4
+-----
+
+- update README.rst, CHANGELOG.rst
+- support laifeng live
+- fix zhanqi
+- add travis-ci
+
 1.1.0.3
 -----
 

@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import platform
+
 if sys.version_info[0] == 3:
     from urllib.request import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler
     from urllib.parse import urlencode, urlparse
@@ -9,7 +11,13 @@ if sys.version_info[0] == 3:
     compact_str = str
     compact_bytes = bytes
     from urllib.parse import unquote as compact_unquote
-    from tempfile import NamedTemporaryFile as compact_tempfile
+    from tempfile import NamedTemporaryFile
+    def compact_tempfile(mode='w+b', encoding=None, suffix='', prefix='tmp', dir=None):
+        if platform.system() == 'Windows':
+            _del_  = False
+        else:
+            _del_  = True
+        return NamedTemporaryFile(mode=mode, encoding=encoding, suffix=suffix, prefix=prefix, dir=dir, delete=_del_)
 else:
     from urllib2 import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler
     from urllib import urlencode
@@ -26,7 +34,11 @@ else:
     from tempfile import NamedTemporaryFile
     __tmp__ = []
     import codecs
-    def compact_tempfile(mode='w+b', buffering=-1, encoding=None, newline=None, suffix='', prefix='tmp', dir=None, delete=True):
-        tmp = NamedTemporaryFile(mode=mode, suffix=suffix, prefix=prefix, dir=dir, delete=delete)
+    def compact_tempfile(mode='w+b', encoding=None, suffix='', prefix='tmp', dir=None):
+        if platform.system() == 'Windows':
+            _del_  = False
+        else:
+            _del_  = True
+        tmp = NamedTemporaryFile(mode=mode, suffix=suffix, prefix=prefix, dir=dir, delete=_del_)
         __tmp__.append(tmp)
         return codecs.open(tmp.name, mode, encoding)

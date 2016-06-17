@@ -58,7 +58,7 @@ class EmbedExtractor():
         self.prepare_playlist()
 
         if not self.video_info_list:
-            raise NotImplementedError('Playlist is not supported for ' + self.name)
+            raise NotImplementedError('Playlist is not supported for ' + self.name + 'with url: ' + self.url)
 
 
         for v in self.video_info_list:

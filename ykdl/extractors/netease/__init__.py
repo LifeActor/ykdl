@@ -8,6 +8,7 @@ def get_extractor(url):
         from . import live as s
     elif re.search("music.163", url):
         from . import music as s
+        return s.get_extractor(url)
     else:
         from . import video as s
     return s.site

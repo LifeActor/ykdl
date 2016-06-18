@@ -51,14 +51,6 @@ sohu_embed_patterns = [ 'tv\.sohu\.com[a-zA-Z0-9\/\?=]+\&vid=([a-zA-Z0-9]+)\&',
                       ]
 
 """
-Youtube
-"""
-youtube_embed_patterns = [ 'youtu\.be/([^\"]+)',
-                           'youtube\.com/embed/([^\"]+)',
-                           'youtube\.com/v/([^\"]+)'
-                         ]
-
-"""
 Ku6
 """
 ku6_embed_url = [ '(http://v.ku6vms.com/[^\"]+)'
@@ -126,10 +118,6 @@ class GeneralEmbed(EmbedExtractor):
         vids = matchall(content, sohu_embed_patterns)
         for vid in vids:
             self.video_info_list.append(('sohu.my',vid))
-
-        vids = matchall(content, youtube_embed_patterns)
-        for vid in vids:
-            self.video_info_list.append(('youtube',vid))
 
         urls = matchall(content, ku6_embed_url)
         for url in urls:

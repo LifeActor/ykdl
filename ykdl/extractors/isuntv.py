@@ -30,7 +30,7 @@ class Isuntv(VideoExtractor):
         self.title = match1(html, '<title>([^<]+)').strip()  #get rid of \r\n s
 
         self.stream_types.append('current')
-        self.streams['current'] = {'container': 'mp4', 'src': [video_url], 'size' : url_size(video_url)}
+        self.streams['current'] = {'container': 'mp4', 'src': [video_url], 'size' : 0}
 
 
 site = Isuntv()

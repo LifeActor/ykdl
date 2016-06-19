@@ -71,7 +71,8 @@ iqiyi_embed_patterns = [ 'definitionID=([^&]+)&tvId=([^&]+)'
 """
 Letv Cloud
 """
-lecloud_embed_patterns = [ 'letvcloud_player_conf={"uu":"([^\"]+)","vu":"([^\"]+)"'
+lecloud_embed_patterns = [ 'letvcloud_player_conf={"uu":"([^\"]+)","vu":"([^\"]+)"',
+                           'bcloud.swf\?uu=([^&]+)&amp;vu=([^&]+)'
                      ]
 
 """
@@ -138,7 +139,7 @@ class GeneralEmbed(EmbedExtractor):
         vids = matchall(content, lecloud_embed_patterns)
         for v in vids:
             uu, vu = v
-            self.video_info_list.append(('letvcloud', (vu, uu)))
+            self.video_info_list.append(('le.letvcloud', (vu, uu)))
 
         vids = matchall(content, ifeng_embed_patterns)
         for v in vids:

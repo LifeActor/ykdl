@@ -95,4 +95,12 @@ def urls_size(urls):
     return sum(map(url_size, urls))
 
 def url_info(url, faker = False):
-    return '', '', 0
+    # in case url is http(s)://host/a/b/c.dd?ee&fff&gg
+    # below is to get c.dd
+    f = url.split('?')[0].split('/')[-1]
+    # check . in c.dd, get dd if true
+    if '.' in f:
+        ext = f.split('.')[-1]
+    else:
+        ext = ""
+    return '', ext, 0

@@ -52,7 +52,7 @@ def save_url(url, name, reporthook = simple_hook):
 def save_urls(urls, name, ext):
     no = 0
     for u in urls:
-        if len(urls) == 1:
+        if type(urls) is list and len(urls) == 1:
             print("Download: " + name)
             n = name + '.' + ext
         else:

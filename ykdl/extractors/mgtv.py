@@ -50,14 +50,10 @@ class Hunantv(VideoExtractor):
         self.streams[stream_id]['src'] = [meta['info']]
         self.streams[stream_id]['size'] = 0
 
-    def download_playlist(self, url, param):
-        self.url = url
+    def prepare_list(self):
 
         html = get_content(self.url, headers={})
 
-        urls = matchall(html, ['"a-pic-play" href="([^"]+)"'])
-
-        for url in urls:
-            self.download(url, params)
+        return matchall(html, ['"a-pic-play" href="([^"]+)"'])
 
 site = Hunantv()

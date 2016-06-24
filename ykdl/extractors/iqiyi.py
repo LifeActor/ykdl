@@ -180,14 +180,9 @@ class Iqiyi(VideoExtractor):
             url="/".join(baseurl)+vlink+'?su='+self.gen_uid+'&qyid='+uuid4().hex+'&client=&z=&bt=&ct=&tn='+str(randint(10000,20000))
             yield json.loads(get_content(url))["l"]
 
-    def download_playlist(self, url, param):
-        self.url = url
-
+    def prepare_list(self):
         html = get_content(self.url)
 
-        vids = matchall(html, ['data-tvid=\"([^\"]+)\" data-vid=\"([^\"]+)\"'])
-        for v in vids:
-            self.download(v, param)
-
+        return matchall(html, ['data-tvid=\"([^\"]+)\" data-vid=\"([^\"]+)\"'])
 
 site = Iqiyi()

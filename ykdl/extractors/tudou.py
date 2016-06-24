@@ -6,6 +6,7 @@ from ..embedextractor import EmbedExtractor
 from ..util.match import match1
 
 import re
+import json
 
 class Tudou(EmbedExtractor):
     name = "土豆 (tudou)"
@@ -29,14 +30,12 @@ class Tudou(EmbedExtractor):
         html = get_content(self.url)
         lcode = match1(html, "lcode:\s*'([^']+)'")
         plist_info = json.loads(get_content('http://www.tudou.com/crp/plist.action?lcode=' + lcode))
-        return ([(item['kw'], item['iid']) for item in plist_info['items']])
+        return [item['iid'] for item in plist_info['items'] if 'iid' in item]
 
     def download_playlist(self, url, param):
-        exit(0)
         self.url = url
         videos = self.parse_plist()
-        for i, (title, id) in enumerate(videos):
-            print('Processing %s of %s videos...' % (i + 1, len(videos)))
-            self.download(id, param)
+        for vid in videos:
+            self.download(vid, param)
 
 site = Tudou()

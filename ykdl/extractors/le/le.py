@@ -93,13 +93,10 @@ class Letv(VideoExtractor):
              size += tmp
              self.streams[stream_id]['size'] = size
 
-    def download_playlist(self, url, param):
-        self.url = url
-        self.param = param
+    def prepare_list(self):
+
         html = get_content(self.url)
 
-        vids = matchall(html, ['vid="(\d+)"'])
-        for v in vids:
-            self.download(v,param)
+        return matchall(html, ['vid="(\d+)"'])
 
 site = Letv()

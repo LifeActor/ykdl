@@ -36,12 +36,9 @@ class Douyutv(VideoExtractor):
         self.stream_types.append('current')
         self.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [real_url], 'size': float('inf')}
 
-    def download_playlist(self, url, param):
-        self.url = url
-        self.param = param
+    def prepare_list(self):
+
         html = get_content(self.url)
-        vids = matchall(html, douyu_match_pattern)
-        for vid in vids:
-            self.download(vid, param)
+        return matchall(html, douyu_match_pattern)
 
 site = Douyutv()

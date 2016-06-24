@@ -30,17 +30,15 @@ class YinYueTai(VideoExtractor):
 
         self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
 
-    def download_playlist(self, url, param):
+    def prepare_list(self):
 
-        playlist_id = match1(url, 'http://\w+.yinyuetai.com/playlist/(\d+)')
+        playlist_id = match1(self.url, 'http://\w+.yinyuetai.com/playlist/(\d+)')
 
         playlist_data = json.loads(get_content('http://m.yinyuetai.com/mv/get-simple-playlist-info?playlistId={}'.format(playlist_id)))
 
         videos = playlist_data['playlistInfo']['videos']
         # TODO
         # I should directly use playlist data instead to request by vid... to be update
-        for v in videos:
-            vid = v['playListDetail']['videoId']
-            self.download(vid, param)
+        return [v['playListDetail']['videoId'] for v in videos]
 
 site = YinYueTai()

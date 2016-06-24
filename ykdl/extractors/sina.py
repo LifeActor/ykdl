@@ -43,13 +43,8 @@ class Sina(VideoExtractor):
                 self.stream_types.append(profile)
                 self.streams[profile] = {'container': tp, 'video_profile': profile, 'src': [r_url], 'size' : 0}
 
-    def download_playlist(self, url, param):
-        self.url = url
-
+    def prepare_list(self):
         html = get_content(self.url)
-        vids = matchall(html, ['video_id: ([^,]+)'])
-        print(vids)
-        for v in vids:
-            self.download(v, param)
+        return matchall(html, ['video_id: ([^,]+)'])
 
 site = Sina()

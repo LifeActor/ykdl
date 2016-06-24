@@ -29,11 +29,9 @@ class Miaopai(VideoExtractor):
         self.stream_types.append('current')
         self.streams['current'] = {'container': ext, 'src': [url], 'size' : 0}
 
-    def download_playlist(self, url, param):
-        html = get_content(url)
+    def prepare_list(self):
+        html = get_content(self.url)
         video_list = match1(html, 'video_list=\[([^\]]+)')
-        vids = matchall(video_list, ['\"([^\",]+)'])
-        for vid in vids:
-            self.download(vid, param)
+        return matchall(video_list, ['\"([^\",]+)'])
 
 site = Miaopai()

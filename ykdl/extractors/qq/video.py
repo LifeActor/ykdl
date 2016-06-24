@@ -235,7 +235,7 @@ class QQ(VideoExtractor):
 
         if not self.vid:
             html = get_content(self.url)
-            match1(html, 'vid:\"([^\"]+)')
+            self.vid = match1(html, 'vid:\"([^\"]+)')
 
         for stream in self.supported_stream_types:
             fmt_name, type_name, urls, size = self.get_stream_info(stream)
@@ -244,10 +244,8 @@ class QQ(VideoExtractor):
                 self.stream_types.append(fmt_name)
         self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
 
-    def download_playlist(self, url, param):
-        html = get_content(url)
-        vids = matchall(html, ['id=\"([^\"]+)\S title'])
-        for vid in vids:
-            self.download(vid, param)
+    def prepare_list(self):
+        html = get_content(self.url)
+        return matchall(html, ['id=\"([^\"]+)\S title'])
 
 site = QQ()

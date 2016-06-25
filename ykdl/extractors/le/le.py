@@ -14,6 +14,7 @@ else:
 from ykdl.util.html import get_content, url_info
 from ykdl.util.match import match1, matchall
 from ykdl.extractor import VideoExtractor
+from ykdl.compact import compact_tempfile
 
 def calcTimeKey(t):
     ror = lambda val, r_bits, : ((val & (2**32-1)) >> r_bits%32) |  (val << (32-(r_bits%32)) & (2**32-1))
@@ -70,8 +71,7 @@ class Letv(VideoExtractor):
                 m3u8 = get_content(info2["location"], charset = 'ignore')
                 m3u8_list = decode(m3u8)
                 self.streams[stream] = {'container': 'm3u8', 'video_profile': stream, 'size' : 0}
-                import tempfile
-                self.stream_temp[stream] = tempfile.NamedTemporaryFile(mode='w+t', suffix='.m3u8')
+                self.stream_temp[stream] = compact_tempfile(mode='w+t', suffix='.m3u8')
                 self.stream_temp[stream].write(m3u8_list)
                 self.streams[stream]['src'] = [self.stream_temp[stream].name]
                 self.stream_temp[stream].flush()

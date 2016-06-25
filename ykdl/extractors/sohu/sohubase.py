@@ -58,12 +58,8 @@ class SohuBase(VideoExtractor):
                 self.parser_info(info, stream, lvid)
 
     def extract(self):
-        if not self.param.info:
-            stream_id = self.param.format or self.stream_types[0]
+        for stream_id in self.stream_types:
             self.extract_single(stream_id)
-        else:
-            for stream_id in self.stream_types:
-                self.extract_single(stream_id)
 
     def extract_single(self, stream_id):
         urls = []

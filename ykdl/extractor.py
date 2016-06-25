@@ -38,7 +38,7 @@ class VideoExtractor():
         if 'size' in stream:
             print("      size:          %s MiB (%s bytes)" % (round(stream['size'] / 1048576, 1), stream['size']))
         print("    # download-with: %s" % log.sprint("ykdl --format=%s [URL]" % stream_id, log.UNDERLINE))
-        if self.param.url:
+        if self.param.info:
             print("Real urls:")
             if self.iterable:
                 for url in self.extract_iter():
@@ -53,11 +53,7 @@ class VideoExtractor():
                       'url'    : self.url,
                       'vid'    : self.vid
                     }
-        if self.param.info:
-            json_dict['streams'] = self.streams
-        else:
-            stream_id = self.param.format or self.stream_types[0]
-            json_dict['streams'] = self.streams[stream_id]
+        json_dict['streams'] = self.streams
         return json_dict
 
     def print_info(self):
@@ -85,7 +81,7 @@ class VideoExtractor():
         self.prepare()
 
         if not self.title:
-            t = self.vid or self.url[-5:]
+            t = str(self.vid) or self.url[-5:]
             self.title = self.name + '_' + t
 
         if self.iterable:
@@ -117,7 +113,7 @@ class VideoExtractor():
             print(json.dumps(self.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False))
         else:
             self.print_info()
-        if self.param.info or self.param.url:
+        if self.param.info or self.param.json:
             return
         urls = self.streams[stream_id]['src']
         if not urls:
@@ -153,7 +149,7 @@ class VideoExtractor():
             print(json.dumps(self.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False))
         else:
             self.print_info()
-        if self.param.info or self.param.url:
+        if self.param.info or self.param.json:
             return
         i = 0
         name_list = [self.title]

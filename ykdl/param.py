@@ -11,7 +11,6 @@ def arg_parser():
     parser = ArgumentParser(description="YouKuDownLoader(ykdl {}), a video downloader. Forked form you-get 0.3.34@soimort".format(__version__))
     parser.add_argument('-l', '--playlist', action='store_true', default=False, help="Download as a playlist.")
     parser.add_argument('-i', '--info', action='store_true', default=False, help="Display the information of videos without downloading.")
-    parser.add_argument('-u', '--url', action='store_true', default=False, help="Display the real URLs of videos without downloading.")
     parser.add_argument('-j', '--json', action='store_true', default=False, help="Display info in json format.")
     parser.add_argument('-m', '--merge', action='store_true', default=False, help="merge download video (experimental)")
     parser.add_argument('-F', '--format',  help="Video format code.")

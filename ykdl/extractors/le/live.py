@@ -45,12 +45,8 @@ class LeLive(VideoExtractor):
         self.streams[stream_id]['src'] = [data['location']]
 
     def extract(self):
-        if not self.param.info:
-            stream_id = self.param.format or self.stream_types[0]
+        for stream_id in self.stream_types:
             self.extract_single(stream_id)
-        else:
-            for stream_id in self.stream_types:
-                self.extract_single(stream_id)
 
 site = LeLive()
         

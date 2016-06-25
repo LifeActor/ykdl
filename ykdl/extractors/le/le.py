@@ -43,6 +43,8 @@ class Letv(VideoExtractor):
 
     supported_stream_types = [ '1080p', '1300', '1000', '720p', '350' ]
 
+    stream_temp = {'1080p': None , '1300': None, '1000':None , '720p': None, '350': None }
+
 
     def prepare(self):
 
@@ -69,29 +71,11 @@ class Letv(VideoExtractor):
                 m3u8_list = decode(m3u8)
                 self.streams[stream] = {'container': 'm3u8', 'video_profile': stream, 'size' : 0}
                 import tempfile
-                self.streams[stream]['tmp'] = tempfile.NamedTemporaryFile(mode='w+t', suffix='.m3u8')
-                self.streams[stream]['tmp'].write(m3u8_list)
-                self.streams[stream]['src'] = [self.streams[stream]['tmp'].name]
-                self.streams[stream]['tmp'].flush()
+                self.stream_temp[stream] = tempfile.NamedTemporaryFile(mode='w+t', suffix='.m3u8')
+                self.stream_temp[stream].write(m3u8_list)
+                self.streams[stream]['src'] = [self.stream_temp[stream].name]
+                self.stream_temp[stream].flush()
                 self.stream_types.append(stream)
-
-    def extract(self):
-        if self.param.info:
-            for stream_id in self.streams.keys():
-                size = 0
-                for i in self.streams[stream_id]['src']:
-                    _, _, tmp = url_info(i)
-                    size += tmp
-                self.streams[stream_id]['size'] = size
-        return
-        #ignore video size in download/play mode, for preformence issue
-        stream_id = self.param.format or self.stream_types[0]
-
-        size = 0
-        for i in self.streams[stream_id]['src']:
-             _, _, tmp = url_info(i)
-             size += tmp
-             self.streams[stream_id]['size'] = size
 
     def prepare_list(self):
 

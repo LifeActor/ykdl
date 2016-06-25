@@ -1,6 +1,14 @@
 Change Log for ykdl
 ===================
 
+1.1.1
+-----
+
+- fix iqiyi, QQ
+- support huajiao live
+- remove lots of dead sites, include youtube
+- many other updates
+
 1.1.0.4
 -------
 

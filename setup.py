@@ -35,7 +35,7 @@ setup(
     license = "MIT",
     description = "a video downloader written in Python",
     long_description = README + '\n\n' +  CHANGES,
-    keywords = "video download youtube youku",
+    keywords = "video download youku acfun bilibili",
     packages = find_packages('ykdl'),
     requires = ['m3u8'],
     install_requires = ['m3u8'],

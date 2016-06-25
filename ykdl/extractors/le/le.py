@@ -44,6 +44,10 @@ class Letv(VideoExtractor):
 
     supported_stream_types = [ '1080p', '1300', '1000', '720p', '350' ]
 
+    stream_2_profile = {'1080p': u'1080p' , '1300': u'超清', '1000': u'高清' , '720p': u'标清', '350': u'流畅' }
+
+    stream_2_id = {'1080p': 'BD' , '1300': 'TD', '1000': 'HD' , '720p': 'SD', '350': 'LD' }
+
     stream_temp = {'1080p': None , '1300': None, '1000':None , '720p': None, '350': None }
 
 
@@ -58,24 +62,24 @@ class Letv(VideoExtractor):
         info=json.loads(r)
 
         self.title = info['playurl']['title']
-        available_stream_id = info["playurl"]["dispatch"].keys()
-        for stream in self.supported_stream_types:
-            if stream in available_stream_id:
-                s_url =info["playurl"]["domain"][0]+info["playurl"]["dispatch"][stream][0]
-                s_url+="&ctv=pc&m3v=1&termid=1&format=1&hwtype=un&ostype=Linux&tag=le&sign=le&expect=3&tn={}&pay=0&iscpn=f9051&rateid={}".format(random.random(),stream)
-                r2=get_content(s_url)
-                info2=json.loads(r2)
+        available_stream_id = sorted(list(info["playurl"]["dispatch"].keys()), key = self.supported_stream_types.index)
+        for stream in available_stream_id:
+            s_url =info["playurl"]["domain"][0]+info["playurl"]["dispatch"][stream][0]
+            s_url+="&ctv=pc&m3v=1&termid=1&format=1&hwtype=un&ostype=Linux&tag=le&sign=le&expect=3&tn={}&pay=0&iscpn=f9051&rateid={}".format(random.random(),stream)
+            r2=get_content(s_url)
+            info2=json.loads(r2)
 
-                # hold on ! more things to do
-                # to decode m3u8 (encoded)
-                m3u8 = get_content(info2["location"], charset = 'ignore')
-                m3u8_list = decode(m3u8)
-                self.streams[stream] = {'container': 'm3u8', 'video_profile': stream, 'size' : 0}
-                self.stream_temp[stream] = compact_tempfile(mode='w+t', suffix='.m3u8')
-                self.stream_temp[stream].write(m3u8_list)
-                self.streams[stream]['src'] = [self.stream_temp[stream].name]
-                self.stream_temp[stream].flush()
-                self.stream_types.append(stream)
+            # hold on ! more things to do
+            # to decode m3u8 (encoded)
+            m3u8 = get_content(info2["location"], charset = 'ignore')
+            m3u8_list = decode(m3u8)
+            stream_id = self.stream_2_id[stream]
+            self.streams[stream_id] = {'container': 'm3u8', 'video_profile': self.stream_2_profile[stream], 'size' : 0}
+            self.stream_temp[stream] = compact_tempfile(mode='w+t', suffix='.m3u8')
+            self.stream_temp[stream].write(m3u8_list)
+            self.streams[stream_id]['src'] = [self.stream_temp[stream].name]
+            self.stream_temp[stream].flush()
+            self.stream_types.append(stream_id)
 
     def prepare_list(self):
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from ykdl.common import url_to_module
-from ykdl.compact import ProxyHandler, build_opener, install_opener
+from ykdl.compact import ProxyHandler, build_opener, install_opener, compact_str
 from .util import log
 from .param import arg_parser
 
@@ -46,10 +46,10 @@ def main():
                 else:
                     m.download(u, args)
             except AssertionError as e:
-                log.wtf(str(e))
+                log.wtf(compact_str(e))
                 exit = 1
             except (RuntimeError, NotImplementedError, SyntaxError) as e:
-                log.e(str(e))
+                log.e(compact_str(e))
                 exit = 1
         sys.exit(exit)
     except KeyboardInterrupt:

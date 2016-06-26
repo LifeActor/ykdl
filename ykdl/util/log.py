@@ -58,7 +58,9 @@ WHITE_BACKGROUND = 107         # xterm
 
 def sprint(text, *colors):
     """Format text with color or other effects into ANSI escaped string."""
-    return "\33[{}m{content}\33[{}m".format(";".join([str(color) for color in colors]), RESET, content=text) if IS_ANSI_TERMINAL and colors else text
+    #return "\33[{}m{content}\33[{}m".format(";".join([str(color) for color in colors]), RESET, content=text) if IS_ANSI_TERMINAL and colors else text
+    color = ";".join([str(color) for color in colors])
+    return "\33[%sm%s\33[%dm" % (color, text, RESET) if IS_ANSI_TERMINAL and colors else text
 
 def println(text, *colors):
     """Print text to standard output."""
@@ -70,7 +72,7 @@ def print_err(text, *colors):
 
 def print_log(text, *colors):
     """Print a log message to standard error."""
-    sys.stderr.write(sprint("{}: {}".format(library_name, text), *colors) + "\n")
+    sys.stderr.write(sprint("%s: %s" % (library_name, text), *colors) + "\n")
 
 def i(message):
     """Print a normal log message."""

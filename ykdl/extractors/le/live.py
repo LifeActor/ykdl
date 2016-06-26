@@ -17,6 +17,12 @@ class LeLive(VideoExtractor):
 
     supported_stream_types = ['flv_1080p3m', 'flv_1080p', 'flv_1300', 'flv_1000', 'flv_720p', 'flv_350']
 
+    stream_2_profile = {'flv_1080p3m': u'1080p' ,'flv_1080p': u'1080p' , 'flv_1300': u'超清', 'flv_1000': u'高清' , 'flv_720p': u'标清', 'flv_350': u'流畅' }
+
+    stream_2_id = {'flv_1080p3m': 'BD', 'flv_1080p': 'BD' , 'flv_1300': 'TD', 'flv_1000': 'HD' , 'flv_720p': 'SD', 'flv_350': 'LD' }
+
+    stream_ids = ['BD', 'TD', 'HD', 'SD', 'LD']
+
     def prepare(self):
         self.live = True
         if not self.vid:
@@ -29,10 +35,13 @@ class LeLive(VideoExtractor):
         stream_data = live_data['streams']
 
         for s in stream_data:
-            self.stream_types.append(s['rateType'])
-            self.streams[s['rateType']] = {'container': 'm3u8', 'video_profile': s['rateType'], 'size' : float('inf'), 'streamUrl' : s['streamUrl']}
+            stream_id = self.stream_2_id[s['rateType']]
+            stream_profile = self.stream_2_profile[s['rateType']]
+            if not stream_id in self.stream_types:
+                self.stream_types.append(stream_id)
+                self.streams[stream_id] = {'container': 'm3u8', 'video_profile': stream_profile, 'size' : float('inf'), 'streamUrl' : s['streamUrl']}
 
-        self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
+        self.stream_types = sorted(self.stream_types, key = self.stream_ids.index)
 
     def extract_single(self, stream_id):
 

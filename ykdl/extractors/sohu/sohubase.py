@@ -20,12 +20,15 @@ Changelog:
 class SohuBase(VideoExtractor):
 
     supported_stream_types = [ 'oriVid', 'superVid', 'highVid', 'norVid' ]
-
-    realurls = { 'oriVid': [], 'superVid': [], 'highVid': [], 'norVid': [], 'relativeId': []}
+    types_2_id = { 'oriVid': 'BD', 'superVid': 'TD', 'highVid': 'HD', 'norVid': 'SD' }
+    types_2_profile = { 'oriVid': u'原画', 'superVid': u'超清', 'highVid': u'高清', 'norVid': u'标清' }
+    realurls = { 'BD': [], 'TD': [], 'HD': [], 'SD': []}
 
     def parser_info(self, info, stream, lvid):
         if not 'allot' in info:
             return
+        stream_id = self.types_2_id[stream]
+        stream_profile = self.types_2_profile[stream]
         host = info['allot']
         prot = info['prot']
         tvid = info['tvid']
@@ -34,9 +37,9 @@ class SohuBase(VideoExtractor):
         assert len(data['clipsURL']) == len(data['clipsBytes']) == len(data['su'])
         for new, clip, ck, in zip(data['su'], data['clipsURL'], data['ck']):
             clipURL = urlparse(clip).path
-            self.realurls[stream].append('http://'+host+'/?prot=9&prod=flash&pt=1&file='+clipURL+'&new='+new +'&key='+ ck+'&vid='+str(self.vid)+'&uid='+str(int(time.time()*1000))+'&t='+str(random())+'&rb=1')
-        self.streams[stream] = {'container': 'mp4', 'video_profile': stream, 'size' : size}
-        self.stream_types.append(stream)
+            self.realurls[stream_id].append('http://'+host+'/?prot=9&prod=flash&pt=1&file='+clipURL+'&new='+new +'&key='+ ck+'&vid='+str(self.vid)+'&uid='+str(int(time.time()*1000))+'&t='+str(random())+'&rb=1')
+        self.streams[stream_id] = {'container': 'mp4', 'video_profile': stream_profile, 'size' : size}
+        self.stream_types.append(stream_id)
 
     def prepare(self):
 

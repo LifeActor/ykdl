@@ -12,7 +12,9 @@ class QQLive(VideoExtractor):
 
     mutli_bitrate = ['middle2', 'middle']
 
-    bitrate_2_type = {'middle2': 'mid', 'middle': 'low'}
+    bitrate_2_type = {'middle2': 'HD', 'middle': 'SD'}
+
+    bitrate_2_profile = {'middle2': u'高清', 'middle': u'标清'}
 
     def prepare(self):
         self.live = True
@@ -37,14 +39,14 @@ class QQLive(VideoExtractor):
         base_url = livedata['rtmp_url']
 
         if 'hls_url' in livedata:
-            self.stream_types.append('original')
-            self.streams['original'] = {'container': 'm3u8', 'video_profile': 'original', 'src' : [livedata['hls_url']], 'size': float('inf')}
+            self.stream_types.append('BD')
+            self.streams['BD'] = {'container': 'm3u8', 'video_profile': u'原画', 'src' : [livedata['hls_url']], 'size': float('inf')}
 
         mutli_stream = livedata['rtmp_multi_bitrate']
         for i in self.mutli_bitrate:
             if i in mutli_stream:
                 self.stream_types.append(self.bitrate_2_type[i])
-                self.streams[self.bitrate_2_type[i]] = {'container': 'flv', 'video_profile': self.bitrate_2_type[i], 'src' : [base_url + '/' + mutli_stream[i]], 'size': float('inf')}
+                self.streams[self.bitrate_2_type[i]] = {'container': 'flv', 'video_profile': self.bitrate_2_profile[i], 'src' : [base_url + '/' + mutli_stream[i]], 'size': float('inf')}
 
 site = QQLive()
             

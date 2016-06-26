@@ -11,6 +11,7 @@ class NeteaseVideo(VideoExtractor):
     name = u"网易视频 (163)"
     sopported_stream_types = ['shd', 'hd', 'flv']
     stream_2_profile = {'shd': u'超清', 'hd': u'高清', 'flv': u'标清'}
+    stream_2_id = {'shd': 'TD', 'hd': 'HD', 'flv': 'SD'}
 
     def prepare(self):
 
@@ -28,7 +29,7 @@ class NeteaseVideo(VideoExtractor):
             searchcode = '<{}Url><flv>([^<]+)'.format(tp)
             url = match1(video_xml, searchcode)
             if url:
-                self.stream_types.append(tp)
-                self.streams[tp] = {'container': 'flv', 'video_profile': self.stream_2_profile[tp], 'src' : [url], 'size': 0}
+                self.stream_types.append(self.stream_2_id[tp])
+                self.streams[self.stream_2_id[tp]] = {'container': 'flv', 'video_profile': self.stream_2_profile[tp], 'src' : [url], 'size': 0}
 
 site = NeteaseVideo()

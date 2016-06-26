@@ -11,7 +11,8 @@ class NeteaseMv(VideoExtractor):
     name = u'Netease Mv (网易音乐Mv)'
 
     supported_stream_code = ['1080', '720', '480', '240']
-    code_2_profile = {'1080': 'BD', '720': 'TD', '480':'HD', '240':'SD'}
+    code_2_id = {'1080': 'BD', '720': 'TD', '480':'HD', '240':'SD'}
+    code_2_profile = {'1080': '1080p', '720': u'超清', '480': u'高清', '240': u'标清'}
     def prepare(self):
         add_header("Referer", "http://music.163.com/")
         if not self.vid:
@@ -23,7 +24,8 @@ class NeteaseMv(VideoExtractor):
         self.artist = mv['artistName']
         for code in self.supported_stream_code:
             if code in mv['brs']:
-                stream_id = self.code_2_profile[code]
+                stream_id = self.code_2_id[code]
+                stream_profile = self.code_2_profile[code]
                 self.stream_types.append(stream_id)
-                self.streams[stream_id] = {'container': 'mp4', 'video_profile': stream_id, 'src' : [mv['brs'][code]], 'size': 0}
+                self.streams[stream_id] = {'container': 'mp4', 'video_profile': stream_profile, 'src' : [mv['brs'][code]], 'size': 0}
 site = NeteaseMv()

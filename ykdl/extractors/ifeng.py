@@ -10,7 +10,9 @@ class Ifeng(VideoExtractor):
     name = u'凤凰视频 (ifeng)'
 
     supported_stream_types = ['500k', '350k']
-
+    types_2_id = {'500k': 'HD', '350k':'SD'}
+    types_2_profile = {'500k': u'高清', '350k':u'标清'}
+    ids = ['HD', 'SD']
     def prepare(self):
 
         if not self.vid:
@@ -24,9 +26,11 @@ class Ifeng(VideoExtractor):
             if v.getAttribute("mediaType") == 'mp4':
                 _t = v.getAttribute("type")
                 _u = v.getAttribute("VideoPlayUrl")
-                self.stream_types.append(_t)
-                self.streams[_t] = {'container': 'mp4', 'video_profile': _t, 'src' : [_u], 'size': 0}
+                stream_id = self.types_2_id[_t]
+                stream_profile = self.types_2_profile[_t]
+                self.stream_types.append(stream_id)
+                self.streams[stream_id] = {'container': 'mp4', 'video_profile': stream_profile, 'src' : [_u], 'size': 0}
 
-        self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
+        self.stream_types = sorted(self.stream_types, key = self.ids.index)
 
 site = Ifeng()

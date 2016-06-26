@@ -30,12 +30,13 @@ class Iqiyi(VideoExtractor):
 
     stream_to_bid = {  '4k': 10, 'fullhd' : 5, 'suprt-high' : 4, 'super' : 3, 'high' : 2, 'standard' :1, 'topspeed' :96}
 
+    stream_2_id = {  '4k': 'BD', 'fullhd' : 'FD', 'suprt-high' : 'OD', 'super' : 'TD', 'high' : 'HD', 'standard' :'SD', 'topspeed' :'LD'}
+
+    stream_2_profile = {  '4k': u'4k', 'fullhd' : u'全高清', 'suprt-high' : u'超高清', 'super' : u'超清', 'high' : u'高清', 'standard' : u'标清', 'topspeed' : u'急速'}
+
+    ids = ['BD', 'FD', 'OD', 'TD', 'HD', 'SD', 'LD']
+
     def getVMS(self, rate):
-        #tm ->the flash run time for md5 usage
-        #um -> vip 1 normal 0
-        #authkey -> for password protected video ,replace '' with your password
-        #puid user.passportid may empty?
-        #TODO: support password protected video
         tvid, vid = self.vid
         t = int(time.time() * 1000)
         sc = gen_sc(tvid, t).decode('utf-8')
@@ -58,9 +59,11 @@ class Iqiyi(VideoExtractor):
         for stream in self.supported_stream_types:
             info = self.getVMS(self.stream_to_bid[stream])
             if info["code"] == "A00000":
+                stream_id = self.stream_2_id[stream]
+                stream_profile = self.stream_2_profile[stream]
                 self.title = info['data']['playInfo']['vn']
-                self.stream_types.append(stream)
-                self.streams[stream] = {'container': 'mp4', 'video_profile': stream, 'src' : [info['data']['m3u']], 'size' : 0}
+                self.stream_types.append(stream_id)
+                self.streams[stream_id] = {'container': 'mp4', 'video_profile': stream_profile, 'src' : [info['data']['m3u']], 'size' : 0}
 
     def prepare_list(self):
         html = get_content(self.url)

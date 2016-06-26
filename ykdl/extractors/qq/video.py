@@ -125,6 +125,10 @@ class QQ(VideoExtractor):
 
     stream_2_profile = { 'shd': u'超清', 'mp4': u'高清mp4', 'hd': u'高清', 'flv': u'高清flv', 'sd': u'标清' }
 
+    stream_2_id = { 'shd': 'TD', 'mp4': 'HD', 'hd': 'HD', 'flv': 'HD', 'sd': 'SD' }
+
+    stream_ids = ['TD', 'HD', 'SD']
+
 
     def get_stream_info(self, profile):
 
@@ -239,10 +243,12 @@ class QQ(VideoExtractor):
 
         for stream in self.supported_stream_types:
             fmt_name, type_name, urls, size = self.get_stream_info(stream)
-            self.streams[fmt_name] = {'container': type_name, 'video_profile': self.stream_2_profile[fmt_name], 'src' : urls, 'size': size}
-            if not fmt_name in self.stream_types:
-                self.stream_types.append(fmt_name)
-        self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
+            stream_id = self.stream_2_id[fmt_name]
+            stream_profile = self.stream_2_profile[fmt_name]
+            if not stream_id in self.stream_types:
+                self.stream_types.append(stream_id)
+                self.streams[stream_id] = {'container': type_name, 'video_profile': stream_profile, 'src' : urls, 'size': size}
+        self.stream_types = sorted(self.stream_types, key = self.stream_ids.index)
 
     def prepare_list(self):
         html = get_content(self.url)

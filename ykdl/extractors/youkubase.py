@@ -31,20 +31,20 @@ class YoukuBase(VideoExtractor):
         self.setup()
         self.streams_parameter = {}
         for stream in self.stream_data:
-            stream_id = stream['stream_type']
+            stream_id = stream_code_to_id[stream['stream_type']]
             if not stream_id in self.stream_types:
                 self.streams_parameter[stream_id] = {
                     'fileid': stream['stream_fileid'],
                     'segs': stream['segs']
                 }
                 self.streams[stream_id] = {
-                    'container': stream_type_to_container[stream_code_to_type[stream_id]],
+                    'container': id_to_container[stream_id],
                     'video_profile': stream_code_to_profiles[stream_id],
                     'size': stream['size']
                 }
                 self.stream_types.append(stream_id)
 
-        self.stream_types = sorted(self.stream_types, key = supported_stream_code.index)
+        self.stream_types = sorted(self.stream_types, key = ids.index)
 
     def extract(self):
         for stream_id in self.stream_types:
@@ -72,7 +72,7 @@ class YoukuBase(VideoExtractor):
                 myp   = 0,
                 ymovie= 1,
                 ts    = seg['total_milliseconds_audio'][:-3],
-                hd    = stream_type_to_hd[stream_code_to_type[stream_id]],
+                hd    = stream_type_to_hd[stream_id],
                 special = 'true',
                 yyp   = 2
             ))

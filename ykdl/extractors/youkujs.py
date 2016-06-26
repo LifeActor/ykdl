@@ -3,44 +3,41 @@
 
 #default stream defines
 supported_stream_code = [ 'mp4hd3', 'hd3', 'mp4hd2', 'hd2', 'mp4hd', 'mp4', 'flvhd', 'flv', '3gphd' ]
-stream_code_to_type = {
-    'mp4hd3': 'hd3',
-    'hd3'   : 'hd3',
-    'mp4hd2': 'hd2',
-    'hd2'   : 'hd2',
-    'mp4hd' : 'mp4',
-    'mp4'   : 'mp4',
-    'flvhd' : 'flvhd',
-    'flv'   : 'flv',
-    '3gphd' : '3gphd'
+ids = [ 'FD', 'OD', 'TD', 'HD', 'SD', 'LD']
+stream_code_to_id = {
+    'mp4hd3': 'FD',
+    'hd3'   : 'FD',
+    'mp4hd2': 'OD',
+    'hd2'   : 'OD',
+    'mp4hd' : 'TD',
+    'mp4'   : 'TD',
+    'flvhd' : 'HD',
+    'flv'   : 'SD',
+    '3gphd' : 'LD'
 }
 stream_code_to_profiles = {
-    'mp4hd3': '1080p',
-    'hd3'   : '1080P',
-    'mp4hd2': '超清',
-    'hd2'   : '超清',
-    'mp4hd' : '高清',
-    'mp4'   : '高清',
-    'flvhd' : '标清',
-    'flv'   : '标清',
-    '3gphd' : '标清（3GP）'
+    'FD' : u'1080p',
+    'OD' : u'超清',
+    'TD' : u'高清',
+    'HD' : u'标清',
+    'SD' : u'标清',
+    'LD' : u'标清（3GP）'
 }
-stream_type_to_container = {
-    'hd3' : 'flv',
-    'hd2' : 'flv',
-    'mp4' : 'mp4',
-    'flvhd': 'flv',
-    'flv' : 'flv',
-    '3gphd': 'mp4'
+id_to_container = {
+    'FD' : 'flv',
+    'OD' : 'flv',
+    'TD' : 'mp4',
+    'HD' : 'flv',
+    'SD' : 'flv',
+    'LD' : 'mp4'
 }
 stream_type_to_hd = {
-    'flv': 0,
-    'flvhd': 0,
-    'mp4': 1,
-    'hd2': 2,
-    '3gphd': 1,
-    '3gp': 0,
-    'hd3': 3
+    'FD': 3,
+    'OD': 2,
+    'TD': 1,
+    'HD': 0,
+    'SD': 0,
+    'LD': 1,
 }
 
 #default acode

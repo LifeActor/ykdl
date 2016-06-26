@@ -10,7 +10,10 @@ import json
 
 class YinYueTai(VideoExtractor):
     name = u'YinYueTai (音乐台)'
-    supported_stream_types = ['sh', 'he', 'hd', 'hc' ]
+    ids = ['BD', 'TD', 'HD', 'SD' ]
+    types_2_id = {'sh': 'BD', 'he': 'TD', 'hd':'HD', 'hc' :'SD' }
+    types_2_profile = {'sh': u'原画', 'he': u'超清', 'hd': u'高清', 'hc' : u'标清' }
+
     def prepare(self):
 
         if not self.vid:
@@ -25,10 +28,12 @@ class YinYueTai(VideoExtractor):
         self.title = video_data['videoName']
         self.artist = video_data['artistNames']
         for s in video_data['videoUrlModels']:
-            self.stream_types.append(s['qualityLevel'])
-            self.streams[s['qualityLevel']] = {'container': 'flv', 'video_profile': s['qualityLevelName'], 'src' : [s['videoUrl']], 'size': s['fileSize']}
+            stream_id = self.types_2_id[s['qualityLevel']]
+            stream_profile = self.types_2_profile[s['qualityLevel']]
+            self.stream_types.append(stream_id)
+            self.streams[stream_id] = {'container': 'flv', 'video_profile': stream_profile, 'src' : [s['videoUrl']], 'size': s['fileSize']}
 
-        self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
+        self.stream_types = sorted(self.stream_types, key = self.ids.index)
 
     def prepare_list(self):
 

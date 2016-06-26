@@ -10,6 +10,8 @@ class Ted(VideoExtractor):
     name = "Ted"
 
     supported_stream_types = ['high', 'medium', 'low']
+    types_2_id = {'high': 'HD', 'medium': 'SD', 'low': 'LD'}
+    types_2_profile = {'high': u'高清', 'medium': u'标清', 'low': u'急速'}
 
     def prepare(self):
         html = get_content(self.url)
@@ -20,7 +22,9 @@ class Ted(VideoExtractor):
             if quality in nativeDownloads:
                 url = nativeDownloads[quality]
                 _, ext, size = url_info(url)
-                self.streams[quality] = {'container': ext, 'video_profile': quality, 'src': [url], 'size' : size}
-                self.stream_types.append(quality)
+                stream_id = self.types_2_id[quality]
+                stream_profile = self.types_2_profile[quality]
+                self.streams[stream_id] = {'container': ext, 'video_profile': stream_profile, 'src': [url], 'size' : size}
+                self.stream_types.append(stream_id)
 
 site = Ted()

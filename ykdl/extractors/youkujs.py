@@ -3,39 +3,36 @@
 
 #default stream defines
 supported_stream_code = [ 'mp4hd3', 'hd3', 'mp4hd2', 'hd2', 'mp4hd', 'mp4', 'flvhd', 'flv', '3gphd' ]
-ids = [ 'FD', 'OD', 'TD', 'HD', 'SD', 'LD']
+ids = ['BD', 'TD', 'HD', 'SD', 'LD']
 stream_code_to_id = {
-    'mp4hd3': 'FD',
-    'hd3'   : 'FD',
-    'mp4hd2': 'OD',
-    'hd2'   : 'OD',
-    'mp4hd' : 'TD',
-    'mp4'   : 'TD',
-    'flvhd' : 'HD',
+    'mp4hd3': 'BD',
+    'hd3'   : 'BD',
+    'mp4hd2': 'TD',
+    'hd2'   : 'TD',
+    'mp4hd' : 'HD',
+    'mp4'   : 'HD',
+    'flvhd' : 'SD',
     'flv'   : 'SD',
     '3gphd' : 'LD'
 }
 stream_code_to_profiles = {
-    'FD' : u'1080p',
-    'OD' : u'超清',
-    'TD' : u'高清',
-    'HD' : u'标清',
+    'BD' : u'1080p',
+    'TD' : u'超清',
+    'HD' : u'高清',
     'SD' : u'标清',
     'LD' : u'标清（3GP）'
 }
 id_to_container = {
-    'FD' : 'flv',
-    'OD' : 'flv',
+    'BD' : 'flv',
     'TD' : 'mp4',
     'HD' : 'flv',
     'SD' : 'flv',
     'LD' : 'mp4'
 }
 stream_type_to_hd = {
-    'FD': 3,
-    'OD': 2,
-    'TD': 1,
-    'HD': 0,
+    'BD': 3,
+    'TD': 2,
+    'HD': 1,
     'SD': 0,
     'LD': 1,
 }

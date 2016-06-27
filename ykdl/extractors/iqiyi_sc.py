@@ -3,11 +3,17 @@ import binascii
 import math
 import time
 
+from ykdl.compact import compat_struct_pack
+
 M = [1732584193, -271733879]
 M.extend([~M[0], ~M[1]])
 I_table = [7, 12, 17, 22, 5, 9, 14, 20, 4, 11, 16, 23, 6, 10, 15, 21]
 C_base = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8388608, 432]
 
+def intlist_to_bytes(xs):
+    if not xs:
+        return b''
+    return compat_struct_pack('%dB' % len(xs), *xs)
 
 def L(n, t):
     if t is None:
@@ -84,7 +90,7 @@ def gen_sc(tvid, Z):
 
     new_M = [L(o[0], M[0]), L(o[1], M[1]), L(o[2], M[2]), L(o[3], M[3])]
     s = [new_M[a >> 3] >> (1 ^ a & 7) * 4 & 15 for a in range(32)]
-    return binascii.hexlify(bytes(s))[1::2]
+    return binascii.hexlify(intlist_to_bytes(s))[1::2]
 
 if __name__ == '__main__':
     print(gen_sc("494496100", 1466495259194))

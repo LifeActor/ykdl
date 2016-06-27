@@ -3,6 +3,7 @@
 
 import sys
 import platform
+import struct
 
 if sys.version_info[0] == 3:
     from urllib.request import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler
@@ -42,3 +43,22 @@ else:
         tmp = NamedTemporaryFile(mode=mode, suffix=suffix, prefix=prefix, dir=dir, delete=_del_)
         __tmp__.append(tmp)
         return codecs.open(tmp.name, mode, encoding)
+
+
+try:
+    struct.pack('!I', 0)
+except TypeError:
+    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
+    # See https://bugs.python.org/issue19099
+    def compat_struct_pack(spec, *args):
+        if isinstance(spec, compat_str):
+            spec = spec.encode('ascii')
+        return struct.pack(spec, *args)
+
+    def compat_struct_unpack(spec, *args):
+        if isinstance(spec, compat_str):
+            spec = spec.encode('ascii')
+        return struct.unpack(spec, *args)
+else:
+    compat_struct_pack = struct.pack
+    compat_struct_unpack = struct.unpack

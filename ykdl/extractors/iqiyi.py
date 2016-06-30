@@ -22,6 +22,13 @@ bid meaning for quality
 10 4k
 96 topspeed
 '''
+def getVMS(tvid, vid):
+    t = int(time.time() * 1000)
+    src = '76f90cbd92f94a2e925d83e8ccd22cb7'
+    key = 'd5fb4bd9d50c4be6948c97edd7254b0e'
+    sc = hashlib.new('md5', compact_bytes(str(t) + key  + vid, 'utf-8')).hexdigest()
+    vmsreq= url = 'http://cache.m.iqiyi.com/tmts/{0}/{1}/?t={2}&sc={3}&src={4}'.format(tvid,vid,t,sc,src)
+    return json.loads(get_content(vmsreq))
 
 class Iqiyi(VideoExtractor):
     name = u"爱奇艺 (Iqiyi)"
@@ -34,18 +41,13 @@ class Iqiyi(VideoExtractor):
 
     stream_2_profile = {  '4k': u'4k', 'fullhd' : u'全高清', 'suprt-high' : u'超高清', 'super' : u'超清', 'high' : u'高清', 'standard' : u'标清', 'topspeed' : u'急速'}
     '''
-    ids = ['BD', 'FD', 'OD', 'TD', 'HD', 'SD', 'LD']
+    non_vip_ids = ['BD', 'FD', 'TD', 'HD', 'SD', 'LD']
+    vip_ids = ['vip_h265','vip_h264']
+    ids = vip_ids + non_vip_ids
     vd_2_id = {21: 'TD', 2: 'HD', 4: 'FD', 17: 'BD', 96: 'LD', 1: 'SD'}
     vd_2_profile = {21: u'超清', 2: u'高清', 4: u'超高清', 17: u'全高清', 96: u'流畅', 1: u'标清'}
 
-    def getVMS(self):
-        tvid, vid = self.vid
-        t = int(time.time() * 1000)
-        src = '76f90cbd92f94a2e925d83e8ccd22cb7'
-        key = 'd5fb4bd9d50c4be6948c97edd7254b0e'
-        sc = hashlib.new('md5', compact_bytes(str(t) + key  + vid, 'utf-8')).hexdigest()
-        vmsreq= url = 'http://cache.m.iqiyi.com/tmts/{0}/{1}/?t={2}&sc={3}&src={4}'.format(tvid,vid,t,sc,src)
-        return json.loads(get_content(vmsreq))
+
 
     def prepare(self):
 
@@ -61,14 +63,23 @@ class Iqiyi(VideoExtractor):
             self.vid = (tvid, videoid)
             self.title = match1(html, '<title>([^<]+)').split('-')[0]
 
-        info = self.getVMS()
-        assert info['code'] == 'A00000', 'can\'t play this video'
+        tvid, vid = self.vid
+        info = getVMS(tvid, vid)
+        assert info['code'] == 'A00000', 'can\'t play this video'    
 
+        vip_vids= [info['data']['ctl']['configs']['18']['vid'], info['data']['ctl']['configs']['5']['vid']]
+        for v in vip_vids:
+            stream_id = self.vip_ids[vip_vids.index(v)]
+            vip_info = getVMS(tvid, v)
+            vip_url = vip_info['data']['m3u']
+            self.stream_types.append(stream_id)
+            self.streams[stream_id] = {'video_profile': stream_id, 'container': 'm3u8', 'src': [vip_url], 'size' : 0}        
+        
         for stream in info['data']['vidl']:
-           stream_id = self.vd_2_id[stream['vd']]
-           stream_profile = self.vd_2_profile[stream['vd']]
-           self.stream_types.append(stream_id)
-           self.streams[stream_id] = {'video_profile': stream_profile, 'container': 'm3u8', 'src': [stream['m3u']], 'size' : 0}
+            stream_id = self.vd_2_id[stream['vd']]
+            stream_profile = self.vd_2_profile[stream['vd']]
+            self.stream_types.append(stream_id)
+            self.streams[stream_id] = {'video_profile': stream_profile, 'container': 'm3u8', 'src': [stream['m3u']], 'size' : 0}
         self.stream_types = sorted(self.stream_types, key = self.ids.index)
     def prepare_list(self):
         html = get_content(self.url)

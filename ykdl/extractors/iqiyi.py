@@ -63,7 +63,7 @@ class Iqiyi(VideoExtractor):
 
         tvid, vid = self.vid
         info = getVMS(tvid, vid)
-        assert info['code'] == 'A00000', 'can\'t play this video'    
+        assert info['code'] == 'A00000', 'can\'t play this video'
 
         vip_vids= [info['data']['ctl']['configs']['18']['vid'], info['data']['ctl']['configs']['5']['vid']]
         for v in vip_vids:
@@ -73,7 +73,7 @@ class Iqiyi(VideoExtractor):
             vip_url = vip_info['data']['m3u']
             self.stream_types.append('BD')
             self.streams['BD'] = {'video_profile': '1080p', 'container': 'm3u8', 'src': [vip_url], 'size' : 0}
-        
+
         for stream in info['data']['vidl']:
             stream_id = self.vd_2_id[stream['vd']]
             if stream_id in self.stream_types:

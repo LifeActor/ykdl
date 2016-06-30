@@ -41,11 +41,9 @@ class Iqiyi(VideoExtractor):
 
     stream_2_profile = {  '4k': u'4k', 'fullhd' : u'全高清', 'suprt-high' : u'超高清', 'super' : u'超清', 'high' : u'高清', 'standard' : u'标清', 'topspeed' : u'急速'}
     '''
-    non_vip_ids = ['BD', 'FD', 'TD', 'HD', 'SD', 'LD']
-    vip_ids = ['vip_h265','vip_h264']
-    ids = vip_ids + non_vip_ids
-    vd_2_id = {21: 'TD', 2: 'HD', 4: 'FD', 17: 'BD', 96: 'LD', 1: 'SD'}
-    vd_2_profile = {21: u'超清', 2: u'高清', 4: u'超高清', 17: u'全高清', 96: u'流畅', 1: u'标清'}
+    ids = ['BD', 'TD', 'HD', 'SD', 'LD']
+    vd_2_id = {21: 'HD', 2: 'HD', 4: 'TD', 17: 'TD', 96: 'LD', 1: 'SD'}
+    id_2_profile = {'TD': '720p', 'HD': '540p', 'SD': '360p', 'LD': '210p'}
 
 
 
@@ -69,15 +67,18 @@ class Iqiyi(VideoExtractor):
 
         vip_vids= [info['data']['ctl']['configs']['18']['vid'], info['data']['ctl']['configs']['5']['vid']]
         for v in vip_vids:
-            stream_id = self.vip_ids[vip_vids.index(v)]
             vip_info = getVMS(tvid, v)
+            if not info['code'] == 'A00000' or 'BD' in self.stream_types:
+                continue
             vip_url = vip_info['data']['m3u']
-            self.stream_types.append(stream_id)
-            self.streams[stream_id] = {'video_profile': stream_id, 'container': 'm3u8', 'src': [vip_url], 'size' : 0}        
+            self.stream_types.append('BD')
+            self.streams['BD'] = {'video_profile': '1080p', 'container': 'm3u8', 'src': [vip_url], 'size' : 0}
         
         for stream in info['data']['vidl']:
             stream_id = self.vd_2_id[stream['vd']]
-            stream_profile = self.vd_2_profile[stream['vd']]
+            if stream_id in self.stream_types:
+                continue
+            stream_profile = self.id_2_profile[stream_id]
             self.stream_types.append(stream_id)
             self.streams[stream_id] = {'video_profile': stream_profile, 'container': 'm3u8', 'src': [stream['m3u']], 'size' : 0}
         self.stream_types = sorted(self.stream_types, key = self.ids.index)

@@ -77,17 +77,34 @@ class Iqiyi(VideoExtractor):
             except:
                 log.i("vd: {} is not handled".format(stream['vd']))
                 log.i("info is {}".format(stream))
-
+        # why I need do below???
         if not 'BD' in self.stream_types:
-            vip_vids= [info['data']['ctl']['configs']['18']['vid'], info['data']['ctl']['configs']['5']['vid']]
-            for v in vip_vids:
-                vip_info = getVMS(tvid, v)
-                if info['code'] == 'A00000':
-                    vip_url = vip_info['data']['m3u']
+            p1080_vids = []
+            if 18 in info['data']['ctl']['vip']['bids']:
+                p1080_vids.append(info['data']['ctl']['configs']['18']['vid'])
+            if 5 in info['data']['ctl']['vip']['bids']:
+                p1080_vids.append(info['data']['ctl']['configs']['5']['vid'])
+            for v in p1080_vids:
+                p1080_info = getVMS(tvid, v)
+                if p1080_info['code'] == 'A00000':
+                    p1080_url = p1080_info['data']['m3u']
                     self.stream_types.append('BD')
-                    self.streams['BD'] = {'video_profile': '1080p', 'container': 'm3u8', 'src': [vip_url], 'size' : 0}
+                    self.streams['BD'] = {'video_profile': '1080p', 'container': 'm3u8', 'src': [p1080_url], 'size' : 0}
                     break
 
+        if not '4k' in self.stream_types:
+            k4_vids = []
+            if 19 in info['data']['ctl']['vip']['bids']:
+                k4_vids.append(info['data']['ctl']['configs']['19']['vid'])
+            if 10 in info['data']['ctl']['vip']['bids']:
+                k4_vids.append(info['data']['ctl']['configs']['10']['vid'])
+            for v in k4_vids:
+                k4_info = getVMS(tvid, v)
+                if k4_info['code'] == 'A00000':
+                    k4_url = k4_info['data']['m3u']
+                    self.stream_types.append('4k')
+                    self.streams['4k'] = {'video_profile': '4k', 'container': 'm3u8', 'src': [k4_url], 'size' : 0}
+                    break
 
         self.stream_types = sorted(self.stream_types, key = self.ids.index)
     def prepare_list(self):

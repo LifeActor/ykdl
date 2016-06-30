@@ -42,8 +42,8 @@ class Iqiyi(VideoExtractor):
     stream_2_profile = {  '4k': u'4k', 'fullhd' : u'全高清', 'suprt-high' : u'超高清', 'super' : u'超清', 'high' : u'高清', 'standard' : u'标清', 'topspeed' : u'急速'}
     '''
     ids = ['BD', 'TD', 'HD', 'SD', 'LD']
-    vd_2_id = {21: 'HD', 2: 'HD', 4: 'TD', 17: 'TD', 96: 'LD', 1: 'SD'}
-    id_2_profile = {'TD': '720p', 'HD': '540p', 'SD': '360p', 'LD': '210p'}
+    vd_2_id = {5:'BD', 18: 'BD', 21: 'HD', 2: 'HD', 4: 'TD', 17: 'TD', 96: 'LD', 1: 'SD'}
+    id_2_profile = {'BD': '1080p','TD': '720p', 'HD': '540p', 'SD': '360p', 'LD': '210p'}
 
 
 
@@ -65,15 +65,6 @@ class Iqiyi(VideoExtractor):
         info = getVMS(tvid, vid)
         assert info['code'] == 'A00000', 'can\'t play this video'
 
-        vip_vids= [info['data']['ctl']['configs']['18']['vid'], info['data']['ctl']['configs']['5']['vid']]
-        for v in vip_vids:
-            vip_info = getVMS(tvid, v)
-            if not info['code'] == 'A00000' or 'BD' in self.stream_types:
-                continue
-            vip_url = vip_info['data']['m3u']
-            self.stream_types.append('BD')
-            self.streams['BD'] = {'video_profile': '1080p', 'container': 'm3u8', 'src': [vip_url], 'size' : 0}
-
         for stream in info['data']['vidl']:
             stream_id = self.vd_2_id[stream['vd']]
             if stream_id in self.stream_types:
@@ -81,6 +72,18 @@ class Iqiyi(VideoExtractor):
             stream_profile = self.id_2_profile[stream_id]
             self.stream_types.append(stream_id)
             self.streams[stream_id] = {'video_profile': stream_profile, 'container': 'm3u8', 'src': [stream['m3u']], 'size' : 0}
+
+        if not 'BD' in self.stream_types:
+            vip_vids= [info['data']['ctl']['configs']['18']['vid'], info['data']['ctl']['configs']['5']['vid']]
+            for v in vip_vids:
+                vip_info = getVMS(tvid, v)
+                if info['code'] == 'A00000':
+                    vip_url = vip_info['data']['m3u']
+                    self.stream_types.append('BD')
+                    self.streams['BD'] = {'video_profile': '1080p', 'container': 'm3u8', 'src': [vip_url], 'size' : 0}
+                    break
+
+
         self.stream_types = sorted(self.stream_types, key = self.ids.index)
     def prepare_list(self):
         html = get_content(self.url)

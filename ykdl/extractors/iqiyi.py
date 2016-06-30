@@ -5,6 +5,7 @@ from ykdl.util.html import get_content
 from ykdl.util.match import matchall, match1
 from ykdl.extractor import VideoExtractor
 from ykdl.compact import compact_bytes
+from ykdl.util import log
 
 import json
 import time
@@ -41,9 +42,9 @@ class Iqiyi(VideoExtractor):
 
     stream_2_profile = {  '4k': u'4k', 'fullhd' : u'全高清', 'suprt-high' : u'超高清', 'super' : u'超清', 'high' : u'高清', 'standard' : u'标清', 'topspeed' : u'急速'}
     '''
-    ids = ['BD', 'TD', 'HD', 'SD', 'LD']
-    vd_2_id = {5:'BD', 18: 'BD', 21: 'HD', 2: 'HD', 4: 'TD', 17: 'TD', 96: 'LD', 1: 'SD'}
-    id_2_profile = {'BD': '1080p','TD': '720p', 'HD': '540p', 'SD': '360p', 'LD': '210p'}
+    ids = ['4k','BD', 'TD', 'HD', 'SD', 'LD']
+    vd_2_id = {10: '4k', 19: '4k', 5:'BD', 18: 'BD', 21: 'HD', 2: 'HD', 4: 'TD', 17: 'TD', 96: 'LD', 1: 'SD'}
+    id_2_profile = {'4k':'4k', 'BD': '1080p','TD': '720p', 'HD': '540p', 'SD': '360p', 'LD': '210p'}
 
 
 
@@ -66,12 +67,16 @@ class Iqiyi(VideoExtractor):
         assert info['code'] == 'A00000', 'can\'t play this video'
 
         for stream in info['data']['vidl']:
-            stream_id = self.vd_2_id[stream['vd']]
-            if stream_id in self.stream_types:
-                continue
-            stream_profile = self.id_2_profile[stream_id]
-            self.stream_types.append(stream_id)
-            self.streams[stream_id] = {'video_profile': stream_profile, 'container': 'm3u8', 'src': [stream['m3u']], 'size' : 0}
+            try:
+                stream_id = self.vd_2_id[stream['vd']]
+                if stream_id in self.stream_types:
+                    continue
+                stream_profile = self.id_2_profile[stream_id]
+                self.stream_types.append(stream_id)
+                self.streams[stream_id] = {'video_profile': stream_profile, 'container': 'm3u8', 'src': [stream['m3u']], 'size' : 0}
+            except:
+                log.i("vd: {} is not handled".format(stream['vd']))
+                log.i("info is {}".format(stream))
 
         if not 'BD' in self.stream_types:
             vip_vids= [info['data']['ctl']['configs']['18']['vid'], info['data']['ctl']['configs']['5']['vid']]

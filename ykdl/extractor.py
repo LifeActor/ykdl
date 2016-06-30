@@ -5,9 +5,8 @@ import json
 
 from .util.download import save_url, save_urls
 from .util import log
-from .util.wrap import launch_player, launch_ffmpeg
+from .util.wrap import launch_player, launch_ffmpeg, launch_ffmpeg_m3u8
 from .util.fs import legitimize
-from ykdl.util.m3u8_wrap import load_m3u8, load_live_m3u8, live_m3u8_lenth
 
 import sys
 import datetime
@@ -128,19 +127,12 @@ class VideoExtractor():
                 name_list.append(self.name_suffix())
             name = legitimize('_'.join(name_list))
             if self.streams[stream_id]['container'] == 'm3u8':
-                self.streams[stream_id]['container'] = 'ts'
-                if self.live:
-                    urls = load_live_m3u8(urls[0])
-                else:
-                    urls = load_m3u8(urls[0])
-            save_urls(urls, name, self.streams[stream_id]['container'])
-            lenth = 0
-            if type(urls) is list:
+                launch_ffmpeg_m3u8(urls[0], name+'.mp4', self.live)
+            else:
+                save_urls(urls, name, self.streams[stream_id]['container'])
                 lenth = len(urls)
-            else: #generator
-                lenth = live_m3u8_lenth()
-            if self.param.merge and lenth > 1:
-                launch_ffmpeg(name,  self.streams[stream_id]['container'], lenth)
+                if self.param.merge and lenth > 1:
+                    launch_ffmpeg(name,  self.streams[stream_id]['container'], lenth)
 
 
     def download_iter(self):

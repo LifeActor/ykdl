@@ -4,6 +4,7 @@
 import subprocess
 import shlex
 from ykdl.compact import compact_tempfile
+from ykdl.util import log
 
 def launch_player(player, urls):
     subprocess.call(shlex.split(player) + list(urls))
@@ -22,5 +23,13 @@ def launch_ffmpeg(basename, ext, lenth):
         cmd += ['-absf', 'aac_adtstoasc']
 
     cmd.append(outputfile)
+
+    subprocess.call(cmd)
+
+def launch_ffmpeg_m3u8(url, name, live):
+    if live:
+        log.i('stop downloading by press \'q\'')
+
+    cmd = ['ffmpeg', '-y', '-i', url, '-c', 'copy', '-absf', 'aac_adtstoasc', name]
 
     subprocess.call(cmd)

@@ -1,6 +1,14 @@
 Change Log for ykdl
 ===================
 
+1.1.1.1
+-------
+
+- update iqiyi support more stream profiles
+- update m3u8 download with ffpmeg
+- update letv 
+- update stream profile code
+
 1.1.1
 -----
 

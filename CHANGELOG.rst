@@ -1,6 +1,12 @@
 Change Log for ykdl
 ===================
 
+1.1.1.2
+-------
+
+- quick fix for youku, find a mistake
+
+
 1.1.1.1
 -------
 

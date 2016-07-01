@@ -24,8 +24,8 @@ stream_code_to_profiles = {
 }
 id_to_container = {
     'BD' : 'flv',
-    'TD' : 'mp4',
-    'HD' : 'flv',
+    'TD' : 'flv',
+    'HD' : 'mp4',
     'SD' : 'flv',
     'LD' : 'mp4'
 }

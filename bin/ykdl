@@ -110,7 +110,11 @@ def main():
                         handle_videoinfo(info)
                 else:
                     info = m.parser(u)
-                    handle_videoinfo(info)
+                    if type(info) is list:
+                        for i in info:
+                            handle_videoinfo(i)
+                    else:
+                        handle_videoinfo(info)
             except AssertionError as e:
                 log.wtf(compact_str(e))
                 exit = 1

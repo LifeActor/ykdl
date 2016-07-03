@@ -34,8 +34,7 @@ class EmbedExtractor():
         """
         pass
 
-    def download(self, url, param):
-        self.param = param
+    def parser(self, url):
         if isinstance(url, str) and url.startswith('http'):
             self.url = url
         self.video_info = None
@@ -48,10 +47,9 @@ class EmbedExtractor():
         if site in alias.keys():
             site = alias[site]
         s = import_module('.'.join(['ykdl','extractors',site])).site
-        s.download(vid, self.param)
+        return s.parser(vid)
 
-    def download_playlist(self, url, param):
-        self.param = param
+    def parser_list(self, url):
         if isinstance(url, str) and url.startswith('http'):
             self.url = url
         self.video_info_list = []
@@ -60,10 +58,11 @@ class EmbedExtractor():
         if not self.video_info_list:
             raise NotImplementedError('Playlist is not supported for ' + self.name + 'with url: ' + self.url)
 
-
+        info_list = []
         for v in self.video_info_list:
             site, vid = v
             if site in alias.keys():
                 site = alias[site]
             s = import_module('.'.join(['ykdl','extractors',site])).site
-            s.download(vid, self.param)
+            info_list.append(s.parser(vid))
+        return info_list

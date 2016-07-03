@@ -161,6 +161,6 @@ class GeneralEmbed(EmbedExtractor):
                 tmp.append(v)
         self.video_info_list = tmp
 
-    download = EmbedExtractor.download_playlist
+    parser = EmbedExtractor.parser_list
 
 site = GeneralEmbed()

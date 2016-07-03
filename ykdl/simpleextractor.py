@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from .util.html import get_content, fake_headers, url_info
-from .util.match import match1
-from .extractor import VideoExtractor
+from ykdl.util.html import get_content, fake_headers, url_info
+from ykdl.util.match import match1
+from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 
 class SimpleExtractor(VideoExtractor):
 
@@ -20,15 +21,17 @@ class SimpleExtractor(VideoExtractor):
 
         self.artist_pattern = ''
 
+        self.live = False
+
         self.headers = fake_headers
 
     def get_title(self):
         if self.title_pattern:
-            self.title = match1(self.html, self.title_pattern)
+            self.info.title = match1(self.html, self.title_pattern)
 
     def get_artist(self):
         if self.artist_pattern:
-            self.artist = match1(self.html, self.artist_pattern)
+            self.info.artist = match1(self.html, self.artist_pattern)
 
     def get_url(self):
         if self.url_pattern:
@@ -46,11 +49,13 @@ class SimpleExtractor(VideoExtractor):
         pass
 
     def prepare(self):
+        self.info = VideoInfo(self.name, self.live)
         self.l_assert()
         self.html = get_content(self.url, headers=self.headers)
         self.get_title()
         self.get_artist()
         self.get_url()
         ext, size = self.get_info()
-        self.stream_types.append('current')
-        self.streams['current'] = {'container': ext, 'src': self.v_url, 'size' : size}
+        self.info.stream_types.append('current')
+        self.info.streams['current'] = {'container': ext, 'src': self.v_url, 'size' : size}
+        return self.info

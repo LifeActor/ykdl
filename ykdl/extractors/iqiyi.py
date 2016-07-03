@@ -44,7 +44,7 @@ class Iqiyi(VideoExtractor):
     stream_2_profile = {  '4k': u'4k', 'fullhd' : u'全高清', 'suprt-high' : u'超高清', 'super' : u'超清', 'high' : u'高清', 'standard' : u'标清', 'topspeed' : u'急速'}
     '''
     ids = ['4k','BD', 'TD', 'HD', 'SD', 'LD']
-    vd_2_id = {10: '4k', 19: '4k', 5:'BD', 18: 'BD', 21: 'HD', 2: 'HD', 4: 'TD', 17: 'TD', 96: 'LD', 1: 'SD'}
+    vd_2_id = {10: '4k', 19: '4k', 5:'BD', 18: 'BD', 14: 'HD', 21: 'HD', 2: 'HD', 4: 'TD', 17: 'TD', 96: 'LD', 1: 'SD'}
     id_2_profile = {'4k':'4k', 'BD': '1080p','TD': '720p', 'HD': '540p', 'SD': '360p', 'LD': '210p'}
 
 
@@ -78,6 +78,9 @@ class Iqiyi(VideoExtractor):
             except:
                 log.i("vd: {} is not handled".format(stream['vd']))
                 log.i("info is {}".format(stream))
+
+        info.stream_types = sorted(info.stream_types, key = self.ids.index)
+        return info
 
         # why I need do below???
         try:

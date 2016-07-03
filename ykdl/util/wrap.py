@@ -23,7 +23,7 @@ def launch_ffmpeg(basename, ext, lenth):
         cmd += ['-absf', 'aac_adtstoasc']
 
     cmd.append(outputfile)
-    log.d('Merging video %s using ffmpeg:' % name)
+    log.d('Merging video %s using ffmpeg:' % basename)
     subprocess.call(cmd)
 
 def launch_ffmpeg_download(url, name, live):

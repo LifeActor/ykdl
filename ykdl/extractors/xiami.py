@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 from ykdl.util.html import get_content
 from ykdl.util.match import match1, matchall
 
@@ -34,25 +35,26 @@ class Xiami(VideoExtractor):
     song_data = None
 
     def prepare(self):
+        info = VideoInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url, 'http://www.xiami.com/song/(\d+)', 'http://www.xiami.com/song/detail/id/(\d+)')
 
         xml = get_content('http://www.xiami.com/song/playlist/id/{}/object_name/default/object_id/0'.format(self.vid) , charset = 'ignore')
         doc = parseString(xml)
         self.song_data = doc.getElementsByTagName("track")[0]
+        self.extract_song(info)
+        return info
 
-    def extract(self):
-        self.stream_types = []
+    def extract_song(self, info):
         i = self.song_data
-        self.artist = i.getElementsByTagName("artist")[0].firstChild.nodeValue
-        self.title = i.getElementsByTagName("songName")[0].firstChild.nodeValue
+        info.artist = i.getElementsByTagName("artist")[0].firstChild.nodeValue
+        info.title = i.getElementsByTagName("songName")[0].firstChild.nodeValue
         url = location_dec(i.getElementsByTagName("location")[0].firstChild.nodeValue)
-        self.stream_types.append('current')
-        self.streams['current'] = {'container': 'mp3', 'video_profile': 'current', 'src' : [url], 'size': 0}
+        info.stream_types.append('current')
+        info.streams['current'] = {'container': 'mp3', 'video_profile': 'current', 'src' : [url], 'size': 0}
 
 
-    def download_playlist(self, url, param):
-        self.param = param
+    def parser_list(self, url):
         if "album" in url:
             _id = match1(url, 'http://www.xiami.com/album/(\d+)')
             t = '1'
@@ -64,12 +66,16 @@ class Xiami(VideoExtractor):
         doc = parseString(xml)
         tracks = doc.getElementsByTagName("trackList")[0]
 
+        info_list = []
         #ugly code TODO
         n = 0
         for t in tracks.getElementsByTagName('track'):
-           if not n % 2:
-               self.song_data = t
-               self.download_normal()
-           n += 1
+            if not n % 2:
+                info = VideoInfo(self.name)
+                self.song_data = t
+                self.extract_song(info)
+                info_list.append(info)
+            n += 1
+        return info_list
 
 site = Xiami()

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..extractor import VideoExtractor
+from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 from .youkujs import *
-from ..util.html import get_content
+from ykdl.util.html import get_content
 
 from ykdl.compact import urlencode
 
@@ -27,30 +28,28 @@ class YoukuBase(VideoExtractor):
         self.ip = data['security']['ip']
 
     def prepare(self):
-
-        self.setup()
+        info = VideoInfo(self.name)
+        self.setup(info)
         self.streams_parameter = {}
         for stream in self.stream_data:
             stream_id = stream_code_to_id[stream['stream_type']]
-            if not stream_id in self.stream_types:
+            if not stream_id in info.stream_types:
                 self.streams_parameter[stream_id] = {
                     'fileid': stream['stream_fileid'],
                     'segs': stream['segs']
                 }
-                self.streams[stream_id] = {
+                info.streams[stream_id] = {
                     'container': id_to_container[stream_id],
                     'video_profile': stream_code_to_profiles[stream_id],
                     'size': stream['size']
                 }
-                self.stream_types.append(stream_id)
+                info.stream_types.append(stream_id)
+                self.extract_single(info, stream_id)
 
-        self.stream_types = sorted(self.stream_types, key = ids.index)
+        info.stream_types = sorted(info.stream_types, key = ids.index)
+        return info
 
-    def extract(self):
-        for stream_id in self.stream_types:
-            self.extract_single(stream_id)
-
-    def extract_single(self, stream_id):
+    def extract_single(self, info, stream_id):
         sid, token = init(self.ep)
         segs = self.streams_parameter[stream_id]['segs']
         streamfileid = self.streams_parameter[stream_id]['fileid']
@@ -81,7 +80,7 @@ class YoukuBase(VideoExtractor):
                 '/st/{container}/fileid/{fileid}?{q}'.format(
                 sid       = sid,
                 nu        = nu,
-                container = self.streams[stream_id]['container'],
+                container = info.streams[stream_id]['container'],
                 fileid    = fileId,
                 q         = q
             )
@@ -89,7 +88,7 @@ class YoukuBase(VideoExtractor):
             url = json.loads(get_content(u))[0]['server']
             urls.append(url)
 
-        self.streams[stream_id]['src'] = urls
-        if not self.streams[stream_id]['src'] and self.password_protected:
+        info.streams[stream_id]['src'] = urls
+        if not info.streams[stream_id]['src'] and self.password_protected:
             log.e('[Failed] Wrong password.')
 

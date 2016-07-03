@@ -4,6 +4,7 @@
 from ykdl.util.match import match1
 from ykdl.util.html import get_content
 from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 from ykdl.compact import urlencode, compact_bytes
 
 import time
@@ -14,7 +15,7 @@ class BaiduMusic(VideoExtractor):
 
 
     def prepare(self):
-
+        info = VideoInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url, 'http://music.baidu.com/song/([\d]+)')
 
@@ -22,20 +23,20 @@ class BaiduMusic(VideoExtractor):
 
         song_data = json.loads(get_content('http://play.baidu.com/data/music/songlink', data=compact_bytes(param, 'utf-8')))['data']['songList'][0]
 
-        self.title = song_data['songName']
-        self.artist = song_data['artistName']
+        info.title = song_data['songName']
+        info.artist = song_data['artistName']
 
-        self.stream_types.append('current')
-        self.streams['current'] = {'container': song_data['format'], 'video_profile': 'current', 'src' : [song_data['songLink']], 'size': song_data['size']}
+        info.stream_types.append('current')
+        info.streams['current'] = {'container': song_data['format'], 'video_profile': 'current', 'src' : [song_data['songLink']], 'size': song_data['size']}
+        return info
 
-    def download_playlist(self, url, param):
+    def prepare_list(self):
 
-        album_id = match1(url, 'http://music.baidu.com/album/([\d]+)')
+        album_id = match1(self.url, 'http://music.baidu.com/album/([\d]+)')
         data = json.loads(get_content('http://play.baidu.com/data/music/box/album?albumId={}&type=album&_={}'.format(album_id, time.time())))
 
         print('album:		%s' % data['data']['albumName'])
 
-        for s in data['data']['songIdList']:
-            self.download(s, param)
+        return data['data']['songIdList']
 
 site = BaiduMusic()

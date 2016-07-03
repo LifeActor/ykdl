@@ -16,7 +16,7 @@ class Youku(YoukuBase):
 
     ct = 12
 
-    def setup(self):
+    def setup(self, info):
         # Hot-plug cookie handler
         ssl_context = HTTPSHandler(
             context=ssl.SSLContext(ssl.PROTOCOL_TLSv1))
@@ -60,7 +60,7 @@ class Youku(YoukuBase):
             else:
                 raise AssertionError('[Failed] Video not found.')
 
-        self.title = data['video']['title']
+        info.title = data['video']['title']
         self.ep = data['security']['encrypt_string']
         self.ip = data['security']['ip']
         self.stream_data = data1['stream']

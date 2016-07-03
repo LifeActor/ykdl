@@ -7,6 +7,7 @@ import base64
 
 from ykdl.util.html import get_content, add_header
 from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 from ykdl.util.match import match1
 
 
@@ -36,6 +37,7 @@ class NeteaseMusicBase(VideoExtractor):
     supported_stream_types = ['hMusic', 'bMusic', 'mMusic', 'lMusic']
     song_date = {}
     def prepare(self):
+        info = VideoInfo(self.name)
         add_header("Referer", "http://music.163.com/")
         if not self.vid:
             self.vid =  match1(self.url, 'id=(.*)')
@@ -43,18 +45,20 @@ class NeteaseMusicBase(VideoExtractor):
         api_url = self.api_url.format(self.vid, self.vid)
         music = self.get_music(json.loads(get_content(api_url)))
 
-        self.title = music['name']
-        self.artist = music['artists'][0]['name']
+        info.title = music['name']
+        info.artist = music['artists'][0]['name']
 
         self.mp3_host = music['mp3Url'][8]
 
         for st in self.supported_stream_types:
             if st in music and music[st]:
                 print(music[st])
-                self.stream_types.append(st)
+                info.stream_types.append(st)
                 self.song_date[st] = music[st]
+                self.extract_song(info)
+        return info
 
-    def extract(self):
-        for stream_id in self.stream_types:
+    def extract_song(self, info):
+        for stream_id in info.stream_types:
             song = self.song_date[stream_id]
-            self.streams[stream_id] = {'container': song['extension'], 'video_profile': stream_id, 'src' : [make_url(self.mp3_host, song['dfsId'])], 'size': song['size']}
+            info.streams[stream_id] = {'container': song['extension'], 'video_profile': stream_id, 'src' : [make_url(self.mp3_host, song['dfsId'])], 'size': song['size']}

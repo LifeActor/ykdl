@@ -4,6 +4,7 @@
 from ykdl.util.match import match1
 from ykdl.util.html import get_content
 from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 from ykdl.compact import urlencode, compact_bytes
 
 import json
@@ -14,6 +15,7 @@ class DoubanMusic(VideoExtractor):
     song_info = {}
 
     def prepare(self):
+        info = VideoInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url, 'sid=(\d+)')
 
@@ -25,17 +27,18 @@ class DoubanMusic(VideoExtractor):
         form = urlencode(params)
         data = json.loads(get_content('https://music.douban.com/j/artist/playlist', data = compact_bytes(form, 'utf-8')))
         self.song_info = data['songs'][0]
+        self.extract_song(info)
+        return info
 
-    def extract(self):
-        self.stream_types = []
+    def extract_song(self, info):
         song = self.song_info
-        self.title = song['title']
-        self.artist = song['artist_name']
-        self.stream_types.append('current')
-        self.streams['current'] = {'container': 'mp3', 'video_profile': 'current', 'src' : [song['url']], 'size': 0}
+        info.title = song['title']
+        info.artist = song['artist_name']
+        info.stream_types.append('current')
+        info.streams['current'] = {'container': 'mp3', 'video_profile': 'current', 'src' : [song['url']], 'size': 0}
 
-    def download_playlist(self, url, param):
-        self.param = param
+    def parser_list(self, url):
+
         sids = match1(url, 'sid=([0-9,]+)')
 
         params = {
@@ -46,9 +49,13 @@ class DoubanMusic(VideoExtractor):
         form = urlencode(params)
         data = json.loads(get_content('https://music.douban.com/j/artist/playlist', data = compact_bytes(form, 'utf-8')))
 
+        info_list = []
         for s in data['songs']:
-           self.song_info = s
-           self.download_normal()
+            info = VideoInfo(self.name)
+            self.song_info = s
+            self.extract_song(info)
+            info_list.append(info)
+        return info_list
 
 
 site = DoubanMusic()

@@ -16,10 +16,11 @@ class VideoExtractor():
         # if info is returned by prepare, no need go extractor
         # else go extractor.
         # info is instance of VideoInfo
-        info = self.prepare() or self.extractor()
+        info = self.prepare()
         return info
 
     def parser_list(self, url):
+        self.url = url
         video_list = self.prepare_list()
         return [self.parser(v) for v in video_list]
 

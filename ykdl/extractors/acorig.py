@@ -10,10 +10,9 @@ class Acorig(YoukuBase):
     client_id = '908a519d032263f8'
     ct = 86
 
-    def setup(self):
+    def setup(self, info):
 
-        if not self.title:
-            self.title = self.name + "-" + self.vid
+        info.title = self.name + "-" + self.vid
 
         install_acode('v', 'b', '1z4i', '86rv', 'ogb', 'ail')
         self.get_custom_sign()

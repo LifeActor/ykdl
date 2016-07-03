@@ -4,6 +4,7 @@
 from ykdl.util.html import get_content
 from ykdl.util.match import matchall, match1
 from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 from ykdl.compact import compact_bytes
 from ykdl.util import log
 
@@ -49,7 +50,7 @@ class Iqiyi(VideoExtractor):
 
 
     def prepare(self):
-
+        info = VideoInfo(self.name)
         if self.url and not self.vid:
             vid = matchall(self.url, ['curid=([^_]+)_([\w]+)'])
             if vid:
@@ -60,33 +61,33 @@ class Iqiyi(VideoExtractor):
             tvid = match1(html, 'data-player-tvid="([^"]+)"', 'tvid=([^&]+)' , 'tvId:([^,]+)')
             videoid = match1(html, 'data-player-videoid="([^"]+)"', 'vid=([^&]+)', 'vid:"([^"]+)')
             self.vid = (tvid, videoid)
-            self.title = match1(html, '<title>([^<]+)').split('-')[0]
+            info.title = match1(html, '<title>([^<]+)').split('-')[0]
 
         tvid, vid = self.vid
-        info = getVMS(tvid, vid)
-        assert info['code'] == 'A00000', 'can\'t play this video'
+        data = getVMS(tvid, vid)
+        assert data['code'] == 'A00000', 'can\'t play this video'
 
-        for stream in info['data']['vidl']:
+        for stream in data['data']['vidl']:
             try:
                 stream_id = self.vd_2_id[stream['vd']]
-                if stream_id in self.stream_types:
+                if stream_id in info.stream_types:
                     continue
                 stream_profile = self.id_2_profile[stream_id]
-                self.stream_types.append(stream_id)
-                self.streams[stream_id] = {'video_profile': stream_profile, 'container': 'm3u8', 'src': [stream['m3u']], 'size' : 0}
+                info.stream_types.append(stream_id)
+                info.streams[stream_id] = {'video_profile': stream_profile, 'container': 'm3u8', 'src': [stream['m3u']], 'size' : 0}
             except:
                 log.i("vd: {} is not handled".format(stream['vd']))
                 log.i("info is {}".format(stream))
 
         # why I need do below???
         try:
-            vip_vds = info['data']['ctl']['vip']['bids']
-            vip_conf = info['data']['ctl']['configs']
+            vip_vds = data['data']['ctl']['vip']['bids']
+            vip_conf = data['data']['ctl']['configs']
         except:
-            self.stream_types = sorted(self.stream_types, key = self.ids.index)
+            info.stream_types = sorted(info.stream_types, key = self.ids.index)
             return
 
-        if not 'BD' in self.stream_types:
+        if not 'BD' in info.stream_types:
             p1080_vids = []
             if 18 in vip_vds:
                 p1080_vids.append(vip_conf['18']['vid'])
@@ -96,11 +97,11 @@ class Iqiyi(VideoExtractor):
                 p1080_info = getVMS(tvid, v)
                 if p1080_info['code'] == 'A00000':
                     p1080_url = p1080_info['data']['m3u']
-                    self.stream_types.append('BD')
-                    self.streams['BD'] = {'video_profile': '1080p', 'container': 'm3u8', 'src': [p1080_url], 'size' : 0}
+                    info.stream_types.append('BD')
+                    info.streams['BD'] = {'video_profile': '1080p', 'container': 'm3u8', 'src': [p1080_url], 'size' : 0}
                     break
 
-        if not '4k' in self.stream_types:
+        if not '4k' in info.stream_types:
             k4_vids = []
             if 19 in vip_vds:
                 k4_vids.append(vip_conf['19']['vid'])
@@ -110,11 +111,13 @@ class Iqiyi(VideoExtractor):
                 k4_info = getVMS(tvid, v)
                 if k4_info['code'] == 'A00000':
                     k4_url = k4_info['data']['m3u']
-                    self.stream_types.append('4k')
-                    self.streams['4k'] = {'video_profile': '4k', 'container': 'm3u8', 'src': [k4_url], 'size' : 0}
+                    info.stream_types.append('4k')
+                    info.streams['4k'] = {'video_profile': '4k', 'container': 'm3u8', 'src': [k4_url], 'size' : 0}
                     break
 
-        self.stream_types = sorted(self.stream_types, key = self.ids.index)
+        info.stream_types = sorted(info.stream_types, key = self.ids.index)
+        return info
+
     def prepare_list(self):
         html = get_content(self.url)
 

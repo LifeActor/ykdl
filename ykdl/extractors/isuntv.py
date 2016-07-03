@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..util.match import match1
-from ..util.html import get_content, fake_headers
-from ..extractor import VideoExtractor
+from ykdl.util.match import match1
+from ykdl.util.html import get_content, fake_headers
+from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 
 
 class Isuntv(VideoExtractor):
@@ -12,7 +13,7 @@ class Isuntv(VideoExtractor):
     API_URL = "http://www.isuntv.com/ajaxpro/SunTv.pro_vod_playcatemp4,App_Web_playcatemp4.ascx.9f08f04f.ashx"
 
     def prepare(self):
-
+        info = VideoInfo(self.name)
         itemid = match1(self.url, r'http://www.isuntv.com/pro/ct(\d+).html')
 
         values = {"itemid" : itemid, "vodid": ""}
@@ -27,10 +28,11 @@ class Isuntv(VideoExtractor):
 
         html = get_content(self.url, charset = 'gbk')
 
-        self.title = match1(html, '<title>([^<]+)').strip()  #get rid of \r\n s
+        info.title = match1(html, '<title>([^<]+)').strip()  #get rid of \r\n s
 
-        self.stream_types.append('current')
-        self.streams['current'] = {'container': 'mp4', 'src': [video_url], 'size' : 0}
+        info.stream_types.append('current')
+        info.streams['current'] = {'container': 'mp4', 'src': [video_url], 'size' : 0}
+        return info
 
 
 site = Isuntv()

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..util.html import *
-from ..util.match import *
-from ..extractor import VideoExtractor
+from ykdl.util.html import get_content
+from ykdl.util.match import match1, matchall
+from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 
 import json
 
@@ -12,7 +13,7 @@ class Miaopai(VideoExtractor):
     name = u'秒拍 (Miaopai)'
 
     def prepare(self):
-
+        info = VideoInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url, 'http://www.miaopai.com/show/channel/([^.]+)', \
                                         'http://www.miaopai.com/show/([^.]+)', \
@@ -22,12 +23,13 @@ class Miaopai(VideoExtractor):
         assert content['status'] == 200, "something error!"
 
         content = content['result']
-        self.title = content['ext']['t']
+        info.title = content['ext']['t']
         url = content['stream']['base']
         ext = content['stream']['and']
 
-        self.stream_types.append('current')
-        self.streams['current'] = {'container': ext, 'src': [url], 'size' : 0}
+        info.stream_types.append('current')
+        info.streams['current'] = {'container': ext, 'src': [url], 'size' : 0}
+        return info
 
     def prepare_list(self):
         html = get_content(self.url)

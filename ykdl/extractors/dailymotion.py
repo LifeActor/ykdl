@@ -3,9 +3,10 @@
 
 import json
 
-from ..util.match import match1
-from ..util.html import get_content, url_info
-from ..extractor import VideoExtractor
+from ykdl.util.match import match1
+from ykdl.util.html import get_content, url_info
+from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 
 
 class Dailymotion(VideoExtractor):
@@ -14,15 +15,17 @@ class Dailymotion(VideoExtractor):
     supported_stream_types = ['720', '480', '380', '240' ]
 
     def prepare(self):
+        info = VideoInfo(self.name)
         html = get_content(self.url)
-        info = json.loads(match1(html, r'qualities":({.+?}),"'))
+        data = json.loads(match1(html, r'qualities":({.+?}),"'))
         self.title = match1(html, r'"video_title"\s*:\s*"(.+?)",')
 
         for stream in self.supported_stream_types:
             if stream in info.keys():
-                url = info[stream][0]["url"]
+                url = data[stream][0]["url"]
                 _, ext, size = url_info(url)
-                self.stream_types.append(stream)
-                self.streams[stream] = {'container': ext, 'src': [url], 'size' : size}
+                info.stream_types.append(stream)
+                info.streams[stream] = {'container': ext, 'src': [url], 'size' : size}
+        return info
 
 site = Dailymotion()

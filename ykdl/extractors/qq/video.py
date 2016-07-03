@@ -4,7 +4,7 @@
 from ykdl.util.html import get_content
 from ykdl.util.match import match1, matchall
 from ykdl.extractor import VideoExtractor
-
+from ykdl.videoinfo import VideoInfo
 import xml.etree.ElementTree as ET
 
 from ykdl.compact import urlencode, compact_bytes
@@ -233,7 +233,7 @@ class QQ(VideoExtractor):
         return fmt_name, type_name, urls, size
 
     def prepare(self):
-
+        info = VideoInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url, 'vid=(\w+)')
 
@@ -245,10 +245,11 @@ class QQ(VideoExtractor):
             fmt_name, type_name, urls, size = self.get_stream_info(stream)
             stream_id = self.stream_2_id[fmt_name]
             stream_profile = self.stream_2_profile[fmt_name]
-            if not stream_id in self.stream_types:
-                self.stream_types.append(stream_id)
-                self.streams[stream_id] = {'container': type_name, 'video_profile': stream_profile, 'src' : urls, 'size': size}
-        self.stream_types = sorted(self.stream_types, key = self.stream_ids.index)
+            if not stream_id in info.stream_types:
+                info.stream_types.append(stream_id)
+                info.streams[stream_id] = {'container': type_name, 'video_profile': stream_profile, 'src' : urls, 'size': size}
+        info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
+        return info
 
     def prepare_list(self):
         html = get_content(self.url)

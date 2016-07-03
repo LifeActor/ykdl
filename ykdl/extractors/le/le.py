@@ -14,6 +14,7 @@ else:
 from ykdl.util.html import get_content, url_info
 from ykdl.util.match import match1, matchall
 from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 from ykdl.compact import compact_tempfile
 
 def calcTimeKey(t):
@@ -52,34 +53,35 @@ class Letv(VideoExtractor):
 
 
     def prepare(self):
-
+        info = VideoInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url, r'http://www.le.com/ptv/vplay/(\d+).html', '#record/(\d+)')
 
         #normal process
         info_url = 'http://api.le.com/mms/out/video/playJson?id={}&platid=1&splatid=101&format=1&tkey={}&domain=www.le.com'.format(self.vid, calcTimeKey(int(time.time())))
         r = get_content(info_url)
-        info=json.loads(r)
+        data=json.loads(r)
 
-        self.title = info['playurl']['title']
-        available_stream_id = sorted(list(info["playurl"]["dispatch"].keys()), key = self.supported_stream_types.index)
+        info.title = data['playurl']['title']
+        available_stream_id = sorted(list(data["playurl"]["dispatch"].keys()), key = self.supported_stream_types.index)
         for stream in available_stream_id:
-            s_url =info["playurl"]["domain"][0]+info["playurl"]["dispatch"][stream][0]
+            s_url =data["playurl"]["domain"][0]+data["playurl"]["dispatch"][stream][0]
             s_url+="&ctv=pc&m3v=1&termid=1&format=1&hwtype=un&ostype=Linux&tag=le&sign=le&expect=3&tn={}&pay=0&iscpn=f9051&rateid={}".format(random.random(),stream)
             r2=get_content(s_url)
-            info2=json.loads(r2)
+            data2=json.loads(r2)
 
             # hold on ! more things to do
             # to decode m3u8 (encoded)
-            m3u8 = get_content(info2["location"], charset = 'ignore')
+            m3u8 = get_content(data2["location"], charset = 'ignore')
             m3u8_list = decode(m3u8)
             stream_id = self.stream_2_id[stream]
-            self.streams[stream_id] = {'container': 'm3u8', 'video_profile': self.stream_2_profile[stream], 'size' : 0}
+            info.streams[stream_id] = {'container': 'm3u8', 'video_profile': self.stream_2_profile[stream], 'size' : 0}
             self.stream_temp[stream] = compact_tempfile(mode='w+t', suffix='.m3u8')
             self.stream_temp[stream].write(m3u8_list)
-            self.streams[stream_id]['src'] = [self.stream_temp[stream].name]
+            info.streams[stream_id]['src'] = [self.stream_temp[stream].name]
             self.stream_temp[stream].flush()
-            self.stream_types.append(stream_id)
+            info.stream_types.append(stream_id)
+        return info
 
     def prepare_list(self):
 

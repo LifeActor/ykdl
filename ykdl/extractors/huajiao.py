@@ -4,6 +4,7 @@
 from ykdl.util.html import get_content
 from ykdl.util.match import match1
 from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 from ykdl.compact import compact_bytes
 
 import uuid
@@ -18,12 +19,12 @@ class Huajiao(VideoExtractor):
     name = u'huajiao (花椒直播)'
 
     def prepare(self):
-        self.live = True
+        info = VideoInfo(self.name, True)
         html = get_content(self.url)
         self.vid = match1(html, '"sn":"([^"]+)')
         t_a = match1(html, '"keywords" content="([^"]+)')
-        self.title = t_a.split(',')[0]
-        self.artist = t_a.split(',')[1]
+        info.title = t_a.split(',')[0]
+        info.artist = t_a.split(',')[1]
 
         api_url = 'http://g2.live.360.cn/liveplay?stype=flv&channel=live_huajiao_v2&bid=huajiao&sn={}&sid={}&_rate=xd&ts={}&r={}&_ostype=flash&_delay=0&_sign=null&_ver=13'.format(self.vid, SID, time.time(),random.random())
         encoded_json = get_content(api_url)
@@ -31,7 +32,8 @@ class Huajiao(VideoExtractor):
         video_data = json.loads(decoded_json)
         real_url = video_data['main']
 
-        self.stream_types.append('current')
-        self.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [real_url], 'size': float('inf')}
+        info.stream_types.append('current')
+        info.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [real_url], 'size': float('inf')}
+        return info
 
 site = Huajiao()

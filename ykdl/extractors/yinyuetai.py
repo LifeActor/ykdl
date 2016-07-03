@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..extractor import VideoExtractor
-from ..util.html import get_content, add_header
-from ..util.match import match1
-from ..util import log
+from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
+from ykdl.util.html import get_content, add_header
+from ykdl.util.match import match1
+from ykdl.util import log
 
 import json
 
@@ -15,7 +16,7 @@ class YinYueTai(VideoExtractor):
     types_2_profile = {'sh': u'原画', 'he': u'超清', 'hd': u'高清', 'hc' : u'标清' }
 
     def prepare(self):
-
+        info = VideoInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url, 'http://\w+.yinyuetai.com/video/(\d+)')
 
@@ -25,15 +26,16 @@ class YinYueTai(VideoExtractor):
 
         video_data = data['videoInfo']['coreVideoInfo']
 
-        self.title = video_data['videoName']
-        self.artist = video_data['artistNames']
+        info.title = video_data['videoName']
+        info.artist = video_data['artistNames']
         for s in video_data['videoUrlModels']:
             stream_id = self.types_2_id[s['qualityLevel']]
             stream_profile = self.types_2_profile[s['qualityLevel']]
-            self.stream_types.append(stream_id)
-            self.streams[stream_id] = {'container': 'flv', 'video_profile': stream_profile, 'src' : [s['videoUrl']], 'size': s['fileSize']}
+            info.stream_types.append(stream_id)
+            info.streams[stream_id] = {'container': 'flv', 'video_profile': stream_profile, 'src' : [s['videoUrl']], 'size': s['fileSize']}
 
-        self.stream_types = sorted(self.stream_types, key = self.ids.index)
+        info.stream_types = sorted(info.stream_types, key = self.ids.index)
+        return info
 
     def prepare_list(self):
 

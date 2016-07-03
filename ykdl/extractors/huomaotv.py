@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..util.html import get_content
-from ..util.match import match1
-from ..extractor import VideoExtractor
+from ykdl.util.html import get_content
+from ykdl.util.match import match1
+from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 from ykdl.compact import urlencode, compact_bytes
 
 import json
@@ -18,9 +19,9 @@ class HuomaoTv(VideoExtractor):
     live_base = "http://www.huomaotv.cn/swf/live_data"
 
     def prepare(self):
-        self.live = True
+        info = VideoInfo(self.name, True)
         html = get_content(self.url)
-        self.title = match1(html, '<title>([^<]+)').split('/')[0]
+        info.title = match1(html, '<title>([^<]+)').split('/')[0]
 
         video_name = match1(html, 'video_name = \'([^\']+)')
         params = { 'streamtype':'live',
@@ -36,9 +37,10 @@ class HuomaoTv(VideoExtractor):
                 defstream = stream['list']
 
         for stream in defstream:
-            self.stream_types.append(stream['type'])
-            self.streams[stream['type']] = {'container': 'flv', 'video_profile': self.stream_2_profile[stream['type']], 'src' : [stream['url']], 'size': float('inf')}
+            info.stream_types.append(stream['type'])
+            info.streams[stream['type']] = {'container': 'flv', 'video_profile': self.stream_2_profile[stream['type']], 'src' : [stream['url']], 'size': float('inf')}
 
-        self.stream_types = sorted(self.stream_types, key = self.supported_stream_types.index)
+        info.stream_types = sorted(info.stream_types, key = self.supported_stream_types.index)
+        return info
 
 site = HuomaoTv()

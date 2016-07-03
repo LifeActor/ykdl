@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..util.html import get_content, url_info
-from ..util.match import match1
-from ..extractor import VideoExtractor
+from ykdl.util.html import get_content, url_info
+from ykdl.util.match import match1
+from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 
 import json
 import re
@@ -12,13 +13,14 @@ class Ku6(VideoExtractor):
     name = u"酷6 (Ku6)"
 
     def prepare(self):
+        info = VideoInfo(self.name)
         if self.url and not self.vid:
             self.vid = match1(self.url, 'http://v.ku6.com/special/show_\d+/(.*)\.html',
             'http://v.ku6.com/show/(.*)\.html',
             'http://my.ku6.com/watch\?.*v=(.*).*')
 
         data = json.loads(get_content('http://v.ku6.com/fetchVideo4Player/%s.html' % self.vid))['data']
-        self.title = data['t']
+        info.title = data['t']
         f = data['f']
 
 
@@ -31,7 +33,8 @@ class Ku6(VideoExtractor):
             _, _, temp = url_info(url)
             size += temp
 
-        self.streams['current'] = {'container': ext, 'src': urls, 'size' : size}
-        self.stream_types.append('current')
+        info.streams['current'] = {'container': ext, 'src': urls, 'size' : size}
+        info.stream_types.append('current')
+        return info
 
 site = Ku6()

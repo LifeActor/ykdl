@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..util.html import get_content
-from ..util.match import match1, matchall
-from ..extractor import VideoExtractor
+from ykdl.util.html import get_content
+from ykdl.util.match import match1, matchall
+from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 
 from random import randint
 import json
@@ -16,7 +17,7 @@ class Hunantv(VideoExtractor):
     profile_2_types = { u'超清': 'TD', u'高清': 'HD', u'标清': 'SD' }
 
     def prepare(self):
-
+        info = VideoInfo(self.name)
         if self.url and not self.vid:
             self.vid = match1(self.url, "/([0-9]+).html")
 
@@ -29,26 +30,13 @@ class Hunantv(VideoExtractor):
 
         data = meta['data']
 
-        info = data['info']
-        self.title = info['title']
+        info.title = data['info']['title']
         for lstream in data['stream']:
-            self.streams[self.profile_2_types[lstream['name']]] = {'container': 'm3u8', 'video_profile': lstream['name'], 'url' : lstream['url']}
-            self.stream_types.append(self.profile_2_types[lstream['name']])
-        self.stream_types= sorted(self.stream_types, key = self.supported_stream_types.index)
-
-    def extract(self):
-        if self.param.info:
-            for stream in self.stream_types:
-                meta = json.loads(get_content(self.streams[stream]['url']))
-                self.streams[stream]['src'] = [meta['info']]
-                self.streams[stream]['size'] = 0
-            return
-        else:
-            stream_id = self.param.format or self.stream_types[0]
-
-        meta = json.loads(get_content(self.streams[stream_id]['url']))
-        self.streams[stream_id]['src'] = [meta['info']]
-        self.streams[stream_id]['size'] = 0
+            url = json.loads(get_content(lstream['url']))['info']
+            info.streams[self.profile_2_types[lstream['name']]] = {'container': 'm3u8', 'video_profile': lstream['name'], 'src' : [url]}
+            info.stream_types.append(self.profile_2_types[lstream['name']])
+        info.stream_types= sorted(info.stream_types, key = self.supported_stream_types.index)
+        return info
 
     def prepare_list(self):
 

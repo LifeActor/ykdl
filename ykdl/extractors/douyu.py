@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..util.html import get_content
-from ..util.match import match1, matchall
-from ..extractor import VideoExtractor
+from ykdl.util.html import get_content
+from ykdl.util.match import match1, matchall
+from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 
 import hashlib
 import time
@@ -16,7 +17,7 @@ class Douyutv(VideoExtractor):
     name = u'斗鱼 (DouyuTV)'
 
     def prepare(self):
-        self.live = True
+        info = VideoInfo(self.name, True)
         if self.url:
             self.vid = self.url[self.url.rfind('/')+1:]
 
@@ -28,13 +29,14 @@ class Douyutv(VideoExtractor):
         server_status = data.get('error',0)
         if server_status is not 0:
             raise ValueError("Server returned error:%s" % server_status)
-        self.title = data.get('room_name')
-        self.artist= data.get('nickname')
+        info.title = data.get('room_name')
+        info.artist= data.get('nickname')
         show_status = data.get('show_status')
         assert show_status == "1", "The live stream is not online! (Errno:%s)" % show_status
         real_url = data.get('rtmp_url')+'/'+data.get('rtmp_live')
-        self.stream_types.append('current')
-        self.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [real_url], 'size': float('inf')}
+        info.stream_types.append('current')
+        info.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [real_url], 'size': float('inf')}
+        return info
 
     def prepare_list(self):
 

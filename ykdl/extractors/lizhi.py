@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 from ykdl.util.html import get_content
 from ykdl.util.match import match1
 

@@ -8,13 +8,13 @@ from ykdl.util.fs import legitimize
 from ykdl.util import log
 
 class VideoInfo():
-    def __init__(self, site):
+    def __init__(self, site, live = False):
         self.site = site
         self.title = None
         self.artist = None
         self.stream_types = []
         self.streams = {}
-        self.live = False
+        self.live = live
 
     def print_stream_info(self, stream_id, show_all = False):
         stream = self.streams[stream_id]

@@ -10,6 +10,7 @@ import platform
 from ykdl.util.html import get_content, url_info
 from ykdl.util.match import match1, matchall
 from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 
 
 class LeLive(VideoExtractor):
@@ -24,38 +25,27 @@ class LeLive(VideoExtractor):
     stream_ids = ['BD', 'TD', 'HD', 'SD', 'LD']
 
     def prepare(self):
-        self.live = True
+        info = VideoInfo(self.name, True)
         if not self.vid:
             self.vid = match1(self.url, 'channel=([\d]+)')
 
         live_data = json.loads(get_content('http://api.live.letv.com/v1/channel/letv/100/1001/{}'.format(self.vid)))['data']
 
-        self.title = self.name + " " + live_data['channelName']
+        info.title = self.name + " " + live_data['channelName']
 
         stream_data = live_data['streams']
 
         for s in stream_data:
             stream_id = self.stream_2_id[s['rateType']]
             stream_profile = self.stream_2_profile[s['rateType']]
-            if not stream_id in self.stream_types:
-                self.stream_types.append(stream_id)
-                self.streams[stream_id] = {'container': 'm3u8', 'video_profile': stream_profile, 'size' : float('inf'), 'streamUrl' : s['streamUrl']}
+            if not stream_id in info.stream_types:
+                info.stream_types.append(stream_id)
+                date = datetime.datetime.now()
+                streamUrl = s['streamUrl'] + '&format=1&expect=2&termid=1&hwtype=un&platid=10&splatid=1001&playid=1sign=live_web&&ostype={}&p1=1&p2=10&p3=-&vkit={}&station={}&tm={}'.format(platform.platform(), date.strftime("%Y%m%d"), self.vid, int(time.time()))
+                data = json.loads(get_content(streamUrl))
+                info.streams[stream_id] = {'container': 'm3u8', 'video_profile': stream_profile, 'size' : float('inf'), 'src' : [data['location']]}
 
-        self.stream_types = sorted(self.stream_types, key = self.stream_ids.index)
-
-    def extract_single(self, stream_id):
-
-        date = datetime.datetime.now()
-
-        streamUrl = self.streams[stream_id]['streamUrl'] + '&format=1&expect=2&termid=1&hwtype=un&platid=10&splatid=1001&playid=1sign=live_web&&ostype={}&p1=1&p2=10&p3=-&vkit={}&station={}&tm={}'.format(platform.platform(), date.strftime("%Y%m%d"), self.vid, int(time.time()))
-
-        data = json.loads(get_content(streamUrl))
-
-        self.streams[stream_id]['src'] = [data['location']]
-
-    def extract(self):
-        for stream_id in self.stream_types:
-            self.extract_single(stream_id)
+        info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
+        return info
 
 site = LeLive()
-        

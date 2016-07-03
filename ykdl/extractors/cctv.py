@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..util.html import get_content
-from ..util.match import match1
-from ..extractor import VideoExtractor
+from ykdl.util.html import get_content
+from ykdl.util.match import match1
+from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 
 import json
 
@@ -14,7 +15,7 @@ class CNTV(VideoExtractor):
     type_2_cpt = { 'normal':'chapters', 'low':'lowChapters' }
 
     def prepare(self):
-
+        info = VideoInfo(self.name)
         if self.url and not self.vid:
             content = get_content(self.url)
             self.vid = match1(content, 'guid = "([^"]+)')
@@ -25,14 +26,15 @@ class CNTV(VideoExtractor):
         data = json.loads(html)
 
         video_data = data['video']
-        self.title = data['title']
+        info.title = data['title']
 
         for t in self.supported_stream_types:
             if self.type_2_cpt[t] in video_data:
                 urls = []
                 for v in video_data[self.type_2_cpt[t]]:
                    urls.append(v['url'])
-                self.stream_types.append(t)
-                self.streams[t] = {'container': 'mp4', 'video_profile': t, 'src': urls, 'size' : 0}
+                info.stream_types.append(t)
+                info.streams[t] = {'container': 'mp4', 'video_profile': t, 'src': urls, 'size' : 0}
+        return info
 
 site = CNTV()

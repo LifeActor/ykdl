@@ -43,12 +43,10 @@ def arg_parser():
     args = parser.parse_args()
 
 def download(urls, name, ext, live = False):
-    if not urls[0].startswith('http') and ext == 'm3u8':
+    if ext == 'm3u8' and not live:
         ext = 'mp4'
         urls = load_m3u8(urls[0])
-    if ext == 'm3u8':
-        launch_ffmpeg_download(urls[0], name+'.mp4', live)
-    elif live:
+    if live:
         launch_ffmpeg_download(urls[0], name + '.' + ext, live)
     else:
         save_urls(urls, name, ext)

@@ -5,7 +5,7 @@ import json
 
 from .util.download import save_url, save_urls
 from .util import log
-from .util.wrap import launch_player, launch_ffmpeg, launch_ffmpeg_m3u8
+from .util.wrap import launch_player, launch_ffmpeg, launch_ffmpeg_download
 from .util.m3u8_wrap import load_m3u8
 from .util.fs import legitimize
 
@@ -131,7 +131,9 @@ class VideoExtractor():
                 self.streams[stream_id]['container'] = 'mp4'
                 urls = load_m3u8(urls[0])
             if self.streams[stream_id]['container'] == 'm3u8':
-                launch_ffmpeg_m3u8(urls[0], name+'.mp4', self.live)
+                launch_ffmpeg_download(urls[0], name+'.mp4', self.live)
+            elif self.live:
+                launch_ffmpeg_download(urls[0], name + '.' + self.streams[stream_id]['container'], self.live)
             else:
                 save_urls(urls, name, self.streams[stream_id]['container'])
                 lenth = len(urls)

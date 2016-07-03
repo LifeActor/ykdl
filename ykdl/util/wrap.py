@@ -18,18 +18,19 @@ def launch_ffmpeg(basename, ext, lenth):
 
     outputfile = basename+ '.' + ext
 
-    cmd = ['ffmpeg','-f', 'concat', '-safe', '-1', '-y', '-i', inputfile.name, '-c', 'copy']
+    cmd = ['ffmpeg','-f', 'concat', '-safe', '-1', '-y', '-i', inputfile.name, '-c', 'copy', '-hide_banner']
     if ext == 'mp4':
         cmd += ['-absf', 'aac_adtstoasc']
 
     cmd.append(outputfile)
-
+    log.d('Merging video %s using ffmpeg:' % name)
     subprocess.call(cmd)
 
-def launch_ffmpeg_m3u8(url, name, live):
+def launch_ffmpeg_download(url, name, live):
+    log.d('Now downloading: %s' % name)
     if live:
-        log.i('stop downloading by press \'q\'')
+        log.d('stop downloading by press \'q\'')
 
-    cmd = ['ffmpeg', '-y', '-i', url, '-c', 'copy', '-absf', 'aac_adtstoasc', name]
+    cmd = ['ffmpeg', '-y', '-i', url, '-c', 'copy', '-absf', 'aac_adtstoasc',  '-hide_banner', name]
 
     subprocess.call(cmd)

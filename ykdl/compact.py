@@ -62,3 +62,13 @@ except TypeError:
 else:
     compat_struct_pack = struct.pack
     compat_struct_unpack = struct.unpack
+
+def tmp_null():
+    if platform.system() == 'Windows':
+        null = 'nul'
+    else:
+        null = '/dev/null'
+    return open(null, 'w')
+
+compact_dev_null = tmp_null()
+del tmp_null

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
 from ykdl.util.html import get_content
 from ykdl.util.match import match1, matchall
 
@@ -25,19 +26,20 @@ class BiliVideo(VideoExtractor):
     supported_stream_profile = [u'超清', u'高清', u'流畅']
     profile_2_type = {u'超清': 'TD', u'高清': 'HD', u'流畅' :'SD'}
     def prepare(self):
-
+        info = VideoInfo(self.name)
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'cid=([^&]+)')
-            self.title = match1(html, '<title>([^<]+)').split("_")[0]
+            info.title = match1(html, '<title>([^<]+)').split("_")[0]
         assert self.vid, "can't play this video: {}".format(self.url)
         for q in self.supported_stream_profile:
             api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid + '&quality=' + str(3-self.supported_stream_profile.index(q))
             urls, size = parse_cid_playurl(get_content(api_url))
             ext = 'flv'
 
-            self.stream_types.append(self.profile_2_type[q])
-            self.streams[self.profile_2_type[q]] = {'container': ext, 'video_profile': q, 'src' : urls, 'size': size}
+            info.stream_types.append(self.profile_2_type[q])
+            info.streams[self.profile_2_type[q]] = {'container': ext, 'video_profile': q, 'src' : urls, 'size': size}
+        return info
 
     def prepare_list(self):
         html = get_content(self.url)

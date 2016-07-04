@@ -15,6 +15,7 @@ from ykdl.util.m3u8_wrap import load_m3u8
 from ykdl.util.download import save_urls
 from ykdl.version import __version__
 
+m3u8_internal = True
 args = None
 
 def arg_parser():
@@ -34,10 +35,19 @@ def arg_parser():
     args = parser.parse_args()
 
 def download(urls, name, ext, live = False):
-    if ext == 'm3u8' and not live:
-        ext = 'mp4'
-        urls = load_m3u8(urls[0])
+    # ffmpeg can't handle local m3u8.
+    global m3u8_internal
+    if not urls[0].startswith('http'):
+        m3u8_internal = True
     if live:
+        m3u8_internal = False
+
+    if ext == 'm3u8':
+        ext = 'mp4'
+        if m3u8_internal:
+            urls = load_m3u8(urls[0])
+
+    if not m3u8_internal:
         launch_ffmpeg_download(urls[0], name + '.' + ext, live)
     else:
         save_urls(urls, name, ext)
@@ -67,9 +77,13 @@ def main():
     if args.timeout:
         socket.setdefaulttimeout(args.timeout)
     if args.proxy:
+        http_proxy = args.proxy
+    else:
+        http_proxy = os.getenv('http_proxy')
+    if http_proxy:
         proxy_handler = ProxyHandler({
-            'http': args.proxy,
-            'https': args.proxy
+            'http': http_proxy,
+            'https': http_proxy
         })
         opener = build_opener(proxy_handler)
         install_opener(opener)

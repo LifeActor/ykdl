@@ -1,6 +1,13 @@
 Change Log for ykdl
 ===================
 
+1.1.2
+-------
+
+- refact code a lot
+- update iqiyi
+- update setup for windows platform
+
 1.1.1.2
 -------
 

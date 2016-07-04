@@ -112,20 +112,19 @@ def main():
             try:
                 m,u = url_to_module(url)
                 if args.playlist:
-                    info_list = m.parser_list(u)
-                    if args.start >= len(info_list):
+                    parser = m.parser_list
+                else:
+                    parser = m.parser
+                info = parser(u)
+                if type(info) is list:
+                    if args.start >= len(info):
                         log.w('invalid argument -s/--start')
                         log.w('start from beginning')
                         args.start = 0
-                    for info in info_list[args.start:]:
-                        handle_videoinfo(info)
+                    for i in info[args.start:]:
+                        handle_videoinfo(i)
                 else:
-                    info = m.parser(u)
-                    if type(info) is list:
-                        for i in info:
-                            handle_videoinfo(i)
-                    else:
-                        handle_videoinfo(info)
+                    handle_videoinfo(info)
             except AssertionError as e:
                 log.wtf(compact_str(e))
                 exit = 1

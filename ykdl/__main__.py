@@ -41,17 +41,21 @@ def clean_slices(name, ext, lenth):
 
 def download(urls, name, ext, live = False):
     # ffmpeg can't handle local m3u8.
+    # only use ffmpeg to hanle m3u8.
     global m3u8_internal
-    if not urls[0].startswith('http'):
+    if not urls[0].startswith('http') or not ext == 'm3u8':
         m3u8_internal = True
+    # for live video, always use ffmpeg to rebuild timeline.
     if live:
         m3u8_internal = False
-
+    # change m3u8 ext to mp4
+    # rebuild urls when use internal downloader
     if ext == 'm3u8':
         ext = 'mp4'
         if m3u8_internal:
             urls = load_m3u8(urls[0])
 
+    # OK check m3u8_internal
     if not m3u8_internal:
         launch_ffmpeg_download(urls[0], name + '.' + ext, live)
     else:

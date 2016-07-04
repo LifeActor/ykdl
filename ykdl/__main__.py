@@ -34,6 +34,11 @@ def arg_parser():
     global args
     args = parser.parse_args()
 
+def clean_slices(name, ext, lenth):
+    for i in range(lenth):
+        file_name = name + '_%d_.' % i + ext
+        os.remove(file_name)
+
 def download(urls, name, ext, live = False):
     # ffmpeg can't handle local m3u8.
     global m3u8_internal
@@ -54,6 +59,7 @@ def download(urls, name, ext, live = False):
         lenth = len(urls)
         if args.merge and lenth > 1:
             launch_ffmpeg(name, ext,lenth)
+            clean_slices(name, ext,lenth)
 
 def handle_videoinfo(info):
     if not args.json:

@@ -46,6 +46,7 @@ class Iqiyi(VideoExtractor):
     ids = ['4k','BD', 'TD', 'HD', 'SD', 'LD']
     vd_2_id = {10: '4k', 19: '4k', 5:'BD', 18: 'BD', 14: 'HD', 21: 'HD', 2: 'HD', 4: 'TD', 17: 'TD', 96: 'LD', 1: 'SD'}
     id_2_profile = {'4k':'4k', 'BD': '1080p','TD': '720p', 'HD': '540p', 'SD': '360p', 'LD': '210p'}
+    id_ignore = [19, 18]
 
 
 
@@ -70,7 +71,7 @@ class Iqiyi(VideoExtractor):
         for stream in data['data']['vidl']:
             try:
                 stream_id = self.vd_2_id[stream['vd']]
-                if stream_id in info.stream_types:
+                if stream_id in info.stream_types or stream_id in self.id_ignore:
                     continue
                 stream_profile = self.id_2_profile[stream_id]
                 info.stream_types.append(stream_id)
@@ -79,21 +80,16 @@ class Iqiyi(VideoExtractor):
                 log.i("vd: {} is not handled".format(stream['vd']))
                 log.i("info is {}".format(stream))
 
-        info.stream_types = sorted(info.stream_types, key = self.ids.index)
-        return info
-
         # why I need do below???
         try:
             vip_vds = data['data']['ctl']['vip']['bids']
             vip_conf = data['data']['ctl']['configs']
         except:
             info.stream_types = sorted(info.stream_types, key = self.ids.index)
-            return
+            return info
 
         if not 'BD' in info.stream_types:
             p1080_vids = []
-            if 18 in vip_vds:
-                p1080_vids.append(vip_conf['18']['vid'])
             if 5 in vip_vds:
                 p1080_vids.append(vip_conf['5']['vid'])
             for v in p1080_vids:
@@ -106,8 +102,6 @@ class Iqiyi(VideoExtractor):
 
         if not '4k' in info.stream_types:
             k4_vids = []
-            if 19 in vip_vds:
-                k4_vids.append(vip_conf['19']['vid'])
             if 10 in vip_vds:
                 k4_vids.append(vip_conf['10']['vid'])
             for v in k4_vids:

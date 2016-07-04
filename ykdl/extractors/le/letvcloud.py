@@ -39,7 +39,7 @@ class Letvcloud(VideoExtractor):
                 urls = [base64.b64decode(data['data']['video_info']['media'][stream]['play_url']['main_url']).decode("utf-8")]
                 info.stream_types.append(stream)
                 info.streams[stream] = {'container': ext, 'video_profile': stream, 'src': urls, 'size' : 0}
-         return info
+        return info
 
     def prepare(self):
 

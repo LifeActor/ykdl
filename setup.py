@@ -64,5 +64,11 @@ setup(
         "Topic :: Multimedia :: Video",
         "Topic :: Utilities"
     ],
-    scripts = ['bin/ykdl']
+
+    entry_points={
+        'console_scripts': [
+            'ykdl=ykdl.__main__:main',
+        ],
+    },
+
 )

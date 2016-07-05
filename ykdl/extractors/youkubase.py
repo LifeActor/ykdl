@@ -57,7 +57,7 @@ class YoukuBase(VideoExtractor):
         no = 0
         for seg in segs:
             k = seg['key']
-            assert k != -1
+            assert k != -1, '%s invalid segment key!' % self.name
             fileId = getFileid(streamfileid, no)
             ep  = create_ep(sid, fileId, token)
             q = urlencode(dict(

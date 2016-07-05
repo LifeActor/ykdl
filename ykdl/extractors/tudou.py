@@ -26,16 +26,10 @@ class Tudou(EmbedExtractor):
             if vid:
                 self.video_info = ('tdorig', vid)
 
-    def parse_plist(self):
+    def prepare_playlist(self):
         html = get_content(self.url)
         lcode = match1(html, "lcode:\s*'([^']+)'")
         plist_info = json.loads(get_content('http://www.tudou.com/crp/plist.action?lcode=' + lcode))
-        return [item['iid'] for item in plist_info['items'] if 'iid' in item]
-
-    def download_playlist(self, url, param):
-        self.url = url
-        videos = self.parse_plist()
-        for vid in videos:
-            self.download(vid, param)
+        self.video_info_list = [('tdorig',item['iid']) for item in plist_info['items'] if 'iid' in item]
 
 site = Tudou()

@@ -28,7 +28,7 @@ def arg_parser():
     parser.add_argument('-o', '--output-dir', default='.', help="Set the output directory for downloaded videos.")
     parser.add_argument('-p', '--player', help="Directly play the video with PLAYER like mpv")
     parser.add_argument('-s', '--start', type=int, default=0, help="start from INDEX to play/download playlist")
-    parser.add_argument('--proxy', type=str, default='', help="set proxy HOST:PORT for http(s) transfer")
+    parser.add_argument('--proxy', type=str, default='system', help="set proxy HOST:PORT for http(s) transfer. default: use system proxy settings")
     parser.add_argument('-t', '--timeout', type=int, default=60, help="set socket timeout seconds, default 60s")
     parser.add_argument('video_urls', type=str, nargs='+', help="video urls")
     global args
@@ -86,17 +86,15 @@ def main():
     arg_parser()
     if args.timeout:
         socket.setdefaulttimeout(args.timeout)
-    if args.proxy:
-        http_proxy = args.proxy
+    if args.proxy == 'system':
+        proxy_handler = ProxyHandler()
     else:
-        http_proxy = os.getenv('http_proxy')
-    if http_proxy:
         proxy_handler = ProxyHandler({
-            'http': http_proxy,
-            'https': http_proxy
+            'http': args.proxy,
+            'https': args.proxy
         })
-        opener = build_opener(proxy_handler)
-        install_opener(opener)
+    opener = build_opener(proxy_handler)
+    install_opener(opener)
 
     #mkdir and cd to output dir
     if not args.output_dir == '.':

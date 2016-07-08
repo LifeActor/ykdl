@@ -8,6 +8,7 @@ from ykdl.util.match import match1, matchall
 
 import hashlib
 import re
+import json
 
 appkey='f3bb208b3d081dc8'
 
@@ -31,6 +32,11 @@ class BiliVideo(VideoExtractor):
             html = get_content(self.url)
             self.vid = match1(html, 'cid=([^&]+)')
             info.title = match1(html, '<title>([^<]+)').split("_")[0]
+
+        if not self.vid:
+            eid = match1(self.url, 'anime/v/(\d+)')
+            if eid:
+                self.vid = str(json.loads(get_content('http://bangumi.bilibili.com/web_api/episode/get_source?episode_id={}'.format(eid)))['result']['cid'])
         assert self.vid, "can't play this video: {}".format(self.url)
         for q in self.supported_stream_profile:
             api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid + '&quality=' + str(3-self.supported_stream_profile.index(q))

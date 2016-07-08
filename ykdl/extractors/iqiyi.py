@@ -7,6 +7,7 @@ from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 from ykdl.compact import compact_bytes
 from ykdl.util import log
+from .iqiyi_sc import gen_sc
 
 import json
 import time
@@ -32,6 +33,12 @@ def getVMS(tvid, vid):
     vmsreq= url = 'http://cache.m.iqiyi.com/tmts/{0}/{1}/?t={2}&sc={3}&src={4}'.format(tvid,vid,t,sc,src)
     return json.loads(get_content(vmsreq))
 
+def geth5VMS(tvid, vid, rate):
+    t = int(time.time() * 1000)
+    sc = gen_sc(tvid, t).decode('utf-8')
+    vmsreq= 'http://cache.m.iqiyi.com/jp/tmts/{}/{}/?platForm=h5&rate={}&tvid={}&vid={}&cupid=qc_100001_100186&type=mp4&olimit=0&agenttype=13&src=d846d0c32d664d32b6b54ea48997a589&sc={}&t={}&__jsT=null'.format(tvid, vid, rate, tvid, vid, sc, t - 7)
+    return json.loads(get_content(vmsreq)[13:])
+
 class Iqiyi(VideoExtractor):
     name = u"爱奇艺 (Iqiyi)"
     '''
@@ -47,6 +54,8 @@ class Iqiyi(VideoExtractor):
     vd_2_id = {10: '4k', 19: '4k', 5:'BD', 18: 'BD', 14: 'HD', 21: 'HD', 2: 'HD', 4: 'TD', 17: 'TD', 96: 'LD', 1: 'SD'}
     id_2_profile = {'4k':'4k', 'BD': '1080p','TD': '720p', 'HD': '540p', 'SD': '360p', 'LD': '210p'}
     id_ignore = [19, 18]
+
+    id_h5 = [2, 1]
 
 
 
@@ -66,7 +75,16 @@ class Iqiyi(VideoExtractor):
 
         tvid, vid = self.vid
         data = getVMS(tvid, vid)
-        assert data['code'] == 'A00000', 'can\'t play this video'
+        if not data['code'] == 'A00000':
+            for bid in self.id_h5:
+                h5_data = geth5VMS(tvid, vid, bid)
+                if h5_data["code"] == "A00000":
+                    stream = self.vd_2_id[bid]
+                    profile = self.id_2_profile[stream]
+                    info.title = h5_data['data']['playInfo']['vn']
+                    info.stream_types.append(stream)
+                    info.streams[stream] = {'container': 'mp4', 'video_profile': profile, 'src' : [h5_data['data']['m3u']], 'size' : 0}
+            return info
 
         for stream in data['data']['vidl']:
             try:

@@ -11,7 +11,7 @@ class BoBo(SimpleExtractor):
     def __init__(self):
         SimpleExtractor.__init__(self)
         self.live = True
-        self.title_pattern = '<title>([^<]+)'
+        self.title_pattern = '<title>([^-]+)'
         self.url_pattern = 'CDNUrl: "([^"]+)'
         cookie_handler = HTTPCookieProcessor()
         opener = build_opener(cookie_handler)

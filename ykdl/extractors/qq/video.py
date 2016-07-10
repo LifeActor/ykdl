@@ -170,7 +170,7 @@ class QQ(VideoExtractor):
 
         video = tree.find('./vl/vi')
         filename = video.find('./fn').text
-        self.title = video.find('./ti').text
+        title = video.find('./ti').text
 
         cdn = video.find('./ul/ui')
         cdn_url = cdn.find('./url').text
@@ -230,7 +230,7 @@ class QQ(VideoExtractor):
                 clip_url = '%s%s' % (cdn_url, fn)
                 urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, fn))
 
-        return fmt_name, type_name, urls, size
+        return title, fmt_name, type_name, urls, size
 
     def prepare(self):
         info = VideoInfo(self.name)
@@ -242,13 +242,14 @@ class QQ(VideoExtractor):
             self.vid = match1(html, 'vid:\"([^\"]+)')
 
         for stream in self.supported_stream_types:
-            fmt_name, type_name, urls, size = self.get_stream_info(stream)
+            title, fmt_name, type_name, urls, size = self.get_stream_info(stream)
             stream_id = self.stream_2_id[fmt_name]
             stream_profile = self.stream_2_profile[fmt_name]
             if not stream_id in info.stream_types:
                 info.stream_types.append(stream_id)
                 info.streams[stream_id] = {'container': type_name, 'video_profile': stream_profile, 'src' : urls, 'size': size}
         info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
+        info.title = title
         return info
 
     def prepare_list(self):

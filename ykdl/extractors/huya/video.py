@@ -20,6 +20,7 @@ class HuyaVideo(VideoExtractor):
         info = VideoInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url, 'play/(\d+)')
+            info.title = self.name + str(self.vid)
 
         if not self.vid:
             html = get_content(self.url)

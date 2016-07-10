@@ -19,6 +19,7 @@ _*/
 *.mp3
 *.mp4
 *.mpg
+*.aac
 *.ts
 *.webm
 README.html

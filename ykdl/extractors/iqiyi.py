@@ -53,7 +53,7 @@ class Iqiyi(VideoExtractor):
     ids = ['4k','BD', 'TD', 'HD', 'SD', 'LD']
     vd_2_id = {10: '4k', 19: '4k', 5:'BD', 18: 'BD', 14: 'HD', 21: 'HD', 2: 'HD', 4: 'TD', 17: 'TD', 96: 'LD', 1: 'SD'}
     id_2_profile = {'4k':'4k', 'BD': '1080p','TD': '720p', 'HD': '540p', 'SD': '360p', 'LD': '210p'}
-    id_ignore = [19, 18]
+    id_ignore = [19, 18, 21, 17]
 
     id_h5 = [2, 1]
 

@@ -1,6 +1,14 @@
 Change Log for ykdl
 ===================
 
+1.1.3
+-------
+
+- update iqiyi
+- merge option removed
+- get proxy from system proxy settings
+- some other update
+
 1.1.2
 -------
 

@@ -23,7 +23,6 @@ def arg_parser():
     parser.add_argument('-l', '--playlist', action='store_true', default=False, help="Download as a playlist.")
     parser.add_argument('-i', '--info', action='store_true', default=False, help="Display the information of videos without downloading.")
     parser.add_argument('-j', '--json', action='store_true', default=False, help="Display info in json format.")
-    parser.add_argument('-m', '--merge', action='store_true', default=False, help="merge download video (experimental)")
     parser.add_argument('-F', '--format',  help="Video format code.")
     parser.add_argument('-o', '--output-dir', default='.', help="Set the output directory for downloaded videos.")
     parser.add_argument('-p', '--player', help="Directly play the video with PLAYER like mpv")
@@ -61,7 +60,7 @@ def download(urls, name, ext, live = False):
     else:
         save_urls(urls, name, ext)
         lenth = len(urls)
-        if args.merge and lenth > 1:
+        if lenth > 1:
             launch_ffmpeg(name, ext,lenth)
             clean_slices(name, ext,lenth)
 

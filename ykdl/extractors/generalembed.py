@@ -37,7 +37,6 @@ tudou_api_patterns = [ ]
 v.qq.com
 """
 qq_embed_patterns = [ 'v\.qq\.com[a-zA-Z0-9\/\?\.\;]+vid=([a-zA-Z0-9]+)',
-                      'v\.qq\.com[a-zA-Z0-9\/\?\.\;]+\/([a-zA-Z0-9]+)\.html',
                       'TPout\.swf[a-zA-Z0-9=\?\&]+vid=([a-zA-Z0-9]+)'
                     ]
 
@@ -71,7 +70,7 @@ iqiyi_embed_patterns = [ 'definitionID=([^&]+)&tvId=([^&]+)'
 """
 Letv Cloud
 """
-lecloud_embed_patterns = [ 'letvcloud_player_conf={"uu":"([^\"]+)","vu":"([^\"]+)"',
+lecloud_embed_patterns = [ '{"uu":"([^\"]+)","vu":"([^\"]+)"',
                            'bcloud.swf\?uu=([^&]+)&amp;vu=([^&]+)'
                      ]
 
@@ -114,7 +113,7 @@ class GeneralEmbed(EmbedExtractor):
 
         vids = matchall(content, qq_embed_patterns)
         for vid in vids:
-            self.video_info_list.append(('qq',vid))
+            self.video_info_list.append(('qq.video',vid))
 
         vids = matchall(content, sohu_embed_patterns)
         for vid in vids:

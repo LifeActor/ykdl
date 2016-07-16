@@ -19,7 +19,9 @@ class Ku6(VideoExtractor):
             'http://v.ku6.com/show/(.*)\.html',
             'http://my.ku6.com/watch\?.*v=(.*).*')
 
-        data = json.loads(get_content('http://v.ku6.com/fetchVideo4Player/%s.html' % self.vid))['data']
+        video_data = json.loads(get_content('http://v.ku6.com/fetchVideo4Player/%s.html' % self.vid))
+        data = video_data['data']
+        assert video_data['status'] == 1, '%s : %s' % (self.name, data)
         info.title = data['t']
         f = data['f']
 

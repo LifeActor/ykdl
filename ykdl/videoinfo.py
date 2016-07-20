@@ -4,6 +4,7 @@
 import json
 import sys
 import datetime
+import random
 from ykdl.util.fs import legitimize
 from ykdl.util import log
 
@@ -54,6 +55,8 @@ class VideoInfo():
                 self.print_stream_info(stream_id, show_all)
 
     def build_file_name(self,stream_id):
+        if not self.title:
+            self.title = self.site + str(random.randint(1, 9999))
         name_list = [self.title]
         if not stream_id == 'current':
             name_list.append(stream_id)

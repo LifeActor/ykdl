@@ -85,7 +85,8 @@ class Iqiyi(VideoExtractor):
                     info.stream_types.append(stream)
                     info.streams[stream] = {'container': 'mp4', 'video_profile': profile, 'src' : [h5_data['data']['m3u']], 'size' : 0}
             return info
-
+        if not info.title:
+            info.title = self.name + '-' + str(self.vid)
         for stream in data['data']['vidl']:
             try:
                 stream_id = self.vd_2_id[stream['vd']]

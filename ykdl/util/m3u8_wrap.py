@@ -74,6 +74,7 @@ except:
     def load_m3u8_playlist(url):
         stream_types = ['current']
         streams['current'] = {'container': 'm3u8', 'video_profile': 'current', 'src' : [url], 'size': 0}
+        return stream_types, streams
 
     def load_m3u8(url):
         return [url]

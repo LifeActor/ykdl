@@ -49,11 +49,13 @@ class Letv(VideoExtractor):
 
     stream_2_id = {'1080p': 'BD' , '1300': 'TD', '1000': 'HD' , '720p': 'SD', '350': 'LD' }
 
-    stream_temp = {'1080p': None , '1300': None, '1000':None , '720p': None, '350': None }
+    __STREAM_TEMP__ = []
 
 
     def prepare(self):
         info = VideoInfo(self.name)
+        stream_temp = {'1080p': None , '1300': None, '1000':None , '720p': None, '350': None }
+        self.__STREAM_TEMP__.append(stream_temp)
         if not self.vid:
             self.vid = match1(self.url, r'http://www.le.com/ptv/vplay/(\d+).html', '#record/(\d+)')
 
@@ -76,10 +78,10 @@ class Letv(VideoExtractor):
             m3u8_list = decode(m3u8)
             stream_id = self.stream_2_id[stream]
             info.streams[stream_id] = {'container': 'm3u8', 'video_profile': self.stream_2_profile[stream], 'size' : 0}
-            self.stream_temp[stream] = compact_tempfile(mode='w+t', suffix='.m3u8')
-            self.stream_temp[stream].write(m3u8_list)
-            info.streams[stream_id]['src'] = [self.stream_temp[stream].name]
-            self.stream_temp[stream].flush()
+            stream_temp[stream] = compact_tempfile(mode='w+t', suffix='.m3u8')
+            stream_temp[stream].write(m3u8_list)
+            info.streams[stream_id]['src'] = [stream_temp[stream].name]
+            stream_temp[stream].flush()
             info.stream_types.append(stream_id)
         return info
 

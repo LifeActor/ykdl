@@ -25,7 +25,7 @@ class Zhanqi(VideoExtractor):
         if info.live:
             rtmp_id = match1(html, 'videoId":"([^"]+)"').replace('\\/','/')
             real_url = self.live_base+'/'+rtmp_id+'.m3u8'
-            info.stream_types, self.streams = load_m3u8_playlist(real_url)
+            info.stream_types, info.streams = load_m3u8_playlist(real_url)
         else:
             vod_m3u8 = self.vod_base + '/' + match1(html, 'VideoID":"([^"]+)').replace('\\/','/')
             info.stream_types.append('current')

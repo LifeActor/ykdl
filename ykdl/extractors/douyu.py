@@ -19,7 +19,11 @@ class Douyutv(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name, True)
         if self.url:
-            self.vid = self.url[self.url.rfind('/')+1:]
+            self.vid = match1(self.url, '/(\d+)')
+
+        if not self.vid:
+            html = get_content(self.url)
+            self.vid = match1(html, '"room_id":(\d+)')
 
         json_request_url = "http://m.douyu.com/html5/live?roomId={}".format(self.vid)
         content = json.loads(get_content(json_request_url))

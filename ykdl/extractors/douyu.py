@@ -21,21 +21,17 @@ class Douyutv(VideoExtractor):
         if self.url:
             self.vid = self.url[self.url.rfind('/')+1:]
 
-        suffix = 'room/%s?aid=android&client_sys=android&time=%d' % (self.vid, int(time.time()))
-        sign = hashlib.md5((suffix + '1231').encode('ascii')).hexdigest()
-        json_request_url = "http://www.douyutv.com/api/v1/%s&auth=%s" % (suffix, sign)
-        content = get_content(json_request_url)
-        data = json.loads(content)['data']
-        server_status = data.get('error',0)
-        if server_status is not 0:
-            raise ValueError("Server returned error:%s" % server_status)
+        json_request_url = "http://m.douyu.com/html5/live?roomId={}".format(self.vid)
+        content = json.loads(get_content(json_request_url))
+        assert content['error'] == 0, '%s: %s' % (self.name, content['msg'])
+        data = content['data']
         info.title = data.get('room_name')
         info.artist= data.get('nickname')
         show_status = data.get('show_status')
         assert show_status == "1", "The live stream is not online! (Errno:%s)" % show_status
-        real_url = data.get('rtmp_url')+'/'+data.get('rtmp_live')
+        real_url = data.get('hls_url')
         info.stream_types.append('current')
-        info.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [real_url], 'size': float('inf')}
+        info.streams['current'] = {'container': 'm3u8', 'video_profile': 'current', 'src' : [real_url], 'size': float('inf')}
         return info
 
     def prepare_list(self):

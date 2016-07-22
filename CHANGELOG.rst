@@ -1,6 +1,12 @@
 Change Log for ykdl
 ===================
 
+1.1.3.1
+-------
+
+- update generalembed, le live, douyu, zhanqi
+
+
 1.1.3
 -------
 

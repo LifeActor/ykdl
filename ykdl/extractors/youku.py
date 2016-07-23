@@ -3,6 +3,7 @@
 
 from ykdl.util.html import get_content, add_header
 from ykdl.util.match import match1, matchall
+from ykdl.util import log
 from .youkubase import YoukuBase
 from .youkujs import install_acode
 from ykdl.compact import HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener
@@ -63,6 +64,12 @@ class Youku(YoukuBase):
         info.title = data['video']['title']
         self.ep = data['security']['encrypt_string']
         self.ip = data['security']['ip']
-        self.stream_data = data1['stream']
+        try:
+            self.stream_data = data1['stream']
+        except:
+            if self.password_protected:
+                raise AssertionError('incorrect password!!')
+            else:
+                raise AssertionError('No Stream found!!')
 
 site = Youku()

@@ -14,7 +14,7 @@ from random import randint
 class YoukuBase(VideoExtractor):
 
     def get_custom_sign(self):
-        custom_api = 'https://api.youku.com/players/custom.json?client_id={}&video_id={}&vext=null&embsig=undefined&styleid=undefined'.format(self.client_id, self.vid)
+        custom_api = 'https://api.youku.com/players/custom.json?client_id={}&video_id={}&vext=null&embsig={}&styleid=undefined&type=flash&refer={}'.format(self.client_id, self.vid, self.embsig, self.refer)
         html = get_content(custom_api)
         data = json.loads(html)
         self.playsign = data['playsign']

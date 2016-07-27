@@ -19,10 +19,11 @@ class Acfun(EmbedExtractor):
 
         sourceType = data['sourceType']
         sourceId = data['sourceId']
+        encode = data['encode']
 
         if sourceType == 'zhuzhan':
             sourceType = 'acorig'
-            sourceId = sourceId
+            sourceId = (sourceId, encode)
         elif sourceType == 'letv':
             #workaround for letv, because it is letvcloud
             sourceType = 'le.letvcloud'

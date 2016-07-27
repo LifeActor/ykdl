@@ -9,8 +9,11 @@ class Acorig(YoukuBase):
 
     client_id = '908a519d032263f8'
     ct = 86
+    refer = 'http://cdn.aixifan.com/player/sslhomura/AcNewPlayer20160705.swf'
 
     def setup(self, info):
+
+        self.vid, self.embsig = self.vid
 
         info.title = self.name + "-" + self.vid
 

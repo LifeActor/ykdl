@@ -1,6 +1,13 @@
 Change Log for ykdl
 ===================
 
+
+1.1.3.2
+-------
+
+- update Acfun, huomao, youku
+- add gitter
+
 1.1.3.1
 -------
 

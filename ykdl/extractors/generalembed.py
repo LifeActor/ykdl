@@ -60,7 +60,8 @@ ku6_embed_patterns = [ 'http://player.ku6.com/refer/(.*)/v.swf'
 """
 163
 """
-netease_embed_patterns = [ 'v\.163\.com\/[0-9a-zA-Z\/\?\.]+topicid=([^&]+)&amp\;vid=([^&]+)'
+netease_embed_patterns = [ 'v\.163\.com\/[0-9a-zA-Z\/\?\.]+topicid=([^&]+)&amp\;vid=([^&]+)',
+                           'topicid=([a-zA-Z0-9]+)&amp;vid=([a-zA-Z0-9]+)&amp'
                      ]
 
 """

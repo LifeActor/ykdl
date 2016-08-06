@@ -239,7 +239,7 @@ class QQ(VideoExtractor):
 
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, 'vid:\s*\"([^\"]+)')
+            self.vid = match1(html, 'vid:\s*\"([^\"]+)', 'vid\s*=\s*"\s*([^"]+)"')
 
         for stream in self.supported_stream_types:
             title, fmt_name, type_name, urls, size = self.get_stream_info(stream)

@@ -10,8 +10,7 @@ from ykdl.compact import urlencode,compact_bytes
 import hashlib
 import time
 import json
-import random
-import string
+import uuid
 
 douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
                         'data-room_id="([^"]+)'
@@ -34,7 +33,7 @@ class Douyutv(VideoExtractor):
         if not info.title:
             info.title = self.name + '-' + str(self.vid)
         tt = int(time.time() / 60)
-        did = ''.join([random.choice(string.ascii_uppercase + string.digits) for n in range(32)])
+        did = uuid.uuid4().hex.upper()
         sign_content = '{room_id}{did}A12Svb&%1UUmf@hC{tt}'.format(room_id = self.vid, did = did, tt = tt)
         sign = hashlib.md5(sign_content.encode('utf-8')).hexdigest()
 

@@ -1,6 +1,11 @@
 Change Log for ykdl
 ===================
 
+1.1.3.2
+-------
+
+- update douyu, QQ, generalembed
+
 
 1.1.3.2
 -------

@@ -5,12 +5,14 @@ from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 from ykdl.util.html import get_content
 from ykdl.util.match import match1, matchall
+from ykdl.compact import compact_bytes
 
 import hashlib
 import re
 import json
 
 appkey='f3bb208b3d081dc8'
+SECRETKEY_MINILOADER = '1c15888dc316e05a15fdd0a02ed6584f'
 
 def parse_cid_playurl(xml):
     from xml.dom.minidom import parseString
@@ -39,8 +41,10 @@ class BiliVideo(VideoExtractor):
                 self.vid = str(json.loads(get_content('http://bangumi.bilibili.com/web_api/episode/get_source?episode_id={}'.format(eid)))['result']['cid'])
         assert self.vid, "can't play this video: {}".format(self.url)
         for q in self.supported_stream_profile:
-            api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid + '&quality=' + str(3-self.supported_stream_profile.index(q))
-            urls, size = parse_cid_playurl(get_content(api_url))
+            sign_this = hashlib.md5(compact_bytes('cid={}&from=miniplay&player=1&quality={}{}'.format(self.vid, 3-self.supported_stream_profile.index(q), SECRETKEY_MINILOADER), 'utf-8')).hexdigest()
+            api_url = 'http://interface.bilibili.com/playurl?cid={}&player=1&quality={}&from=miniplay&sign={}'.format(self.vid, 3-self.supported_stream_profile.index(q), sign_this)
+            html = get_content(api_url)
+            urls, size = parse_cid_playurl(html)
             ext = 'flv'
 
             info.stream_types.append(self.profile_2_type[q])

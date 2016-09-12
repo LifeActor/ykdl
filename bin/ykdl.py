@@ -1,6 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+
+sys.path = sys.path[1:]
+
+try:
+    import ykdl
+except(ImportError):
+    _base_len = len('bin/ykdl.py')
+    _filepath = sys.argv[0][:-_base_len]
+    sys.path.insert(1, _filepath)
+    import ykdl
+
 from argparse import ArgumentParser
 import socket
 import os

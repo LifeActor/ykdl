@@ -16,13 +16,12 @@ class Acfun(EmbedExtractor):
         sourceVid = match1(html, "data-vid=\"([a-zA-Z0-9=]+)\" data-scode=")
 
         data = json.loads(get_content('http://www.acfun.tv/video/getVideo.aspx?id={}'.format(sourceVid)))
-
         sourceType = data['sourceType']
         sourceId = data['sourceId']
-        encode = data['encode']
 
         if sourceType == 'zhuzhan':
             sourceType = 'acorig'
+            encode = data['encode']
             sourceId = (sourceId, encode)
         elif sourceType == 'letv':
             #workaround for letv, because it is letvcloud

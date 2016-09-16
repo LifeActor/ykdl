@@ -1,7 +1,14 @@
 Change Log for ykdl
 ===================
 
-1.1.3.2
+1.1.3.4
+-------
+
+- update bilibili, ACfun
+- update setup script, test makefile
+
+
+1.1.3.3
 -------
 
 - update douyu, QQ, generalembed

@@ -32,7 +32,7 @@ class BiliVideo(VideoExtractor):
         info = VideoInfo(self.name)
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, 'cid=([^&]+)')
+            self.vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)')
             info.title = match1(html, '<title>([^<]+)').split("_")[0]
 
         if not self.vid:

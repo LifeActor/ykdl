@@ -32,6 +32,7 @@ def arg_parser():
     parser.add_argument('-j', '--json', action='store_true', default=False, help="Display info in json format.")
     parser.add_argument('-F', '--format',  help="Video format code.")
     parser.add_argument('-o', '--output-dir', default='.', help="Set the output directory for downloaded videos.")
+    parser.add_argument('-O', '--output-name', default='', help="downloaded videos with the NAME you want, don't use with -l")
     parser.add_argument('-p', '--player', help="Directly play the video with PLAYER like mpv")
     parser.add_argument('-s', '--start', type=int, default=0, help="start from INDEX to play/download playlist")
     parser.add_argument('--proxy', type=str, default='system', help="set proxy HOST:PORT for http(s) transfer. default: use system proxy settings")
@@ -80,7 +81,7 @@ def handle_videoinfo(info):
         return
     stream_id = args.format or info.stream_types[0]
     urls = info.streams[stream_id]['src']
-    name = info.build_file_name(stream_id)
+    name = args.output_name or info.build_file_name(stream_id)
     ext = info.streams[stream_id]['container']
     live = info.live
     if args.player:

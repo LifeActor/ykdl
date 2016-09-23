@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import sys
+import os
 try:
     import ykdl
 except(ImportError):
     _base_len = len('bin/ykdl.py')
-    _filepath = sys.argv[0][:-_base_len]
+    _filepath = os.path.abspath(sys.argv[0])[:-_base_len]
     sys.path[0] = _filepath
     import ykdl
 
 from argparse import ArgumentParser
 import socket
-import os
 import json
 
 from ykdl.common import url_to_module

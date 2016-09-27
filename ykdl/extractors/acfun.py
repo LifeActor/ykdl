@@ -13,7 +13,7 @@ class Acfun(EmbedExtractor):
 
         html = get_content(self.url)
 
-        sourceVid = match1(html, "data-vid=\"([a-zA-Z0-9=]+)\" data-scode=")
+        sourceVid = match1(html, "data-vid=\"([a-zA-Z0-9=]+)\" data-(scode|cid)=")
 
         data = json.loads(get_content('http://www.acfun.tv/video/getVideo.aspx?id={}'.format(sourceVid)))
         sourceType = data['sourceType']

@@ -38,6 +38,8 @@ class BiliVideo(VideoExtractor):
                 if eid:
                     self.vid = str(json.loads(get_content('http://bangumi.bilibili.com/web_api/episode/get_source?episode_id={}'.format(eid)))['result']['cid'])
             info.title = match1(html, '<title>([^<]+)').split("_")[0]
+            if 'bilibili' in info.title:
+                info.title = info.title.strip(u" 番剧 bilibili 哔哩哔哩弹幕视频网")
 
         assert self.vid, "can't play this video: {}".format(self.url)
         for q in self.supported_stream_profile:

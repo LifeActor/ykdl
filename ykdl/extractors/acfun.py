@@ -9,6 +9,8 @@ import json
 
 class Acfun(EmbedExtractor):
 
+    name = u'ACfun 弹幕视频网'
+
     def prepare(self):
 
         html = get_content(self.url)
@@ -30,15 +32,14 @@ class Acfun(EmbedExtractor):
 
         self.video_info=(sourceType, sourceId)
 
-    def download_playlist(self, url, param):
-        self.url = url
+    def prepare_playlist(self):
 
         html = get_content(self.url)
 
-        videos = matchall(html, ['href="([\/a-zA-Z0-9_]+)" title="Part'])
+        videos = matchall(html, ['href="(\/v\/[a-zA-Z0-9_]+)" title="'])
 
         for v in videos:
             next_url = "http://www.acfun.tv/{}".format(v)
-            self.download(next_url, param)
+            self.video_info_list.append(('acfun', next_url))
 
 site = Acfun()

@@ -1,6 +1,14 @@
 Change Log for ykdl
 ===================
 
+1.1.3.5
+-------
+
+- update bilibili for eid and title.
+- update ACfun for match pattern, and playlist
+- update main script to fix bugs, add -O option
+- add warning in m3u8_wrapper
+
 1.1.3.4
 -------
 

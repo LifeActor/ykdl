@@ -29,6 +29,8 @@ class Acfun(EmbedExtractor):
             #workaround for letv, because it is letvcloud
             sourceType = 'le.letvcloud'
             sourceId = (sourceId, '2d8c027396')
+        elif sourceType == 'qq':
+            sourceType = 'qq.video'
 
         self.video_info=(sourceType, sourceId)
 

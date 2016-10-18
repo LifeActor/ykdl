@@ -121,7 +121,7 @@ class QQ(VideoExtractor):
 
     name = u"腾讯视频 (QQ)"
 
-    supported_stream_types = [ 'shd', 'mp4', 'hd', 'flv','sd' ]
+    supported_stream_types = [ 'shd', 'mp4', 'hd', 'sd' ]
 
     stream_2_profile = { 'shd': u'超清', 'mp4': u'高清mp4', 'hd': u'高清', 'flv': u'高清flv', 'sd': u'标清' }
 

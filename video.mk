@@ -57,7 +57,7 @@ test_huya:
 	${PYTHON} bin/ykdl.py -i http://v.huya.com/play/2209082.html
 
 test_le:
-	${PYTHON} bin/ykdl.py -i http://www.le.com/ptv/vplay/25705081.html -t 300
+	${PYTHON} bin/ykdl.py -i http://www.le.com/ptv/vplay/26859747.html -t 300
 
 test_163v:
 	${PYTHON} bin/ykdl.py -i http://v.163.com/paike/VBI038VCL/VBNERA654.html

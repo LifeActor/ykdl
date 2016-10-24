@@ -1,7 +1,7 @@
 test_live: test_bobo test_douyu test_huomao test_longzhu test_panda test_zhanqi test_bililive test_huyalive test_lelive test_cc test_qqlive
 
 test_bobo:
-	${PYTHON} bin/ykdl.py -i http://www.bobo.com/612624?f=pHome.Hot_anchor.1
+	${PYTHON} bin/ykdl.py -i http://www.bobo.com/10003822?f=pHome.Hot_anchor.1
 
 test_douyu:
 	${PYTHON} bin/ykdl.py -i http://www.douyu.com/58428
@@ -16,7 +16,7 @@ test_panda:
 	${PYTHON} bin/ykdl.py -i http://www.panda.tv/60995
 
 test_zhanqi:
-	${PYTHON} bin/ykdl.py -i http://www.zhanqi.tv/djs
+	${PYTHON} bin/ykdl.py -i https://www.zhanqi.tv/naigege
 
 test_bililive:
 	${PYTHON} bin/ykdl.py -i http://live.bilibili.com/3

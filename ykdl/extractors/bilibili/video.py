@@ -56,6 +56,12 @@ class BiliVideo(VideoExtractor):
     def prepare_list(self):
         html = get_content(self.url)
         video_list = matchall(html, ['<option value=\'([^\']*)\''])
-        return ['http://www.bilibili.com'+v for v in video_list]
+        if video_list:
+            return ['http://www.bilibili.com'+v for v in video_list]
+        sid = match1(html, 'var season_id = "(\d+)";')
+        j_ = get_content("http://bangumi.bilibili.com/jsonp/seasoninfo/{}.ver".format(sid))
+        s_data = json.loads(j_)
+        urls = [e['webplay_url'] for e in sorted(s_data['result']['episodes'], key=lambda e: e['index'])]
+        return urls
 
 site = BiliVideo()

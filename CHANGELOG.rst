@@ -1,6 +1,14 @@
 Change Log for ykdl
 ===================
 
+1.1.3.6
+-------
+
+- update bilibili playlist.
+- update ACfun.
+- support youku mp5
+
+
 1.1.3.5
 -------
 

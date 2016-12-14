@@ -11,6 +11,7 @@ class Yizhibo(VideoExtractor):
 
     def prepare(self):
         info = VideoInfo(self.name)
+        info.live = True
         self.vid = self.url[self.url.rfind('/')+1:].split(".")[0]
         json_request_url = 'http://www.yizhibo.com/live/h5api/get_basic_live_info?scid={}'.format(self.vid)
         content = json.loads(get_content(json_request_url))

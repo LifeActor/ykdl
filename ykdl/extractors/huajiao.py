@@ -40,7 +40,7 @@ class Huajiao(VideoExtractor):
         decoded_json = base64.decodestring(compact_bytes(encoded_json[0:3]+ encoded_json[6:], 'utf-8')).decode('utf-8')
         video_data = json.loads(decoded_json)
         live_url = video_data['main']
-
+        info.live = True
         info.stream_types.append('current')
         info.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [live_url], 'size': float('inf')}
         return info

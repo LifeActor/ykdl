@@ -14,7 +14,7 @@ class BiliLive(VideoExtractor):
         info = VideoInfo(self.name, True)
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, 'cid=([^&]+)')
+            self.vid = match1(html, 'var ROOMID = (\d+);')
             t = match1(html, '<title>([^<]+)').split('-')
             info.title = t[0]
             info.artist = t[1]

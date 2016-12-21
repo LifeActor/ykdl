@@ -34,7 +34,7 @@ class BiliVideo(VideoExtractor):
             html = get_content(self.url)
             self.vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)')
             if not self.vid:
-                eid = match1(self.url, 'anime/v/(\d+)') or match1(html, 'anime/v/(\d+)')
+                eid = match1(self.url, 'anime/v/(\d+)', 'play#(\d+)') or match1(html, 'anime/v/(\d+)')
                 if eid:
                     self.vid = str(json.loads(get_content('http://bangumi.bilibili.com/web_api/episode/get_source?episode_id={}'.format(eid)))['result']['cid'])
             info.title = match1(html, '<title>([^<]+)').split("_")[0]

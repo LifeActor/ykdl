@@ -1,6 +1,13 @@
 Change Log for ykdl
 ===================
 
+1.1.4
+-------
+
+- port PPTV, yizhibo from upstream/PL
+- update Bilibili.
+- partially support Taobao 
+
 1.1.3.6
 -------
 

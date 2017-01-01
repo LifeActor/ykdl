@@ -42,15 +42,8 @@ class LeLive(VideoExtractor):
                 info.stream_types.append(stream_id)
                 streamUrl = s['streamUrl'] + '&format=1&expect=2&termid=1&platid=10&playid=1&sign=live_web&splatid=1001&vkit=20161017&station={}'.format( self.vid)
                 data = json.loads(get_content(streamUrl))
-                nodelist = data['nodelist']
-                for node in nodelist:
-                    src = node['location']
-                    try:
-                        get_content(src)
-                        info.streams[stream_id] = {'container': 'm3u8', 'video_profile': stream_profile, 'size' : float('inf'), 'src' : [src]}
-                    except:
-                        continue
-                    break
+                src = data['location']
+                info.streams[stream_id] = {'container': 'm3u8', 'video_profile': stream_profile, 'size' : float('inf'), 'src' : [src]}
         info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
         return info
 

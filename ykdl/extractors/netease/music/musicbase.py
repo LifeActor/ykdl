@@ -60,4 +60,4 @@ class NeteaseMusicBase(VideoExtractor):
     def extract_song(self, info):
         for stream_id in info.stream_types:
             song = self.song_date[stream_id]
-            info.streams[stream_id] = {'container': song['extension'], 'video_profile': stream_id, 'src' : [make_url(self.mp3_host, song['dfsId'])], 'size': song['size']}
+            info.streams[stream_id] = {'container': 'mp3', 'video_profile': stream_id, 'src' : [make_url(self.mp3_host, song['dfsId'])], 'size': song['size']}

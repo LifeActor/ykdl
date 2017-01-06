@@ -52,7 +52,6 @@ class NeteaseMusicBase(VideoExtractor):
 
         for st in self.supported_stream_types:
             if st in music and music[st]:
-                print(music[st])
                 info.stream_types.append(st)
                 self.song_date[st] = music[st]
                 self.extract_song(info)

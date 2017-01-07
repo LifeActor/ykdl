@@ -16,7 +16,7 @@ douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
                         'data-room_id="([^"]+)'
                       ]
 class Douyutv(VideoExtractor):
-    name = u'斗鱼 (DouyuTV)'
+    name = u'斗鱼直播 (DouyuTV)'
 
     stream_ids = ['TD', 'HD', 'SD']
     stream_id_2_rate = {'TD':3 , 'HD':2, 'SD':1}
@@ -37,7 +37,7 @@ class Douyutv(VideoExtractor):
         sign_content = '{room_id}{did}A12Svb&%1UUmf@hC{tt}'.format(room_id = self.vid, did = did, tt = tt)
         sign = hashlib.md5(sign_content.encode('utf-8')).hexdigest()
 
-        json_request_url = "http://www.douyu.com/lapi/live/getPlay/%s" % self.vid
+        json_request_url = "http://www.douyu.com/lapi/live/getPlay/{}".format(self.vid)
         for stream in self.stream_ids:
             payload = {'cdn': 'ws', 'rate': self.stream_id_2_rate[stream], 'tt': tt, 'did': did, 'sign': sign}
 
@@ -49,7 +49,7 @@ class Douyutv(VideoExtractor):
             real_url = live_data['data']['rtmp_url'] + '/' + live_data['data']['rtmp_live']
 
             info.stream_types.append(stream)
-            info.streams[stream] = {'container': 'flv', 'video_profile': 'current', 'src' : [real_url], 'size': float('inf')}
+            info.streams[stream] = {'container': 'flv', 'video_profile': stream, 'src' : [real_url], 'size': float('inf')}
         return info
 
     def prepare_list(self):

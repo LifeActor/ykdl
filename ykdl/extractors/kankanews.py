@@ -16,7 +16,7 @@ class KankanNews(VideoExtractor):
         video_data1 = get_content(api1)
         info.title = match1(video_data1, '<title>([^<]+)<')
         self.vid = match1(video_data1, '<omsid>([^<]+)<')
-        assert self.vid != 0, self.url + u"Not a video news link!"
+        assert self.vid != '0', self.url + u": Not a video news link!"
         api2 = 'http://v.kankanews.com/index.php?app=api&mod=public&act=getvideo&id={}'.format(self.vid)
         video_data2 = get_content(api2)
         urls = matchall(video_data2, ['<videourl><!\[CDATA\[([^\]]+)'])

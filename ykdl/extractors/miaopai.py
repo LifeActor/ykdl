@@ -23,7 +23,7 @@ class Miaopai(VideoExtractor):
         assert content['status'] == 200, "something error!"
 
         content = content['result']
-        info.title = content['ext']['t']
+        info.title = content['ext']['t'] or self.name + '_' + self.vid
         url = content['stream']['base']
         ext = content['stream']['and']
 

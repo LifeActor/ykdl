@@ -14,12 +14,18 @@ class KankanNews(VideoExtractor):
         id1 = match1(self.url, 'a/([^\.]+)\.')
         api1 = 'http://www.kankanews.com/vxml/{}.xml'.format(id1)
         video_data1 = get_content(api1)
-        info.title = match1(video_data1, '<title>([^<]+)<')
         self.vid = match1(video_data1, '<omsid>([^<]+)<')
-        assert self.vid != '0', self.url + u": Not a video news link!"
+        if self.vid == '0':
+            html = get_content(self.url)
+            id1 = match1(html, 'embed/([^\"]+)').replace('_', '/')
+            api1 = 'http://www.kankanews.com/vxml/{}.xml'.format(id1)
+            video_data1 = get_content(api1)
+            self.vid = match1(video_data1, '<omsid>([^<]+)<')
+        assert self.vid != '0', self.url + ': Not a video news link!'
         api2 = 'http://v.kankanews.com/index.php?app=api&mod=public&act=getvideo&id={}'.format(self.vid)
         video_data2 = get_content(api2)
         urls = matchall(video_data2, ['<videourl><!\[CDATA\[([^\]]+)'])
+        info.title = match1(video_data2, '<otitle><!\[CDATA\[([^\]]+)')
         info.stream_types.append('current')
         info.streams['current'] = {'container': 'mp4', 'video_profile': 'current', 'src' : urls, 'size': 0}
         return info

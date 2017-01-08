@@ -6,25 +6,10 @@ from importlib import import_module
 from .util.match import match1
 from .util.html import fake_headers
 
-def mime_to_container(mime):
-    mapping = {
-        'video/3gpp': '3gp',
-        'video/mp4': 'mp4',
-        'video/webm': 'webm',
-        'video/x-flv': 'flv',
-    }
-    if mime in mapping:
-        return mapping[mime]
-    else:
-        return mime.split('/')[1]
-
 alias = {
         '163': 'netease',
-        'fun': 'funshion',
         'iask': 'sina',
         'in': 'alive',
-        'smgbb': 'bilibili',
-        '7gogo': 'nanagogo',
         'cntv' : 'cctv',
         'letv' : 'le',
         'douyutv' : 'douyu'

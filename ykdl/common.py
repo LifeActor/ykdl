@@ -25,7 +25,10 @@ alias = {
         'in': 'alive',
         'kankanews': 'bilibili',
         'smgbb': 'bilibili',
-        '7gogo': 'nanagogo'
+        '7gogo': 'nanagogo',
+        'cntv' : 'cctv',
+        'letv' : 'le',
+        'douyutv' : 'douyu'
 }
 def url_to_module(url):
     video_host = match1(url, 'https?://([^/]+)/')

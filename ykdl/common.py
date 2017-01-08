@@ -23,7 +23,6 @@ alias = {
         'fun': 'funshion',
         'iask': 'sina',
         'in': 'alive',
-        'kankanews': 'bilibili',
         'smgbb': 'bilibili',
         '7gogo': 'nanagogo',
         'cntv' : 'cctv',

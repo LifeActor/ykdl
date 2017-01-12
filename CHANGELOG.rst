@@ -1,6 +1,13 @@
 Change Log for ykdl
 ===================
 
+1.1.4.1
+-------
+
+- fix letv live, cctv, miaopai, QQ
+- support douyu video, kankannews, Quanmin Live
+- update common alias dict
+
 1.1.4
 -------
 

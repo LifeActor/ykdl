@@ -27,7 +27,7 @@ class DouyutvVideo(VideoExtractor):
         assert video_data['error'] == 0, video_data
         real_url = video_data['data']['video_url']
         info.stream_types.append('current')
-        info.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [real_url], 'size': 0}
+        info.streams['current'] = {'container': 'm3u8', 'video_profile': 'current', 'src' : [real_url], 'size': 0}
         info.title = self.name + '_' + self.vid
         return info
 

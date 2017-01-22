@@ -13,7 +13,7 @@ class LongzhuLive(VideoExtractor):
     name = u'Longzhu Live (龙珠直播)'
 
     supported_stream_types = ['SD', 'HD', 'TD', 'BD', 'Phone']
-    types_2_profile = {'SD': '标清', 'HD':'高清', 'TD':'超清', 'BD':'原画', 'Phone':'手机'}
+    types_2_profile = {'SD': u'标清', 'HD':u'高清', 'TD':u'超清', 'BD':u'原画', 'Phone':u'手机'}
 
     def prepare(self):
         info = VideoInfo(self.name, True)

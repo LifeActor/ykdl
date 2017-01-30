@@ -39,11 +39,10 @@ class Xiami(VideoExtractor):
         if not self.vid:
             self.vid = match1(self.url, 'http://www.xiami.com/song/(\d+)', 'http://www.xiami.com/song/detail/id/(\d+)')
 
-        if not self.vid:
+        if not self.vid or len(self.vid) < 10:
             html = get_content(self.url)
             line = match1(html, '(.*)立即播放</a>')
             self.vid = match1(line, 'play\(\'(\d+)')
-            print(self.vid)
 
         xml = get_content('http://www.xiami.com/song/playlist/id/{}/object_name/default/object_id/0'.format(self.vid) , charset = 'ignore')
         doc = parseString(xml)

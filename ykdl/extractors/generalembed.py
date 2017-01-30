@@ -37,7 +37,7 @@ tudou_api_patterns = [ ]
 v.qq.com
 """
 qq_embed_patterns = [ 'v\.qq\.com[a-zA-Z0-9\/\?\.\;]+vid=([a-zA-Z0-9]+)',
-                      'TPout\.swf[a-zA-Z0-9=\?\&]+vid=([a-zA-Z0-9]+)'
+                      'TPout\.swf[a-zA-Z0-9=\?\&_]+vid=([a-zA-Z0-9]+)'
                     ]
 
 

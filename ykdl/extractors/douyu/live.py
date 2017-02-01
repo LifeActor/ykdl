@@ -28,7 +28,7 @@ class Douyutv(VideoExtractor):
 
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, '"room_id":(\d+)')
+            self.vid = match1(html, '"room_id.?":(\d+)')
             info.title = match1(html, '<title>([^<]+)').split('-')[0]
         if not info.title:
             info.title = self.name + '-' + str(self.vid)

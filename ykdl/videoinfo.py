@@ -26,7 +26,7 @@ class VideoInfo():
             print("      video-profile: %s" % stream['video_profile'])
         if 'quality' in stream:
             print("      quality:       %s" % stream['quality'])
-        if 'size' in stream:
+        if 'size' in stream and stream['size'] != 0 and stream['size'] != float('inf'):
             print("      size:          %s MiB (%s bytes)" % (round(stream['size'] / 1048576, 1), stream['size']))
         print("    # download-with: %s" % log.sprint("ykdl --format=%s [URL]" % stream_id, log.UNDERLINE))
         if show_all:

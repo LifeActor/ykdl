@@ -20,6 +20,7 @@ class Douyutv(VideoExtractor):
 
     stream_ids = ['TD', 'HD', 'SD']
     stream_id_2_rate = {'TD':3 , 'HD':2, 'SD':1}
+    id_2_profile = {'TD': u'超清' , 'HD':u'高清', 'SD':u'标清'}
 
     def prepare(self):
         info = VideoInfo(self.name, True)
@@ -49,7 +50,7 @@ class Douyutv(VideoExtractor):
             real_url = live_data['data']['rtmp_url'] + '/' + live_data['data']['rtmp_live']
 
             info.stream_types.append(stream)
-            info.streams[stream] = {'container': 'flv', 'video_profile': stream, 'src' : [real_url], 'size': float('inf')}
+            info.streams[stream] = {'container': 'flv', 'video_profile': self.id_2_profile[stream], 'src' : [real_url], 'size': float('inf')}
         return info
 
     def prepare_list(self):

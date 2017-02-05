@@ -40,6 +40,7 @@ class VideoInfo():
                       'artist'    : self.artist,
                     }
         json_dict['streams'] = self.streams
+        json_dict['stream_types'] = self.stream_types
         return json_dict
 
     def print_info(self, stream_id = None, show_all = False):

@@ -235,7 +235,7 @@ class QQ(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name)
         if not self.vid:
-            self.vid = match1(self.url, 'vid=(\w+)')
+            self.vid = match1(self.url, '/(\w+)\.html','vid=(\w+)')
 
         if not self.vid:
             html = get_content(self.url)

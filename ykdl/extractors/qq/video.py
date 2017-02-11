@@ -254,6 +254,7 @@ class QQ(VideoExtractor):
 
     def prepare_list(self):
         html = get_content(self.url)
-        return matchall(html, ['id=\"([^\"]+)\S title'])
+        vids = [a.strip('"') for a in match1(html, '\"vid\":\[([^\]]+)').split(',')]
+        return vids
 
 site = QQ()

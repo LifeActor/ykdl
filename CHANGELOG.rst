@@ -1,10 +1,18 @@
 Change Log for ykdl
 ===================
 
+1.4.2
+-------
+
+- change version string to 3 digital
+- fix qq, douyu, mgtv, QQ. etc.
+- report stream_types in json
+
+
 1.1.4.1
 -------
 
-- fix letv live, cctv, miaopai, QQ
+- fix letv live, cctv, xiami, QQ
 - support douyu video, kankannews, Quanmin Live
 - update common alias dict
 

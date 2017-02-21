@@ -13,19 +13,7 @@ from random import randint
 
 class YoukuBase(VideoExtractor):
 
-    def get_custom_sign(self):
-        custom_api = 'https://api.youku.com/players/custom.json?client_id={}&video_id={}&vext=null&embsig={}&styleid=undefined&type=flash&refer={}'.format(self.client_id, self.vid, self.embsig, self.refer)
-        html = get_content(custom_api)
-        data = json.loads(html)
-        self.playsign = data['playsign']
 
-    def get_custom_stream(self):
-        custom_api = 'http://play.youku.com/partner/get.json?vid={}&ct={}&sign={}&ran={}'.format(self.vid, self.ct, self.playsign, randint(1,9999))
-        html = get_content(custom_api)
-        data = json.loads(html)['data']
-        self.stream_data = data['stream']
-        self.ep = data['security']['encrypt_string']
-        self.ip = data['security']['ip']
 
     def prepare(self):
         info = VideoInfo(self.name)

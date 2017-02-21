@@ -126,7 +126,10 @@ def L(b, d):
         i = c[j]
         c[j] = c[g]
         c[g] = i
-        f += chr(ord(d[m]) ^ c[(c[j] + c[g]) % 256])
+        if isinstance(d[m], int):
+            f += chr(d[m] ^ c[(c[j] + c[g]) % 256])
+        else:
+            f += chr(ord(d[m]) ^ c[(c[j] + c[g]) % 256])
         m += 1
     return f
 

@@ -17,30 +17,21 @@ class Acorig(VideoExtractor):
     refer = 'http://cdn.aixifan.com/player/sslhomura/AcFunV3Player170213.swf'
     key = "328f45d8"
 
-    def get_custom_stream(self):
+    def prepare(self):
+        info = VideoInfo(self.name)
+        self.vid, self.embsig = self.vid
 
         api = "http://aauth-vod.cn-beijing.aliyuncs.com/acfun/web?vid={}&ct={}&time={}".format(self.vid, self.ct,int(time.time()*1000))
         data = rc4(self.key, base64.b64decode(json.loads(get_content(api, charset='utf-8'))['data']))
-        self.stream_data = json.loads(data)['stream']
-
-    def setup(self, info):
-
-        self.vid, self.embsig = self.vid
-
-        info.title = self.name + "-" + self.vid
-
-        install_acode('v', 'b', '1z4i', '86rv', 'ogb', 'ail')
-        self.get_custom_stream()
-
-    def prepare(self):
-        info = VideoInfo(self.name)
-        self.setup(info)
-        for s in self.stream_data:
+        stream_data = json.loads(data)
+        info.title = stream_data['video']['title']
+        for s in stream_data['stream']:
             if 'segs' in s:
                 stream_type = stream_code_to_id[s['stream_type']]
                 stream_urls = [seg['url'] for seg in s['segs']]
+                size = s['total_size']
                 info.stream_types.append(stream_type)
-                info.streams[stream_type] = {'container': 'mp4', 'video_profile': stream_code_to_profiles[stream_type], 'src': stream_urls, 'size' : 0}
+                info.streams[stream_type] = {'container': 'mp4', 'video_profile': stream_code_to_profiles[stream_type], 'src': stream_urls, 'size' : size}
         info.stream_types = sorted(info.stream_types, key=ids.index)
         return info
 

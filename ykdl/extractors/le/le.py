@@ -57,7 +57,7 @@ class Letv(VideoExtractor):
         stream_temp = {'1080p': None , '1300': None, '1000':None , '720p': None, '350': None }
         self.__STREAM_TEMP__.append(stream_temp)
         if not self.vid:
-            self.vid = match1(self.url, r'http://www.le.com/ptv/vplay/(\d+).html', '#record/(\d+)')
+            self.vid = match1(self.url, 'vplay/(\d+).html', '#record/(\d+)')
 
         #normal process
         info_url = 'http://api.le.com/mms/out/video/playJson?id={}&platid=1&splatid=101&format=1&tkey={}&domain=www.le.com'.format(self.vid, calcTimeKey(int(time.time())))

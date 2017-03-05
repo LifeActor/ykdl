@@ -5,8 +5,6 @@ from ykdl.util.html import get_content
 from ykdl.util.match import matchall, match1
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
-from ykdl.compact import compact_bytes
-from ykdl.util import log
 
 import json
 import time

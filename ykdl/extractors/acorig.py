@@ -15,13 +15,13 @@ class Acorig(VideoExtractor):
     client_id = '908a519d032263f8'
     ct = 85
     refer = 'http://cdn.aixifan.com/player/sslhomura/AcFunV3Player170213.swf'
-    key = "328f45d8"
+    key = "2da3ca9e"
 
     def prepare(self):
         info = VideoInfo(self.name)
         self.vid, self.embsig = self.vid
 
-        api = "http://aauth-vod.cn-beijing.aliyuncs.com/acfun/web?vid={}&ct={}&time={}".format(self.vid, self.ct,int(time.time()*1000))
+        api = "http://aauth-vod.cn-beijing.aliyuncs.com/acfun/web?vid={}&ct={}&time={}&ev=2".format(self.vid, self.ct,int(time.time()*1000))
         data = rc4(self.key, base64.b64decode(json.loads(get_content(api, charset='utf-8'))['data']))
         stream_data = json.loads(data)
         info.title = stream_data['video']['title']

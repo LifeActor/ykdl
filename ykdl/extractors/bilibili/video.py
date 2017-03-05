@@ -33,13 +33,13 @@ class BiliVideo(VideoExtractor):
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)')
+            info.title = match1(html, '<title>([^<]+)').split("_")[0].strip(u" 番剧 bilibili 哔哩哔哩弹幕视频网")
             if not self.vid:
                 eid = match1(self.url, 'anime/v/(\d+)', 'play#(\d+)') or match1(html, 'anime/v/(\d+)')
                 if eid:
-                    self.vid = str(json.loads(get_content('http://bangumi.bilibili.com/web_api/episode/get_source?episode_id={}'.format(eid)))['result']['cid'])
-            info.title = match1(html, '<title>([^<]+)').split("_")[0]
-            if 'bilibili' in info.title:
-                info.title = info.title.strip(u" 番剧 bilibili 哔哩哔哩弹幕视频网")
+                    Episode_info = json.loads(get_content('http://bangumi.bilibili.com/web_api/episode/{}.json'.format(eid)))['result']['currentEpisode']
+                    self.vid = Episode_info['danmaku']
+                    info.title = info.title + ' ' + Episode_info['index'] + '.  ' + Episode_info['longTitle']
 
         assert self.vid, "can't play this video: {}".format(self.url)
         for q in self.supported_stream_profile:

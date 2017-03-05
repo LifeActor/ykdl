@@ -1,6 +1,19 @@
 Change Log for ykdl
 ===================
 
+1.4.4
+-------
+
+- fix Acfun again
+- fix douyu live
+- support multithread download, NOTE: this is not finished
+
+1.4.3
+-------
+
+- fix Acfun
+- fix letv
+
 1.4.2
 -------
 

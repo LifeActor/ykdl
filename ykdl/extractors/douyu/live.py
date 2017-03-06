@@ -30,9 +30,6 @@ class Douyutv(VideoExtractor):
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, '"room_id.?":(\d+)')
-            info.title = match1(html, '<title>([^<]+)').split('-')[0]
-        if not info.title:
-            info.title = self.name + '-' + str(self.vid)
 
         for stream in self.stream_ids:
             tt = int(time.time())
@@ -48,6 +45,7 @@ class Douyutv(VideoExtractor):
 
             info.stream_types.append(stream)
             info.streams[stream] = {'container': 'flv', 'video_profile': self.id_2_profile[stream], 'src' : [real_url], 'size': float('inf')}
+            info.title = live_data['room_name']
         return info
 
     def prepare_list(self):

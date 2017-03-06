@@ -8,7 +8,7 @@ class VideoExtractor():
 
     def parser(self, url):
         self.__init__()
-        if isinstance(url, str) and url.startswith('http'):
+        if url.startswith('http'):
             self.url = url
         else:
             self.vid= url

@@ -37,6 +37,7 @@ def arg_parser():
     parser.add_argument('-s', '--start', type=int, default=0, help="start from INDEX to play/download playlist")
     parser.add_argument('--proxy', type=str, default='system', help="set proxy HOST:PORT for http(s) transfer. default: use system proxy settings")
     parser.add_argument('-t', '--timeout', type=int, default=60, help="set socket timeout seconds, default 60s")
+    parser.add_argument('--no-merge', action='store_true', default=False, help="do not merge video slides")
     parser.add_argument('video_urls', type=str, nargs='+', help="video urls")
     global args
     args = parser.parse_args()
@@ -68,7 +69,7 @@ def download(urls, name, ext, live = False):
     else:
         save_urls(urls, name, ext)
         lenth = len(urls)
-        if lenth > 1:
+        if lenth > 1 and not args.no_merge:
             launch_ffmpeg(name, ext,lenth)
             clean_slices(name, ext,lenth)
 

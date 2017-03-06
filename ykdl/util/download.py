@@ -13,11 +13,11 @@ class downloadThread(Thread):
     def __init__(self, url, file_name):
         super(downloadThread, self).__init__()
         self.url = url
-        self.name = file_name
+        self.file_name = file_name
 
     def run(self):
         try:
-            save_url(self.url, self.name)
+            save_url(self.url, self.file_name)
         except:
             import traceback
             traceback.print_exc()

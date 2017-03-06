@@ -13,6 +13,7 @@ except(ImportError):
 from argparse import ArgumentParser
 import socket
 import json
+import types
 
 from ykdl.common import url_to_module
 from ykdl.compact import ProxyHandler, build_opener, install_opener, compact_str
@@ -34,7 +35,6 @@ def arg_parser():
     parser.add_argument('-o', '--output-dir', default='.', help="Set the output directory for downloaded videos.")
     parser.add_argument('-O', '--output-name', default='', help="downloaded videos with the NAME you want, don't use with -l")
     parser.add_argument('-p', '--player', help="Directly play the video with PLAYER like mpv")
-    parser.add_argument('-s', '--start', type=int, default=0, help="start from INDEX to play/download playlist")
     parser.add_argument('--proxy', type=str, default='system', help="set proxy HOST:PORT for http(s) transfer. default: use system proxy settings")
     parser.add_argument('-t', '--timeout', type=int, default=60, help="set socket timeout seconds, default 60s")
     parser.add_argument('--no-merge', action='store_true', default=False, help="do not merge video slides")
@@ -126,12 +126,8 @@ def main():
                 else:
                     parser = m.parser
                 info = parser(u)
-                if type(info) is list:
-                    if args.start >= len(info):
-                        log.w('invalid argument -s/--start')
-                        log.w('start from beginning')
-                        args.start = 0
-                    for i in info[args.start:]:
+                if type(info) is types.GeneratorType or type(info) is list:
+                    for i in info:
                         handle_videoinfo(i)
                 else:
                     handle_videoinfo(info)

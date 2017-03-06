@@ -24,7 +24,8 @@ class VideoExtractor():
         video_list = self.prepare_list()
         if not video_list:
             raise NotImplementedError('playlist not support for {} with url: {}'.format(self.name, self.url))
-        return [self.parser(v) for v in video_list]
+        for video in video_list:
+            yield self.parser(video)
 
     def prepare(self):
         pass

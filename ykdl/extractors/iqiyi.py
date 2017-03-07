@@ -59,6 +59,7 @@ class Iqiyi(VideoExtractor):
             vid = matchall(self.url, ['curid=([^_]+)_([\w]+)'])
             if vid:
                 self.vid = vid[0]
+                info.title = self.name + '_' + str(self.vid)
 
         if self.url and not self.vid:
             html = get_content(self.url)

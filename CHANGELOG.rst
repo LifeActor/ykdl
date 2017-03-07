@@ -1,6 +1,16 @@
 Change Log for ykdl
 ===================
 
+1.4.5
+-------
+
+- fix iqiyi with code clean
+- update bilibili Episode title
+- update douyu live room name
+- use yield to speedup playlist
+- python2 fix
+
+
 1.4.4
 -------
 

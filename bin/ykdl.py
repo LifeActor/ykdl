@@ -38,6 +38,7 @@ def arg_parser():
     parser.add_argument('--proxy', type=str, default='system', help="set proxy HOST:PORT for http(s) transfer. default: use system proxy settings")
     parser.add_argument('-t', '--timeout', type=int, default=60, help="set socket timeout seconds, default 60s")
     parser.add_argument('--no-merge', action='store_true', default=False, help="do not merge video slides")
+    parser.add_argument('-s', '--start', type=int, default=0, help="start from INDEX to play/download playlist")
     parser.add_argument('video_urls', type=str, nargs='+', help="video urls")
     global args
     args = parser.parse_args()
@@ -136,6 +137,9 @@ def main():
                 if type(info) is types.GeneratorType or type(info) is list:
                     ind = 0
                     for i in info:
+                        if ind < args.start:
+                            ind+=1
+                            continue
                         handle_videoinfo(i, index=ind)
                         ind+=1
                 else:

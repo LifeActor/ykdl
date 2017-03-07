@@ -73,7 +73,7 @@ def download(urls, name, ext, live = False):
             launch_ffmpeg(name, ext,lenth)
             clean_slices(name, ext,lenth)
 
-def handle_videoinfo(info):
+def handle_videoinfo(info, index=0):
     if not args.json:
         info.print_info(args.format, args.info)
     else:
@@ -82,7 +82,14 @@ def handle_videoinfo(info):
         return
     stream_id = args.format or info.stream_types[0]
     urls = info.streams[stream_id]['src']
-    name = args.output_name or info.build_file_name(stream_id)
+    if args.output_name:
+        if args.playlist:
+            name = args.output_name + '_' + str(index)
+        else:
+            name = args.output_name
+    else:
+        name = info.build_file_name(stream_id)
+
     ext = info.streams[stream_id]['container']
     live = info.live
     if args.player:
@@ -127,8 +134,10 @@ def main():
                     parser = m.parser
                 info = parser(u)
                 if type(info) is types.GeneratorType or type(info) is list:
+                    ind = 0
                     for i in info:
-                        handle_videoinfo(i)
+                        handle_videoinfo(i, index=ind)
+                        ind+=1
                 else:
                     handle_videoinfo(info)
             except AssertionError as e:

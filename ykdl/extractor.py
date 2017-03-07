@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from ykdl.compact import compact_isstr
+
 class VideoExtractor():
     def __init__(self):
         self.url = None
@@ -8,7 +10,7 @@ class VideoExtractor():
 
     def parser(self, url):
         self.__init__()
-        if url.startswith('http'):
+        if compact_isstr(url) and url.startswith('http'):
             self.url = url
         else:
             self.vid= url

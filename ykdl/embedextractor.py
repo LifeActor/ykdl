@@ -64,5 +64,4 @@ class EmbedExtractor():
             if site in alias.keys():
                 site = alias[site]
             s = import_module('.'.join(['ykdl','extractors',site])).site
-            info_list.append(s.parser(vid))
-        return info_list
+            yield s.parser(vid)

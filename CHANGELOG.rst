@@ -1,6 +1,15 @@
 Change Log for ykdl
 ===================
 
+1.4.6
+-------
+
+- acfun: add missing sign
+- python2 fix
+- using ThreadPoolExecutor for multithread download
+- rename short opt for json out to capital J
+- add -j --jobs for multithread download jobs number, default is NR_CPUS
+
 1.4.5
 -------
 

@@ -47,7 +47,7 @@ else:
         __tmp__.append(tmp)
         return codecs.open(tmp.name, mode, encoding)
     def compact_isstr(s):
-        return isinstance(s, types.UnicodeType)
+        return isinstance(s, types.UnicodeType) or isinstance(s, str)
 
 try:
     struct.pack('!I', 0)

@@ -3,24 +3,9 @@
 
 import os
 import sys
-from threading import Thread
 from ykdl.compact import Request, urlopen
 
 from .html import fake_headers
-
-
-class downloadThread(Thread):
-    def __init__(self, url, file_name):
-        super(downloadThread, self).__init__()
-        self.url = url
-        self.name = file_name
-
-    def run(self):
-        try:
-            save_url(self.url, self.name)
-        except:
-            import traceback
-            traceback.print_exc()
 
 def simple_hook(arg1, arg2, arg3):
     if arg3 > 0:
@@ -66,7 +51,6 @@ def save_url(url, name, reporthook = simple_hook):
 
 def save_urls(urls, name, ext):
     no = 0
-    downloads_pool = []
     for u in urls:
         if type(urls) is list and len(urls) == 1:
             print("Download: " + name)
@@ -74,10 +58,6 @@ def save_urls(urls, name, ext):
         else:
             print("Download: " + name + " part %d" % no)
             n = name + '_%d_.' % no + ext
-        t = downloadThread(u, n)
-        downloads_pool.append(t)
-        t.start()
+        save_url(u, n)
         print("")
         no += 1
-    for t in downloads_pool:
-        t.join()

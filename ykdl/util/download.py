@@ -4,8 +4,17 @@
 import os
 import sys
 from ykdl.compact import Request, urlopen
-
+from ykdl.util import log
 from .html import fake_headers
+
+try:
+    from concurrent.futures import ThreadPoolExecutor
+    MultiThread = True
+except:
+    MultiThread = False
+    log.w("failed to import ThreadPoolExecutor!")
+    log.w("multithread download disabled!")
+    log.w("please install concurrent.futures from https://github.com/agronholm/pythonfutures !")
 
 def simple_hook(arg1, arg2, arg3):
     if arg3 > 0:
@@ -18,7 +27,13 @@ def simple_hook(arg1, arg2, arg3):
         sys.stdout.write('\r' + str(round(arg1 * arg2 / 1048576, 1)) + 'MB')
         sys.stdout.flush()
 
-def save_url(url, name, reporthook = simple_hook):
+def save_url(url, name, ext, part = None, reporthook = simple_hook):
+    if part is None:
+        print("Download: " + name)
+        name = name + '.' + ext
+    else:
+        print("Download: " + name + " part %d" % part)
+        name = name + '_%d_.' % part + ext
     bs = 1024*8
     size = -1
     read = 0
@@ -49,15 +64,13 @@ def save_url(url, name, reporthook = simple_hook):
             blocknum += 1
             reporthook(blocknum, bs, size)
 
-def save_urls(urls, name, ext):
-    no = 0
-    for u in urls:
-        if type(urls) is list and len(urls) == 1:
-            print("Download: " + name)
-            n = name + '.' + ext
-        else:
-            print("Download: " + name + " part %d" % no)
-            n = name + '_%d_.' % no + ext
-        save_url(u, n)
-        print("")
-        no += 1
+def save_urls(urls, name, ext, jobs=1):
+    if len(urls) == 1:
+        save_url(urls[0], name)
+    if not MultiThread:
+        for no, u in enumerate(urls):
+            save_url(u, name, ext, part = no)
+    else:
+        with ThreadPoolExecutor(max_workers=jobs) as worker:
+            for no, u in enumerate(urls):
+                worker.submit(save_url, u, name, ext, part = no)

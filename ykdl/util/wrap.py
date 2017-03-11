@@ -24,7 +24,7 @@ def launch_ffmpeg(basename, ext, lenth):
 
     cmd.append(outputfile)
     log.d('Merging video %s using ffmpeg:' % basename)
-    subprocess.call(cmd)
+    return subprocess.call(cmd)
 
 def launch_ffmpeg_download(url, name, live):
     log.d('Now downloading: %s' % name)

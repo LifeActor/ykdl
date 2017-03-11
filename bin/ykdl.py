@@ -14,6 +14,7 @@ from argparse import ArgumentParser
 import socket
 import json
 import types
+from multiprocessing import cpu_count
 
 from ykdl.common import url_to_module
 from ykdl.compact import ProxyHandler, build_opener, install_opener, compact_str
@@ -30,7 +31,7 @@ def arg_parser():
     parser = ArgumentParser(description="YouKuDownLoader(ykdl {}), a video downloader. Forked form you-get 0.3.34@soimort".format(__version__))
     parser.add_argument('-l', '--playlist', action='store_true', default=False, help="Download as a playlist.")
     parser.add_argument('-i', '--info', action='store_true', default=False, help="Display the information of videos without downloading.")
-    parser.add_argument('-j', '--json', action='store_true', default=False, help="Display info in json format.")
+    parser.add_argument('-J', '--json', action='store_true', default=False, help="Display info in json format.")
     parser.add_argument('-F', '--format',  help="Video format code.")
     parser.add_argument('-o', '--output-dir', default='.', help="Set the output directory for downloaded videos.")
     parser.add_argument('-O', '--output-name', default='', help="downloaded videos with the NAME you want, don't use with -l")
@@ -39,6 +40,7 @@ def arg_parser():
     parser.add_argument('-t', '--timeout', type=int, default=60, help="set socket timeout seconds, default 60s")
     parser.add_argument('--no-merge', action='store_true', default=False, help="do not merge video slides")
     parser.add_argument('-s', '--start', type=int, default=0, help="start from INDEX to play/download playlist")
+    parser.add_argument('-j', '--jobs', type=int, default=cpu_count(), help="number of jobs for multiprocess download")
     parser.add_argument('video_urls', type=str, nargs='+', help="video urls")
     global args
     args = parser.parse_args()
@@ -68,11 +70,12 @@ def download(urls, name, ext, live = False):
     if not m3u8_internal:
         launch_ffmpeg_download(urls[0], name + '.' + ext, live)
     else:
-        save_urls(urls, name, ext)
+        save_urls(urls, name, ext, jobs = args.jobs)
         lenth = len(urls)
         if lenth > 1 and not args.no_merge:
-            launch_ffmpeg(name, ext,lenth)
-            clean_slices(name, ext,lenth)
+            ret = launch_ffmpeg(name, ext,lenth)
+            if not ret:
+                clean_slices(name, ext,lenth)
 
 def handle_videoinfo(info, index=0):
     if not args.json:

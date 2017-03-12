@@ -66,7 +66,7 @@ def save_url(url, name, ext, part = None, reporthook = simple_hook):
 
 def save_urls(urls, name, ext, jobs=1):
     if len(urls) == 1:
-        save_url(urls[0], name)
+        save_url(urls[0], name, ext)
     if not MultiThread:
         for no, u in enumerate(urls):
             save_url(u, name, ext, part = no)

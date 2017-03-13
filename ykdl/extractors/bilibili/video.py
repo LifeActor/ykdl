@@ -48,6 +48,8 @@ class BiliVideo(VideoExtractor):
             api_url = 'http://interface.bilibili.com/playurl?cid={}&player=1&quality={}&from=miniplay&sign={}'.format(self.vid, 3-self.supported_stream_profile.index(q), sign_this)
             html = get_content(api_url)
             urls, size, ext = parse_cid_playurl(html)
+            if ext == 'hdmp4':
+                ext = 'mp4'
 
             info.stream_types.append(self.profile_2_type[q])
             info.streams[self.profile_2_type[q]] = {'container': ext, 'video_profile': q, 'src' : urls, 'size': size}

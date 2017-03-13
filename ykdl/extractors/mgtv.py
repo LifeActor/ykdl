@@ -18,7 +18,8 @@ class Hunantv(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name)
         if self.url and not self.vid:
-            self.vid = match1(self.url, "/([0-9]+).html")
+            html = get_content(self.url)
+            self.vid = match1(html, 'vid=(\d+)', 'vid=\"(\d+)')
 
         api_url = 'http://pcweb.api.mgtv.com/player/video?video_id={}'.format(self.vid)
         meta = json.loads(get_content(api_url))

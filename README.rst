@@ -1,10 +1,6 @@
 YouKuDownLoader
 ===============
 
-.. image:: https://badges.gitter.im/zhangn1985/ykdl.svg
-   :alt: Join the chat at https://gitter.im/zhangn1985/ykdl
-   :target: https://gitter.im/zhangn1985/ykdl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
-
 .. image:: https://img.shields.io/pypi/v/ykdl.svg
    :target: https://pypi.python.org/pypi/ykdl
 .. image:: https://travis-ci.org/zhangn1985/ykdl.svg

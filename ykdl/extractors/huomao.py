@@ -16,7 +16,7 @@ class HuomaoTv(VideoExtractor):
 
     stream_2_profile = {'BD': u"原画", 'TD': u'超清', 'HD': u'高清', 'SD': u'标清' }
 
-    live_base = "http://www.huomao.com/swf/live_data"
+    live_base = "https://www.huomao.com/swf/live_data"
 
     def prepare(self):
         info = VideoInfo(self.name, True)

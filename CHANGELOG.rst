@@ -1,6 +1,15 @@
 Change Log for ykdl
 ===================
 
+1.4.7
+-------
+
+- fix bug when len(urls) == 1
+- update mgtv, huomao, bilibili
+- restructure ykdl, using setuptools
+- misc changes
+
+
 1.4.6
 -------
 

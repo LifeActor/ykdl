@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-try:
-    from setuptools import setup
-except:
-    from distutils.core import setup
+from setuptools import setup
 
 try:
     import wheel
@@ -36,7 +33,7 @@ setup(
     description = "a video downloader written in Python",
     long_description = README + '\n\n' +  CHANGES,
     keywords = "video download youku acfun bilibili",
-    packages = find_packages('ykdl'),
+    packages = find_packages('ykdl', 'cykdl'),
     requires = ['m3u8'],
     install_requires = ['m3u8'],
     platforms = 'any',
@@ -64,5 +61,7 @@ setup(
         "Topic :: Multimedia :: Video",
         "Topic :: Utilities"
     ],
-    scripts = ['bin/ykdl.py']
+      entry_points={
+          "console_scripts": ["ykdl=cykdl.__main__:main"]
+      },
 )

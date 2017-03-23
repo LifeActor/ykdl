@@ -5,7 +5,7 @@ import os
 try:
     import ykdl
 except(ImportError):
-    _base_len = len('bin/ykdl.py')
+    _base_len = len('cykdl/__main__.py')
     _filepath = os.path.abspath(sys.argv[0])[:-_base_len]
     sys.path[0] = _filepath
     import ykdl

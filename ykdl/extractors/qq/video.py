@@ -123,11 +123,11 @@ class QQ(VideoExtractor):
 
     supported_stream_types = [ 'shd', 'mp4', 'hd', 'sd' ]
 
-    stream_2_profile = { 'shd': u'超清', 'mp4': u'高清mp4', 'hd': u'高清', 'flv': u'高清flv', 'sd': u'标清' }
+    stream_2_profile = { 'shd': u'超清', 'mp4': u'高清mp4', 'hd': u'高清', 'flv': u'高清flv', 'sd': u'标清', 'msd':u'急速' }
 
-    stream_2_id = { 'shd': 'TD', 'mp4': 'HD', 'hd': 'HD', 'flv': 'HD', 'sd': 'SD' }
+    stream_2_id = { 'shd': 'TD', 'mp4': 'HD', 'hd': 'HD', 'flv': 'HD', 'sd': 'SD', 'msd':'LD' }
 
-    stream_ids = ['TD', 'HD', 'SD']
+    stream_ids = ['TD', 'HD', 'SD', 'LD']
 
 
     def get_stream_info(self, profile):

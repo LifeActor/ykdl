@@ -18,7 +18,7 @@ class NeteaseMusic(NeteaseMusicBase):
 
     def parser_list(self, url):
         add_header("Referer", "http://music.163.com/")
-        vid =  match1(url, 'id=(.*)')
+        vid =  match1(url, '\?id=(.*)')
         if "album" in url:
            api_url = "http://music.163.com/api/album/{}?id={}&csrf_token=".format(vid, vid)
            listdata = json.loads(get_content(api_url))

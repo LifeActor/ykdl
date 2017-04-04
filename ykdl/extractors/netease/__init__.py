@@ -6,6 +6,8 @@ import re
 def get_extractor(url):
     if re.search("cc.163", url):
         from . import live as s
+    if re.search("open.163", url):
+        from . import openc as s
     elif re.search("music.163", url):
         from . import music as s
         return s.get_extractor(url)

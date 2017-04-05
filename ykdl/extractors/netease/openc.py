@@ -14,7 +14,6 @@ class OpenC(SimpleExtractor):
 
     def get_url(self):
         url = match1(self.html, self.url_pattern)
-        print(url)
         self.v_url = [url[2:-5]]
 
 site = OpenC()

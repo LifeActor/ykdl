@@ -8,7 +8,7 @@ from ykdl.util.html import get_content
 from ykdl.util.match import match1
 
 class Ifeng(VideoExtractor):
-    name = u'凤凰视频 (ifeng)'
+    name = u'凤凰新闻 (ifeng news)'
 
     supported_stream_types = ['500k', '350k']
     types_2_id = {'500k': 'HD', '350k':'SD'}
@@ -18,6 +18,9 @@ class Ifeng(VideoExtractor):
         info = VideoInfo(self.name)
         if not self.vid:
             self.vid= match1(self.url, '#([a-zA-Z0-9\-]+)', '/([a-zA-Z0-9\-]+).shtml')
+        if not self.vid:
+            html = get_content(self.url)
+            self.vid = match1(html, '"vid": "([^"]+)')
 
         xml = get_content('http://v.ifeng.com/video_info_new/{}/{}/{}.xml'.format(self.vid[-2], self.vid[-2:], self.vid))
         doc = parseString(xml.encode('utf-8'))

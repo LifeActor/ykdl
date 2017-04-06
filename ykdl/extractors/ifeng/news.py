@@ -20,7 +20,7 @@ class Ifeng(VideoExtractor):
             self.vid= match1(self.url, '#([a-zA-Z0-9\-]+)', '/([a-zA-Z0-9\-]+).shtml')
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, '"vid": "([^"]+)')
+            self.vid = match1(html, '"vid": "([^"]+)', 'vid: "([^"]+)')
 
         xml = get_content('http://vxml.ifengimg.com/video_info_new/{}/{}/{}.xml'.format(self.vid[-2], self.vid[-2:], self.vid))
         doc = parseString(xml.encode('utf-8'))

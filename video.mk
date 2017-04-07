@@ -11,7 +11,7 @@ test_acfun:
 	${PYTHON} -m cykdl -i http://www.acfun.tv/v/ac3101039
 
 test_bilibili:
-	${PYTHON} -m cykdl -i http://www.bilibili.com/video/av1358885/
+	${PYTHON} -m cykdl -i http://bangumi.bilibili.com/anime/2539/play#63470
 
 test_baomihua:
 	${PYTHON} -m cykdl -i http://www.baomihua.com/user/24204_36300935
@@ -47,7 +47,7 @@ test_xiami:
 	${PYTHON} -m cykdl -li http://www.xiami.com/album/2100285370?spm=a1z1s.3057849.0.0.hAuVwv
 
 test_yinyuetai:
-	${PYTHON} -m cykdl -i http://v.yinyuetai.com/video/2591456?f=SY-MKDT-MVSB-1
+	${PYTHON} -m cykdl -i http://v.yinyuetai.com/video/2832181?f=SY-MKDT-MVSB-1
 
 test_baidu:
 	${PYTHON} -m cykdl -li http://music.baidu.com/album/266327865?pst=shoufa

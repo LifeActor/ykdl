@@ -7,42 +7,12 @@ from ykdl.util import log
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 from ykdl.compact import HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener
+from .youkujs import supported_stream_code, ids, stream_code_to_id, stream_code_to_profiles, id_to_container
 
 
 import time
 import json
 import ssl
-
-supported_stream_code = [ 'mp4hd3', 'hd3', 'mp4hd2', 'hd2', 'mp4hd', 'mp4', 'flvhd', 'flv', '3gphd' ]
-ids = ['BD', 'TD', 'HD', 'SD', 'LD']
-stream_code_to_id = {
-    'mp5hd3': 'BD',
-    'mp4hd3': 'BD',
-    'hd3'   : 'BD',
-    'mp5hd2': 'TD',
-    'mp4hd2': 'TD',
-    'hd2'   : 'TD',
-    'mp5hd' : 'HD',
-    'mp4hd' : 'HD',
-    'mp4'   : 'HD',
-    'flvhd' : 'SD',
-    'flv'   : 'SD',
-    '3gphd' : 'LD'
-}
-stream_code_to_profiles = {
-    'BD' : u'1080p',
-    'TD' : u'超清',
-    'HD' : u'高清',
-    'SD' : u'标清',
-    'LD' : u'标清（3GP）'
-}
-id_to_container = {
-    'BD' : 'flv',
-    'TD' : 'flv',
-    'HD' : 'mp4',
-    'SD' : 'flv',
-    'LD' : 'mp4'
-}
 
 class Youku(VideoExtractor):
     name = u"优酷 (Youku)"

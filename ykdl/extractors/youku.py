@@ -6,9 +6,12 @@ from ykdl.util.match import match1, matchall
 from ykdl.util import log
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
+from ykdl.compact import HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener
+
 
 import time
 import json
+import ssl
 
 supported_stream_code = [ 'mp4hd3', 'hd3', 'mp4hd2', 'hd2', 'mp4hd', 'mp4', 'flvhd', 'flv', '3gphd' ]
 ids = ['BD', 'TD', 'HD', 'SD', 'LD']
@@ -46,6 +49,13 @@ class Youku(VideoExtractor):
 
 
     def prepare(self):
+        ssl_context = HTTPSHandler(
+            context=ssl.SSLContext(ssl.PROTOCOL_TLSv1))
+        cookie_handler = HTTPCookieProcessor()
+        opener = build_opener(ssl_context, cookie_handler)
+        opener.addheaders = [('Cookie','__ysuid=%d' % time.time())]
+        install_opener(opener)
+        
         info = VideoInfo(self.name)        
 
         if self.url and not self.vid:

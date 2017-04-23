@@ -74,3 +74,4 @@ def save_urls(urls, name, ext, jobs=1):
         with ThreadPoolExecutor(max_workers=jobs) as worker:
             for no, u in enumerate(urls):
                 worker.submit(save_url, u, name, ext, part = no)
+            worker.shutdown()

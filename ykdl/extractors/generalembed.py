@@ -94,6 +94,11 @@ Sina
 sina_embed_patterns = [ 'http://video.sina.com.cn/share/video/(\d+).swf'
                      ]
 
+"""
+Dilidili
+"""
+dilidili_embed_patterns = [ 'vid=([^&]+)&v=([^&]+)&'
+                     ]
 
 
 
@@ -158,6 +163,15 @@ class GeneralEmbed(EmbedExtractor):
         for v in vids:
             v  = v.split('&')[0]
             self.video_info_list.append(('sina', v))
+
+        vids = matchall(content, dilidili_embed_patterns)
+        for v in vids:
+            v,site  = v
+            if site == 'bilibili':
+                site = 'bilibili.video'
+            elif site == 'qq':
+                site = 'qq.video'
+            self.video_info_list.append((site, v))
 
         tmp = []
         for v in self.video_info_list:

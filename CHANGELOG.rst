@@ -4,6 +4,13 @@ Change Log for ykdl
 1.4.8
 -------
 
+- support new sites: dilidili
+- update letv, youku
+- update downloader
+
+1.4.8
+-------
+
 - support new sites: ifeng/163 open course
 - update QQ, acfun, weibo, ifeng
 - update youku, due to api changed

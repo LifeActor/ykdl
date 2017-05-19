@@ -19,6 +19,7 @@ class Tudou(EmbedExtractor):
 
         html = get_content(self.url)
         vcode = match1(html, 'vcode\s*[:=]\s*\'([^\']+)\'')
+        self.logger.debug("vcode is " + str(vcode))
         if vcode:
             self.video_info = ('youku', vcode)
         else:

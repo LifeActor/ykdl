@@ -4,4 +4,9 @@
 from .util.log import ColorHandler
 import logging
 
-logging.basicConfig(handlers=[ColorHandler()])
+import sys
+
+if sys.version_info[0] == 3:
+   logging.basicConfig(handlers=[ColorHandler()])
+else:
+   logging.root.addHandler(ColorHandler())

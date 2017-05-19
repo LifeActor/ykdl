@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from importlib import import_module
+from logging import getLogger
 from .common import alias
 
 class EmbedExtractor():
@@ -17,6 +18,7 @@ class EmbedExtractor():
 
     def __init__(self):
         self.video_info = None
+        self.logger = getLogger(self.name)
 
     def prepare(self):
         """

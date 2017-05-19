@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+from logging import getLogger
+
+logger = getLogger("m3u8_wrap")
+
 try:
     import m3u8
     import time
@@ -73,13 +77,13 @@ try:
 except:
     from ykdl.util import log
     def load_m3u8_playlist(url):
-        log.w("No python-m3u8 found, use stub m3u8!!! please install it by pip install m3u8")
+        logger.warning("No python-m3u8 found, use stub m3u8!!! please install it by pip install m3u8")
         stream_types = ['current']
         streams['current'] = {'container': 'm3u8', 'video_profile': 'current', 'src' : [url], 'size': 0}
         return stream_types, streams
 
     def load_m3u8(url):
-        log.w("No python-m3u8 found, use stub m3u8!!! please install it by pip install m3u8")
+        logger.warning("No python-m3u8 found, use stub m3u8!!! please install it by pip install m3u8")
         return [url]
 
     def load_live_m3u8(url):

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+from logging import getLogger
 from ykdl.compact import Request, urlopen
 
 from .match import match1
@@ -12,6 +13,8 @@ fake_headers = {
     'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0 Iceweasel/38.2.1'
 }
+
+logger = getLogger("html")
 
 def add_header(key, value):
     global fake_headers
@@ -83,8 +86,7 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     try:
         data = data.decode(charset)
     except:
-        from .log import w
-        w("wrong charset for {}".format(url))
+        logger.warning("wrong charset for {}".format(url))
     return data
 
 #DEPRECATED below, return None or 0

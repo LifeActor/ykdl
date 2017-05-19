@@ -3,18 +3,21 @@
 
 import os
 import sys
+from logging import getLogger
 from ykdl.compact import Request, urlopen
 from ykdl.util import log
 from .html import fake_headers
+
+logger = getLogger("downloader")
 
 try:
     from concurrent.futures import ThreadPoolExecutor
     MultiThread = True
 except:
     MultiThread = False
-    log.w("failed to import ThreadPoolExecutor!")
-    log.w("multithread download disabled!")
-    log.w("please install concurrent.futures from https://github.com/agronholm/pythonfutures !")
+    logger.warning("failed to import ThreadPoolExecutor!")
+    logger.warning("multithread download disabled!")
+    logger.warning("please install concurrent.futures from https://github.com/agronholm/pythonfutures !")
 
 def simple_hook(arg1, arg2, arg3):
     if arg3 > 0:

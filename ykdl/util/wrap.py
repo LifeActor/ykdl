@@ -3,8 +3,12 @@
 
 import subprocess
 import shlex
+from logging import getLogger
+
+logger = getLogger("wrap")
+
 from ykdl.compact import compact_tempfile
-from ykdl.util import log
+
 
 def launch_player(player, urls):
     subprocess.call(shlex.split(player) + list(urls))
@@ -23,13 +27,13 @@ def launch_ffmpeg(basename, ext, lenth):
         cmd += ['-absf', 'aac_adtstoasc']
 
     cmd.append(outputfile)
-    log.d('Merging video %s using ffmpeg:' % basename)
+    print('Merging video %s using ffmpeg:' % basename)
     return subprocess.call(cmd)
 
 def launch_ffmpeg_download(url, name, live):
-    log.d('Now downloading: %s' % name)
+    print('Now downloading: %s' % name)
     if live:
-        log.d('stop downloading by press \'q\'')
+        print('stop downloading by press \'q\'')
 
     cmd = ['ffmpeg', '-y', '-i', url, '-c', 'copy', '-absf', 'aac_adtstoasc',  '-hide_banner', name]
 

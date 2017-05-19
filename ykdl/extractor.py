@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from logging import getLogger
+
 from ykdl.compact import compact_isstr
 
 class VideoExtractor():
     def __init__(self):
+        self.logger = getLogger(self.name)
         self.url = None
         self.vid = None
 

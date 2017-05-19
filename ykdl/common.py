@@ -5,6 +5,9 @@ from importlib import import_module
 
 from .util.match import match1
 from .util.html import fake_headers
+import logging
+
+logger = logging.getLogger("common")
 
 alias = {
         '163': 'netease',
@@ -24,7 +27,6 @@ def url_to_module(url):
         video_host = video_host[:-3]
     domain = match1(video_host, '(\.[^.]+\.[^.]+)$') or video_host
     assert domain, 'unsupported url: ' + url
-
     k = match1(domain, '([^.]+)')
     if k in alias.keys():
         k = alias[k]

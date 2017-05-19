@@ -16,6 +16,9 @@ import json
 import types
 from multiprocessing import cpu_count
 
+import logging
+logger = logging.getLogger("YKDL")
+
 from ykdl.common import url_to_module
 from ykdl.compact import ProxyHandler, build_opener, install_opener, compact_str
 from ykdl.util import log
@@ -41,6 +44,7 @@ def arg_parser():
     parser.add_argument('--no-merge', action='store_true', default=False, help="do not merge video slides")
     parser.add_argument('-s', '--start', type=int, default=0, help="start from INDEX to play/download playlist")
     parser.add_argument('-j', '--jobs', type=int, default=cpu_count(), help="number of jobs for multiprocess download")
+    parser.add_argument('--debug', default=False, action='store_true', help="print debug messages from ykdl")
     parser.add_argument('video_urls', type=str, nargs='+', help="video urls")
     global args
     args = parser.parse_args()
@@ -103,6 +107,11 @@ def handle_videoinfo(info, index=0):
 
 def main():
     arg_parser()
+    if not args.debug:
+        logging.root.setLevel(logging.WARNING)
+    else:
+        logging.root.setLevel(logging.DEBUG)
+
     if args.timeout:
         socket.setdefaulttimeout(args.timeout)
     if args.proxy == 'system':
@@ -121,8 +130,8 @@ def main():
             if not os.path.exists(args.output_dir):
                 os.makedirs(args.output_dir)
         except:
-            log.w("No permission or Not found " + args.output_dir)
-            log.w("use current folder")
+            logger.warning("No permission or Not found " + args.output_dir)
+            logger.warning("use current folder")
             args.output_dir = '.'
     if os.path.exists(args.output_dir):
         os.chdir(args.output_dir)
@@ -148,14 +157,14 @@ def main():
                 else:
                     handle_videoinfo(info)
             except AssertionError as e:
-                log.wtf(compact_str(e))
+                logger.critical(compact_str(e))
                 exit = 1
             except (RuntimeError, NotImplementedError, SyntaxError) as e:
-                log.e(compact_str(e))
+                logger.error(compact_str(e))
                 exit = 1
         sys.exit(exit)
     except KeyboardInterrupt:
-        print('\nInterrupted by Ctrl-C')
+        logger.info('Interrupted by Ctrl-C')
 
 if __name__ == '__main__':
     main()

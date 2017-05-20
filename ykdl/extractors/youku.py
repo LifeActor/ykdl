@@ -17,6 +17,10 @@ import ssl
 class Youku(VideoExtractor):
     name = u"优酷 (Youku)"
 
+    def __init__(self):
+        VideoExtractor.__init__(self)
+        self.ccode = '0401'
+
 
     def prepare(self):
         ssl_context = HTTPSHandler(
@@ -33,9 +37,11 @@ class Youku(VideoExtractor):
                                          'player\.youku\.com/player\.php/sid/([a-zA-Z0-9=]+)/v\.swf',\
                                          'loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',\
                                          'loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',\
-                                         'player\.youku\.com/embed/([a-zA-Z0-9=]+)')
+                                         'player\.youku\.com/embed/([a-zA-Z0-9=]+)',\
+                                         'video.tudou.com/v/([a-zA-Z0-9=]+)')
 
-        api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode=0401&client_ip=192.168.1.1&utid=&client_ts={}'.format(self.vid, int(time.time()))
+        self.logger.debug("VID: " + self.vid)
+        api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid=&client_ts={}'.format(self.vid, self.ccode, int(time.time()))
 
         data = json.loads(get_content(api_url))
         assert data['e']['code'] == 0, data['e']['desc']

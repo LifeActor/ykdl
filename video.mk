@@ -80,4 +80,4 @@ test_mgtv:
 	${PYTHON} -m cykdl -i http://www.mgtv.com/v/2/293140/c/3269011.html
 
 test_tudou:
-	${PYTHON} -m cykdl -i http://www.tudou.com/listplay/91csQ5vcKbg/lwLGzPNUWuQ/
+	${PYTHON} -m cykdl -i hhttp://video.tudou.com/v/XMjc2MTg1MzIzNg==.html

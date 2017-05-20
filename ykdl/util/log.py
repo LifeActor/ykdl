@@ -75,8 +75,12 @@ _LOG_COLOR_MAP_ = {
 class ColorHandler(logging.StreamHandler):
     def __init__(self):
         logging.StreamHandler.__init__(self)
-        self.fmt = "\33[%(color)sm%(levelname)s:%(name)s:%(msg)s\33[0m"
+        if IS_ANSI_TERMINAL:
+            self.fmt = "\33[%(color)sm%(levelname)s:%(name)s:%(msg)s\33[0m"
+        else:
+            self.fmt = "%(levelname)s:%(name)s:%(msg)s"
 
     def format(self, recoder):
-        recoder.__dict__['color'] = _LOG_COLOR_MAP_[recoder.levelno]
+        if IS_ANSI_TERMINAL:
+            recoder.__dict__['color'] = _LOG_COLOR_MAP_[recoder.levelno]
         return self.fmt % recoder.__dict__

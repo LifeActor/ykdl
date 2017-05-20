@@ -57,7 +57,7 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     Returns:
         The content as a string.
     """
-
+    logger.debug("get_content> URL: " + url)
     req = Request(url, headers=headers, data=data)
     #if cookies_txt:
     #    cookies_txt.add_cookie_header(req)
@@ -83,6 +83,7 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     if charset is None:
         charset = match1(resheader['Content-Type'], r'charset=([\w-]+)') or \
               match1(str(data), r'charset=\"([^\"]+)', 'charset=([^"]+)') or 'utf-8'
+    logger.debug("get_content> Charset: " + charset)
     try:
         data = data.decode(charset)
     except:

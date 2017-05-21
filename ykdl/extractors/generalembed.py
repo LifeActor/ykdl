@@ -151,6 +151,9 @@ class GeneralEmbed(EmbedExtractor):
                 site = 'bilibili.video'
             elif site == 'qq':
                 site = 'qq.video'
+            elif site =='yun':
+                site = 'le.letvcloud'
+                v = v.split(':')
             self.video_info_list.append((site, v))
 
         tmp = []

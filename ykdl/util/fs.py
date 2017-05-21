@@ -23,6 +23,7 @@ def legitimize(text, os=platform.system()):
             ord('\\'): '-',
             ord('|'): '-',
             ord('\"'): '\'',
+            ord('\n'): '_',
             # Reserved in Windows VFAT
             ord('+'): '-',
             ord('<'): '-',

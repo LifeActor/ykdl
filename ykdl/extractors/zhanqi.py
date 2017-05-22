@@ -19,7 +19,7 @@ class Zhanqi(VideoExtractor):
         if video_type == 'LIVE':
             info.live = True
         elif not video_type == 'VOD':
-            NotImplementedError('Unknown_video_type')
+            raise NotImplementedError('Unknown_video_type')
 
         info.title = match1(html, '<title>([^<]+)').split("_")[0]
         if info.live:

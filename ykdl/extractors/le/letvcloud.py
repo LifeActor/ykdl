@@ -14,7 +14,7 @@ class Letvcloud(VideoExtractor):
 
     supported_stream_types = ['yuanhua', 'super', 'high', 'low']
     types_2_format = {'yuanhua' : 'BD', 'super' : 'TD', 'high' : 'HD', 'low' : 'SD'}
-    types_2_profile = {'yuanhua' : u'原画', 'super' : u'超清', 'high' : u'高清', 'low' : u'表情'}
+    types_2_profile = {'yuanhua' : u'原画', 'super' : u'超清', 'high' : u'高清', 'low' : u'标清'}
 
     def letvcloud_download_by_vu(self):
         info = VideoInfo(self.name)

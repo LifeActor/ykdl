@@ -79,7 +79,9 @@ def save_urls(urls, name, ext, jobs=1):
     status = [0] * len(urls)
     if len(urls) == 1:
         save_url(urls[0], name, ext, status)
-        return
+        if 0 in status:
+            logger.error("donwload failed")
+        return not 0 in status
     if not MultiThread:
         for no, u in enumerate(urls):
             save_url(u, name, ext, status, part = no)

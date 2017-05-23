@@ -3,7 +3,7 @@
 
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
-from ykdl.util.html import get_content
+from ykdl.util.html import get_content, add_header
 from ykdl.util.match import match1, matchall
 from ykdl.compact import compact_bytes
 
@@ -31,6 +31,7 @@ class BiliVideo(VideoExtractor):
     profile_2_type = {u'超清': 'TD', u'高清': 'HD', u'流畅' :'SD'}
     def prepare(self):
         info = VideoInfo(self.name)
+        add_header("Referer", "http://www.bilibili.com")
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)')
@@ -47,6 +48,7 @@ class BiliVideo(VideoExtractor):
             sign_this = hashlib.md5(compact_bytes('cid={}&from=miniplay&player=1&quality={}{}'.format(self.vid, 3-self.supported_stream_profile.index(q), SECRETKEY_MINILOADER), 'utf-8')).hexdigest()
             api_url = 'http://interface.bilibili.com/playurl?cid={}&player=1&quality={}&from=miniplay&sign={}'.format(self.vid, 3-self.supported_stream_profile.index(q), sign_this)
             html = get_content(api_url)
+            self.logger.debug("HTML> {}".format(html))
             urls, size, ext = parse_cid_playurl(html)
             if ext == 'hdmp4':
                 ext = 'mp4'

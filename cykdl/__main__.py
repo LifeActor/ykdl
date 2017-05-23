@@ -74,12 +74,13 @@ def download(urls, name, ext, live = False):
     if not m3u8_internal:
         launch_ffmpeg_download(urls[0], name + '.' + ext, live)
     else:
-        save_urls(urls, name, ext, jobs = args.jobs)
-        lenth = len(urls)
-        if lenth > 1 and not args.no_merge:
-            ret = launch_ffmpeg(name, ext,lenth)
-            if not ret:
+        if save_urls(urls, name, ext, jobs = args.jobs):
+            lenth = len(urls)
+            if lenth > 1 and not args.no_merge:
+                launch_ffmpeg(name, ext,lenth)
                 clean_slices(name, ext,lenth)
+        else:
+            logger.critical("{}> donwload failed".format(name))
 
 def handle_videoinfo(info, index=0):
     if not args.json:

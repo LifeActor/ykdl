@@ -30,7 +30,7 @@ def simple_hook(arg1, arg2, arg3):
         sys.stdout.write('\r' + str(round(arg1 * arg2 / 1048576, 1)) + 'MB')
         sys.stdout.flush()
 
-def save_url(url, name, ext, part = None, reporthook = simple_hook):
+def save_url(url, name, ext, status, part = None, reporthook = simple_hook):
     if part is None:
         print("Download: " + name)
         name = name + '.' + ext
@@ -50,6 +50,10 @@ def save_url(url, name, ext, part = None, reporthook = simple_hook):
         filesize = os.path.getsize(name)
         if filesize == size:
             print('Skipped: file already downloaded')
+            if part is None:
+                status[0] = 1
+            else:
+                status[part] =1
             return
         elif -1 != size:
             req.add_header('Range', 'bytes=%d-' % filesize)
@@ -66,16 +70,27 @@ def save_url(url, name, ext, part = None, reporthook = simple_hook):
             tfp.write(block)
             blocknum += 1
             reporthook(blocknum, bs, size)
+    if part is None:
+        status[0] = 1
+    else:
+        status[part] =1
 
 def save_urls(urls, name, ext, jobs=1):
+    status = [0] * len(urls)
     if len(urls) == 1:
-        save_url(urls[0], name, ext)
+        save_url(urls[0], name, ext, status)
         return
     if not MultiThread:
         for no, u in enumerate(urls):
-            save_url(u, name, ext, part = no)
+            save_url(u, name, ext, status, part = no)
     else:
         with ThreadPoolExecutor(max_workers=jobs) as worker:
             for no, u in enumerate(urls):
-                worker.submit(save_url, u, name, ext, part = no)
+                worker.submit(save_url, u, name, ext, status, part = no)
             worker.shutdown()
+    i = 0
+    for a in status:
+        if a == 0:
+            logger.error("donwload failed at part {}".format(i))
+        i += 1
+    return not 0 in status

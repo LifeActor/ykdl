@@ -133,7 +133,7 @@ class GeneralEmbed(EmbedExtractor):
         vids = matchall(content, ifeng_embed_patterns)
         for v in vids:
             v  = v.split('&')[0]
-            self.video_info_list.append(('ifeng', v))
+            self.video_info_list.append(('ifeng.news', v))
 
         vids = matchall(content, weibo_embed_patterns)
         for v in vids:

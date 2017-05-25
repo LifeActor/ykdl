@@ -6,13 +6,18 @@ from ykdl.util.match import match1, matchall
 from ykdl.util import log
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
-from ykdl.compact import HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener
+from ykdl.compact import HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, urlopen
 from .youkujs import supported_stream_code, ids, stream_code_to_id, stream_code_to_profiles, id_to_container
 
 
 import time
 import json
 import ssl
+
+def fetch_cna():
+    url = 'http://gm.mmstat.com/yt/ykcomment.play.commentInit?cna='
+    req = urlopen(url)
+    return req.info()['Set-Cookie'].split(';')[0].split('=')[1]
 
 class Youku(VideoExtractor):
     name = u"优酷 (Youku)"
@@ -41,7 +46,7 @@ class Youku(VideoExtractor):
                                          'video.tudou.com/v/([a-zA-Z0-9=]+)')
 
         self.logger.debug("VID: " + self.vid)
-        api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid=&client_ts={}'.format(self.vid, self.ccode, int(time.time()))
+        api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid={}&client_ts={}'.format(self.vid, self.ccode, fetch_cna(), int(time.time()))
 
         data = json.loads(get_content(api_url))
         assert data['e']['code'] == 0, data['e']['desc']

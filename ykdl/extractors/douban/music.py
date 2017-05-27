@@ -8,7 +8,7 @@ from ykdl.videoinfo import VideoInfo
 from ykdl.compact import urlencode, compact_bytes
 
 import json
-
+sdsgfdgd
 class DoubanMusic(VideoExtractor):
     name = u'Douban Music (豆瓣音乐)'
 

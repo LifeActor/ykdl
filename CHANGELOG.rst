@@ -1,7 +1,15 @@
 Change Log for ykdl
 ===================
 
-1.4.8
+1.4.10
+-------
+
+- support new sites: sina open course
+- delete: isuntv, instagram, dailymotion, alive, ted
+- update bilibili, acfun, sohu, youku, tudou
+- update downloader
+
+1.4.9
 -------
 
 - support new sites: dilidili

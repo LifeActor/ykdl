@@ -21,7 +21,7 @@ def video_info_xml(vid):
     return xml
 
 class OpenC(VideoExtractor):
-    name = u'Sohu openCourse (搜狐公开课)'
+    name = u'Sina openCourse (新浪公开课)'
 
     def prepare(self):
         info = VideoInfo(self.name)

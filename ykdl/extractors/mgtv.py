@@ -14,20 +14,14 @@ class Hunantv(VideoExtractor):
     supported_stream_profile = [ u'蓝光', u'超清', u'高清', u'标清' ]
     supported_stream_types = [ 'BD', 'TD', 'HD', 'SD' ]
     profile_2_types = { u'蓝光': 'BD', u'超清': 'TD', u'高清': 'HD', u'标清': 'SD' }
-
-    def get_vid(url):
-        vid = match1(url, 'http://www.mgtv.com/b/\d+/(\d+).html')
-        if vid is None:
-            html = get_content(url)
-            vid = match1(html, 'vid=(\d+)', 'vid=\"(\d+)') or \
-                match1(html, r'vid: (\d+)')
-        return vid
     
     def prepare(self):
         info = VideoInfo(self.name)
         if self.url and not self.vid:
-            html = get_content(self.url)
-            self.vid = self.__class__.get_vid(self.url)
+            self.vid = match1(self.url, 'http://www.mgtv.com/b/\d+/(\d+).html')
+            if self.vid is None:
+                html = get_content(self.url)
+                self.vid = match1(html, 'vid=(\d+)', 'vid=\"(\d+)', 'vid: (\d+)')
 
         api_url = 'http://pcweb.api.mgtv.com/player/video?video_id={}'.format(self.vid)
         meta = json.loads(get_content(api_url))

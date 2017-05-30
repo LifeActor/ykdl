@@ -1,40 +1,81 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import json
-import hashlib
 import base64
+import random
+import json
+from Crypto.Cipher import AES
+import sys
 
 from ykdl.util.html import get_content, add_header
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 from ykdl.util.match import match1
+from ykdl.compact import urlencode, compact_bytes
+
+#consts here
+
+first_key = "0CoJUm6Qyw8W8jud"
+
+iv = "0102030405060708"
+
+def pksc7_padding(string):
+    aes_block_size = 16
+    padding_size = aes_block_size - len(string) % 16
+    return string.ljust(len(string)+padding_size, chr(padding_size))
+
+def make_json_data(url_id):
+    fixed = {}
+    fixed['br'] = 128000
+    fixed['csrf_token'] = '' #in the cookie
+    fixed['ids'] = '[{}]'.format(url_id)
+    return json.dumps(fixed, separators=(',', ':'))
 
 
+def random_string():
+    base_str = '1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+    r_str = ''
+    for i in range(0, 16):
+        r_str += base_str[random.randint(0, len(base_str) - 1)]
+    return r_str
 
-def encrypted_id(dfsId):
-    dfsId = str(dfsId)
-    byte1 = bytearray('3go8&$8*3*3h0k(2)2', encoding='ascii')
-    byte2 = bytearray(dfsId, encoding='ascii')
-    byte1_len = len(byte1)
-    for i in range(len(byte2)):
-        byte2[i] = byte2[i] ^ byte1[i % byte1_len]
-    m = hashlib.md5()
-    m.update(byte2)
-    result = base64.b64encode(m.digest()).decode('ascii')
-    result = result.replace('/', '_')
-    result = result.replace('+', '-')
-    return result
+def RSA_string(input_str):
+    modular = 157794750267131502212476817800345498121872783333389747424011531025366277535262539913701806290766479189477533597854989606803194253978660329941980786072432806427833685472618792592200595694346872951301770580765135349259590167490536138082469680638514416594216629258349130257685001248172188325316586707301643237607
+    exp = 65537
 
+#first do LE packing
+    to_number = 0
+    rev_str = input_str[::-1]
+    for i in rev_str:
+        to_number = to_number * 256 + ord(i)
+#then calc ras with exp and modular
+    encSecKey = hex(pow(to_number, exp, modular))[2:]
+    return encSecKey.rjust(256, '0')
 
-def make_url(host, dfsId):
-    encId = encrypted_id(dfsId)
-    mp3_url = "http://m{}.music.126.net/{}/{}.mp3".format(host, encId, dfsId)
-    return mp3_url
+def AES_128_CBC_b64_wrapper(data, key, iv):
+    obj = AES.new(key, AES.MODE_CBC, iv)
+    input_data = pksc7_padding(data)
+    out = obj.encrypt(input_data)
+    return base64.b64encode(out).decode('utf8')
+
+def netease_req(ids='468490608', snd_key=None, encSecKey=None):
+    data = make_json_data(ids)
+    if snd_key is None:
+        print('here')
+        snd_key = random_string()
+        encSecKey = RSA_string(snd_key)
+    first_pass = AES_128_CBC_b64_wrapper(data, first_key, iv)
+    second_pass = AES_128_CBC_b64_wrapper(first_pass, snd_key, iv)
+
+    payload = {}
+    payload['params'] = second_pass
+    payload['encSecKey'] = encSecKey
+
+    return payload
 
 class NeteaseMusicBase(VideoExtractor):
 
-    supported_stream_types = ['hMusic', 'bMusic', 'mMusic', 'lMusic']
+    mp3_api = "http://music.163.com/weapi/song/enhance/player/url?csfr_token="
     song_date = {}
     def prepare(self):
         info = VideoInfo(self.name)
@@ -47,16 +88,14 @@ class NeteaseMusicBase(VideoExtractor):
         info.title = music['name']
         info.artist = music['artists'][0]['name']
 
-        self.mp3_host = music['mp3Url'][8]
-
-        for st in self.supported_stream_types:
-            if st in music and music[st]:
-                info.stream_types.append(st)
-                self.song_date[st] = music[st]
-                self.extract_song(info)
+        snd_key = random_string()
+        if sys.version_info[0] == 3:
+            encSecKey = RSA_string(snd_key)
+        else:
+            encSecKey = RSA_string(snd_key)[:-1]
+        payload = netease_req(self.vid, snd_key, encSecKey)
+        print(get_content(self.mp3_api, data=compact_bytes(urlencode(payload), 'utf-8')))
+        mp3_info = json.loads(get_content(self.mp3_api, data=compact_bytes(urlencode(payload), 'utf-8')))['data'][0]
+        info.stream_types.append('current')
+        info.streams['current'] =  {'container': mp3_info['type'], 'video_profile': 'current', 'src' : [mp3_info['url']], 'size': mp3_info['size']}
         return info
-
-    def extract_song(self, info):
-        for stream_id in info.stream_types:
-            song = self.song_date[stream_id]
-            info.streams[stream_id] = {'container': 'mp3', 'video_profile': stream_id, 'src' : [make_url(self.mp3_host, song['dfsId'])], 'size': song['size']}

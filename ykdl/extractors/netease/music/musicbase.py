@@ -53,9 +53,9 @@ def RSA_string(input_str):
     return encSecKey.rjust(256, '0')
 
 def AES_128_CBC_b64_wrapper(data, key, iv):
-    obj = AES.new(key, AES.MODE_CBC, iv)
+    obj = AES.new(compact_bytes(key, 'utf-8'), AES.MODE_CBC, compact_bytes(iv, 'utf-8'))
     input_data = pksc7_padding(data)
-    out = obj.encrypt(input_data)
+    out = obj.encrypt(compact_bytes(input_data, 'utf-8'))
     return base64.b64encode(out).decode('utf8')
 
 def netease_req(ids='468490608', snd_key=None, encSecKey=None):

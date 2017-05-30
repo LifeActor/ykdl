@@ -75,8 +75,7 @@ def netease_req(ids='468490608', snd_key=None, encSecKey=None):
 
 class NeteaseMusicBase(VideoExtractor):
 
-    mp3_api = "http://music.163.com/weapi/song/enhance/player/url?csfr_token="
-    song_date = {}
+    mp3_api = "http://music.163.com/weapi/song/enhance/player/url?csrf_token="
     def prepare(self):
         info = VideoInfo(self.name)
         add_header("Referer", "http://music.163.com/")
@@ -94,7 +93,6 @@ class NeteaseMusicBase(VideoExtractor):
         else:
             encSecKey = RSA_string(snd_key)[:-1]
         payload = netease_req(self.vid, snd_key, encSecKey)
-        print(get_content(self.mp3_api, data=compact_bytes(urlencode(payload), 'utf-8')))
         mp3_info = json.loads(get_content(self.mp3_api, data=compact_bytes(urlencode(payload), 'utf-8')))['data'][0]
         info.stream_types.append('current')
         info.streams['current'] =  {'container': mp3_info['type'], 'video_profile': 'current', 'src' : [mp3_info['url']], 'size': mp3_info['size']}

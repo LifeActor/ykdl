@@ -10,33 +10,33 @@ def legitimize(text, os=platform.system()):
     # POSIX systems
     text = text.translate({
         0: None,
-        ord('/'): '-',
+        ord('/'): u'-',
     })
 
     if os == 'Windows':
         # Windows (non-POSIX namespace)
         text = text.translate({
             # Reserved in Windows VFAT and NTFS
-            ord(':'): '-',
-            ord('*'): '-',
-            ord('?'): '-',
-            ord('\\'): '-',
-            ord('|'): '-',
-            ord('\"'): '\'',
-            ord('\n'): '_',
+            ord(':'): u'-',
+            ord('*'): u'-',
+            ord('?'): u'-',
+            ord('\\'): u'-',
+            ord('|'): u'-',
+            ord('\"'): u'\'',
+            ord('\n'): u'_',
             # Reserved in Windows VFAT
-            ord('+'): '-',
-            ord('<'): '-',
-            ord('>'): '-',
-            ord('['): '(',
-            ord(']'): ')',
+            ord('+'): u'-',
+            ord('<'): u'-',
+            ord('>'): u'-',
+            ord('['): u'(',
+            ord(']'): u')',
         })
     else:
         # *nix
         if os == 'Darwin':
             # Mac OS HFS+
             text = text.translate({
-                ord(':'): '-',
+                ord(':'): u'-',
             })
 
         # Remove leading .

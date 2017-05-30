@@ -7,7 +7,7 @@ try:
 except:
     pass
 
-import os, codecs
+import os, codecs, platform
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = codecs.open(os.path.join(here, 'README.rst'), encoding='utf8').read()
@@ -23,6 +23,13 @@ def find_packages(*tops):
 
 from ykdl.version import __version__
 
+REQ = ['m3u8']
+
+if platform.system() == 'Windows':
+    REQ.append('pycryptodome')
+else:
+    REQ.append('pycrypto')
+
 setup(
     name = "ykdl",
     version = __version__,
@@ -34,8 +41,8 @@ setup(
     long_description = README + '\n\n' +  CHANGES,
     keywords = "video download youku acfun bilibili",
     packages = find_packages('ykdl', 'cykdl'),
-    requires = ['m3u8'],
-    install_requires = ['m3u8'],
+    requires = REQ,
+    install_requires = REQ,
     platforms = 'any',
     zip_safe = True,
     classifiers = [

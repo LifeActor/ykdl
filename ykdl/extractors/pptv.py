@@ -5,9 +5,11 @@ from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 from ykdl.util.html import get_content
 from ykdl.util.match import match1, matchall
+from ykdl.compact import compact_bytes
 
 import time
 import random
+import sys
 
 
 
@@ -22,13 +24,20 @@ def rshift(a, b):
     return (0x100000000 + a) >> b
 
 def le32_pack(b_str):
-    result = 0
-    result |= b_str[0]
-    result |= (b_str[1] << 8)
-    result |= (b_str[2] << 16)
-    result |= (b_str[3] << 24)
-    return result
-
+    if sys.version_info[0] == 3:
+        result = 0
+        result |= b_str[0]
+        result |= (b_str[1] << 8)
+        result |= (b_str[2] << 16)
+        result |= (b_str[3] << 24)
+        return result
+    else:
+        result = 0
+        result |= ord(b_str[0])
+        result |= (ord(b_str[1]) << 8)
+        result |= (ord(b_str[2]) << 16)
+        result |= (ord(b_str[3]) << 24)
+        return result
 def tea_core(data, key_seg):
     delta = 2654435769
 
@@ -190,7 +199,7 @@ class Pptv(VideoExtractor):
         self.vid = match1(html, 'webcfg\s*=\s*{"id":\s*(\d+)')
         xml = get_content('http://web-play.pptv.com/webplay3-0-{}.xml?type=web.fpp&version=4'.format(self.vid))
 
-        dom = parseString(xml)
+        dom = parseString(compact_bytes(xml, 'utf-8'))
         info.title, m_items, m_streams, m_segs = parse_pptv_xml(dom)
         xml_streams = merge_meta(m_items, m_streams, m_segs)
 

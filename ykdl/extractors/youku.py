@@ -6,7 +6,7 @@ from ykdl.util.match import match1, matchall
 from ykdl.util import log
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
-from ykdl.compact import HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, urlopen
+from ykdl.compact import HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, urlopen, quote
 from .youkujs import supported_stream_code, ids, stream_code_to_id, stream_code_to_profiles, id_to_container
 
 
@@ -46,7 +46,7 @@ class Youku(VideoExtractor):
                                          'video.tudou.com/v/([a-zA-Z0-9=]+)')
 
         self.logger.debug("VID: " + self.vid)
-        api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid={}&client_ts={}'.format(self.vid, self.ccode, fetch_cna(), int(time.time()))
+        api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid={}&client_ts={}'.format(self.vid, self.ccode, quote(fetch_cna()), int(time.time()))
 
         data = json.loads(get_content(api_url))
         assert data['e']['code'] == 0, data['e']['desc']

@@ -12,6 +12,7 @@ if sys.version_info[0] == 3:
     compact_str = str
     compact_bytes = bytes
     from urllib.parse import unquote as compact_unquote
+    from urllib.parse import quote
     from tempfile import NamedTemporaryFile
     def compact_tempfile(mode='w+b', encoding=None, suffix='', prefix='tmp', dir=None):
         if platform.system() == 'Windows':
@@ -30,7 +31,7 @@ else:
     compact_str = unicode
     def compact_bytes(string, encode):
         return string.encode(encode)
-
+    from urllib import quote
     def compact_unquote(string, encoding = 'utf-8'):
         from urllib import unquote
         return unquote(str(string)).decode(encoding)

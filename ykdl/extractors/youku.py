@@ -51,7 +51,7 @@ class Youku(VideoExtractor):
         data = json.loads(get_content(api_url))
         assert data['e']['code'] == 0, data['e']['desc']
         data = data['data']
-        assert not 'error' in data, data['error']['note']
+        assert 'stream' in data, data['error']['note']
         info.title = data['video']['title']
         streams = data['stream']
         for s in streams:

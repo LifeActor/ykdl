@@ -44,14 +44,17 @@ def url_to_module(url):
     except(ImportError):
         logger.debug('> Try HTTP Redirection!')
         from ykdl.compact import HTTPConnection
-        conn = HTTPConnection(video_host)
-        conn.request("HEAD", url, headers=fake_headers)
-        res = conn.getresponse()
-        location = res.getheader('location')
-        if location is None:
-            logger.debug('> NO HTTP Redirection')
-            logger.debug('> Go Generalembed')
+        try:
+            conn = HTTPConnection(video_host)
+            conn.request("HEAD", url, headers=fake_headers)
+            res = conn.getresponse()
+            location = res.getheader('location')
+            if location is None:
+                logger.debug('> NO HTTP Redirection')
+                logger.debug('> Go Generalembed')
+                return import_module('ykdl.extractors.generalembed').site, url
+            else:
+                logger.debug('New Location> ' + location)
+                return url_to_module(location)
+        except(ConnectionResetError):
             return import_module('ykdl.extractors.generalembed').site, url
-        else:
-            logger.debug('New Location> ' + location)
-            return url_to_module(location)

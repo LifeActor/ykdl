@@ -58,8 +58,6 @@ def download(urls, name, ext, live = False):
     # ffmpeg can't handle local m3u8.
     # only use ffmpeg to hanle m3u8.
     global m3u8_internal
-    if not urls[0].startswith('http') or not ext == 'm3u8':
-        m3u8_internal = True
     # for live video, always use ffmpeg to rebuild timeline.
     if live:
         m3u8_internal = False

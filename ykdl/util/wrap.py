@@ -35,6 +35,11 @@ def launch_ffmpeg_download(url, name, live):
     if live:
         print('stop downloading by press \'q\'')
 
-    cmd = ['ffmpeg', '-y', '-i', url, '-c', 'copy', '-absf', 'aac_adtstoasc',  '-hide_banner', name]
+    cmd = ['ffmpeg', '-y']
+
+    if not url.startswith('http'):
+       cmd += ['-protocol_whitelist', 'file,tcp,http' ]
+
+    cmd += ['-i', url, '-c', 'copy', '-absf', 'aac_adtstoasc',  '-hide_banner', name]
 
     subprocess.call(cmd)

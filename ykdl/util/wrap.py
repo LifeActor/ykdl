@@ -11,7 +11,11 @@ from ykdl.compact import compact_tempfile
 
 
 def launch_player(player, urls):
-    subprocess.call(shlex.split(player) + list(urls))
+    if 'mpv' in player:
+        cmd = shlex.split(player) + ['--demuxer-lavf-o=protocol_whitelist=[file,tcp,http]'] + list(urls)
+    else:
+        cmd = shlex.split(player) + list(urls)
+    subprocess.call(cmd)
 
 def launch_ffmpeg(basename, ext, lenth):
     #build input

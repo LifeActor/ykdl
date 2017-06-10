@@ -1,6 +1,13 @@
 Change Log for ykdl
 ===================
 
+1.4.11
+-------
+
+- update 163 music, pptv, youku
+- update python2 support
+- update ffmpeg&mpv wrapper
+
 1.4.10
 -------
 

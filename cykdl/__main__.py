@@ -113,6 +113,7 @@ def main():
 
     if args.timeout:
         socket.setdefaulttimeout(args.timeout)
+
     if args.proxy == 'system':
         proxy_handler = ProxyHandler()
     else:
@@ -120,8 +121,9 @@ def main():
             'http': args.proxy,
             'https': args.proxy
         })
-    opener = build_opener(proxy_handler)
-    install_opener(opener)
+    if not args.proxy == 'none':
+        opener = build_opener(proxy_handler)
+        install_opener(opener)
 
     #mkdir and cd to output dir
     if not args.output_dir == '.':

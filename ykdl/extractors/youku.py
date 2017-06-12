@@ -17,7 +17,9 @@ import ssl
 def fetch_cna():
     url = 'http://gm.mmstat.com/yt/ykcomment.play.commentInit?cna='
     req = urlopen(url)
-    return req.info()['Set-Cookie'].split(';')[0].split('=')[1]
+    cookies = req.info()['Set-Cookie']
+    cna = match1(cookies, "cna=([^;]+)")
+    return cna if cna else "oqikEO1b7CECAbfBdNNf1PM1"
 
 class Youku(VideoExtractor):
     name = u"优酷 (Youku)"

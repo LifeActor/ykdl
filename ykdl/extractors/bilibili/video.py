@@ -3,7 +3,7 @@
 
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
-from ykdl.util.html import get_content, add_header
+from ykdl.util.html import get_content, add_header, fake_headers
 from ykdl.util.match import match1, matchall
 from ykdl.compact import compact_bytes
 
@@ -32,6 +32,8 @@ class BiliVideo(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name)
         add_header("Referer", "http://www.bilibili.com")
+        info.extra["referer"] = "http://www.bilibili.com"
+        info.extra["ua"] = fake_headers['User-Agent']
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)')

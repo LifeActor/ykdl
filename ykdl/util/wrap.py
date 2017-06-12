@@ -10,9 +10,14 @@ logger = getLogger("wrap")
 from ykdl.compact import compact_tempfile
 
 
-def launch_player(player, urls):
+def launch_player(player, urls, **args):
     if 'mpv' in player:
-        cmd = shlex.split(player) + ['--demuxer-lavf-o=protocol_whitelist=[file,tcp,http]'] + list(urls)
+        cmd = shlex.split(player) + ['--demuxer-lavf-o=protocol_whitelist=[file,tcp,http]']
+        if args["ua"]:
+            cmd += ["--user-agent={}".format(args["ua"])]
+        if args["referer"]:
+            cmd += ["--referrer={}".format(args["referer"])]
+        cmd += list(urls)
     else:
         cmd = shlex.split(player) + list(urls)
     subprocess.call(cmd)

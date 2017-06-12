@@ -16,6 +16,7 @@ class VideoInfo():
         self.stream_types = []
         self.streams = {}
         self.live = live
+        self.extra = {"ua": "", "referer": ""}
 
     def print_stream_info(self, stream_id, show_all = False):
         stream = self.streams[stream_id]
@@ -41,6 +42,7 @@ class VideoInfo():
                     }
         json_dict['streams'] = self.streams
         json_dict['stream_types'] = self.stream_types
+        json_dict['extra'] = self.extra
         return json_dict
 
     def print_info(self, stream_id = None, show_all = False):

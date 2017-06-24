@@ -7,10 +7,17 @@ from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 from ykdl.compact import urlencode,compact_bytes
 
-from hashlib import md5
 import time
+import hashlib
+import random
 import json
-import uuid
+
+from .dyprvt import stupidMD5
+
+API_KEY = 'a2053899224e8a92974c729dceed1cc99b3d8282'
+VER = '2017061511'
+
+
 
 douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
                         'data-room_id="([^"]+)'
@@ -24,28 +31,32 @@ class Douyutv(VideoExtractor):
 
     def prepare(self):
         info = VideoInfo(self.name, True)
-        if self.url:
-            self.vid = match1(self.url, '/(\d+)')
 
         if not self.vid:
             html = get_content(self.url)
+            room = match1(html, 'var $ROOM = ([^;]+)')
             self.vid = match1(html, '"room_id.?":(\d+)')
-
+            info.title = json.loads("{\"room_name\" : \"" + match1(html, '"room_name.?":"([^"]+)') + "\"}")['room_name']
+            info.artist = json.loads("{\"name\" : \"" + match1(html, '"owner_name.?":"([^"]+)') + "\"}")['name']
+        api_url = 'https://www.douyu.com/lapi/live/getPlay/{}'.format(self.vid)
+        tt = str(int(time.time() / 60))
+        rnd_md5 = hashlib.md5(str(random.random()).encode('utf8'))
+        did = rnd_md5.hexdigest().upper()
+        to_sign = ''.join([self.vid, did, API_KEY, tt])
+        sign = stupidMD5(to_sign)
         for stream in self.stream_ids:
-            tt = int(time.time())
             rate = self.stream_id_2_rate[stream]
-            signContent = 'lapi/live/thirdPart/getPlay/{}?aid=pcclient&rate={}&time={}9TUk5fjjUjg9qIMH3sdnh'.format(self.vid, rate , tt)
-            sign = md5(signContent.encode('utf-8')).hexdigest()
-            url = 'http://coapi.douyucdn.cn/lapi/live/thirdPart/getPlay/{}?rate={}'.format(self.vid, rate)
-
-            html_content = get_content(url, headers = {		'auth': sign, 'time': str(tt), 'aid': 'pcclient' })
-            live_data = json.loads(html_content)['data']
-
-            real_url = live_data['live_url']
+            params = {"ver" : VER, "sign" : sign, "did" : did, "rate" : rate, "tt" : tt, "cdn" : "ws"}
+            form = urlencode(params)
+            html_content = get_content(api_url, data=compact_bytes(form, 'utf-8'))
+            live_data = json.loads(html_content)
+            assert live_data["error"] == 0, "live show is offline"
+            live_data = live_data["data"]
+            real_url = '/'.join([live_data['rtmp_url'], live_data['rtmp_live']])
 
             info.stream_types.append(stream)
             info.streams[stream] = {'container': 'flv', 'video_profile': self.id_2_profile[stream], 'src' : [real_url], 'size': float('inf')}
-            info.title = live_data['room_name']
+
         return info
 
     def prepare_list(self):

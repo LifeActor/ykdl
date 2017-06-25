@@ -11,8 +11,9 @@ import time
 import hashlib
 import random
 import json
+import sys
 
-from .dyprvt import stupidMD5
+from .get_douyulive_url_blackbox import stupidMD5
 
 API_KEY = 'a2053899224e8a92974c729dceed1cc99b3d8282'
 VER = '2017061511'

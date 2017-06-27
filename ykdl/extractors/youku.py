@@ -62,7 +62,11 @@ class Youku(VideoExtractor):
             for u in s['segs']:
                 self.logger.debug("seg> " + str(u))
                 if u['key'] != -1:
-                    urls.append(json.loads(get_content(u['cdn_url']+'&yxon=1&special=true'))[0]['server'])
+                    cdn_url = u['cdn_url']
+                    if cdn_url.startswith('http://k.youku.com/player'):
+                        urls.append(json.loads(get_content(cdn_url +'&yxon=1&special=true'))[0]['server'])
+                    else:
+                        urls.append(cdn_url)
                 else:
                     self.logger.warning("VIP video, ignore unavailable seg: {}".format(s['segs'].index(u)))
             size = s['size']

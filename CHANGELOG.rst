@@ -1,6 +1,13 @@
 Change Log for ykdl
 ===================
 
+1.5.0
+-------
+
+- update videoinfo, add ua/referrer.
+- update douyu, bilibili, youku
+- cykdl support no proxy
+
 1.4.11
 -------
 

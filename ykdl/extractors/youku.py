@@ -57,18 +57,25 @@ class Youku(VideoExtractor):
         info.title = data['video']['title']
         streams = data['stream']
         for s in streams:
+            self.logger.debug("stream> " + str(s))
             t = stream_code_to_id[s['stream_type']]
             urls = []
             for u in s['segs']:
                 self.logger.debug("seg> " + str(u))
                 if u['key'] != -1:
-                    urls.append(u['cdn_url'])
+                    if 'cdn_url' in u:
+                        urls.append(u['cdn_url'])
                 else:
                     self.logger.warning("VIP video, ignore unavailable seg: {}".format(s['segs'].index(u)))
+            if len(urls) == 0:
+                urls = [s['m3u8_url']]
+                c = 'm3u8'
+            else:
+                c = id_to_container[t]
             size = s['size']
             info.stream_types.append(t)
             info.streams[t] =  {
-                    'container': id_to_container[t],
+                    'container': c,
                     'video_profile': stream_code_to_profiles[t],
                     'size': size,
                     'src' : urls

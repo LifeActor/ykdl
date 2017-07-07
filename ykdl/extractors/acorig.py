@@ -4,7 +4,7 @@
 from .youkujs import *
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
-from ykdl.util.html import get_content
+from ykdl.util.html import get_content, add_header
 
 import json
 import base64, time
@@ -19,6 +19,7 @@ class Acorig(VideoExtractor):
 
     def prepare(self):
         info = VideoInfo(self.name)
+        add_header('User-Agent', "")
         self.vid, self.embsig = self.vid
 
         api = "http://player.acfun.cn/flash_data?vid={}&ct={}&ev=3&sign={}&time={}".format(self.vid, self.ct, self.embsig, int(time.time()*1000))

@@ -43,7 +43,7 @@ class BiliVideo(VideoExtractor):
                 if eid:
                     Episode_info = json.loads(get_content('http://bangumi.bilibili.com/web_api/episode/{}.json'.format(eid)))['result']['currentEpisode']
                     self.vid = Episode_info['danmaku']
-                    info.title = info.title + ' ' + Episode_info['index'] + '.  ' + Episode_info['longTitle']
+                    info.title = info.title + ' ' + Episode_info['indexTitle'] + '.  ' + Episode_info['longTitle']
 
         assert self.vid, "can't play this video: {}".format(self.url)
         for q in self.supported_stream_profile:

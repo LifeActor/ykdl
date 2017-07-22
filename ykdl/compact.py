@@ -9,6 +9,7 @@ if sys.version_info[0] == 3:
     from urllib.request import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler
     from urllib.parse import urlencode, urlparse
     from http.client import HTTPConnection
+    from html import unescape
     compact_str = str
     compact_bytes = bytes
     from urllib.parse import unquote as compact_unquote
@@ -49,6 +50,10 @@ else:
         return codecs.open(tmp.name, mode, encoding)
     def compact_isstr(s):
         return isinstance(s, types.UnicodeType) or isinstance(s, str)
+    import HTMLParser
+    def unescape(s):
+        html_parser = HTMLParser.HTMLParser()
+        return html_parser.unescape(s)
 
 try:
     struct.pack('!I', 0)

@@ -86,7 +86,11 @@ Dilidili
 dilidili_embed_patterns = [ 'vid=([^&]+)&v=([^&]+)&'
                      ]
 
-
+"""
+Bilibili
+"""
+bilibili_embed_patterns = [ 'flashvars="aid=(\d+)'
+                     ]
 
 class GeneralEmbed(EmbedExtractor):
     name = u"GeneralEmbed (通用嵌入视频)"
@@ -143,6 +147,12 @@ class GeneralEmbed(EmbedExtractor):
         for v in vids:
             v  = v.split('&')[0]
             self.video_info_list.append(('sina', v))
+
+        vids = matchall(content, bilibili_embed_patterns)
+        for v in vids:
+            v = "http://www.bilibili.com/video/av{}".format(v)
+            self.video_info_list.append(('bilibili.video', v))
+
 
         vids = matchall(content, dilidili_embed_patterns)
         for v in vids:

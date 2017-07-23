@@ -15,9 +15,7 @@ import sys
 
 from .get_douyulive_url_blackbox import stupidMD5
 
-API_KEY = 'a2053899224e8a92974c729dceed1cc99b3d8282'
-VER = '2017061511'
-
+APPKEY = 'Y237pxTx2In5ayGz' #from android-hd client
 
 
 douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
@@ -39,24 +37,29 @@ class Douyutv(VideoExtractor):
             self.vid = match1(html, '"room_id.?":(\d+)')
             info.title = json.loads("{\"room_name\" : \"" + match1(html, '"room_name.?":"([^"]+)') + "\"}")['room_name']
             info.artist = json.loads("{\"name\" : \"" + match1(html, '"owner_name.?":"([^"]+)') + "\"}")['name']
-        api_url = 'https://www.douyu.com/lapi/live/getPlay/{}'.format(self.vid)
-        tt = str(int(time.time() / 60))
-        rnd_md5 = hashlib.md5(str(random.random()).encode('utf8'))
-        did = rnd_md5.hexdigest().upper()
-        to_sign = ''.join([self.vid, did, API_KEY, tt])
-        sign = stupidMD5(to_sign)
-        for stream in self.stream_ids:
-            rate = self.stream_id_2_rate[stream]
-            params = {"ver" : VER, "sign" : sign, "did" : did, "rate" : rate, "tt" : tt, "cdn" : "ws"}
-            form = urlencode(params)
-            html_content = get_content(api_url, data=compact_bytes(form, 'utf-8'))
-            live_data = json.loads(html_content)
-            assert live_data["error"] == 0, "live show is offline"
-            live_data = live_data["data"]
-            real_url = '/'.join([live_data['rtmp_url'], live_data['rtmp_live']])
+        cdn = 'ws'
+        authstr = 'room/{0}?aid=androidhd1&cdn={1}&client_sys=android&time={2}'.format(self.vid, cdn, int(time.time()))
+        authmd5 = hashlib.md5((authstr + APPKEY).encode()).hexdigest()
+        api_url = 'https://capi.douyucdn.cn/api/v1/{0}&auth={1}'.format(authstr,authmd5)
+        html_content = get_content(api_url)
+        live_data = json.loads(html_content)
 
-            info.stream_types.append(stream)
-            info.streams[stream] = {'container': 'flv', 'video_profile': self.id_2_profile[stream], 'src' : [real_url], 'size': float('inf')}
+        assert live_data["error"] == 0, "live show is offline"
+        live_data = live_data["data"]
+
+        real_url = '/'.join([live_data['rtmp_url'], live_data['rtmp_live']])
+        info.stream_types.append('TD')
+        info.streams['TD'] = {'container': 'flv', 'video_profile': self.id_2_profile['TD'], 'src' : [real_url], 'size': float('inf')}
+
+
+        real_url = '/'.join([live_data['rtmp_url'], live_data['rtmp_multi_bitrate']['middle2']])
+        info.stream_types.append('HD')
+        info.streams['HD'] = {'container': 'flv', 'video_profile': self.id_2_profile['HD'], 'src' : [real_url], 'size': float('inf')}
+
+        real_url = '/'.join([live_data['rtmp_url'], live_data['rtmp_multi_bitrate']['middle']])
+        info.stream_types.append('SD')
+        info.streams['SD'] = {'container': 'flv', 'video_profile': self.id_2_profile['SD'], 'src' : [real_url], 'size': float('inf')}
+
 
         return info
 

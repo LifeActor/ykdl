@@ -43,6 +43,7 @@ def arg_parser():
     parser.add_argument('-t', '--timeout', type=int, default=60, help="set socket timeout seconds, default 60s")
     parser.add_argument('--no-merge', action='store_true', default=False, help="do not merge video slides")
     parser.add_argument('-s', '--start', type=int, default=0, help="start from INDEX to play/download playlist")
+    parser.add_argument('--lvl', type=int, default=0, help="set resolution level, defualt 0, highest")
     parser.add_argument('-j', '--jobs', type=int, default=cpu_count(), help="number of jobs for multiprocess download")
     parser.add_argument('--debug', default=False, action='store_true', help="print debug messages from ykdl")
     parser.add_argument('video_urls', type=str, nargs='+', help="video urls")
@@ -87,7 +88,10 @@ def handle_videoinfo(info, index=0):
         print(json.dumps(info.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False))
     if args.info or args.json:
         return
-    stream_id = args.format or info.stream_types[0]
+    i = args.lvl
+    if args.lvl > len(info.stream_types):
+         i =  len(info.stream_types) -1
+    stream_id = args.format or info.stream_types[i]
     urls = info.streams[stream_id]['src']
     if args.output_name:
         if args.playlist:

@@ -51,16 +51,6 @@ class Douyutv(VideoExtractor):
         info.stream_types.append('TD')
         info.streams['TD'] = {'container': 'flv', 'video_profile': self.id_2_profile['TD'], 'src' : [real_url], 'size': float('inf')}
 
-
-        real_url = '/'.join([live_data['rtmp_url'], live_data['rtmp_multi_bitrate']['middle2']])
-        info.stream_types.append('HD')
-        info.streams['HD'] = {'container': 'flv', 'video_profile': self.id_2_profile['HD'], 'src' : [real_url], 'size': float('inf')}
-
-        real_url = '/'.join([live_data['rtmp_url'], live_data['rtmp_multi_bitrate']['middle']])
-        info.stream_types.append('SD')
-        info.streams['SD'] = {'container': 'flv', 'video_profile': self.id_2_profile['SD'], 'src' : [real_url], 'size': float('inf')}
-
-
         return info
 
     def prepare_list(self):

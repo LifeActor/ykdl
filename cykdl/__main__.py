@@ -82,16 +82,16 @@ def download(urls, name, ext, live = False):
             logger.critical("{}> donwload failed".format(name))
 
 def handle_videoinfo(info, index=0):
-    if not args.json:
-        info.print_info(args.format, args.info)
-    else:
-        print(json.dumps(info.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False))
-    if args.info or args.json:
-        return
     i = args.lvl
     if args.lvl > len(info.stream_types):
          i =  len(info.stream_types) -1
     stream_id = args.format or info.stream_types[i]
+    if not args.json:
+        info.print_info(stream_id, args.info)
+    else:
+        print(json.dumps(info.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False))
+    if args.info or args.json:
+        return
     urls = info.streams[stream_id]['src']
     if args.output_name:
         if args.playlist:

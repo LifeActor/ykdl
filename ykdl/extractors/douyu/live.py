@@ -33,10 +33,7 @@ class Douyutv(VideoExtractor):
 
         if not self.vid:
             html = get_content(self.url)
-            room = match1(html, 'var $ROOM = ([^;]+)')
-            self.vid = match1(html, '"room_id.?":(\d+)')
-            info.title = json.loads("{\"room_name\" : \"" + match1(html, '"room_name.?":"([^"]+)') + "\"}")['room_name']
-            info.artist = json.loads("{\"name\" : \"" + match1(html, '"owner_name.?":"([^"]+)') + "\"}")['name']
+            self.vid = match1(html, '"room_id.?":(\d+)') or match1(html, 'data-onlineid=(\d+)')
         cdn = 'ws'
         authstr = 'room/{0}?aid=androidhd1&cdn={1}&client_sys=android&time={2}'.format(self.vid, cdn, int(time.time()))
         authmd5 = hashlib.md5((authstr + APPKEY).encode()).hexdigest()
@@ -44,9 +41,11 @@ class Douyutv(VideoExtractor):
         html_content = get_content(api_url)
         live_data = json.loads(html_content)
 
-        assert live_data["error"] == 0, "live show is offline"
+        assert live_data["error"] == 0, "server error!!"
         live_data = live_data["data"]
-
+        assert live_data['show_status'] == '1', "the show is not online!!"
+        info.title = live_data['room_name']
+        info.artist = live_data['nickname']
         real_url = '/'.join([live_data['rtmp_url'], live_data['rtmp_live']])
         info.stream_types.append('TD')
         info.streams['TD'] = {'container': 'flv', 'video_profile': self.id_2_profile['TD'], 'src' : [real_url], 'size': float('inf')}

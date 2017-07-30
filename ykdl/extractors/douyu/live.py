@@ -13,8 +13,6 @@ import random
 import json
 import sys
 
-from .get_douyulive_url_blackbox import stupidMD5
-
 APPKEY = 'Y237pxTx2In5ayGz' #from android-hd client
 
 

@@ -19,7 +19,6 @@ def launch_player(player, urls, **args):
             cmd += ['--referrer', args['referer']]
         if args['title']:
             cmd += ['--force-media-title', args['title']]
-        cmd += list(urls)
     cmd += list(urls)
     subprocess.call(cmd)
 

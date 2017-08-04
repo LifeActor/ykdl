@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import subprocess
-import shlex
 from logging import getLogger
 
 logger = getLogger("wrap")
@@ -11,15 +10,15 @@ from ykdl.compact import compact_tempfile
 
 
 def launch_player(player, urls, **args):
+    cmd = [player]
     if 'mpv' in player:
-        cmd = shlex.split(player) + ['--demuxer-lavf-o=protocol_whitelist=[file,tcp,http]']
-        if args["ua"]:
-            cmd += ["--user-agent={}".format(args["ua"])]
-        if args["referer"]:
-            cmd += ["--referrer={}".format(args["referer"])]
+        cmd += ['--demuxer-lavf-o', 'protocol_whitelist=[file,tcp,http]']
+        if args['ua']:
+            cmd += ['--user-agent', args['ua']]
+        if args['referer']:
+            cmd += ['--referrer', args['referer']]
         cmd += list(urls)
-    else:
-        cmd = shlex.split(player) + list(urls)
+    cmd += list(urls)
     subprocess.call(cmd)
 
 def launch_ffmpeg(basename, ext, lenth):

@@ -5,6 +5,7 @@ from ykdl.util.html import get_content, url_info
 from ykdl.util.match import match1
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
+from ykdl.compact import urlparse
 
 import json
 import re
@@ -27,7 +28,7 @@ class Ku6(VideoExtractor):
 
 
         urls = f.split(',')
-        ext = re.sub(r'.*\.', '', urls[0])
+        ext = urlparse(urls[0]).path.split('.')[-1]
         assert ext in ('flv', 'mp4', 'f4v'), ext
         ext = {'f4v': 'flv'}.get(ext, ext)
         size = 0

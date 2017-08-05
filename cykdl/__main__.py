@@ -109,8 +109,10 @@ def handle_videoinfo(info, index=0):
 
     ext = info.streams[stream_id]['container']
     live = info.live
+    player_args = info.extra
+    player_args['title'] = info.title
     if args.player:
-        launch_player(args.player, urls, **info.extra, title=info.title)
+        launch_player(args.player, urls, **player_args)
     else:
         download(urls, name, ext, live)
 

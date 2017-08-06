@@ -31,8 +31,6 @@ class LeLive(VideoExtractor):
 
         live_data = json.loads(get_content('http://player.pc.le.com/player/startup_by_pid/1001/{}?host=live.le.com'.format(self.vid)))
 
-        print(live_data)
-
         info.title = live_data['title']
 
         stream_data = live_data['rows']

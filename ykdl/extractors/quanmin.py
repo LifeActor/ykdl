@@ -10,8 +10,8 @@ import json
 class Panda(VideoExtractor):
     name = u'全民直播 (QuanminLive)'
 
-    api_url = "http://www.quanmin.tv/json/rooms/{}/info4.json"
-    live_base = "http://flv.quanmin.tv/live/{}.flv"
+    api_url = "http://www.quanmin.tv/json/rooms/{}/noinfo6.json"
+    live_base = 'http://liveal.quanmin.tv/live/{}.flv'
 
     def prepare(self):
         info = VideoInfo(self.name, True)
@@ -24,9 +24,11 @@ class Panda(VideoExtractor):
         info.title = stream_data["title"]
         info.artist = stream_data['nick']
 
+        uid = stream_data['uid']
+
 
         info.stream_types.append('current')
-        info.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [self.live_base.format(self.vid)], 'size': float('inf')}
+        info.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [self.live_base.format(uid)], 'size': float('inf')}
         return info
 
 site = Panda()

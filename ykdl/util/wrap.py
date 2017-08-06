@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import subprocess
+import shlex
 from logging import getLogger
 
 logger = getLogger("wrap")
@@ -10,7 +11,7 @@ from ykdl.compact import compact_tempfile
 
 
 def launch_player(player, urls, **args):
-    cmd = [player]
+    cmd = shlex.split(player) 
     if 'mpv' in player:
         cmd += ['--demuxer-lavf-o', 'protocol_whitelist=[file,tcp,http]']
         if args['ua']:

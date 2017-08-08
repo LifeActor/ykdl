@@ -34,10 +34,17 @@ class BiliVideo(VideoExtractor):
         add_header("Referer", "http://www.bilibili.com")
         info.extra["referer"] = "http://www.bilibili.com"
         info.extra["ua"] = fake_headers['User-Agent']
+        if "#page=" in self.url:
+            page_index = match1(self.url, '=(\d+)')
+            self.url = self.url[:-len("#page={}".format(page_index))]
+            current_index = match1(self.url, '([index_0-9]+).html')
+            if current_index:
+                self.url = self.url[:-len("{}.html".format(current_index))]
+            self.url = self.url + "index_{}.html".format(page_index)
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)')
-            info.title = match1(html, '<title>([^<]+)').split("_")[0].strip(u" 番剧 bilibili 哔哩哔哩弹幕视频网")
+            info.title = match1(html, '<title>([^<]+)').strip(u"_完结动画_番剧_bilibili_哔哩哔哩")
             if not self.vid:
                 eid = match1(self.url, 'anime/v/(\d+)', 'play#(\d+)') or match1(html, 'anime/v/(\d+)')
                 if eid:

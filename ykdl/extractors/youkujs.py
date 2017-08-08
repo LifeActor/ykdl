@@ -7,15 +7,18 @@ ids = ['BD', 'TD', 'HD', 'SD', 'LD']
 stream_code_to_id = {
     'mp5hd3': 'BD',
     'mp4hd3': 'BD',
+    'mp4hd3v2': 'BD',
     'hd3'   : 'BD',
     'mp5hd2': 'TD',
     'mp4hd2': 'TD',
+    'mp4hd2v2': 'TD',
     'hd2'   : 'TD',
     'mp5hd' : 'HD',
     'mp4hd' : 'HD',
     'mp4'   : 'HD',
     'flvhd' : 'SD',
     'flv'   : 'SD',
+    'mp4sd' : 'SD',
     '3gphd' : 'LD'
 }
 stream_code_to_profiles = {

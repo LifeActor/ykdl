@@ -82,6 +82,11 @@ class Youku(VideoExtractor):
                     'src' : urls
                 }
         info.stream_types = sorted(info.stream_types, key = ids.index)
+        tmp = []
+        for t in info.stream_types:
+            if not t in tmp:
+                tmp.append(t)
+        info.stream_types = tmp
         return info
 
 

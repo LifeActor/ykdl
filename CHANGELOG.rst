@@ -1,6 +1,14 @@
 Change Log for ykdl
 ===================
 
+1.5.1
+-------
+
+- update bilibili, youku, quanmin live, 163, douyu, etc.
+- support egame.qq.com, finance.le.com
+- update player wrapper
+- -F/--format now accept int value as level of resolution.
+
 1.5.0
 -------
 

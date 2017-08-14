@@ -13,8 +13,8 @@ from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 
 
-class LeLive(VideoExtractor):
-    name = u"Le Live (乐视轮播)"
+class LeLunbo(VideoExtractor):
+    name = u"Le Lunbo (乐视轮播)"
 
     supported_stream_types = ['flv_1080p3m', 'flv_1080p', 'flv_1300', 'flv_1000', 'flv_720p', 'flv_350']
 
@@ -47,4 +47,4 @@ class LeLive(VideoExtractor):
         info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
         return info
 
-site = LeLive()
+site = LeLunbo()

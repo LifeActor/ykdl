@@ -4,8 +4,8 @@
 import re
 
 def get_extractor(url):
-    if re.search("live.le", url):
-        from . import live as s
+    if re.search("lunbo", url):
+        from . import lunbo as s
     elif re.search("finance.le", url):
         from . import finance as s
     elif re.search("bcloud", url):

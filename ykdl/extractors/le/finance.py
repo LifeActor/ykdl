@@ -27,10 +27,10 @@ class LeLiveFi(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name, True)
         html = get_content(self.url)
-        self.vid = match1(html, 'liveId\s*:\s*"(\d+)"')
+        self.vid = match1(html, 'liveId\s*:\s*"(\d+)"') or match1(self.url, 'd=(\d+)')
 
         live_data = json.loads(get_content('http://player.pc.le.com/player/startup_by_pid/1001/{}?host=live.le.com'.format(self.vid)))
-
+        assert live_data['status'] == 2, "Live show is finished, playback is not supported!"
         info.title = live_data['title']
 
         stream_data = live_data['rows']

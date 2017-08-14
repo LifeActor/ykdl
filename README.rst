@@ -17,47 +17,28 @@ this project is a fork of `you-get <https://github.com/soimort/you-get>`_ with b
 2. focus on China mainland video sites
 3. support Python2
 
+Simple installation guild:
+
+Linux/debian:
+
+0. sudo apt-get install ffmpeg mpv python3-crypto python3-pip python3-m3u8
+1. pip3 install ykdl --upgrade
+2. add ~/.local/bin to your PATH
+
+Windows:
+
+0. install python3 from python.org
+1. pip install --upgrade ykdl
+2. install deps: `FFMPEG <https://ffmpeg.zeranoe.com/builds/>`_ `MPV <https://mpv.srsfckn.biz/>`_ to system PATH
+
+Other Linux: please follow debian
+
+Other OS: please DIY.
+
+
 Site status:
 
-+----------+-----------------+-----------------------+
-|   site   |    ability      |    comment            |
-+==========+=================+=======================+
-|  YouKu   |    Video        |    playlist removed   |
-+----------+-----------------+-----------------------+
-|  Acfun   |    Video        |                       |
-+----------+-----------------+-----------------------+
-| Bilibili |   Video,Live    |                       |
-+----------+-----------------+-----------------------+
-|   163    |Video,Audio,Live |                       |
-+----------+-----------------+-----------------------+
-|   Sohu   |    Video        |                       |
-+----------+-----------------+-----------------------+
-|  tudou   |    Video        |                       |
-+----------+-----------------+-----------------------+
-|  iqiyi   |    Video        |                       |
-+----------+-----------------+-----------------------+
-|  sina    |    Video        |                       |
-+----------+-----------------+-----------------------+
-|  qq      |   Video,Live    | slow in some video    |
-+----------+-----------------+-----------------------+
-|  xiami   |    Audio        |                       |
-+----------+-----------------+-----------------------+
-| yinyuetai|    Video        |                       |
-+----------+-----------------+-----------------------+
-|  huya    |   Video,Live    |                       |
-+----------+-----------------+-----------------------+
-|  leTv    |   Video,Live    |                       |
-+----------+-----------------+-----------------------+
-|  mgtv    |    Video        | download stuck as web |
-+----------+-----------------+-----------------------+
-|  douyu   |    Live         |                       |
-+----------+-----------------+-----------------------+
-|  panda   |    Live         |                       |
-+----------+-----------------+-----------------------+
-| zhanqi   |    Live         |                       |
-+----------+-----------------+-----------------------+
-
-more site status check wiki page: `sites-status <https://github.com/zhangn1985/ykdl/wiki/sites-status>`_
+please check wiki page: `sites-status <https://github.com/zhangn1985/ykdl/wiki/sites-status>`_
 
 file bugs or requirements are welcome
 

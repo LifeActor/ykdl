@@ -59,7 +59,8 @@ iqiyi_embed_patterns = [ 'definitionID=([^&]+)&tvId=([^&]+)'
 Letv Cloud
 """
 lecloud_embed_patterns = [ '{"uu":"([^\"]+)","vu":"([^\"]+)"',
-                           'bcloud.swf\?uu=([^&]+)&amp;vu=([^&]+)'
+                           'bcloud.swf\?uu=([^&]+)&amp;vu=([^&]+)',
+                           'uu=([^&]+)&amp;vu=([^&]+)'
                      ]
 
 """

@@ -93,6 +93,6 @@ def save_urls(urls, name, ext, jobs=1):
     i = 0
     for a in status:
         if a == 0:
-            logger.error("donwload failed at part {}".format(i))
+            logger.error("downloader failed at part {}".format(i))
         i += 1
     return not 0 in status

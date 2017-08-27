@@ -35,12 +35,9 @@ class BiliVideo(VideoExtractor):
         info.extra["referer"] = "http://www.bilibili.com"
         info.extra["ua"] = fake_headers['User-Agent']
         if "#page=" in self.url:
-            page_index = match1(self.url, '=(\d+)')
-            self.url = self.url[:-len("#page={}".format(page_index))]
-            current_index = match1(self.url, '([index_0-9]+).html')
-            if current_index:
-                self.url = self.url[:-len("{}.html".format(current_index))]
-            self.url = self.url + "index_{}.html".format(page_index)
+            page_index = match1(self.url, '#page=(\d+)')
+            av_id = match1(self.url, '\/(av\d+)')
+            self.url = 'http://www.bilibili.com/{}/index_{}.html'.format(av_id, page_index)
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)')

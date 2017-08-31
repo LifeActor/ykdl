@@ -19,7 +19,7 @@ class Acorig(VideoExtractor):
 
     def prepare(self):
         info = VideoInfo(self.name)
-        add_header('User-Agent', "")
+        add_header('User-Agent', "abcd")
         add_header('referer', "http://acfun.cn/")
         self.vid, self.embsig = self.vid
 
@@ -35,6 +35,7 @@ class Acorig(VideoExtractor):
                 info.stream_types.append(stream_type)
                 info.streams[stream_type] = {'container': 'mp4', 'video_profile': stream_code_to_profiles[stream_type], 'src': stream_urls, 'size' : size}
         info.stream_types = sorted(info.stream_types, key=ids.index)
+        info.extra['ua'] = 'abcd'
         return info
 
 site = Acorig()

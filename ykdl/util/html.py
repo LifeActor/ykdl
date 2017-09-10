@@ -76,6 +76,8 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     elif content_encoding == 'deflate':
         data = undeflate(data)
 
+    # Remove character U+200B (Zero-width space)
+    data = data.replace(b'\xe2\x80\x8b', b'')
     if charset == 'ignore':
         return data
 

@@ -41,12 +41,11 @@ class Youku(VideoExtractor):
         info = VideoInfo(self.name)        
 
         if self.url and not self.vid:
-             self.vid = match1(self.url, 'youku\.com/v_show/id_([a-zA-Z0-9=]+)' ,\
-                                         'player\.youku\.com/player\.php/sid/([a-zA-Z0-9=]+)/v\.swf',\
-                                         'loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',\
-                                         'loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',\
-                                         'player\.youku\.com/embed/([a-zA-Z0-9=]+)',\
-                                         'video.tudou.com/v/([a-zA-Z0-9=]+)')
+             self.vid = match1(self.url.split('//', 1)[1],
+                               '^v\.[^/]+/v_show/id_([a-zA-Z0-9=]+)',
+                               '^player[^/]+/(?:player\.php/sid|embed)/([a-zA-Z0-9=]+)',
+                               '^static.+loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',
+                               '^video\.tudou\.com/v/([a-zA-Z0-9=]+)')
 
         self.logger.debug("VID: " + self.vid)
         api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid={}&client_ts={}'.format(self.vid, self.ccode, quote(fetch_cna()), int(time.time()))

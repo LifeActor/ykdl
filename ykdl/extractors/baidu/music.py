@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 from ykdl.util.match import match1
 from ykdl.util.html import get_content
 from ykdl.extractor import VideoExtractor

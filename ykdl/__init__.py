@@ -20,19 +20,19 @@ else:
     if sys.platform.startswith('win'):
         import __builtin__
         # hack print function in Windows cmd shell
+        def _get_print_kwarg(kwargs, name,
+                             kwdict={'sep': ' ', 'end': '\n'},
+                             allowed_type=(str, unicode)):
+            arg = kwargs.get(name)
+            if arg is None:
+                return kwdict[name]
+            elif not isinstance(arg, allowed_type):
+                raise TypeError('%s must be None, str or unicode, not %s' %
+                                (name, str(type(arg)).split("'")[1]))
+
         def print(*args, **kwargs):
-            sep = kwargs.get('sep')
-            if sep is None:
-                sep = ' '
-            elif not isinstance(sep, (str, unicode)):
-                raise TypeError('sep must be None, str or unicode, not ' +
-                                str(type(sep)).split("'")[1])
-            end = kwargs.get('end')
-            if end is None:
-                end = '\n'
-            elif not isinstance(end, (str, unicode)):
-                raise TypeError('end must be None, str or unicode, not ' +
-                                str(type(sep)).split("'")[1])
+            sep = _get_print_kwarg(kwargs, 'sep')
+            end = _get_print_kwarg(kwargs, 'end')
             stdout = sys.stdout
             file = kwargs.get('file')
             if file is None:

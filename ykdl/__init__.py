@@ -14,17 +14,20 @@ if sys.version_info[0] == 3:
         sys.stdout = io.TextIOWrapper(sys.stdout.detach(),
                                       encoding=sys.stdout.encoding,
                                       errors='ignore')
+
     logging.basicConfig(handlers=[ColorHandler()])
 else:
     if sys.platform.startswith('win'):
         import __builtin__
         # hack print function in Windows cmd shell
         def print(*args, **kwargs):
-            sep = '' if len(args) <= 1 else kwargs.get('sep', ' ')
+            sep = kwargs.get('sep', ' ')
             end = kwargs.get('end', '\n')
             stdout = sys.stdout
             file = kwargs.get('file') or stdout
-            for arg in args:
+            l = len(args)
+            for i in xrange(l):
+                arg = args[i]
                 if isinstance(arg, str):
                     pass
                 elif isinstance(arg, unicode):
@@ -35,7 +38,8 @@ else:
                 else:
                     arg = str(arg)
                 file.write(arg)
-                file.write(sep)
+                if i + 1 < l:
+                    file.write(sep)
             file.write(end)
         __builtin__.print = print
 

@@ -21,10 +21,22 @@ else:
         import __builtin__
         # hack print function in Windows cmd shell
         def print(*args, **kwargs):
-            sep = kwargs.get('sep', ' ')
-            end = kwargs.get('end', '\n')
+            sep = kwargs.get('sep')
+            if sep is None:
+                sep = ' '
+            elif not isinstance(sep, (str, unicode)):
+                raise TypeError('sep must be None, str or unicode, not ' +
+                                str(type(sep)).split("'")[1])
+            end = kwargs.get('end')
+            if end is None:
+                end = '\n'
+            elif not isinstance(end, (str, unicode)):
+                raise TypeError('end must be None, str or unicode, not ' +
+                                str(type(sep)).split("'")[1])
             stdout = sys.stdout
-            file = kwargs.get('file') or stdout
+            file = kwargs.get('file')
+            if file is None:
+                file = stdout
             l = len(args)
             for i in xrange(l):
                 arg = args[i]

@@ -20,7 +20,7 @@ else:
         import __builtin__
         # hack print function in Windows cmd shell
         def print(*args, **kwargs):
-            sep = kwargs.get('sep', ' ')
+            sep = '' if len(args) <= 1 else kwargs.get('sep', ' ')
             end = kwargs.get('end', '\n')
             stdout = sys.stdout
             file = kwargs.get('file') or stdout

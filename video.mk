@@ -8,7 +8,7 @@ test_youku:
 	${PYTHON} -m cykdl -i http://v.youku.com/v_show/id_XMTYwMDIxNDI2MA==.html
 
 test_acfun:
-	${PYTHON} -m cykdl -i http://www.acfun.tv/v/ac3101039
+	${PYTHON} -m cykdl -i http://www.acfun.cn/v/ac213736
 
 test_bilibili:
 	${PYTHON} -m cykdl -i http://bangumi.bilibili.com/anime/2539/play#63470
@@ -20,7 +20,7 @@ test_cctv:
 	${PYTHON} -m cykdl -i http://tv.cctv.com/2016/06/08/VIDEa0Y5V5HY9MLeoVM5tcQC160608.shtml -t 300
 
 test_ifeng:
-	${PYTHON} -m cykdl -i 'http://v.ifeng.com/fhlbt/special/20160606/index.shtml#01881385-2b2c-11e6-bc61-002590c2aaeb'
+	${PYTHON} -m cykdl -i http://v.ifeng.com/video_8632601.shtml
 
 test_iqilu:
 	${PYTHON} -m cykdl -i http://v.iqilu.com/shpd/rmxf/2016/0607/4332820.html
@@ -80,4 +80,4 @@ test_mgtv:
 	${PYTHON} -m cykdl -i http://www.mgtv.com/v/2/293140/c/3269011.html
 
 test_tudou:
-	${PYTHON} -m cykdl -i hhttp://video.tudou.com/v/XMjc2MTg1MzIzNg==.html
+	${PYTHON} -m cykdl -i http://video.tudou.com/v/XMjc2MTg1MzIzNg==.html

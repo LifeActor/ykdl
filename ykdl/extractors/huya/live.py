@@ -17,6 +17,7 @@ class HuyaLive(SimpleExtractor):
         self.artist_pattern = 'videoTitle = \"([^\"]+)'
 
     def get_info(self):
+        assert self.v_url[0], u"主播正在休息"
         return 'm3u8', float('inf')
 
 site = HuyaLive()

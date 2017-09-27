@@ -9,13 +9,49 @@ import random
 from ykdl.util.fs import legitimize
 from ykdl.util import log
 
+class FallbackDict(dict):
+    fallback = {}
+    fall_to_anyone = False
+
+    def __getitem__(self, *keys):
+        key = keys[0]
+        if key in self:
+            return dict.__getitem__(self, key)
+        else:
+            key_fallback = self.fallback.get(key)
+            if key_fallback:
+                return self.__getitem__(key_fallback, *keys)
+            elif self.fall_to_anyone and self:
+                for _, value in self.items():
+                    return value
+            else:
+                raise KeyError(keys, 'Fallback failed.')
+
+    def get(self, key, value=None):
+        if key in self:
+            return dict.__getitem__(self, key)
+        else:
+            key_fallback = self.fallback.get(key)
+            if key_fallback:
+                return self.get(key_fallback, value)
+            else:
+                return value
+
+ids = ('4k','BD', 'TD', 'HD', 'SD', 'LD', 'current') # 'Phone' in longzhu.py is?
+ids_fallback = {}
+for i in range(0, len(ids) - 1):
+    ids_fallback[ids[i]] = ids[i + 1]
+
+class IdsFallbackDict(FallbackDict):
+    fallback = ids_fallback
+
 class VideoInfo():
     def __init__(self, site, live = False):
         self.site = site
         self.title = None
         self.artist = None
         self.stream_types = []
-        self.streams = {}
+        self.streams = IdsFallbackDict()
         self.live = live
         self.extra = {"ua": "", "referer": ""}
 

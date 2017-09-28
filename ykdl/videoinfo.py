@@ -9,41 +9,53 @@ import random
 from ykdl.util.fs import legitimize
 from ykdl.util import log
 
+NOKEY = object()
+
 class FallbackDict(dict):
     fallback = {}
     fall_to_anyone = False
+    fallback_tip = 'Dict key fallback {key!r} applied to {okey!r}.'
 
-    def __getitem__(self, *keys):
-        key = keys[0]
-        if key in self:
-            return dict.__getitem__(self, key)
-        else:
-            key_fallback = self.fallback.get(key)
-            if key_fallback:
-                return self.__getitem__(key_fallback, *keys)
-            elif self.fall_to_anyone and self:
-                for _, value in self.items():
+    def __getitem__(self, key):
+        keys = []
+        while True:
+            if key in self:
+                if len(keys) > 1:
+                    print(self.fallback_tip.format(key=key, okey=keys[0]))
+                return dict.__getitem__(self, key)
+            else:
+                key_fallback = self.fallback.get(key)
+                keys.append(key)
+                if key_fallback:
+                    key = key_fallback
+                elif self.fall_to_anyone and self:
+                    for _, value in self.items():
+                        return value
+                else:
+                    raise KeyError(keys, 'Fallback failed.')
+
+    def get(self, key, value=None, okey=NOKEY):
+        while True:
+            if key in self:
+                if okey is not NOKEY:
+                    print(self.fallback_tip.format(key=key, okey=okey))
+                return dict.__getitem__(self, key)
+            else:
+                key_fallback = self.fallback.get(key)
+                if key_fallback:
+                    okey = key if okey is NOKEY else okey
+                    key = key_fallback
+                else:
                     return value
-            else:
-                raise KeyError(keys, 'Fallback failed.')
 
-    def get(self, key, value=None):
-        if key in self:
-            return dict.__getitem__(self, key)
-        else:
-            key_fallback = self.fallback.get(key)
-            if key_fallback:
-                return self.get(key_fallback, value)
-            else:
-                return value
-
-ids = ('4k','BD', 'TD', 'HD', 'SD', 'LD', 'current') # 'Phone' in longzhu.py is?
+ids = ('4k', 'BD', 'TD', 'HD', 'SD', 'LD', 'current') # 'Phone' in longzhu.py is?
 ids_fallback = {}
 for i in range(0, len(ids) - 1):
     ids_fallback[ids[i]] = ids[i + 1]
 
 class IdsFallbackDict(FallbackDict):
     fallback = ids_fallback
+    fallback_tip = 'Format fallback {key!r} applied to {okey!r}.'
 
 class VideoInfo():
     def __init__(self, site, live = False):

@@ -13,7 +13,8 @@ if sys.version_info[0] == 3:
         # hack sys.stdout in Windows cmd shell
         sys.stdout = io.TextIOWrapper(sys.stdout.detach(),
                                       encoding=sys.stdout.encoding,
-                                      errors='ignore')
+                                      errors='ignore',
+                                      line_buffering=True)
 
     logging.basicConfig(handlers=[ColorHandler()])
 else:

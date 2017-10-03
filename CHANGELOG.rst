@@ -1,6 +1,13 @@
 Change Log for ykdl
 ===================
 
+1.5.2
+-------
+
+- update youku, panda, le, zhanqi, longzhu, laifeng, huajiao, etc.
+- many updates for windows platform, thanks to @SeaHOH
+- README.rst updated.
+
 1.5.1
 -------
 

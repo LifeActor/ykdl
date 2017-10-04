@@ -197,7 +197,7 @@ class Pptv(VideoExtractor):
         info = VideoInfo(self.name)
         html = get_content(self.url)
         self.vid = match1(html, 'webcfg\s*=\s*{"id":\s*(\d+)')
-        xml = get_content('http://web-play.pptv.com/webplay3-0-{}.xml?type=web.fpp&version=4'.format(self.vid))
+        xml = get_content('http://web-play.pptv.com/webplay3-0-{}.xml?type=web.fpp&version=4&appplt=flp&appid=pptv.flashplayer.vod&appver=3.4.2.12'.format(self.vid))
 
         dom = parseString(compact_bytes(xml, 'utf-8'))
         info.title, m_items, m_streams, m_segs = parse_pptv_xml(dom)

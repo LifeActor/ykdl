@@ -147,7 +147,7 @@ class GeneralEmbed(EmbedExtractor):
         vids = matchall(content, sina_embed_patterns)
         for v in vids:
             v  = v.split('&')[0]
-            self.video_info_list.append(('sina', v))
+            self.video_info_list.append(('sina.video', v))
 
         vids = matchall(content, bilibili_embed_patterns)
         for v in vids:

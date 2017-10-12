@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+import os
 import subprocess
 import shlex
 from logging import getLogger
@@ -11,10 +12,17 @@ logger = getLogger("wrap")
 from ykdl.compact import compact_tempfile
 
 
+posix = os.name == 'posix'
+
 def launch_player(player, urls, **args):
-    cmd = shlex.split(player) 
-    if 'mpv' in player:
-        cmd += ['--demuxer-lavf-o', 'protocol_whitelist=[file,tcp,http]']
+    if ' ' in player:
+        cmd = shlex.split(player, posix=posix)
+        if not posix:
+            cmd = [arg[1:-1] if arg[0] == arg[-1] == "'" else arg for arg in cmd]
+    else:
+        cmd = [player]
+    if 'mpv' in cmd[0]:
+        cmd += ['--no-ytdl', '--demuxer-lavf-o', 'protocol_whitelist=[file,tcp,http]']
         if args['ua']:
             cmd += ['--user-agent', args['ua']]
         if args['referer']:

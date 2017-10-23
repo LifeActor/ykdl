@@ -10,7 +10,7 @@ class Tudou(Youku):
 
     def __init__(self):
         Youku.__init__(self)
-        self.ccode = '0402'
+        self.ccode = '050F'
 
     def prepare(self):
         if not re.search('video.tuodou.com', self.url):

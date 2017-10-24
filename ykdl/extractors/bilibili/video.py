@@ -56,7 +56,7 @@ class BiliVideo(VideoExtractor):
             html = get_content(api_url)
             self.logger.debug("HTML> {}".format(html))
             code = match1(html, '<code>([^<])')
-            assert code == '0', "can't play this video: {}".format(match1(html, 'CDATA\[([^\]]+)'))
+            assert not code, "can't play this video: {}".format(match1(html, 'CDATA\[([^\]]+)'))
             urls, size, ext = parse_cid_playurl(html)
             if ext == 'hdmp4':
                 ext = 'mp4'

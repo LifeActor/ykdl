@@ -17,9 +17,11 @@ class IfengVideo(VideoExtractor):
         info.title = self.name + '-' + self.vid
         api_url = 'http://tv.ifeng.com/html5/{}/video.json'.format(self.vid)
         data = json.loads(get_content(api_url)[12:])
-        info.stream_types.append('HD')
-        info.streams['HD'] = {'container': 'mp4', 'video_profile': u'高清', 'src' : [data['bqSrc']], 'size': 0}
-        info.stream_types.append('SD')
-        info.streams['SD'] = {'container': 'mp4', 'video_profile': u'高清', 'src' : [data['gqSrc']], 'size': 0}
+        if 'bqSrc' in data:
+            info.stream_types.append('SD')
+            info.streams['SD'] = {'container': 'mp4', 'video_profile': u'标清', 'src' : [data['bqSrc']], 'size': 0}
+        if 'gqSrc' in data:
+            info.stream_types.append('HD')
+            info.streams['HD'] = {'container': 'mp4', 'video_profile': u'高清', 'src' : [data['gqSrc']], 'size': 0}
         return info
 site = IfengVideo()

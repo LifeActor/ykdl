@@ -41,7 +41,7 @@ class BiliVideo(VideoExtractor):
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)')
-            info.title = match1(html, '<h1 title="([^"]+)').strip()
+            info.title = match1(html, '<h1 title="([^"]+)', '<title>([^<]+)').strip()
             if not self.vid:
                 eid = match1(self.url, 'anime/v/(\d+)', 'play#(\d+)') or match1(html, 'anime/v/(\d+)')
                 if eid:

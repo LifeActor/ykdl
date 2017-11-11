@@ -15,9 +15,9 @@ class Miaopai(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name)
         if not self.vid:
-            self.vid = match1(self.url, 'http://www.miaopai.com/show/channel/([^.]+)', \
-                                        'http://www.miaopai.com/show/([^.]+)', \
-                                        'http://m.miaopai.com/show/channel/([^.]+)')
+            self.vid = match1(self.url, 'https?://www.miaopai.com/show/channel/([^.]+)', \
+                                        'https?://www.miaopai.com/show/([^.]+)', \
+                                        'https?://m.miaopai.com/show/channel/([^.]+)')
         content = json.loads(get_content('http://api.miaopai.com/m/v2_channel.json?fillType=259&scid={}&vend=miaopai'.format(self.vid)))
 
         assert content['status'] == 200, "something error!"

@@ -21,8 +21,9 @@ class BiliLive(VideoExtractor):
         self.vid = api1_data["data"]["room_id"]
         api2_data = json.loads(get_content("https://api.live.bilibili.com/room/v1/Room/get_info?room_id={}&from=room".format(self.vid)))
         info.title = api2_data["data"]["title"]
+        assert api2_data["data"]["live_status"] == 1, u"主播正在觅食......"
         for profile in self.supported_stream_profile:
-            data = json.loads(get_content("https://api.live.bilibili.com/api/playurl?player=1&cid={}&quality={}&platform=flash&otype=json".format(self.vid, self.supported_stream_profile.index(profile))))
+            data = json.loads(get_content("https://api.live.bilibili.com/api/playurl?player=1&cid={}&quality={}&platform=flash&otype=json".format(self.vid, 4-self.supported_stream_profile.index(profile))))
             urls = [data["durl"][0]["url"]]
             size = float('inf')
             ext = 'flv'

@@ -1,6 +1,12 @@
 Change Log for ykdl
 ===================
 
+1.5.3
+-------
+
+- update bilibili, tudou, weibo, etc.
+- update mpv wrapper, thanks to @SeaHOH
+
 1.5.2
 -------
 

@@ -3,9 +3,9 @@
 
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
-from ykdl.util.html import get_content, add_header, fake_headers
+from ykdl.util.html import get_content, add_header, fake_headers, get_location
 from ykdl.util.match import match1, matchall
-from ykdl.compact import compact_bytes
+from ykdl.compact import compact_bytes, urlencode
 
 import hashlib
 import re
@@ -34,10 +34,17 @@ class BiliVideo(VideoExtractor):
         add_header("Referer", "http://www.bilibili.com")
         info.extra["referer"] = "http://www.bilibili.com"
         info.extra["ua"] = fake_headers['User-Agent']
+        self.url = get_location(self.url)
         if "#page=" in self.url:
             page_index = match1(self.url, '#page=(\d+)')
             av_id = match1(self.url, '\/(av\d+)')
             self.url = 'http://www.bilibili.com/{}/index_{}.html'.format(av_id, page_index)
+        if 'movie' in self.url:
+            html = get_content(self.url)
+            info.title = match1(html, '<h1 title="([^"]+)', '<title>([^<]+)').strip()
+            aid = match1(html, 'aid=(\d+)', 'aid=\"(\d+)')
+            form = {"movie_aid" : aid}
+            self.vid = json.loads(get_content("https://bangumi.bilibili.com/web_api/get_source", data=compact_bytes(urlencode(form), 'utf-8')))["result"]["cid"]
         if not self.vid:
             html = get_content(self.url)
             self.vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)')

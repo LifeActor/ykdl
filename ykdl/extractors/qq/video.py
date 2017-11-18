@@ -173,7 +173,7 @@ class QQ(VideoExtractor):
         else:
             type_name = 'unknown'
 
-        num_clips = int(video.find('./cl/fc').text)
+        _num_clips = int(video.find('./cl/fc').text)
 
         fmt_id = None
         fmt_name = None
@@ -183,20 +183,30 @@ class QQ(VideoExtractor):
             fmt_name = fmt.find('./name').text
             fmt_br = fmt.find('./br').text
             size = int(fmt.find('./fs').text)
+            sl = int(fmt.find('./sl').text)
+
             fns = filename.split('.')
-            fns[1] = 'p' + str(int(fmt_id) % 10000)
-            filename = '.'.join(fns)
+            if fns[1].startswith('p'):
+                fns[1] = 'p' + str(int(fmt_id) % 10000)
+            elif not sl:
+                fns.insert(1, 'p' + str(int(fmt_id) % 10000))
+            if sl:
+                num_clips = _num_clips
+            else:
+                num_clips = _num_clips or 1
+
             #may have preformence issue when info_only
             urls =[]
 
             if num_clips == 0:
+                fn = '.'.join(fns)
                 params = {
                     'ran': random.random(),
                     'appver': PLAYER_VERSION,
                     'otype': 'xml',
                     'encryptVer': "",
                     'platform': PLAYER_PLATFORM,
-                    'filename': filename,
+                    'filename': fn,
                     'vid': self.vid,
                     'vt': vt,
                     'charge': 0,
@@ -205,13 +215,13 @@ class QQ(VideoExtractor):
                 }
 
                 form = urlencode(params)
-                clip_url = '%s%s' % (cdn_url, filename)
-                urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, filename))
+                clip_url = '%s%s' % (cdn_url, fn)
+                urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, fn))
 
             else:
-                fns.insert(2, 1)
+                fns.insert(-1, '1')
                 for idx in range(1, num_clips+1):
-                    fns[2] = str(idx)
+                    fns[-2] = str(idx)
                     fn = '.'.join(fns)
                     params = {
                         'ran': random.random(),

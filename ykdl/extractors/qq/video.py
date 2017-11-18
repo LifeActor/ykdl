@@ -182,7 +182,7 @@ class QQ(VideoExtractor):
             fmt_id = fmt.find('./id').text
             fmt_name = fmt.find('./name').text
             fmt_br = fmt.find('./br').text
-            size = int(video.find('./fs').text)
+            size = int(fmt.find('./fs').text)
             fns = filename.split('.')
             fns[1] = 'p' + str(int(fmt_id) % 10000)
             filename = '.'.join(fns)

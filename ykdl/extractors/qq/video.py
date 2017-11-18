@@ -13,10 +13,9 @@ import random
 import base64
 import struct
 import uuid
-import os
 
-PLAYER_PLATFORM = 1
-PLAYER_VERSION = '3.2.18.286'
+PLAYER_PLATFORM = 11
+PLAYER_VERSION = '3.2.19.333'
 """
 LEGACY FOR REFERENCE ONLY
 
@@ -121,16 +120,16 @@ class QQ(VideoExtractor):
 
     name = u"腾讯视频 (QQ)"
 
-    supported_stream_types = [ 'shd', 'mp4', 'hd', 'sd' ]
+    supported_stream_types = [ 'fhd', 'shd', 'mp4', 'hd', 'sd' ]
 
-    stream_2_profile = { 'shd': u'超清', 'mp4': u'高清mp4', 'hd': u'高清', 'flv': u'高清flv', 'sd': u'标清', 'msd':u'急速' }
+    stream_2_profile = { 'fhd': u'蓝光', 'shd': u'超清', 'mp4': u'高清mp4', 'hd': u'高清', 'flv': u'高清flv', 'sd': u'标清', 'msd':u'急速' }
 
-    stream_2_id = { 'shd': 'TD', 'mp4': 'HD', 'hd': 'HD', 'flv': 'HD', 'sd': 'SD', 'msd':'LD' }
+    stream_2_id = { 'fhd': 'BD', 'shd': 'TD', 'mp4': 'HD', 'hd': 'HD', 'flv': 'HD', 'sd': 'SD', 'msd':'LD' }
 
-    stream_ids = ['TD', 'HD', 'SD', 'LD']
+    stream_ids = ['BD', 'TD', 'HD', 'SD', 'LD']
 
 
-    def get_stream_info(self, profile):
+    def get_streams_info(self):
 
 
         player_pid = uuid.uuid4().hex.upper()
@@ -139,8 +138,8 @@ class QQ(VideoExtractor):
             'fp2p': 1,
             'pid': player_pid,
             'otype': 'xml',
-            'defn': profile,
-            'platform': 1,
+            #'defn': profile,
+            'platform': PLAYER_PLATFORM,
             'fhdswitch': 0,
             'charge': 0,
             'ckey' : "",
@@ -150,7 +149,7 @@ class QQ(VideoExtractor):
             'speed': random.randint(512, 1024),
             'ran': random.random(),
             'appver': PLAYER_VERSION,
-            'defaultfmt': profile,
+            #'defaultfmt': profile,
             'utype': -1,
             'vids': self.vid
         }
@@ -158,15 +157,6 @@ class QQ(VideoExtractor):
         form = urlencode(params)
         content = get_content('http://vv.video.qq.com/getinfo',data=compact_bytes(form, 'utf-8'), charset = 'ignore')
         tree = ET.fromstring(content)
-        fmt_id = None
-        fmt_name = None
-        fmt_br = None
-        for fmt in tree.findall('./fl/fi'):
-            sl = int(fmt.find('./sl').text)
-            if sl:
-                fmt_id = fmt.find('./id').text
-                fmt_name = fmt.find('./name').text
-                fmt_br = fmt.find('./br').text
 
         video = tree.find('./vl/vi')
         filename = video.find('./fn').text
@@ -183,54 +173,64 @@ class QQ(VideoExtractor):
         else:
             type_name = 'unknown'
 
-        num_clips = len(video.findall('./cl/ci'))
-        size = int(video.find('./fs').text)
+        num_clips = int(video.find('./cl/fc').text)
 
-        fns = os.path.splitext(filename)
+        fmt_id = None
+        fmt_name = None
+        fmt_br = None
+        for fmt in tree.findall('./fl/fi'):
+            fmt_id = fmt.find('./id').text
+            fmt_name = fmt.find('./name').text
+            fmt_br = fmt.find('./br').text
+            size = int(video.find('./fs').text)
+            fns = filename.split('.')
+            fns[1] = 'p' + str(int(fmt_id) % 10000)
+            filename = '.'.join(fns)
+            #may have preformence issue when info_only
+            urls =[]
 
-        #may have preformence issue when info_only
-        urls =[]
-
-        if num_clips == 0:
-            params = {
-                'ran': random.random(),
-                'appver': PLAYER_VERSION,
-                'otype': 'xml',
-                'encryptVer': "",
-                'platform': 1,
-                'filename': filename,
-                'vid': self.vid,
-                'vt': vt,
-                'charge': 0,
-                'format': fmt_id,
-                'cKey': "",
-            }
-
-            form = urlencode(params)
-            clip_url = '%s%s' % (cdn_url, filename)
-            urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, filename))
-
-        else:
-            for idx in range(1, num_clips+1):
-                fn = '%s.%d%s' % (fns[0], idx, fns[1])
+            if num_clips == 0:
                 params = {
                     'ran': random.random(),
                     'appver': PLAYER_VERSION,
                     'otype': 'xml',
                     'encryptVer': "",
-                    'platform': 1,
-                    'filename': fn,
+                    'platform': PLAYER_PLATFORM,
+                    'filename': filename,
                     'vid': self.vid,
                     'vt': vt,
                     'charge': 0,
                     'format': fmt_id,
                     'cKey': "",
                 }
-                form = urlencode(params)
-                clip_url = '%s%s' % (cdn_url, fn)
-                urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, fn))
 
-        return title, fmt_name, type_name, urls, size
+                form = urlencode(params)
+                clip_url = '%s%s' % (cdn_url, filename)
+                urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, filename))
+
+            else:
+                fns.insert(2, 1)
+                for idx in range(1, num_clips+1):
+                    fns[2] = str(idx)
+                    fn = '.'.join(fns)
+                    params = {
+                        'ran': random.random(),
+                        'appver': PLAYER_VERSION,
+                        'otype': 'xml',
+                        'encryptVer': "",
+                        'platform': PLAYER_PLATFORM,
+                        'filename': fn,
+                        'vid': self.vid,
+                        'vt': vt,
+                        'charge': 0,
+                        'format': fmt_id,
+                        'cKey': "",
+                    }
+                    form = urlencode(params)
+                    clip_url = '%s%s' % (cdn_url, fn)
+                    urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, fn))
+
+            yield title, fmt_name, type_name, urls, size
 
     def prepare(self):
         info = VideoInfo(self.name)
@@ -241,8 +241,7 @@ class QQ(VideoExtractor):
             html = get_content(self.url)
             self.vid = match1(html, 'vid:\s*\"([^\"]+)', 'vid\s*=\s*"\s*([^"]+)"', 'vid=(\w+)')
 
-        for stream in self.supported_stream_types:
-            title, fmt_name, type_name, urls, size = self.get_stream_info(stream)
+        for title, fmt_name, type_name, urls, size in self.get_streams_info():
             stream_id = self.stream_2_id[fmt_name]
             stream_profile = self.stream_2_profile[fmt_name]
             if not stream_id in info.stream_types:

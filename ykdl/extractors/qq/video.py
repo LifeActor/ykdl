@@ -97,7 +97,12 @@ def qq_get_final_url(url, fmt_name, type_name, br, form, fn):
     content = get_content('http://vv.video.qq.com/getkey',data=compact_bytes(form, 'utf-8'), charset = 'ignore')
     tree = ET.fromstring(content)
 
-    vkey = tree.find('./key').text
+    vkey = tree.find('./key')
+    if vkey is None:
+        return
+    else:
+        vkey = vkey.text
+
     level = tree.find('./level').text
     sp = tree.find('./sp').text
 
@@ -120,6 +125,8 @@ class QQ(VideoExtractor):
 
     name = u"腾讯视频 (QQ)"
 
+    vip = None
+
     supported_stream_types = [ 'fhd', 'shd', 'mp4', 'hd', 'sd' ]
 
     stream_2_profile = { 'fhd': u'蓝光', 'shd': u'超清', 'mp4': u'高清mp4', 'hd': u'高清', 'flv': u'高清flv', 'sd': u'标清', 'msd':u'急速' }
@@ -129,8 +136,7 @@ class QQ(VideoExtractor):
     stream_ids = ['BD', 'TD', 'HD', 'SD', 'LD']
 
 
-    def get_streams_info(self):
-
+    def get_streams_info(self, profile='shd'):
 
         player_pid = uuid.uuid4().hex.upper()
 
@@ -138,7 +144,7 @@ class QQ(VideoExtractor):
             'fp2p': 1,
             'pid': player_pid,
             'otype': 'xml',
-            #'defn': profile,
+            'defn': profile,
             'platform': PLAYER_PLATFORM,
             'fhdswitch': 0,
             'charge': 0,
@@ -149,14 +155,19 @@ class QQ(VideoExtractor):
             'speed': random.randint(512, 1024),
             'ran': random.random(),
             'appver': PLAYER_VERSION,
-            #'defaultfmt': profile,
+            'defaultfmt': profile,
             'utype': -1,
             'vids': self.vid
         }
 
         form = urlencode(params)
         content = get_content('http://vv.video.qq.com/getinfo',data=compact_bytes(form, 'utf-8'), charset = 'ignore')
-        tree = ET.fromstring(content)
+        if profile == 'shd' and b'<name>shd' not in content:
+            for infos in self.get_streams_info('hd'):
+                yield infos
+            return
+        else:
+            tree = ET.fromstring(content)
 
         video = tree.find('./vl/vi')
         filename = video.find('./fn').text
@@ -183,17 +194,25 @@ class QQ(VideoExtractor):
             fmt_name = fmt.find('./name').text
             fmt_br = fmt.find('./br').text
             size = int(fmt.find('./fs').text)
-            sl = int(fmt.find('./sl').text)
+            #sl = int(fmt.find('./sl').text)
 
             fns = filename.split('.')
-            if fns[1].startswith('p'):
-                fns[1] = 'p' + str(int(fmt_id) % 10000)
-            elif not sl:
-                fns.insert(1, 'p' + str(int(fmt_id) % 10000))
-            if sl:
-                num_clips = _num_clips
-            else:
+            fmt_id_num = int(fmt_id)
+            fmt_id_prefix = None
+            num_clips = 0
+            if fmt_id_num > 100000:
+                fmt_id_prefix = 'm'
+            elif fmt_id_num > 10000:
+                fmt_id_prefix = 'p'
                 num_clips = _num_clips or 1
+            if fmt_id_prefix:
+                fmt_id_name = fmt_id_prefix + str(fmt_id_num % 10000)
+                if fns[1][0] in ('p', 'm') and not fns[1].startswith('mp'):
+                    fns[1] = fmt_id_name
+                else:
+                    fns.insert(1, fmt_id_name)
+            elif fns[1][0] in ('p', 'm') and not fns[1].startswith('mp'):
+                del fns[1]
 
             #may have preformence issue when info_only
             urls =[]
@@ -238,7 +257,12 @@ class QQ(VideoExtractor):
                     }
                     form = urlencode(params)
                     clip_url = '%s%s' % (cdn_url, fn)
-                    urls.append(qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, fn))
+                    url = qq_get_final_url(clip_url, fmt_name, type_name, fmt_br, form, fn)
+                    if url:
+                        urls.append(url)
+                    else:
+                        self.vip = True
+                        break
 
             yield title, fmt_name, type_name, urls, size
 
@@ -247,9 +271,16 @@ class QQ(VideoExtractor):
         if not self.vid:
             self.vid = match1(self.url, '/(\w+)\.html','vid=(\w+)')
 
+        if self.vid and match1(self.url, '(^https?://film\.qq\.com)'):
+            self.url = 'http://v.qq.com/x/cover/%s.html' % self.vid
+
         if not self.vid or len(self.vid) != 11:
             html = get_content(self.url)
-            self.vid = match1(html, 'vid:\s*\"([^\"]+)', 'vid\s*=\s*"\s*([^"]+)"', 'vid=(\w+)')
+            self.vid = match1(html, 'vid:\s*[\"\'](\w+)', 'vid\s*=\s*[\"\']\s*(\w+)', 'vid=(\w+)')
+
+            if not self.vid and '<body class="page_404">' in html:
+                print('This video has been deleted!')
+                return info
 
         for title, fmt_name, type_name, urls, size in self.get_streams_info():
             stream_id = self.stream_2_id[fmt_name]
@@ -259,6 +290,10 @@ class QQ(VideoExtractor):
                 info.streams[stream_id] = {'container': type_name, 'video_profile': stream_profile, 'src' : urls, 'size': size}
         info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
         info.title = title
+
+        if self.vip:
+            print('This is a VIP video!')
+
         return info
 
     def prepare_list(self):

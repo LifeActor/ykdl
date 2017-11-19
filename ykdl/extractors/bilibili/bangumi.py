@@ -3,7 +3,7 @@
 
 from ykdl.util.html import get_location, get_content
 from ykdl.util.match import match1
-from ykdl.compact import compact_bytes
+from ykdl.compact import compact_bytes, urlencode
 
 import json
 import time

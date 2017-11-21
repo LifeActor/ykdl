@@ -279,7 +279,7 @@ class QQ(VideoExtractor):
             self.vid = match1(html, 'vid:\s*[\"\'](\w+)', 'vid\s*=\s*[\"\']\s*(\w+)', 'vid=(\w+)')
 
             if not self.vid and '<body class="page_404">' in html:
-                print('This video has been deleted!')
+                self.logger.warning('This video has been deleted!')
                 return info
 
         for title, fmt_name, type_name, urls, size in self.get_streams_info():
@@ -292,7 +292,7 @@ class QQ(VideoExtractor):
         info.title = title
 
         if self.vip:
-            print('This is a VIP video!')
+            self.logger.warning('This is a VIP video!')
 
         return info
 

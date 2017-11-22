@@ -26,7 +26,7 @@ class Youku(VideoExtractor):
 
     def __init__(self):
         VideoExtractor.__init__(self)
-        self.ccode = '0401'
+        self.ccode = '0502'
 
 
     def prepare(self):

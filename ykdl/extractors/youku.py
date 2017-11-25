@@ -27,10 +27,11 @@ class Youku(VideoExtractor):
     def __init__(self):
         VideoExtractor.__init__(self)
         self.ccode = '0502'
+        self.referer = "http://v.youku.com"
 
 
     def prepare(self):
-        add_header("referer", "http://v.youku.com")
+        add_header("referer", self.referer)
         ssl_context = HTTPSHandler(
             context=ssl.SSLContext(ssl.PROTOCOL_TLSv1))
         cookie_handler = HTTPCookieProcessor()

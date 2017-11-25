@@ -11,11 +11,11 @@ class Tudou(Youku):
     def __init__(self):
         Youku.__init__(self)
         self.ccode = '0505'
+        self.ref = 'http://video.tudou.com/'
 
     def prepare(self):
         if not re.search('video.tuodou.com', self.url):
             self.url = get_location(self.url)
-        add_header("Referer", "http://video.tudou.com/")
         return Youku.prepare(self)
 
 site = Tudou()

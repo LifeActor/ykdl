@@ -10,7 +10,7 @@ class Tudou(Youku):
 
     def __init__(self):
         Youku.__init__(self)
-        add_header("Referer", "http://video.tudou.com/")
+        self.referer = "http://video.tudou.com/"
         
         self.ccode = '0505'
 

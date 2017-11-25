@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from .youku import Youku
-from ykdl.util.html import get_location
+from ykdl.util.html import get_location, add_header
 import re
 
 class Tudou(Youku):
@@ -10,7 +10,9 @@ class Tudou(Youku):
 
     def __init__(self):
         Youku.__init__(self)
-        self.ccode = '0502'
+        add_header("Referer", "http://video.tudou.com/")
+        
+        self.ccode = '0505'
 
     def prepare(self):
         if not re.search('video.tuodou.com', self.url):

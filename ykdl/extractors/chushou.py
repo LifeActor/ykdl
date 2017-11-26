@@ -7,18 +7,16 @@ from ykdl.util.html import get_content
 from ykdl.util.match import match1, matchall
 from ykdl.compact import compact_bytes
 
-
-from time import time
 import hashlib
 import json
 
 SECKEY = "RTYDFkHAL$#%^tsf_)(*^Gd%$"
 
 class Chushou(VideoExtractor):
-    name = u'触手直播 (ChuShou)'
+    name = u'Chushou Live (触手直播)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = VideoInfo(self.name, True)
         self.vid = match1(self.url, '(\d+).htm')
         api_url = "https://chushou.tv/live-room/get-play-url.htm"
         t = get_content("https://chushou.tv/timestamp/get.htm")

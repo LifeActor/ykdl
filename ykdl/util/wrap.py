@@ -31,6 +31,8 @@ def launch_player(player, urls, **args):
             cmd += ['--referrer', args['referer']]
         if args['title']:
             cmd += ['--force-media-title', args['title']]
+        if args['header']:
+            cmd += ['--http-header-fields', args['header']]
     cmd += list(urls)
     subprocess.call(cmd)
 

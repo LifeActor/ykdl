@@ -26,7 +26,7 @@ class Youku(VideoExtractor):
 
     def __init__(self):
         VideoExtractor.__init__(self)
-        self.ccode = '0502'
+        self.ccode = '0501'
         self.ref = 'http://v.youku.com'
 
 

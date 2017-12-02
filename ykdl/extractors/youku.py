@@ -61,13 +61,13 @@ class Youku(VideoExtractor):
             self.logger.debug("stream> " + str(s))
             t = stream_code_to_id[s['stream_type']]
             urls = []
-            for u in s['segs']:
-                self.logger.debug("seg> " + str(u))
-                if u['key'] != -1:
-                    if 'cdn_url' in u:
-                        urls.append(u['cdn_url'])
-                else:
-                    self.logger.warning("VIP video, ignore unavailable seg: {}".format(s['segs'].index(u)))
+            #for u in s['segs']:
+            #    self.logger.debug("seg> " + str(u))
+            #    if u['key'] != -1:
+            #        if 'cdn_url' in u:
+            #            urls.append(u['cdn_url'])
+            #    else:
+            #        self.logger.warning("VIP video, ignore unavailable seg: {}".format(s['segs'].index(u)))
             if len(urls) == 0:
                 urls = [s['m3u8_url']]
                 c = 'm3u8'

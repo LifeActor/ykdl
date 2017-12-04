@@ -10,8 +10,7 @@ from ykdl.compact import compact_bytes
 import time
 import random
 import sys
-
-
+import hashlib
 
 import binascii
 from xml.dom.minidom import parseString
@@ -184,7 +183,7 @@ def make_url(stream):
     src = []
     for i, seg in enumerate(stream['segs']):
         url = 'http://{}/{}/{}?key={}&k={}'.format(host, i, rid, key, key_expr)
-        url += '&fpp.ver=1.3.0.4&type=web.fpp'
+        url += '&fpp.ver=1.3.0.23&type=web.fpp'
         src.append(url)
     return src
 
@@ -197,8 +196,8 @@ class Pptv(VideoExtractor):
         info = VideoInfo(self.name)
         html = get_content(self.url)
         self.vid = match1(html, 'webcfg\s*=\s*{"id":\s*(\d+)')
-        xml = get_content('http://web-play.pptv.com/webplay3-0-{}.xml?type=web.fpp&version=4&appplt=flp&appid=pptv.flashplayer.vod&appver=3.4.2.12'.format(self.vid))
-
+        param = "type%3dweb.fpp%26ahl_ver%3d1%26ahl_random%3d6c2b3072426c42253c754c4460624b76%26ahl_signa%3d8544ec938b8b6e4153320931d5079e7aadfbed5855a5ccc40c66d470338b7056%26userType%3d0%26o%3d0"
+        xml = get_content('http://web-play.pptv.com/webplay3-0-{}.xml?version=4&param={}&type=web.fpp&appplt=flp&appid=pptv.flashplayer.vod&appver=3.4.2.32'.format(self.vid,param))
         dom = parseString(compact_bytes(xml, 'utf-8'))
         info.title, m_items, m_streams, m_segs = parse_pptv_xml(dom)
         xml_streams = merge_meta(m_items, m_streams, m_segs)

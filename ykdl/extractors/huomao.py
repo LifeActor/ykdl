@@ -23,7 +23,8 @@ class HuomaoTv(VideoExtractor):
         html = get_content(self.url)
         info.title = match1(html, '<title>([^<]+)').split('_')[0]
 
-        video_name = match1(html, 'getFlash\("[0-9]+","([^"]+)')
+        video_name = match1(html, '"stream":"([^"]+)')
+
         params = { 'streamtype':'live',
                    'VideoIDS': video_name,
                    'cdns' : '1'

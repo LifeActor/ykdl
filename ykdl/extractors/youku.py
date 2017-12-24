@@ -14,6 +14,8 @@ import time
 import json
 import ssl
 
+ckey = quote("DIl58SLFxFNndSV1GFNnMQVYkx1PP5tKe1siZu/86PR1u/Wh1Ptd+WOZsHHWxysSfAOhNJpdVWsdVJNsfJ8Sxd8WKVvNfAS8aS8fAOzYARzPyPc3JvtnPHjTdKfESTdnuTW6ZPvk2pNDh4uFzotgdMEFkzQ5wZVXl2Pf1/Y6hLK0OnCNxBj3+nb0v72gZ6b0td+WOZsHHWxysSo/0y9D2K42SaB8Y/+aD2K42SaB8Y/+ahU+WOZsHcrxysooUeND")
+
 def fetch_cna():
     url = 'http://gm.mmstat.com/yt/ykcomment.play.commentInit?cna='
     req = urlopen(url)
@@ -49,9 +51,10 @@ class Youku(VideoExtractor):
                                '^video\.tudou\.com/v/([a-zA-Z0-9=]+)')
 
         self.logger.debug("VID: " + self.vid)
-        api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid={}&client_ts={}'.format(self.vid, self.ccode, quote(fetch_cna()), int(time.time()))
+        api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid={}&client_ts={}&ckey={}'.format(self.vid, self.ccode, quote(fetch_cna()), int(time.time()),ckey)
 
         data = json.loads(get_content(api_url))
+        self.logger.debug("data: " + str(data))
         assert data['e']['code'] == 0, data['e']['desc']
         data = data['data']
         assert 'stream' in data, data['error']['note']

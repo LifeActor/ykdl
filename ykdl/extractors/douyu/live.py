@@ -13,7 +13,7 @@ import random
 import json
 import sys
 
-APPKEY = 'Y237pxTx2In5ayGz' #from android-hd client
+APPKEY = 'zNzMV1y4EMxOHS6I5WKm' #from android-hd client
 
 
 douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
@@ -33,7 +33,7 @@ class Douyutv(VideoExtractor):
             html = get_content(self.url)
             self.vid = match1(html, '"room_id.?":(\d+)') or match1(html, 'data-onlineid=(\d+)')
         cdn = 'ws'
-        authstr = 'room/{0}?aid=androidhd1&cdn={1}&client_sys=android&time={2}'.format(self.vid, cdn, int(time.time()))
+        authstr = 'room/{0}?aid=wp&cdn={1}&client_sys=wp&time={2}'.format(self.vid, cdn, int(time.time()))
         authmd5 = hashlib.md5((authstr + APPKEY).encode()).hexdigest()
         api_url = 'https://capi.douyucdn.cn/api/v1/{0}&auth={1}'.format(authstr,authmd5)
         html_content = get_content(api_url)

@@ -1,6 +1,17 @@
 Change Log for ykdl
 ===================
 
+1.5.4
+-------
+
+- support bilibili bangumi by new extractor
+- support new sites: Zhangyu, Chushou
+- update QQ, important!! by @SeaHOH
+- update Youku, Tudou, not finished.
+- update Huomao, douyu, iqiyi
+- update sohu and mpv wrapper, thanks to @SeaHOH
+
+
 1.5.3
 -------
 

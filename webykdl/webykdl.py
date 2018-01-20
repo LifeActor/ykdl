@@ -42,5 +42,28 @@ def stop():
     player.stop()
     return "OK"
 
+@app.route('/')
+def index():
+    string = """
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Web YKDL</title>
+</head>
+<body>
+<style>form{float:left;}</style>
+<form action="/play" method="post" target="_blank">
+  输入视频网址: <input type="text" name="url" />
+  <input type="submit" value="播放" />
+</form>
+<form action="/stop" method="get" target="_blank">
+  <input type="submit" value="停止" />
+</form>
+
+</body>
+</html>
+"""
+    return string
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

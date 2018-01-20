@@ -1,15 +1,23 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from flask import Flask
 from flask import request
 app = Flask(__name__)
 
+from pydbus import SessionBus
+bus = SessionBus()
+
+player = bus.get("github.zhangn1985.dbplay")
+
+import json
+
 
 from ykdl.common import url_to_module
-from ykdl.util.wrap import launch_player
-from ykdl.version import __version__
 
-@app.route('/play', methods=['PUT', 'GET'])
+@app.route('/play', methods=['POST', 'GET'])
 def play():
-    if request.method == 'PUT':
+    if request.method == 'POST':
         url = request.form['url']
         m,u = url_to_module(url)
         try:
@@ -19,14 +27,16 @@ def play():
         player_args = info.extra
         player_args['title'] = info.title
         urls = info.streams[info.stream_types[0]]['src']
-        launch_player("mpv", urls, **player_args)
+        video = json.dumps({"urls": urls, "args": player_args})
+        player.play(video)
         return "OK"
     else:
-        return "curl -X put --data-urlencode \"url=<URL>\" http://IP:5000/play"
-     
-@app.route('/version')
-def version():
-    return __version__
+        return "curl --data-urlencode \"url=<URL>\" http://IP:5000/play"
+
+@app.route('/stop')
+def stop():
+    player.stop()
+    return "OK"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

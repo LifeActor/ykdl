@@ -25,8 +25,7 @@ class DBUSPlayerService(object):
     """
 
     def play(self, playinfo):
-        info = json.loads(playinfo)
-        player.play(info)
+        player.play(playinfo)
     def stop(self):
         player.stop()
     def exit(self):

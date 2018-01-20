@@ -4,6 +4,7 @@
 from threading import Thread
 import subprocess
 from time import sleep
+import json
 
 def launch_player(urls, **args):
 
@@ -44,8 +45,9 @@ class Mpvplayer(Thread):
             if len(self.playlist) == 0:
                 sleep(10)
                 continue
-            obj = self.playlist[0]
-            self.playlist.remove(obj)
+            o = self.playlist[0]
+            self.playlist.remove(o)
+            obj = json.loads(o)
             if not "args" in obj:
                 obj["args"] = {"ua":"", "header":"", "title":"", "referer":""}
             self.handle = launch_player(obj["urls"], **obj["args"])

@@ -7,8 +7,12 @@ app = Flask(__name__)
 
 from pydbus import SessionBus
 bus = SessionBus()
-
-player = bus.get("github.zhangn1985.dbplay")
+try:
+    player = bus.get("github.zhangn1985.dbplay")
+except:
+    from playthread import Mpvplayer
+    player = Mpvplayer()
+    player.start()
 
 import json
 

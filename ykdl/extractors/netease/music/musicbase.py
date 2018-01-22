@@ -83,17 +83,21 @@ class NeteaseMusicBase(VideoExtractor):
             self.vid =  match1(self.url, 'song/(\d+)', '\?id=(.*)')
         api_url = self.api_url.format(self.vid, self.vid)
         music = self.get_music(json.loads(get_content(api_url)))
-
+        self.logger.debug("music info >" + str(music))
         info.title = music['name']
         info.artist = music['artists'][0]['name']
+
+        real_id = music["id"]
 
         snd_key = random_string()
         if sys.version_info[0] == 3:
             encSecKey = RSA_string(snd_key)
         else:
             encSecKey = RSA_string(snd_key)[:-1]
-        payload = netease_req(self.vid, snd_key, encSecKey)
+        payload = netease_req(real_id, snd_key, encSecKey)
+
         mp3_info = json.loads(get_content(self.mp3_api, data=compact_bytes(urlencode(payload), 'utf-8')))['data'][0]
+        self.logger.debug("mp3 > " + str(mp3_info))
         info.stream_types.append('current')
         info.streams['current'] =  {'container': mp3_info['type'], 'video_profile': 'current', 'src' : [mp3_info['url']], 'size': mp3_info['size']}
         return info

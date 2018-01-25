@@ -17,7 +17,7 @@ this project is a fork of `you-get <https://github.com/soimort/you-get>`_ with b
 2. focus on China mainland video sites
 3. support Python2
 
-Simple installation guild:
+Simple installation guide:
 
 Linux/debian:
 

@@ -37,11 +37,13 @@ class BiliBase(VideoExtractor):
             html = get_content(api_url)
             self.logger.debug("HTML> {}".format(html))
             code = match1(html, '<code>([^<])')
-            assert not code, "can't play this video: {}".format(match1(html, 'CDATA\[([^\]]+)'))
+            if code:
+                continue
             urls, size, ext = parse_cid_playurl(html)
             if ext == 'hdmp4':
                 ext = 'mp4'
 
             info.stream_types.append(self.profile_2_type[q])
             info.streams[self.profile_2_type[q]] = {'container': ext, 'video_profile': q, 'src' : urls, 'size': size}
+            assert len(info.stream_types), "can't play this video!!"
         return info

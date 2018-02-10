@@ -269,7 +269,7 @@ class QQ(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name)
         if not self.vid:
-            self.vid = match1(self.url, '/(\w+)\.html','vid=(\w+)')
+            self.vid = match1(self.url, 'vid=(\w+)', '/(\w+)\.html')
 
         if self.vid and match1(self.url, '(^https?://film\.qq\.com)'):
             self.url = 'http://v.qq.com/x/cover/%s.html' % self.vid

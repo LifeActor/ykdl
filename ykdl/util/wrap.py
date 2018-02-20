@@ -22,9 +22,7 @@ def launch_player(player, urls, **args):
     else:
         cmd = [player]
     if 'mpv' in cmd[0]:
-        cmd += ['--no-ytdl', '--demuxer-lavf-o', 'protocol_whitelist=[file,tcp,http]']
-        if len(urls) > 1:
-            cmd += ['--merge-files']
+        cmd += ['--demuxer-lavf-o', 'protocol_whitelist=[file,tcp,http]']
         if args['ua']:
             cmd += ['--user-agent', args['ua']]
         if args['referer']:

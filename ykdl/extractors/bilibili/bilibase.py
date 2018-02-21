@@ -42,14 +42,11 @@ class BiliBase(VideoExtractor):
             if code:
                 continue
             urls, size, fmt, qlt = parse_cid_playurl(html)
-            if fmt == 'hdmp4':
+            if 'mp4' in fmt:
                 ext = 'mp4'
-            elif fmt == 'flv720':
+            elif 'flv' in fmt:
                 ext = 'flv'
-            elif fmt == 'flv480':
-                ext = 'flv'
-            else:
-                ext = fmt
+
             prf = self.qlt_2_profile[qlt]
             st = self.profile_2_type[prf]
             if st in info.stream_types:

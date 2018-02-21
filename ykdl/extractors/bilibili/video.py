@@ -7,6 +7,7 @@ from ykdl.compact import compact_bytes
 
 import hashlib
 import json
+import time
 
 from .bilibase import BiliBase
 
@@ -29,8 +30,9 @@ class BiliVideo(BiliBase):
         return vid, title
 
     def get_api_url(self, q):
-        sign_this = hashlib.md5(compact_bytes('cid={}&from=miniplay&player=1&quality={}{}'.format(self.vid, q, SECRETKEY_MINILOADER), 'utf-8')).hexdigest()
-        return 'http://interface.bilibili.com/playurl?cid={}&player=1&quality={}&from=miniplay&sign={}'.format(self.vid, q, sign_this)
+        t = int(time.time())
+        sign_this = hashlib.md5(compact_bytes('cid={}&player=1&quality={}&ts={}{}'.format(self.vid, q, t, SECRETKEY_MINILOADER), 'utf-8')).hexdigest()
+        return 'http://interface.bilibili.com/playurl?cid={}&player=1&quality={}&ts={}&sign={}'.format(self.vid, q, t, sign_this)
 
     def prepare_list(self):
         html = get_content(self.url)

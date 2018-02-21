@@ -19,8 +19,8 @@ def parse_cid_playurl(xml):
     return urls, size, ext
 
 class BiliBase(VideoExtractor):
-    supported_stream_profile = [u'超清', u'高清', u'流畅']
-    profile_2_type = {u'超清': 'TD', u'高清': 'HD', u'流畅' :'SD'}
+    supported_stream_profile = [u'蓝光', u'超清', u'高清', u'流畅']
+    profile_2_type = {u'蓝光': 'BD', u'超清': 'TD', u'高清': 'HD', u'流畅' :'SD'}
 
     def prepare(self):
         info = VideoInfo(self.name)
@@ -33,7 +33,7 @@ class BiliBase(VideoExtractor):
         assert self.vid, "can't play this video: {}".format(self.url)
 
         for q in self.supported_stream_profile:
-            api_url = self.get_api_url(3-self.supported_stream_profile.index(q))
+            api_url = self.get_api_url(self.supported_stream_profile.index(q))
             html = get_content(api_url)
             self.logger.debug("HTML> {}".format(html))
             code = match1(html, '<code>([^<])')
@@ -42,6 +42,8 @@ class BiliBase(VideoExtractor):
             urls, size, ext = parse_cid_playurl(html)
             if ext == 'hdmp4':
                 ext = 'mp4'
+            if ext == 'flv720':
+                ext = 'flv'
 
             info.stream_types.append(self.profile_2_type[q])
             info.streams[self.profile_2_type[q]] = {'container': ext, 'video_profile': q, 'src' : urls, 'size': size}

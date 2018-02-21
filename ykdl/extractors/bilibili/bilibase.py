@@ -5,23 +5,24 @@ from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 from ykdl.util.html import get_content, add_header, fake_headers, get_location
 from ykdl.util.match import match1, matchall
+from xml.dom.minidom import parseString
 
 
 def parse_cid_playurl(xml):
-    from xml.dom.minidom import parseString
     urls = []
     size = 0
     doc = parseString(xml.encode('utf-8'))
     ext = doc.getElementsByTagName('format')[0].firstChild.nodeValue
+    qlt = doc.getElementsByTagName('quality')[0].firstChild.nodeValue
     for durl in doc.getElementsByTagName('durl'):
         urls.append(durl.getElementsByTagName('url')[0].firstChild.nodeValue)
         size += int(durl.getElementsByTagName('size')[0].firstChild.nodeValue)
-    return urls, size, ext
+    return urls, size, ext, qlt
 
 class BiliBase(VideoExtractor):
     supported_stream_profile = [u'蓝光', u'超清', u'高清', u'流畅']
     profile_2_type = {u'蓝光': 'BD', u'超清': 'TD', u'高清': 'HD', u'流畅' :'SD'}
-    fmt_2_profile = {'flv720': u'超清', 'flv480': u'高清', 'hdmp4': u'高清', 'mp4': u'流畅'}
+    qlt_2_profile = {'80': u'蓝光', '64': u'超清',  '32': u'高清', '16': u'流畅'}
 
     def prepare(self):
         info = VideoInfo(self.name)
@@ -40,7 +41,7 @@ class BiliBase(VideoExtractor):
             code = match1(html, '<code>([^<])')
             if code:
                 continue
-            urls, size, fmt = parse_cid_playurl(html)
+            urls, size, fmt, qlt = parse_cid_playurl(html)
             if fmt == 'hdmp4':
                 ext = 'mp4'
             elif fmt == 'flv720':
@@ -49,7 +50,7 @@ class BiliBase(VideoExtractor):
                 ext = 'flv'
             else:
                 ext = fmt
-            prf = self.fmt_2_profile[fmt]
+            prf = self.qlt_2_profile[qlt]
             st = self.profile_2_type[prf]
             if st in info.stream_types:
                continue

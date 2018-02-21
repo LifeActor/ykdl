@@ -53,5 +53,5 @@ class BiliBase(VideoExtractor):
                continue
             info.stream_types.append(st)
             info.streams[st] = {'container': ext, 'video_profile': prf, 'src' : urls, 'size': size}
-            assert len(info.stream_types), "can't play this video!!"
+        assert len(info.stream_types), "can't play this video!!"
         return info

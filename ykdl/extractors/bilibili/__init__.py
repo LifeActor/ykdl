@@ -6,7 +6,8 @@ import re
 from ykdl.util.html import get_location
 
 def get_extractor(url):
-    url = get_location(url)
+    if not 'bangumi' in url:
+        url = get_location(url)
     if re.search("live.bili", url):
         from . import live as s
     elif re.search("vc.bili", url):

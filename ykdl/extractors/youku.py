@@ -60,7 +60,7 @@ class Youku(VideoExtractor):
         assert 'stream' in data, data['error']['note']
         info.title = data['video']['title']
         audio_lang = 'default'
-        if 'dvd' in data:
+        if 'dvd' in data and 'audiolang' in data['dvd']:
             for l in data['dvd']["audiolang"]:
                 if self.vid == l['vid'][:-2]:
                     audio_lang = l['langcode']

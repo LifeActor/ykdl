@@ -18,19 +18,13 @@ class BiliBan(BiliBase):
     name = u'哔哩哔哩 番剧 (Bilibili Bangumi)'
 
     def get_vid_title(self):
+        if not 'bangumi' in self.url:
+            self.url = get_location(self.url)
 
         html = get_content(self.url)
         title = match1(html, '<h1 title="([^"]+)', '<title>([^<]+)').strip()
 
-        if "movie" in self.url:
-            aid = match1(html, 'aid=(\d+)', 'aid=\"(\d+)')
-            form = {"movie_aid" : aid}
-            vid = json.loads(get_content("https://bangumi.bilibili.com/web_api/get_source", data=compact_bytes(urlencode(form), 'utf-8')))["result"]["cid"]
-        else:
-            eid = match1(self.url, 'anime/v/(\d+)', 'play#(\d+)', 'ep(\d+)', '\d#(\d+)') or match1(html, 'anime/v/(\d+)')
-            Episode_info = json.loads(get_content('http://bangumi.bilibili.com/web_api/episode/{}.json'.format(eid)))['result']['currentEpisode']
-            vid = Episode_info['danmaku']
-            title = title + ' ' + Episode_info['indexTitle'] + '.  ' + Episode_info['longTitle']
+        vid = match1(html, '\"cid\":(\d+)')
 
         return vid, title
 

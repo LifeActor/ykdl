@@ -24,7 +24,7 @@ class BiliVideo(BiliBase):
             self.url = 'http://www.bilibili.com/{}/index_{}.html'.format(av_id, page_index)
         if not self.vid:
             html = get_content(self.url)
-            vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)')
+            vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)', '\"cid\":(\d+)')
             title = match1(html, '<h1 title="([^"]+)', '<title>([^<]+)').strip()
 
         return vid, title

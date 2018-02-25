@@ -45,8 +45,9 @@ class BiliBan(BiliBase):
         return bangumi_api_url + params_str + '&sign=' + chksum
 
     def prepare_list(self):
+        html = get_content(self.url)
         sid = match1(html, 'var season_id = "(\d+)";')
-        j_ = get_content("http://bangumi.bilibili.com/jsonp/seasoninfo/{}.ver".format(sid))
+        j_ = get_content("https://bangumi.bilibili.com/jsonp/seasoninfo/{}.ver".format(sid))[19:-2]
         s_data = json.loads(j_)
         urls = [e['webplay_url'] for e in sorted(s_data['result']['episodes'], key=lambda e: e['index'])]
         return urls

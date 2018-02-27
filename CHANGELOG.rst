@@ -1,6 +1,15 @@
 Change Log for ykdl
 ===================
 
+1.5.5
+-------
+
+- update bilibili bangumi a lot, better
+- update youku, support check audio_lang
+- update huya, new api
+- update acfun, 163 Dj and QQ
+- update mpv's default parameters.
+
 1.5.4
 -------
 

@@ -62,7 +62,7 @@ class Youku(VideoExtractor):
         audio_lang = 'default'
         if 'dvd' in data and 'audiolang' in data['dvd']:
             for l in data['dvd']["audiolang"]:
-                if self.vid == l['vid'][:-2]:
+                if l['vid'].startswith(self.vid):
                     audio_lang = l['langcode']
                     break
         streams = data['stream']

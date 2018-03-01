@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from ..simpleextractor import SimpleExtractor
-from ykdl.util.html import add_header
+from ykdl.util.html import add_header, fake_headers
+from ykdl.compact import HTTPConnection
 
 class Weibo(SimpleExtractor):
     name = u"微博秒拍 (Weibo)"
@@ -14,6 +15,11 @@ class Weibo(SimpleExtractor):
         self.title_pattern = '<title>([^<]+)</'
 
     def l_assert(self):
+        video_host = self.url.split('/')[2]
+        conn = HTTPConnection(video_host)
+        conn.request("HEAD", self.url, headers=fake_headers)
+        res = conn.getresponse()
+        self.url = res.getheader('location')
         self.url = 'http://video.weibo.com/show?fid=1034:' + self.url[-32:] + '&type=mp4'
 
     def get_title(self):

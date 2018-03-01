@@ -4,7 +4,7 @@
 from importlib import import_module
 
 from .util.match import match1
-from .util.html import fake_headers
+from .util.html import fake_headers,get_location
 import logging
 
 logger = logging.getLogger("common")
@@ -16,7 +16,8 @@ alias = {
         'cntv' : 'cctv',
         'letv' : 'le',
         'douyutv' : 'douyu',
-        'aixifan' : 'acfun'
+        'aixifan' : 'acfun',
+        't' : 'weibo'
 }
 exclude_list = ['com', 'net', 'org']
 def url_to_module(url):
@@ -43,18 +44,11 @@ def url_to_module(url):
         return site, url
     except(ImportError):
         logger.debug('> Try HTTP Redirection!')
-        from ykdl.compact import HTTPConnection
-        try:
-            conn = HTTPConnection(video_host)
-            conn.request("HEAD", url, headers=fake_headers)
-            res = conn.getresponse()
-            location = res.getheader('location')
-            if location is None:
-                logger.debug('> NO HTTP Redirection')
-                logger.debug('> Go Generalembed')
-                return import_module('ykdl.extractors.generalembed').site, url
-            else:
-                logger.debug('New Location> ' + location)
-                return url_to_module(location)
-        except(ConnectionResetError):
+        newurl = get_location(url)
+        if newurl == url:
+            logger.debug('> NO HTTP Redirection')
+            logger.debug('> Go Generalembed')
             return import_module('ykdl.extractors.generalembed').site, url
+        else:
+            logger.debug('New Location> ' + newurl)
+            return url_to_module(newurl)

@@ -4,7 +4,7 @@
 from importlib import import_module
 
 from .util.match import match1
-from .util.html import fake_headers,get_location
+from .util.html import get_location
 import logging
 
 logger = logging.getLogger("common")
@@ -16,8 +16,7 @@ alias = {
         'cntv' : 'cctv',
         'letv' : 'le',
         'douyutv' : 'douyu',
-        'aixifan' : 'acfun',
-        't' : 'weibo'
+        'aixifan' : 'acfun'
 }
 exclude_list = ['com', 'net', 'org']
 def url_to_module(url):
@@ -44,11 +43,11 @@ def url_to_module(url):
         return site, url
     except(ImportError):
         logger.debug('> Try HTTP Redirection!')
-        newurl = get_location(url)
-        if newurl == url:
+        new_url = get_location(url, headers = {})
+        if new_url == url:
             logger.debug('> NO HTTP Redirection')
             logger.debug('> Go Generalembed')
             return import_module('ykdl.extractors.generalembed').site, url
         else:
-            logger.debug('New Location> ' + newurl)
-            return url_to_module(newurl)
+            logger.debug('> new url ' + new_url)
+            return url_to_module(new_url)

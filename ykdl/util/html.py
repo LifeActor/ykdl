@@ -41,7 +41,7 @@ def undeflate(data):
     return decompressobj.decompress(data)+decompressobj.flush()
 
 def get_location(url, headers = fake_headers):
-    response = urlopen(Request(url, headers = fake_headers))
+    response = urlopen(Request(url, headers = headers))
     # urllib will follow redirections and it's too much code to tell urllib
     # not to do that
     return response.geturl()

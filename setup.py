@@ -23,11 +23,7 @@ def find_packages(*tops):
 
 from ykdl.version import __version__
 
-REQ = ['m3u8']
-try:
-    import Crypto
-except:
-    REQ.append('pycryptodome')
+REQ = ['m3u8', 'pycryptodome']
 
 setup(
     name = "ykdl",

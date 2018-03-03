@@ -41,7 +41,7 @@ class Acfun(EmbedExtractor):
         videos = matchall(html, ['href="(\/v\/[a-zA-Z0-9_]+)" title="'])
 
         for v in videos:
-            next_url = "http://www.acfun.tv/{}".format(v)
+            next_url = "http://www.acfun.cn/{}".format(v)
             self.video_info_list.append(('acfun', next_url))
 
 site = Acfun()

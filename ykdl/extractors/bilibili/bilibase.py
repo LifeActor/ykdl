@@ -26,8 +26,8 @@ class BiliBase(VideoExtractor):
 
     def prepare(self):
         info = VideoInfo(self.name)
-        add_header("Referer", "http://www.bilibili.com")
-        info.extra["referer"] = "http://www.bilibili.com"
+        add_header("Referer", "http://www.bilibili.com/")
+        info.extra["referer"] = "http://www.bilibili.com/"
         info.extra["ua"] = fake_headers['User-Agent']
 
         self.vid, info.title = self.get_vid_title()

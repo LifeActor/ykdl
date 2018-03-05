@@ -20,7 +20,7 @@ class Acorig(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name)
         add_header('User-Agent', "abcd")
-        add_header('referer', "http://acfun.cn/")
+        add_header('Referer', "http://acfun.cn/")
         self.vid, self.embsig = self.vid
 
         api = "http://player.acfun.cn/flash_data?vid={}&ct={}&ev=3&sign={}&time={}".format(self.vid, self.ct, self.embsig, int(time.time()*1000))

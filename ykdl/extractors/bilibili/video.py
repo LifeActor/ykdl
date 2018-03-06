@@ -21,7 +21,10 @@ class BiliVideo(BiliBase):
         if "#page=" in self.url:
             page_index = match1(self.url, '#page=(\d+)')
             av_id = match1(self.url, '\/(av\d+)')
-            self.url = 'http://www.bilibili.com/{}/index_{}.html'.format(av_id, page_index)
+            self.url = 'https://www.bilibili.com/{}/index_{}.html'.format(av_id, page_index)
+        if "aid=" in self.url:
+            av_id = match1(self.url, 'aid=(\d+)')
+            self.url = 'https://www.bilibili.com/video/av' + av_id
         if not self.vid:
             html = get_content(self.url)
             vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)', '\"cid\":(\d+)')
@@ -29,15 +32,15 @@ class BiliVideo(BiliBase):
 
         return vid, title
 
-    def get_api_url(self, q):
+    def get_api_url(self, qn):
         t = int(time.time())
-        sign_this = hashlib.md5(compact_bytes('cid={}&player=1&quality={}&ts={}{}'.format(self.vid, q, t, SECRETKEY_MINILOADER), 'utf-8')).hexdigest()
-        return 'http://interface.bilibili.com/playurl?cid={}&player=1&quality={}&ts={}&sign={}'.format(self.vid, q, t, sign_this)
+        sign_this = hashlib.md5(compact_bytes('cid={}&player=1&qn={}&ts={}{}'.format(self.vid, qn, t, SECRETKEY_MINILOADER), 'utf-8')).hexdigest()
+        return 'https://interface.bilibili.com/playurl?cid={}&player=1&qn={}&ts={}&sign={}'.format(self.vid, qn, t, sign_this)
 
     def prepare_list(self):
         html = get_content(self.url)
         video_list = matchall(html, ['<option value=\'([^\']*)\''])
         if video_list:
-            return ['http://www.bilibili.com'+v for v in video_list]
+            return ['https://www.bilibili.com'+v for v in video_list]
 
 site = BiliVideo()

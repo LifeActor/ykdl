@@ -23,12 +23,7 @@ def find_packages(*tops):
 
 from ykdl.version import __version__
 
-REQ = ['m3u8']
-
-if platform.system() == 'Windows':
-    REQ.append('pycryptodome')
-else:
-    REQ.append('pycrypto')
+REQ = ['m3u8', 'pycryptodome']
 
 setup(
     name = "ykdl",
@@ -57,13 +52,12 @@ setup(
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
         "Topic :: Internet",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Multimedia",
-        "Topic :: Multimedia :: Graphics",
         "Topic :: Multimedia :: Sound/Audio",
         "Topic :: Multimedia :: Video",
         "Topic :: Utilities"

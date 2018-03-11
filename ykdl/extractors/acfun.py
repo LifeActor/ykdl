@@ -17,7 +17,7 @@ class Acfun(EmbedExtractor):
 
         sourceVid = match1(html, "data-vid=\"([a-zA-Z0-9=]+)\" data-")
 
-        data = json.loads(get_content('http://www.acfun.tv/video/getVideo.aspx?id={}'.format(sourceVid)))
+        data = json.loads(get_content('http://www.acfun.cn/video/getVideo.aspx?id={}'.format(sourceVid)))
         sourceType = data['sourceType']
         sourceId = data['sourceId']
 
@@ -41,7 +41,7 @@ class Acfun(EmbedExtractor):
         videos = matchall(html, ['href="(\/v\/[a-zA-Z0-9_]+)" title="'])
 
         for v in videos:
-            next_url = "http://www.acfun.tv/{}".format(v)
+            next_url = "http://www.acfun.cn/{}".format(v)
             self.video_info_list.append(('acfun', next_url))
 
 site = Acfun()

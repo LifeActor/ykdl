@@ -59,8 +59,16 @@ class Youku(VideoExtractor):
         data = data['data']
         assert 'stream' in data, data['error']['note']
         info.title = data['video']['title']
+        audio_lang = 'default'
+        if 'dvd' in data and 'audiolang' in data['dvd']:
+            for l in data['dvd']["audiolang"]:
+                if l['vid'].startswith(self.vid):
+                    audio_lang = l['langcode']
+                    break
         streams = data['stream']
         for s in streams:
+            if not audio_lang == s['audio_lang']:
+                continue
             self.logger.debug("stream> " + str(s))
             t = stream_code_to_id[s['stream_type']]
             urls = []

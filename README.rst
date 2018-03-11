@@ -21,7 +21,7 @@ Simple installation guide:
 
 Linux/debian:
 
-0. sudo apt-get install ffmpeg mpv python3-crypto python3-pip python3-m3u8
+0. sudo apt-get install ffmpeg mpv python3-pip
 1. pip3 install ykdl --upgrade --user
 2. add ~/.local/bin to your PATH
 

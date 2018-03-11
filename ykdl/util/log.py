@@ -62,34 +62,25 @@ def sprint(text, *colors):
     color = ";".join([str(color) for color in colors])
     return "\33[%sm%s\33[%dm" % (color, text, RESET) if IS_ANSI_TERMINAL and colors else text
 
-def println(text, *colors):
-    """Print text to standard output."""
-    sys.stdout.write(sprint(text, *colors) + "\n")
+import logging
 
-def print_err(text, *colors):
-    """Print text to standard error."""
-    sys.stderr.write(sprint(text, *colors) + "\n")
+_LOG_COLOR_MAP_ = {
+    logging.CRITICAL : "31;1",
+    logging.ERROR    : RED,
+    logging.WARNING  : YELLOW,
+    logging.INFO     : BLUE,
+    logging.DEBUG    : LIGHT_GRAY,
+    logging.NOTSET   : DEFAULT }
 
-def print_log(text, *colors):
-    """Print a log message to standard error."""
-    sys.stderr.write(sprint("%s: %s" % (library_name, text), *colors) + "\n")
+class ColorHandler(logging.StreamHandler):
+    def __init__(self):
+        logging.StreamHandler.__init__(self)
+        if IS_ANSI_TERMINAL:
+            self.fmt = "\33[%(color)sm%(levelname)s:%(name)s:%(msg)s\33[0m"
+        else:
+            self.fmt = "%(levelname)s:%(name)s:%(msg)s"
 
-def i(message):
-    """Print a normal log message."""
-    print_log(message)
-
-def d(message):
-    """Print a debug log message."""
-    print_log(message, BLUE)
-
-def w(message):
-    """Print a warning log message."""
-    print_log(message, YELLOW)
-
-def e(message):
-    """Print an error log message."""
-    print_log(message, YELLOW, BOLD)
-
-def wtf(message):
-    """What a Terrible Failure!"""
-    print_log(message, RED, BOLD)
+    def format(self, recoder):
+        if IS_ANSI_TERMINAL:
+            recoder.__dict__['color'] = _LOG_COLOR_MAP_[recoder.levelno]
+        return self.fmt % recoder.__dict__

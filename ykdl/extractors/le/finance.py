@@ -13,8 +13,8 @@ from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 
 
-class LeLive(VideoExtractor):
-    name = u"Le Live (乐视轮播)"
+class LeLiveFi(VideoExtractor):
+    name = u"Le Live Finance(乐视财经)"
 
     supported_stream_types = ['flv_1080p3m', 'flv_1080p', 'flv_1300', 'flv_1000', 'flv_720p', 'flv_350']
 
@@ -26,33 +26,25 @@ class LeLive(VideoExtractor):
 
     def prepare(self):
         info = VideoInfo(self.name, True)
-        if not self.vid:
-            self.vid = match1(self.url, 'channel=([\d]+)')
+        html = get_content(self.url)
+        self.vid = match1(html, 'liveId\s*:\s*"(\d+)"') or match1(self.url, 'd=(\d+)', 'live/(\d+)')
 
-        live_data = json.loads(get_content('http://api.live.letv.com/v1/channel/letv/100/1001/{}'.format(self.vid)))['data']
+        live_data = json.loads(get_content('http://player.pc.le.com/player/startup_by_pid/1001/{}?host=live.le.com'.format(self.vid)))
+        assert 'status' in live_data and live_data['status'] == 2, "Live show is finished, playback is not supported!"
+        info.title = live_data['title']
 
-        info.title = self.name + " " + live_data['channelName']
-
-        stream_data = live_data['streams']
+        stream_data = live_data['rows']
 
         for s in stream_data:
             stream_id = self.stream_2_id[s['rateType']]
             stream_profile = self.stream_2_profile[s['rateType']]
             if not stream_id in info.stream_types:
                 info.stream_types.append(stream_id)
-                date = datetime.datetime.now()
-                streamUrl = s['streamUrl'] + '&format=1&expect=2&termid=1&hwtype=un&platid=10&splatid=1001&playid=1sign=live_web&&ostype={}&p1=1&p2=10&p3=-&vkit={}&station={}&tm={}'.format(platform.platform(), date.strftime("%Y%m%d"), self.vid, int(time.time()))
+                streamUrl = s['streamUrl'] + '&format=1&expect=2&termid=1&platid=10&playid=1&sign=live_web&splatid=1001&vkit=20161017&station={}'.format( self.vid)
                 data = json.loads(get_content(streamUrl))
-                nodelist = data['nodelist']
-                for node in nodelist:
-                    src = node['location']
-                    try:
-                        get_content(src)
-                        info.streams[stream_id] = {'container': 'm3u8', 'video_profile': stream_profile, 'size' : float('inf'), 'src' : [src]}
-                    except:
-                        continue
-                    break
+                src = data['location']
+                info.streams[stream_id] = {'container': 'm3u8', 'video_profile': stream_profile, 'size' : float('inf'), 'src' : [src]}
         info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
         return info
 
-site = LeLive()
+site = LeLiveFi()

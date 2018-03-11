@@ -12,16 +12,16 @@ import json
 class LongzhuLive(VideoExtractor):
     name = u'Longzhu Live (龙珠直播)'
 
-    supported_stream_types = ['SD', 'HD', 'TD', 'BD']
-    types_2_profile = {'SD': '标清', 'HD':'高清', 'TD':'超清', 'BD':'原画'}
+    supported_stream_types = ['SD', 'HD', 'TD', 'BD', 'Phone']
+    types_2_profile = {'SD': u'标清', 'HD':u'高清', 'TD':u'超清', 'BD':u'原画', 'Phone':u'手机'}
 
     def prepare(self):
         info = VideoInfo(self.name, True)
 
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, 'roomid: (\d+)')
-            info.title = match1(html, '"title":"([^"]+)')
+            self.vid = match1(html, 'roomid: (\d+)', '__ROOMID = \'(\d+)\';', '"RoomId":(\d+)')
+            info.title = match1(html, '"title":"([^"]+)', '<title>([^>]+)<')
             info.artist = match1(html, '"Name":"([^"]+)')
 
         api_url = 'http://livestream.plu.cn/live/getlivePlayurl?roomId={}&{}'.format(self.vid, int(time.time()))

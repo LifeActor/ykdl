@@ -5,14 +5,20 @@
 supported_stream_code = [ 'mp4hd3', 'hd3', 'mp4hd2', 'hd2', 'mp4hd', 'mp4', 'flvhd', 'flv', '3gphd' ]
 ids = ['BD', 'TD', 'HD', 'SD', 'LD']
 stream_code_to_id = {
+    'mp5hd3': 'BD',
     'mp4hd3': 'BD',
+    'mp4hd3v2': 'BD',
     'hd3'   : 'BD',
+    'mp5hd2': 'TD',
     'mp4hd2': 'TD',
+    'mp4hd2v2': 'TD',
     'hd2'   : 'TD',
+    'mp5hd' : 'HD',
     'mp4hd' : 'HD',
     'mp4'   : 'HD',
     'flvhd' : 'SD',
     'flv'   : 'SD',
+    'mp4sd' : 'SD',
     '3gphd' : 'LD'
 }
 stream_code_to_profiles = {
@@ -123,7 +129,10 @@ def L(b, d):
         i = c[j]
         c[j] = c[g]
         c[g] = i
-        f += chr(ord(d[m]) ^ c[(c[j] + c[g]) % 256])
+        if isinstance(d[m], int):
+            f += chr(d[m] ^ c[(c[j] + c[g]) % 256])
+        else:
+            f += chr(ord(d[m]) ^ c[(c[j] + c[g]) % 256])
         m += 1
     return f
 

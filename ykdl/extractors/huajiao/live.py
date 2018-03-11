@@ -21,19 +21,28 @@ class Huajiao(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name, True)
         html = get_content(self.url)
-        self.vid = match1(html, '"sn":"([^"]+)')
         t_a = match1(html, '"keywords" content="([^"]+)')
         info.title = t_a.split(',')[0]
         info.artist = t_a.split(',')[1]
 
-        api_url = 'http://g2.live.360.cn/liveplay?stype=flv&channel=live_huajiao_v2&bid=huajiao&sn={}&sid={}&_rate=xd&ts={}&r={}&_ostype=flash&_delay=0&_sign=null&_ver=13'.format(self.vid, SID, time.time(),random.random())
+        replay_url = match1(html, '"m3u8":"([^"]+)')
+        if replay_url:
+            replay_url = replay_url.replace('\/','/')
+            info.live = False
+            info.stream_types.append('current')
+            info.streams['current'] = {'container': 'm3u8', 'video_profile': 'current', 'src' : [replay_url], 'size': float('inf')}
+            return info
+
+        self.vid = match1(html, '"sn":"([^"]+)')
+        channel = match1(html, '"channel":"([^"]+)')
+        api_url = 'http://g2.live.360.cn/liveplay?stype=flv&channel={}&bid=huajiao&sn={}&sid={}&_rate=xd&ts={}&r={}&_ostype=flash&_delay=0&_sign=null&_ver=13'.format(channel, self.vid, SID, time.time(),random.random())
         encoded_json = get_content(api_url)
         decoded_json = base64.decodestring(compact_bytes(encoded_json[0:3]+ encoded_json[6:], 'utf-8')).decode('utf-8')
         video_data = json.loads(decoded_json)
-        real_url = video_data['main']
-
+        live_url = video_data['main']
+        info.live = True
         info.stream_types.append('current')
-        info.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [real_url], 'size': float('inf')}
+        info.streams['current'] = {'container': 'flv', 'video_profile': 'current', 'src' : [live_url], 'size': float('inf')}
         return info
 
 site = Huajiao()

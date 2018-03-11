@@ -1,55 +1,46 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
 from ykdl.util.html import get_content
 from ykdl.util.match import match1, matchall
+from ykdl.compact import compact_bytes
 
 import hashlib
-import re
 import json
+import time
+
+from .bilibase import BiliBase
 
 appkey='f3bb208b3d081dc8'
+SECRETKEY_MINILOADER = '1c15888dc316e05a15fdd0a02ed6584f'
 
-def parse_cid_playurl(xml):
-    from xml.dom.minidom import parseString
-    urls = []
-    size = 0
-    doc = parseString(xml.encode('utf-8'))
-    for durl in doc.getElementsByTagName('durl'):
-        urls.append(durl.getElementsByTagName('url')[0].firstChild.nodeValue)
-        size += int(durl.getElementsByTagName('size')[0].firstChild.nodeValue)
-    return urls, size
-
-class BiliVideo(VideoExtractor):
+class BiliVideo(BiliBase):
     name = u'哔哩哔哩 (Bilibili)'
-    supported_stream_profile = [u'超清', u'高清', u'流畅']
-    profile_2_type = {u'超清': 'TD', u'高清': 'HD', u'流畅' :'SD'}
-    def prepare(self):
-        info = VideoInfo(self.name)
+
+    def get_vid_title(self):
+        if "#page=" in self.url:
+            page_index = match1(self.url, '#page=(\d+)')
+            av_id = match1(self.url, '\/(av\d+)')
+            self.url = 'https://www.bilibili.com/{}/index_{}.html'.format(av_id, page_index)
+        if "aid=" in self.url:
+            av_id = match1(self.url, 'aid=(\d+)')
+            self.url = 'https://www.bilibili.com/video/av' + av_id
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, 'cid=([^&]+)')
-            info.title = match1(html, '<title>([^<]+)').split("_")[0]
+            vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)', '\"cid\":(\d+)')
+            title = match1(html, '<h1 title="([^"]+)', '<title>([^<]+)').strip()
 
-        if not self.vid:
-            eid = match1(self.url, 'anime/v/(\d+)')
-            if eid:
-                self.vid = str(json.loads(get_content('http://bangumi.bilibili.com/web_api/episode/get_source?episode_id={}'.format(eid)))['result']['cid'])
-        assert self.vid, "can't play this video: {}".format(self.url)
-        for q in self.supported_stream_profile:
-            api_url = 'http://interface.bilibili.com/playurl?appkey=' + appkey + '&cid=' + self.vid + '&quality=' + str(3-self.supported_stream_profile.index(q))
-            urls, size = parse_cid_playurl(get_content(api_url))
-            ext = 'flv'
+        return vid, title
 
-            info.stream_types.append(self.profile_2_type[q])
-            info.streams[self.profile_2_type[q]] = {'container': ext, 'video_profile': q, 'src' : urls, 'size': size}
-        return info
+    def get_api_url(self, qn):
+        t = int(time.time())
+        sign_this = hashlib.md5(compact_bytes('cid={}&player=1&qn={}&ts={}{}'.format(self.vid, qn, t, SECRETKEY_MINILOADER), 'utf-8')).hexdigest()
+        return 'https://interface.bilibili.com/playurl?cid={}&player=1&qn={}&ts={}&sign={}'.format(self.vid, qn, t, sign_this)
 
     def prepare_list(self):
         html = get_content(self.url)
         video_list = matchall(html, ['<option value=\'([^\']*)\''])
-        return ['http://www.bilibili.com'+v for v in video_list]
+        if video_list:
+            return ['https://www.bilibili.com'+v for v in video_list]
 
 site = BiliVideo()

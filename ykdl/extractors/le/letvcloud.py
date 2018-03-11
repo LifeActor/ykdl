@@ -12,7 +12,9 @@ import base64, hashlib, time
 class Letvcloud(VideoExtractor):
     name = u"乐视云 (Letvcloud)"
 
-    supported_stream_types = ['yuanhua', 'supper', 'high', 'low']
+    supported_stream_types = ['yuanhua', 'super', 'high', 'low']
+    types_2_format = {'yuanhua' : 'BD', 'super' : 'TD', 'high' : 'HD', 'low' : 'SD'}
+    types_2_profile = {'yuanhua' : u'原画', 'super' : u'超清', 'high' : u'高清', 'low' : u'标清'}
 
     def letvcloud_download_by_vu(self):
         info = VideoInfo(self.name)
@@ -37,8 +39,8 @@ class Letvcloud(VideoExtractor):
         for stream in self.supported_stream_types:
             if stream in available_stream_type:
                 urls = [base64.b64decode(data['data']['video_info']['media'][stream]['play_url']['main_url']).decode("utf-8")]
-                info.stream_types.append(stream)
-                info.streams[stream] = {'container': ext, 'video_profile': stream, 'src': urls, 'size' : 0}
+                info.stream_types.append(self.types_2_format[stream])
+                info.streams[self.types_2_format[stream]] = {'container': ext, 'video_profile': self.types_2_profile[stream], 'src': urls, 'size' : 0}
         return info
 
     def prepare(self):

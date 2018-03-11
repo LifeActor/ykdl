@@ -8,18 +8,21 @@ from ykdl.util.html import get_content
 from ykdl.util.match import match1
 
 class Ifeng(VideoExtractor):
-    name = u'凤凰视频 (ifeng)'
+    name = u'凤凰新闻 (ifeng news)'
 
-    supported_stream_types = ['500k', '350k']
-    types_2_id = {'500k': 'HD', '350k':'SD'}
-    types_2_profile = {'500k': u'高清', '350k':u'标清'}
-    ids = ['HD', 'SD']
+    supported_stream_types = ['1M','500k', '350k']
+    types_2_id = {'1M': 'TD','500k': 'HD', '350k':'SD'}
+    types_2_profile = {'1M': u'超清','500k': u'高清', '350k':u'标清'}
+    ids = ['TD', 'HD', 'SD']
     def prepare(self):
         info = VideoInfo(self.name)
         if not self.vid:
             self.vid= match1(self.url, '#([a-zA-Z0-9\-]+)', '/([a-zA-Z0-9\-]+).shtml')
+        if not self.vid:
+            html = get_content(self.url)
+            self.vid = match1(html, '"vid": "([^"]+)', 'vid: "([^"]+)')
 
-        xml = get_content('http://v.ifeng.com/video_info_new/{}/{}/{}.xml'.format(self.vid[-2], self.vid[-2:], self.vid))
+        xml = get_content('http://vxml.ifengimg.com/video_info_new/{}/{}/{}.xml'.format(self.vid[-2], self.vid[-2:], self.vid))
         doc = parseString(xml.encode('utf-8'))
         info.title = doc.getElementsByTagName('item')[0].getAttribute("Name")
         videos = doc.getElementsByTagName('videos')

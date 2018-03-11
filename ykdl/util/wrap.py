@@ -1,13 +1,38 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+import os
 import subprocess
 import shlex
-from ykdl.compact import compact_tempfile
-from ykdl.util import log
+from logging import getLogger
 
-def launch_player(player, urls):
-    subprocess.call(shlex.split(player) + list(urls))
+logger = getLogger("wrap")
+
+from ykdl.compact import compact_tempfile
+
+
+posix = os.name == 'posix'
+
+def launch_player(player, urls, **args):
+    if ' ' in player:
+        cmd = shlex.split(player, posix=posix)
+        if not posix:
+            cmd = [arg[1:-1] if arg[0] == arg[-1] == "'" else arg for arg in cmd]
+    else:
+        cmd = [player]
+    if 'mpv' in cmd[0]:
+        cmd += ['--demuxer-lavf-o', 'protocol_whitelist=[file,tcp,http]']
+        if args['ua']:
+            cmd += ['--user-agent', args['ua']]
+        if args['referer']:
+            cmd += ['--referrer', args['referer']]
+        if args['title']:
+            cmd += ['--force-media-title', args['title']]
+        if args['header']:
+            cmd += ['--http-header-fields', args['header']]
+    cmd += list(urls)
+    subprocess.call(cmd)
 
 def launch_ffmpeg(basename, ext, lenth):
     #build input
@@ -23,14 +48,19 @@ def launch_ffmpeg(basename, ext, lenth):
         cmd += ['-absf', 'aac_adtstoasc']
 
     cmd.append(outputfile)
-    log.d('Merging video %s using ffmpeg:' % basename)
+    print('Merging video %s using ffmpeg:' % basename)
     subprocess.call(cmd)
 
 def launch_ffmpeg_download(url, name, live):
-    log.d('Now downloading: %s' % name)
+    print('Now downloading: %s' % name)
     if live:
-        log.d('stop downloading by press \'q\'')
+        print('stop downloading by press \'q\'')
 
-    cmd = ['ffmpeg', '-y', '-i', url, '-c', 'copy', '-absf', 'aac_adtstoasc',  '-hide_banner', name]
+    cmd = ['ffmpeg', '-y']
+
+    if not url.startswith('http'):
+       cmd += ['-protocol_whitelist', 'file,tcp,http' ]
+
+    cmd += ['-i', url, '-c', 'copy', '-absf', 'aac_adtstoasc',  '-hide_banner', name]
 
     subprocess.call(cmd)

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import re
+from logging import getLogger
 from ykdl.compact import Request, urlopen
 
 from .match import match1
@@ -12,6 +13,8 @@ fake_headers = {
     'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0 Iceweasel/38.2.1'
 }
+
+logger = getLogger("html")
 
 def add_header(key, value):
     global fake_headers
@@ -38,7 +41,7 @@ def undeflate(data):
     return decompressobj.decompress(data)+decompressobj.flush()
 
 def get_location(url, headers = fake_headers):
-    response = urlopen(Request(url, headers = fake_headers))
+    response = urlopen(Request(url, headers = headers))
     # urllib will follow redirections and it's too much code to tell urllib
     # not to do that
     return response.geturl()
@@ -54,7 +57,7 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     Returns:
         The content as a string.
     """
-
+    logger.debug("get_content> URL: " + url)
     req = Request(url, headers=headers, data=data)
     #if cookies_txt:
     #    cookies_txt.add_cookie_header(req)
@@ -78,13 +81,14 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
 
     # Decode the response body
     if charset is None:
-        charset = match1(resheader['Content-Type'], r'charset=([\w-]+)') or \
-              match1(str(data), r'charset=\"([^\"]+)', 'charset=([^"]+)') or 'utf-8'
+        if 'Content-Type' in resheader:
+            charset = match1(resheader['Content-Type'], r'charset=([\w-]+)')
+        charset = charset or match1(str(data), r'charset=\"([^\"]+)', 'charset=([^"]+)') or 'utf-8'
+    logger.debug("get_content> Charset: " + charset)
     try:
         data = data.decode(charset)
     except:
-        from .log import w
-        w("wrong charset for {}".format(url))
+        logger.warning("wrong charset for {}".format(url))
     return data
 
 #DEPRECATED below, return None or 0

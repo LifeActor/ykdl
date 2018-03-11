@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import json
 import sys
 import datetime
@@ -16,6 +17,7 @@ class VideoInfo():
         self.stream_types = []
         self.streams = {}
         self.live = live
+        self.extra = {"ua": "", "referer": "", "header": ""}
 
     def print_stream_info(self, stream_id, show_all = False):
         stream = self.streams[stream_id]
@@ -26,7 +28,7 @@ class VideoInfo():
             print("      video-profile: %s" % stream['video_profile'])
         if 'quality' in stream:
             print("      quality:       %s" % stream['quality'])
-        if 'size' in stream:
+        if 'size' in stream and stream['size'] != 0 and stream['size'] != float('inf'):
             print("      size:          %s MiB (%s bytes)" % (round(stream['size'] / 1048576, 1), stream['size']))
         print("    # download-with: %s" % log.sprint("ykdl --format=%s [URL]" % stream_id, log.UNDERLINE))
         if show_all:
@@ -40,6 +42,8 @@ class VideoInfo():
                       'artist'    : self.artist,
                     }
         json_dict['streams'] = self.streams
+        json_dict['stream_types'] = self.stream_types
+        json_dict['extra'] = self.extra
         return json_dict
 
     def print_info(self, stream_id = None, show_all = False):

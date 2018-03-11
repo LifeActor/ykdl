@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from importlib import import_module
+from logging import getLogger
 from .common import alias
 
 class EmbedExtractor():
@@ -17,6 +18,7 @@ class EmbedExtractor():
 
     def __init__(self):
         self.video_info = None
+        self.logger = getLogger(self.name)
 
     def prepare(self):
         """
@@ -64,5 +66,4 @@ class EmbedExtractor():
             if site in alias.keys():
                 site = alias[site]
             s = import_module('.'.join(['ykdl','extractors',site])).site
-            info_list.append(s.parser(vid))
-        return info_list
+            yield s.parser(vid)

@@ -9,9 +9,11 @@ if sys.version_info[0] == 3:
     from urllib.request import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler
     from urllib.parse import urlencode, urlparse
     from http.client import HTTPConnection
+    from html import unescape
     compact_str = str
     compact_bytes = bytes
     from urllib.parse import unquote as compact_unquote
+    from urllib.parse import quote
     from tempfile import NamedTemporaryFile
     def compact_tempfile(mode='w+b', encoding=None, suffix='', prefix='tmp', dir=None):
         if platform.system() == 'Windows':
@@ -19,15 +21,18 @@ if sys.version_info[0] == 3:
         else:
             _del_  = True
         return NamedTemporaryFile(mode=mode, encoding=encoding, suffix=suffix, prefix=prefix, dir=dir, delete=_del_)
+    def compact_isstr(s):
+        return isinstance(s, str)
 else:
     from urllib2 import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler
     from urllib import urlencode
     from urlparse import urlparse
     from httplib import HTTPConnection
+    import types
     compact_str = unicode
     def compact_bytes(string, encode):
         return string.encode(encode)
-
+    from urllib import quote
     def compact_unquote(string, encoding = 'utf-8'):
         from urllib import unquote
         return unquote(str(string)).decode(encoding)
@@ -43,7 +48,12 @@ else:
         tmp = NamedTemporaryFile(mode=mode, suffix=suffix, prefix=prefix, dir=dir, delete=_del_)
         __tmp__.append(tmp)
         return codecs.open(tmp.name, mode, encoding)
-
+    def compact_isstr(s):
+        return isinstance(s, types.UnicodeType) or isinstance(s, str)
+    import HTMLParser
+    def unescape(s):
+        html_parser = HTMLParser.HTMLParser()
+        return html_parser.unescape(s)
 
 try:
     struct.pack('!I', 0)

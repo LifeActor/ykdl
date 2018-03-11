@@ -18,7 +18,7 @@ class NeteaseMv(VideoExtractor):
         add_header("Referer", "http://music.163.com/")
         video = VideoInfo(self.name)
         if not self.vid:
-            self.vid =  match1(self.url, 'id=(.*)')
+            self.vid =  match1(self.url, '\?id=(.*)', 'mv/(\d+)')
 
         api_url = "http://music.163.com/api/mv/detail/?id={}&ids=[{}]&csrf_token=".format(self.vid, self.vid)
         mv = json.loads(get_content(api_url))['data']

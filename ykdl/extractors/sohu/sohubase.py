@@ -45,11 +45,15 @@ class SohuBase(VideoExtractor):
 
     def prepare(self):
         video = VideoInfo(self.name)
+        video.extra["header"] = "Range: "
         if self.url and not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, '\/([0-9]+)\/v\.swf', '\&id=(\d+)')
-
+            self.vid = match1(html, '\/([0-9]+)\/v\.swf', '\&id=(\d+)', 'vid=\"(\d+)\"')
+        if not self.vid:
+            self.vid = match1(self.url, 'vid=(\d+)')
+        self.logger.debug("VID> {}".format(self.vid))
         info = json.loads(get_content(self.apiurl % self.vid))
+        self.logger.debug("info> {}".format(info))
         if info['status'] == 1:
             data = info['data']
             video.title = data['tvName']

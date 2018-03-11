@@ -11,15 +11,14 @@ import json
 class CNTV(VideoExtractor):
     name = u'央视网 (cctv)'
 
-    supported_stream_types = ['normal', 'low']
-    type_2_cpt = { 'normal':'chapters', 'low':'lowChapters' }
+    supported_stream_types = ['TD', 'HD', 'SD', 'LD']
+    type_2_cpt = {'TD': 'chapters4', 'HD': 'chapters3', 'SD':'chapters2', 'LD':'lowChapters' }
 
     def prepare(self):
         info = VideoInfo(self.name)
         if self.url and not self.vid:
             content = get_content(self.url)
-            self.vid = match1(content, 'guid = "([^"]+)')
-
+            self.vid = match1(content, 'guid = "([^"]+)', '"videoCenterId","([^"]+)')
         assert self.vid, 'cant find vid'
 
         html = get_content('http://vdn.apps.cntv.cn/api/getHttpVideoInfo.do?pid={}'.format(self.vid))

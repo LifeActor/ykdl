@@ -16,14 +16,15 @@ class HuomaoTv(VideoExtractor):
 
     stream_2_profile = {'BD': u"原画", 'TD': u'超清', 'HD': u'高清', 'SD': u'标清' }
 
-    live_base = "http://www.huomao.com/swf/live_data"
+    live_base = "https://www.huomao.com/swf/live_data"
 
     def prepare(self):
         info = VideoInfo(self.name, True)
         html = get_content(self.url)
         info.title = match1(html, '<title>([^<]+)').split('_')[0]
 
-        video_name = match1(html, 'getFlash\("[0-9]+","([^"]+)')
+        video_name = match1(html, '"stream":"([^"]+)')
+
         params = { 'streamtype':'live',
                    'VideoIDS': video_name,
                    'cdns' : '1'

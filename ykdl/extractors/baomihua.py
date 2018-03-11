@@ -18,18 +18,20 @@ class Baomihua(VideoExtractor):
 
         info = VideoInfo(self.name)
         if self.url:
-            self.vid = match1(self.url, '_(\d+)', 'm/(\d+)')
+            self.vid = match1(self.url, '_(\d+)', 'm/(\d+)', 'v/(\d+)')
 
         add_header('Referer', 'http://m.video.baomihua.com/')
         html = get_content('http://play.baomihua.com/getvideourl.aspx?flvid={}&datatype=json&devicetype=wap'.format(self.vid))
         data = json.loads(html)
+
         info.title = compact_unquote(data["title"])
         host = data['host']
         stream_name = data['stream_name']
         t = data['videofiletype']
         size = int(data['videofilesize'])
 
-        url = "http://{}/pomoho_video/{}.{}".format(host, stream_name, t)
+        hls = data['ishls']
+        url = "http://{}/{}/{}.{}".format(host, hls, stream_name, t)
         info.stream_types.append('current')
         info.streams['current'] = {'video_profile': 'current', 'container': t, 'src': [url], 'size' : size}
         return info

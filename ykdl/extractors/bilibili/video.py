@@ -3,16 +3,12 @@
 
 from ykdl.util.html import get_content
 from ykdl.util.match import match1, matchall
-from ykdl.compact import compact_bytes
 
-import hashlib
-import json
-import time
+from .bilibase import BiliBase, sign_api_url
 
-from .bilibase import BiliBase
 
-appkey='f3bb208b3d081dc8'
-SECRETKEY_MINILOADER = '1c15888dc316e05a15fdd0a02ed6584f'
+SECRETKEY = '1c15888dc316e05a15fdd0a02ed6584f'
+api_url = 'https://interface.bilibili.com/v2/playurl'
 
 class BiliVideo(BiliBase):
     name = u'哔哩哔哩 (Bilibili)'
@@ -33,9 +29,8 @@ class BiliVideo(BiliBase):
         return vid, title
 
     def get_api_url(self, qn):
-        t = int(time.time())
-        sign_this = hashlib.md5(compact_bytes('cid={}&player=1&qn={}&ts={}{}'.format(self.vid, qn, t, SECRETKEY_MINILOADER), 'utf-8')).hexdigest()
-        return 'https://interface.bilibili.com/playurl?cid={}&player=1&qn={}&ts={}&sign={}'.format(self.vid, qn, t, sign_this)
+        params_str = 'cid={}&player=1&qn={}'.format(self.vid, qn)
+        return sign_api_url(api_url, params_str, SECRETKEY)
 
     def prepare_list(self):
         html = get_content(self.url)

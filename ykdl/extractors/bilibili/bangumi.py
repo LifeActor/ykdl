@@ -17,21 +17,22 @@ class BiliBan(BiliBase):
     name = u'哔哩哔哩 番剧 (Bilibili Bangumi)'
 
     def get_vid_title(self):
-        if not 'bangumi' in self.url:
-            self.url = get_location(self.url)
 
         html = get_content(self.url)
         title = match1(html, '<h1 title="([^"]+)', '<title>([^<]+)').strip()
-        vid = match1(html, '\"cid\":(\d+)')
+
+        eid = match1(self.url, 'anime/v/(\d+)', 'play#(\d+)', 'ep(\d+)', '\d#(\d+)') or match1(html, 'anime/v/(\d+)')
+        if eid:
+            Episode_info = json.loads(get_content('http://bangumi.bilibili.com/web_api/episode/{}.json'.format(eid)))['result']
+            vid = Episode_info['currentEpisode']['danmaku']
+            title = Episode_info['season']['title'] + ' ' + Episode_info['currentEpisode']['indexTitle'] + '.  ' + Episode_info['currentEpisode']['longTitle']
+        else:
+            vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)', '\"cid\":(\d+)')
 
         return vid, title
 
     def get_api_url(self, qn):
-        if "movie" in self.url:
-            mod = "movie"
-        else:
-            mod = "bangumi"
-        params_str = 'cid={}&module={}&player=1&qn={}'.format(self.vid, mod, qn)
+        params_str = 'cid={}&module=bangumi&player=1&qn={}'.format(self.vid, qn)
         return sign_api_url(api_url, params_str, SECRETKEY)
 
     def prepare_list(self):

@@ -40,7 +40,7 @@ class BiliBan(BiliBase):
         sid = match1(html, 'var season_id = "(\d+)";') or match1(self.url, "anime/(\d+)")
         j_ = get_content("https://bangumi.bilibili.com/jsonp/seasoninfo/{}.ver?callback=seasonListCallback".format(sid))[19:-2]
         s_data = json.loads(j_)
-        urls = [e['webplay_url'] for e in sorted(s_data['result']['episodes'], key=lambda e: e['index'])]
+        urls = [e['webplay_url'] for e in sorted(s_data['result']['episodes'], key=lambda e: int(e['index']))]
         return urls
 
 site = BiliBan()

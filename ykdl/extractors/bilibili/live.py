@@ -26,7 +26,7 @@ class BiliLive(VideoExtractor):
         api2_data = json.loads(get_content("{}?room_id={}&from=room".format(api2_url, self.vid)))
         info.title = api2_data["data"]["title"]
         assert api2_data["data"]["live_status"] == 1, u"主播正在觅食......"
-        
+
         def get_live_info(q=0):
             data = json.loads(get_content("{}?player=1&cid={}&quality={}&otype=json".format(api_url, self.vid, q)))
             urls = [data["durl"][0]["url"]]

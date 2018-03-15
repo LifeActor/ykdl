@@ -40,15 +40,15 @@ class Youku(VideoExtractor):
         opener = build_opener(ssl_context, cookie_handler)
         opener.addheaders = [('Cookie','__ysuid=%d' % time.time())]
         install_opener(opener)
-        
-        info = VideoInfo(self.name)        
+
+        info = VideoInfo(self.name)
 
         if self.url and not self.vid:
              self.vid = match1(self.url.split('//', 1)[1],
                                '^v\.[^/]+/v_show/id_([a-zA-Z0-9=]+)',
                                '^player[^/]+/(?:player\.php/sid|embed)/([a-zA-Z0-9=]+)',
                                '^static.+loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',
-                               '^video\.tudou\.com/v/([a-zA-Z0-9=]+)')
+                               '^(?:new-play|video)\.tudou\.com/v/([a-zA-Z0-9=]+)')
 
         self.logger.debug("VID: " + self.vid)
         api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid={}&client_ts={}&ckey={}'.format(self.vid, self.ccode, quote(fetch_cna()), int(time.time()),ckey)

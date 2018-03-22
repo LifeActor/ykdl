@@ -111,6 +111,8 @@ def handle_videoinfo(info, index=0):
 
     ext = info.streams[stream_id]['container']
     live = info.live
+    if args.proxy != 'none' and info.extra['rangefetch']:
+        info.extra['rangefetch']['proxy'] = 'http://' + args.proxy
     player_args = info.extra
     player_args['title'] = info.title
     if args.player:
@@ -130,6 +132,7 @@ def main():
 
     if args.proxy == 'system':
         proxy_handler = ProxyHandler()
+        args.proxy = os.environ.get('HTTP_PROXY', 'none')
     else:
         proxy_handler = ProxyHandler({
             'http': args.proxy,

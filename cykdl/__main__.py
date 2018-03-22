@@ -111,8 +111,10 @@ def handle_videoinfo(info, index=0):
 
     ext = info.streams[stream_id]['container']
     live = info.live
-    if args.proxy != 'none' and info.extra['rangefetch']:
-        info.extra['rangefetch']['proxy'] = 'http://' + args.proxy
+    if info.extra['rangefetch']:
+        info.extra['rangefetch']['down_rate'] = info.extra['rangefetch']['video_rate'][stream_id]
+        if args.proxy != 'none':
+            info.extra['rangefetch']['proxy'] = 'http://' + args.proxy
     player_args = info.extra
     player_args['title'] = info.title
     if args.player:

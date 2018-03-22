@@ -88,6 +88,7 @@ class RangeFetch():
     expect_begin = 0
     _stopped = -1
     proxy = None
+    http = None
 
     down_rate_min = 1024 * 160 # B/s
     down_rate_max = 1024 * 360
@@ -113,10 +114,10 @@ class RangeFetch():
         self.delay_star_size = self.delay_cache_size * 2
         self.max_threads = min(self.threads * 2, 24)
 
-        if self.proxy:
-            self.http = urllib3.ProxyManager(self.proxy, maxsize=self.max_threads)
+        if self.http is None and self.proxy:
+            self.__class__.http = urllib3.ProxyManager(self.proxy, maxsize=self.max_threads)
         else:
-            self.http = urllib3.PoolManager(maxsize=self.max_threads)
+            self.__class__.http = urllib3.PoolManager(maxsize=self.max_threads)
 
         self.firstrange = range_start, range_start + self.first_size - 1
         self.response = self.rangefetch(*self.firstrange)
@@ -227,7 +228,7 @@ class RangeFetch():
 
             if check_size > self.check_size:
                 pres_time = time()
-                down_rate = check_size / (pres_time - speedtest['prev_time'])
+                down_rate = check_size / (pres_time - speedtest['prev_time'] + 0.1)
 
                 if down_rate < self.down_rate_min:
                     threads_adjust = self.down_rate_min * 2 // down_rate

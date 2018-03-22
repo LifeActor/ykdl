@@ -17,7 +17,7 @@ class VideoInfo():
         self.stream_types = []
         self.streams = {}
         self.live = live
-        self.extra = {"ua": "", "referer": "", "header": ""}
+        self.extra = {"ua": "", "referer": "", "header": "", "proxy": "", "rangefetch": ""}
 
     def print_stream_info(self, stream_id, show_all = False):
         stream = self.streams[stream_id]

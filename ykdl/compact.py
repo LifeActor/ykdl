@@ -7,8 +7,12 @@ import struct
 
 if sys.version_info[0] == 3:
     from urllib.request import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler
-    from urllib.parse import urlencode, urlparse
+    from urllib.parse import urlencode, urlparse, urlsplit, SplitResult
     from http.client import HTTPConnection
+    from http.server import HTTPStatus, BaseHTTPRequestHandler
+    import socketserver as SocketServer
+    import queue as Queue
+    import _thread as thread
     from html import unescape
     compact_str = str
     compact_bytes = bytes
@@ -26,8 +30,13 @@ if sys.version_info[0] == 3:
 else:
     from urllib2 import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler
     from urllib import urlencode
-    from urlparse import urlparse
+    from urlparse import urlparse, urlsplit, SplitResult
     from httplib import HTTPConnection
+    from BaseHTTPServer import BaseHTTPRequestHandler
+    import httplib as HTTPStatus
+    import SocketServer
+    import Queue
+    import thread
     import types
     compact_str = unicode
     def compact_bytes(string, encode):
@@ -54,6 +63,18 @@ else:
     def unescape(s):
         html_parser = HTMLParser.HTMLParser()
         return html_parser.unescape(s)
+
+# Return addrlist sequence at random, it can help create_connection function
+import socket
+import random
+
+def getaddrinfo(*args, **kwargs):
+    addrlist = _getaddrinfo(*args, **kwargs)
+    random.shuffle(addrlist)
+    return addrlist
+
+_getaddrinfo = socket.getaddrinfo
+socket.getaddrinfo = getaddrinfo
 
 try:
     struct.pack('!I', 0)

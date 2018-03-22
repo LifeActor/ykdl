@@ -23,7 +23,7 @@ def find_packages(*tops):
 
 from ykdl.version import __version__
 
-REQ = ['m3u8', 'pycryptodome']
+REQ = ['m3u8', 'pycryptodome', 'urllib3']
 
 setup(
     name = "ykdl",

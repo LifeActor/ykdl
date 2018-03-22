@@ -11,7 +11,6 @@ logger = getLogger("wrap")
 
 from ykdl.compact import compact_tempfile
 
-
 posix = os.name == 'posix'
 
 def launch_player(player, urls, **args):
@@ -21,6 +20,7 @@ def launch_player(player, urls, **args):
             cmd = [arg[1:-1] if arg[0] == arg[-1] == "'" else arg for arg in cmd]
     else:
         cmd = [player]
+
     if 'mpv' in cmd[0]:
         cmd += ['--demuxer-lavf-o', 'protocol_whitelist=[file,tcp,http]']
         if args['ua']:
@@ -31,8 +31,21 @@ def launch_player(player, urls, **args):
             cmd += ['--force-media-title', args['title']]
         if args['header']:
             cmd += ['--http-header-fields', args['header']]
+
     cmd += list(urls)
-    subprocess.call(cmd)
+
+    if args['proxy']:
+        env = os.environ.copy()
+        env['HTTP_PROXY'] = args['proxy']
+        if args['rangefetch']:
+            from ykdl.util.rangefetch_server import start_new_server
+            new_server = start_new_server(**args['rangefetch'])
+            subprocess.call(cmd, env=env)
+            new_server.server_close()
+        else:
+            subprocess.call(cmd, env=env)
+    else:
+        subprocess.call(cmd)
 
 def launch_ffmpeg(basename, ext, lenth):
     #build input

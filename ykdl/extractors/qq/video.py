@@ -134,10 +134,12 @@ class QQ(VideoExtractor):
 
         content = get_content('http://vv.video.qq.com/getinfo?' + urlencode(params))
         data = json.loads(match1(content, r'QZOutputJson=(.+);$'))
+        print(data)
 
         video = data['vl']['vi'][0]
         fn = video['fn']
         title = video['ti']
+        td = float(video['td'])
         fvkey = video['fvkey']
         # Not to be absolutely accuracy
         self.vip = video['iflag']
@@ -163,6 +165,7 @@ class QQ(VideoExtractor):
             fmt_name = fmt['name']
             fmt_cname = fmt['cname']
             size = fmt['fs']
+            rate = size // td
 
             fns = fn.split('.')
             fmt_id_num = fmt_id
@@ -201,7 +204,7 @@ class QQ(VideoExtractor):
                         self.vip = True
                         break
 
-            yield title, fmt_name, fmt_cname, type_name, urls, size
+            yield title, fmt_name, fmt_cname, type_name, urls, size, rate
 
     def prepare(self):
         info = VideoInfo(self.name)
@@ -219,19 +222,24 @@ class QQ(VideoExtractor):
                 self.logger.warning('This video has been deleted!')
                 return info
 
-        for title, fmt_name, stream_profile, type_name, urls, size in self.get_streams_info():
+        video_rate = {}
+        for title, fmt_name, stream_profile, type_name, urls, size, rate in self.get_streams_info():
             stream_id = self.stream_2_id[fmt_name]
             if stream_id not in info.stream_types:
                 info.stream_types.append(stream_id)
                 info.streams[stream_id] = {'container': type_name, 'video_profile': stream_profile, 'src' : urls, 'size': size}
+                video_rate[stream_id] = rate
         info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
         info.title = title
 
-        # Downloading vip videos is very slow (playable part), use multithreading range fetch to speed up.
+        # Downloading some videos is very slow, use multithreading range fetch to speed up.
+        # Auto-adjust threads number be supported.
         # Only for video players.
+        info.extra['proxy'] = 'http://127.0.0.1:8806'
+        info.extra['rangefetch'] = {'first_size': 1024 * 16, 'max_size': 1024 * 32, 'threads': 10, 'video_rate': video_rate}
+
         if self.vip:
-            info.extra['proxy'] = 'http://127.0.0.1:8806'
-            info.extra['rangefetch'] = {'first_size': 1024 * 16, 'max_size': 1024 * 32, 'threads': 20}
+            info.extra['rangefetch']['threads'] = 20
             self.logger.warning('This is a VIP video!')
 
         return info

@@ -13,7 +13,7 @@ from ykdl.compact import (
 import urllib3
 import re
 import socket
-from time import sleep
+from time import time, sleep
 
 logger = getLogger('RangeFetch')
 
@@ -86,9 +86,12 @@ class RangeFetchHandler(BaseHTTPRequestHandler):
 class RangeFetch():
 
     expect_begin = 0
-    _stopped = False
+    _stopped = -1
     proxy = None
 
+    down_rate_min = 1024 * 160 # B/s
+    down_rate_max = 1024 * 360
+    check_size = 1024 * 512
     first_size = 1024 * 32
     max_size = 1024 * 32
     threads = 8
@@ -106,14 +109,15 @@ class RangeFetch():
 
         self.range_start = range_start
         self.range_end = range_end
-
-        self.delay_star_size = self.max_size * self.threads
-        self.delay_cache_size = self.delay_star_size * 2
+        self.delay_cache_size = self.max_size * self.threads * 2
+        self.delay_star_size = self.delay_cache_size * 2
+        self.max_threads = min(self.threads * 2, 24)
 
         if self.proxy:
-            self.http = urllib3.ProxyManager(self.proxy, maxsize=self.threads + 2)
+            self.http = urllib3.ProxyManager(self.proxy, maxsize=self.max_threads)
         else:
-            self.http = urllib3.PoolManager(maxsize=self.threads + 2)
+            self.http = urllib3.PoolManager(maxsize=self.max_threads)
+
         self.firstrange = range_start, range_start + self.first_size - 1
         self.response = self.rangefetch(*self.firstrange)
 
@@ -130,7 +134,7 @@ class RangeFetch():
 
             redirect_location = response.get_redirect_location()
             if redirect_location:
-                if not redirect_location.startswith(('http://', 'https://', '/')) :
+                if not redirect_location.startswith(('http://', 'https://', '/')):
                     redirect_location = '/' + redirect_location
                 if redirect_location[0] == '/':
                     redirect_location = '%s://%s%s' % (self.handler.scheme, self.handler.host, redirect_location)
@@ -146,6 +150,27 @@ class RangeFetch():
             if tries >= max_tries:
                 break
             sleep(2)
+
+    def adjust_threads(self, new_threads):
+        if new_threads > self.max_threads:
+            return
+
+        old_threads = self._stopped + 1
+        if old_threads == new_threads:
+            return
+
+        logger.debug('changes threads number to %d' % new_threads)
+
+        self.threads = new_threads
+        self._stopped = self.threads - 1
+
+        if old_threads > new_threads:
+            return
+
+        t = 0
+        for i in range(old_threads, new_threads):
+           t += 1
+           spawn_later(self.delay * t, self.__fetchlet, i)
 
     def fetch(self):
         response_status = self.response.status
@@ -183,14 +208,42 @@ class RangeFetch():
         if length > a:
             range_queue.put((a, length - 1))
 
-        for i in range(self.threads):
-            spawn_later(self.delay * i, self.__fetchlet)
+        self.adjust_threads(min(self.threads, self.max_threads))
 
         has_peek = hasattr(data_queue, 'peek')
         peek_timeout = 30
         self.expect_begin = start
 
+        speedtest = {'prev_begin': 0,
+                     'prev_cache': 0,
+                     'prev_time': time(),
+                     }
+
         while self.expect_begin < length:
+            pres_begin = self.expect_begin
+            pres_cache = data_queue.qsize() * self.bufsize
+            check_size = (pres_begin - speedtest['prev_begin'] +
+                          pres_cache - speedtest['prev_cache'])
+
+            if check_size > self.check_size:
+                pres_time = time()
+                down_rate = check_size / (pres_time - speedtest['prev_time'])
+
+                if down_rate < self.down_rate_min:
+                    threads_adjust = self.down_rate_min * 2 // down_rate
+                elif down_rate > self.down_rate_max:
+                    threads_adjust = down_rate * 2 // self.down_rate_max * -1
+                else:
+                    threads_adjust = 0
+
+                if threads_adjust:
+                    new_threads = int(max(self.threads + threads_adjust, 1))
+                    self.adjust_threads(new_threads)
+
+                speedtest['prev_begin'] = pres_begin
+                speedtest['prev_cache'] = pres_cache
+                speedtest['prev_time'] = pres_time
+
             try:
                 if has_peek:
                     begin, data = data_queue.peek(timeout=peek_timeout)
@@ -222,14 +275,14 @@ class RangeFetch():
             except Exception as e:
                 logger.warning('disconnected: %r, %r' % (self.url, e))
                 break
-        self._stopped = True
+        self._stopped = -1
 
-    def __fetchlet(self):
+    def __fetchlet(self, thread_order):
         data_queue = self.data_queue
         range_queue = self.range_queue
 
         while True:
-            if self._stopped:
+            if thread_order > self._stopped:
                 return
 
             if self.response:
@@ -242,7 +295,8 @@ class RangeFetch():
                     return
                 while ((start - self.expect_begin) > self.delay_star_size and
                         data_queue.qsize() * self.bufsize > self.delay_cache_size):
-                    if self._stopped:
+                    if thread_order > self._stopped:
+                        range_queue.put((start, end))
                         return
                     sleep(0.1)
      
@@ -254,7 +308,7 @@ class RangeFetch():
             try:
                 data = response.read(self.bufsize)
                 while data:
-                    if self._stopped:
+                    if thread_order > self._stopped:
                         return
                     data_queue.put((start, data))
                     start += len(data)
@@ -263,12 +317,12 @@ class RangeFetch():
                 response.close()
             else:
                 response.release_conn()
-            logger.debug('receive %d bytes' % start)
+            finally:
+                logger.debug('receive %d bytes, expect_begin(%d)' % (start, self.expect_begin))
 
-            if start < end + 1:
-                logger.warning('retry %d-%d' % (start, end))
-                range_queue.put((start, end))
-                continue
+                if start < end + 1:
+                    logger.warning('retry %d-%d' % (start, end))
+                    range_queue.put((start, end))
 
 getbytes = re.compile(r'^bytes=(\d*)-(\d*)(,..)?').search
 getrange = re.compile(r'^bytes (\d+)-(\d+)/(\d+)').search
@@ -281,13 +335,16 @@ def spawn_later(seconds, target, *args, **kwargs):
 
 
 def start_new_server(bind='', port=8806, first_size=None, max_size=None,
-                     threads=None, scheme=None, proxy=None):
+                     threads=None, down_rate=None, proxy=None, scheme=None, **kwargs):
     if first_size:
         RangeFetch.first_size = first_size
     if max_size:
         RangeFetch.max_size = max_size
     if threads:
         RangeFetch.threads = threads
+    if down_rate:
+        RangeFetch.down_rate_min = int(down_rate * 1.5)
+        RangeFetch.down_rate_max = int(down_rate * 2.5)
     if proxy:
         RangeFetch.proxy = proxy
     if scheme:

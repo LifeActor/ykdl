@@ -134,7 +134,6 @@ class QQ(VideoExtractor):
 
         content = get_content('http://vv.video.qq.com/getinfo?' + urlencode(params))
         data = json.loads(match1(content, r'QZOutputJson=(.+);$'))
-        print(data)
 
         video = data['vl']['vi'][0]
         fn = video['fn']

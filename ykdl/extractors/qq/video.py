@@ -140,13 +140,16 @@ class QQ(VideoExtractor):
         title = video['ti']
         td = float(video['td'])
         fvkey = video['fvkey']
-        # Not to be absolutely accuracy
+        # Not to be absolutely accuracy.
         self.vip = video['iflag']
-        
 
         for cdn in video['ul']['ui']:
+            # Priority for range fetch.
             cdn_url = cdn['url']
-            # Do not choose ip host
+            # 'video.dispatch.tc.qq.com' supported keep-alive link.
+            if cdn_url == 'http://video.dispatch.tc.qq.com/':
+                break
+            # Not IP host.
             if match1(cdn_url, '(^https?://[0-9\.]+/)') is None:
                 break
         dt = cdn['dt']
@@ -232,13 +235,12 @@ class QQ(VideoExtractor):
         info.title = title
 
         # Downloading some videos is very slow, use multithreading range fetch to speed up.
-        # Auto-adjust threads number be supported.
-        # Only for video players.
+        # Only for video players now.
         info.extra['proxy'] = 'http://127.0.0.1:8806'
         info.extra['rangefetch'] = {'first_size': 1024 * 16, 'max_size': 1024 * 32, 'threads': 10, 'video_rate': video_rate}
 
         if self.vip:
-            info.extra['rangefetch']['threads'] = 20
+            info.extra['rangefetch']['threads'] = 14
             self.logger.warning('This is a VIP video!')
 
         return info

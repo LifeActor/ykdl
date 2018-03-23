@@ -7,7 +7,7 @@ import struct
 
 if sys.version_info[0] == 3:
     from urllib.request import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler
-    from urllib.parse import urlencode, urlparse, urlsplit, SplitResult
+    from urllib.parse import urlencode, urlparse, urlsplit
     from http.client import HTTPConnection
     from http.server import HTTPStatus, BaseHTTPRequestHandler
     import socketserver as SocketServer
@@ -30,7 +30,7 @@ if sys.version_info[0] == 3:
 else:
     from urllib2 import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler
     from urllib import urlencode
-    from urlparse import urlparse, urlsplit, SplitResult
+    from urlparse import urlparse, urlsplit
     from httplib import HTTPConnection
     from BaseHTTPServer import BaseHTTPRequestHandler
     import httplib as HTTPStatus

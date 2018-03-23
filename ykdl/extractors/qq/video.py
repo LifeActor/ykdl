@@ -150,8 +150,8 @@ class QQ(VideoExtractor):
             if cdn_url == 'http://video.dispatch.tc.qq.com/':
                 break
             # Not IP host.
-            if match1(cdn_url, '(^https?://[0-9\.]+/)') is None:
-                break
+            if match1(cdn_url, '(^https?://[0-9\.]+/)'):
+                continue
         dt = cdn['dt']
         if dt == 1:
             type_name = 'flv'

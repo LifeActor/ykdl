@@ -120,7 +120,7 @@ class RangeFetch():
 
         self.range_start = range_start
         self.range_end = range_end
-        self.delay_cache_size = self.max_size * self.threads * 2
+        self.delay_cache_size = self.max_size * self.threads * 4
         self.delay_star_size = self.delay_cache_size * 2
         self.max_threads = min(self.threads * 2, 24)
 
@@ -156,6 +156,7 @@ class RangeFetch():
 
             tries += 1
             if tries >= max_tries:
+                logger.debug('request %d-%d fail' % (range_start, range_end))
                 break
             sleep(2)
 
@@ -372,7 +373,7 @@ def start_new_server(bind='', port=8806, first_size=None, max_size=None,
         RangeFetch.threads = threads
     if down_rate:
         RangeFetch.down_rate_min = int(down_rate * 2)
-        RangeFetch.down_rate_max = RangeFetch.down_rate_min + max(down_rate, 1024 * 100)
+        RangeFetch.down_rate_max = RangeFetch.down_rate_min + min(max(down_rate, 1024 * 100), 1024 * 200)
     if proxy:
         RangeFetch.proxy = proxy
     if scheme:

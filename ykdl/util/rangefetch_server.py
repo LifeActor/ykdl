@@ -88,10 +88,10 @@ class RangeFetchHandler(BaseHTTPRequestHandler):
         return '%s://%s%s' % (self.scheme, self.netloc, get_path(url))
 
     def join_redirect(self, url):
-        if url.find('://', 3, 12):
-            return url
-        else:
+        if url.find('://', 3, 12) < 0:
             return self.join_path(url)
+        else:
+            return url
 
 class RangeFetch():
 
@@ -355,7 +355,7 @@ def spawn_later(seconds, target, *args, **kwargs):
     thread.start_new_thread(wrap, args, kwargs)
 
 def get_path(url):
-    if url.find('://', 3, 12):
+    if not url.find('://', 3, 12) < 0:
         url = url[url.find('/', 12):]
     if url[0] != '/':
         url = '/' + url

@@ -143,15 +143,21 @@ class QQ(VideoExtractor):
         # Not to be absolutely accuracy.
         self.vip = video['iflag']
 
+        # Priority for range fetch.
+        cdn_url_1 = cdn_url_2 = cdn_url_3 = None
         for cdn in video['ul']['ui']:
-            # Priority for range fetch.
             cdn_url = cdn['url']
             # 'video.dispatch.tc.qq.com' supported keep-alive link.
             if cdn_url == 'http://video.dispatch.tc.qq.com/':
+                cdn_url_1 = cdn_url
                 break
-            # Not IP host.
+            # IP host.
             if match1(cdn_url, '(^https?://[0-9\.]+/)'):
-                continue
+                cdn_url_3 = cdn_url
+            else:
+                cdn_url_2 = cdn_url
+        cdn_url = cdn_url_1 or cdn_url_2 or cdn_url_3 
+
         dt = cdn['dt']
         if dt == 1:
             type_name = 'flv'

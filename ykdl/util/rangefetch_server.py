@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Multithreading range fetch via proxy server,
-# use urllib3 to reusing connections.
+# Multithreading range fetch via proxy server.
+# Use urllib3 to reusing connections.
+# Auto-adjust threads number be supported.
 
 from logging import getLogger
 from ykdl.compact import (
-    Queue, thread, urlsplit, SplitResult,
-    HTTPStatus, BaseHTTPRequestHandler, SocketServer
+    Queue, thread, urlsplit, HTTPStatus,
+    BaseHTTPRequestHandler, SocketServer
     )
 
 import urllib3
@@ -50,8 +51,8 @@ class RangeFetchHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         url_parts = urlsplit(self.path)
-        self.host = netloc = self.headers.get('Host') or url_parts.netloc
-        self.url = SplitResult(self.scheme, netloc, url_parts.path, url_parts.query, '').geturl()
+        self.netloc = netloc = self.headers.get('Host') or url_parts.netloc
+        self.url = self.join_path(self.path)
         
         need_rangefetch = not ('range=' in url_parts.query or
                                'live=1' in url_parts.query or
@@ -83,10 +84,19 @@ class RangeFetchHandler(BaseHTTPRequestHandler):
             self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR,
                 'Range fetch can not be finished, url: %s' %  self.url)
 
+    def join_path(self, url):
+        return '%s://%s%s' % (self.scheme, self.netloc, get_path(url))
+
+    def join_redirect(self, url):
+        if url.find('://', 3, 12):
+            return url
+        else:
+            return self.join_path(url)
+
 class RangeFetch():
 
-    expect_begin = 0
-    _stopped = -1
+    _expect_begin = 0
+    _started_order = -1
     proxy = None
     http = None
 
@@ -96,7 +106,7 @@ class RangeFetch():
     first_size = 1024 * 32
     max_size = 1024 * 32
     threads = 8
-    delay = 0.5
+    delay = 0.3
 
     def __init__(self, handler, range_start, range_end):
         self.handler = handler
@@ -124,6 +134,7 @@ class RangeFetch():
 
         self.data_queue = Queue.PriorityQueue()
         self.range_queue = Queue.PriorityQueue()
+        self._started_threads = {}
 
     def rangefetch(self, range_start, range_end, max_tries=3):
         tries= 0
@@ -135,11 +146,7 @@ class RangeFetch():
 
             redirect_location = response.get_redirect_location()
             if redirect_location:
-                if not redirect_location.startswith(('http://', 'https://', '/')):
-                    redirect_location = '/' + redirect_location
-                if redirect_location[0] == '/':
-                    redirect_location = '%s://%s%s' % (self.handler.scheme, self.handler.host, redirect_location)
-                self.url = redirect_location
+                self.url = self.handler.join_redirect(redirect_location)
                 response.read()
                 response.release_conn()
                 continue
@@ -153,17 +160,15 @@ class RangeFetch():
             sleep(2)
 
     def adjust_threads(self, new_threads):
-        if new_threads > self.max_threads:
-            return
-
-        old_threads = self._stopped + 1
+        old_threads = self._started_order + 1
+        new_threads = min(new_threads, self.max_threads)
         if old_threads == new_threads:
             return
 
         logger.debug('changes threads number to %d' % new_threads)
 
         self.threads = new_threads
-        self._stopped = self.threads - 1
+        self._started_order = new_threads - 1
 
         if old_threads > new_threads:
             return
@@ -209,121 +214,136 @@ class RangeFetch():
         if length > a:
             range_queue.put((a, length - 1))
 
-        self.adjust_threads(min(self.threads, self.max_threads))
+        self.adjust_threads(self.threads)
 
         has_peek = hasattr(data_queue, 'peek')
         peek_timeout = 30
-        self.expect_begin = start
+        self._expect_begin = start
 
         speedtest = {'prev_begin': 0,
                      'prev_cache': 0,
-                     'prev_time': time(),
+                     'prev_time': time() + self.delay * self.threads / 2
                      }
 
-        while self.expect_begin < length:
-            pres_begin = self.expect_begin
-            pres_cache = data_queue.qsize() * self.bufsize
-            check_size = (pres_begin - speedtest['prev_begin'] +
-                          pres_cache - speedtest['prev_cache'])
+        while self._expect_begin < length:
+            # Keeping single thread
+            if self._started_order > 0 and self._started_order in self._started_threads:
+                pres_begin = self._expect_begin
+                pres_cache = data_queue.qsize() * self.bufsize
+                check_size = (pres_begin - speedtest['prev_begin'] +
+                              pres_cache - speedtest['prev_cache'])
 
-            if check_size > self.check_size:
-                pres_time = time()
-                down_rate = check_size / (pres_time - speedtest['prev_time'] + 0.1)
+                if check_size > self.check_size:
+                    pres_time = time()
+                    down_rate = check_size / (pres_time - speedtest['prev_time'] + 0.1)
 
-                if down_rate < self.down_rate_min:
-                    threads_adjust = self.down_rate_min * 2 // down_rate
-                elif down_rate > self.down_rate_max:
-                    threads_adjust = down_rate * 2 // self.down_rate_max * -1
-                else:
-                    threads_adjust = 0
+                    if down_rate < self.down_rate_min:
+                        threads_adjust = self.down_rate_min // down_rate
+                    elif down_rate > self.down_rate_max:
+                        threads_adjust = (self.down_rate_max - down_rate) // self.down_rate_max
+                    else:
+                        threads_adjust = 0
 
-                if threads_adjust:
-                    new_threads = int(max(self.threads + threads_adjust, 1))
-                    self.adjust_threads(new_threads)
+                    if threads_adjust:
+                        new_threads = int(max(self.threads + threads_adjust, 1))
+                        self.adjust_threads(new_threads)
 
-                speedtest['prev_begin'] = pres_begin
-                speedtest['prev_cache'] = pres_cache
-                speedtest['prev_time'] = pres_time
+                    speedtest['prev_begin'] = pres_begin
+                    speedtest['prev_cache'] = pres_cache
+                    speedtest['prev_time'] = pres_time
 
             try:
                 if has_peek:
                     begin, data = data_queue.peek(timeout=peek_timeout)
-                    if self.expect_begin == begin:
+                    if self._expect_begin == begin:
                         data_queue.get()
-                    elif self.expect_begin < begin:
+                    elif self._expect_begin < begin:
                         sleep(0.1)
                         continue
                     else:
-                        logger.error('error: begin(%r) < expect_begin(%r), exit.'% (begin, self.expect_begin))
+                        logger.error('error: begin(%r) < expect_begin(%r), exit.'% (begin, self._expect_begin))
                         break
                 else:
                     begin, data = data_queue.get(timeout=peek_timeout)
-                    if self.expect_begin == begin:
+                    if self._expect_begin == begin:
                         pass
-                    elif self.expect_begin < begin:
+                    elif self._expect_begin < begin:
                         data_queue.put((begin, data))
                         sleep(0.1)
                         continue
                     else:
-                        logger.error('error: begin(%r) < expect_begin(%r), exit.'% (begin, self.expect_begin))
+                        logger.error('error: begin(%r) < expect_begin(%r), exit.'% (begin, self._expect_begin))
                         break
             except Queue.Empty:
                 logger.error('data_queue peek timedout break')
                 break
+
             try:
                 self.write(data)
-                self.expect_begin += len(data)
+                self._expect_begin += len(data)
             except Exception as e:
                 logger.warning('disconnected: %r, %r' % (self.url, e))
                 break
-        self._stopped = -1
+
+        self._started_order = -1
 
     def __fetchlet(self, thread_order):
+        if thread_order in self._started_threads:
+            logger.debug('thread - %d already exists' % thread_order)
+            return
+        else:
+            self._started_threads[thread_order] = True
+            logger.debug('thread - %d start' % thread_order)
+
         data_queue = self.data_queue
         range_queue = self.range_queue
 
-        while True:
-            if thread_order > self._stopped:
-                return
-
-            if self.response:
-                response, self.response = self.response, None
-                start, end = self.firstrange
-            else:
-                try:
-                    start, end = range_queue.get(timeout=1)
-                except Queue.Empty:
+        try:
+            while True:
+                if thread_order > self._started_order:
                     return
-                while ((start - self.expect_begin) > self.delay_star_size and
-                        data_queue.qsize() * self.bufsize > self.delay_cache_size):
-                    if thread_order > self._stopped:
+
+                if self.response:
+                    response, self.response = self.response, None
+                    start, end = self.firstrange
+                else:
+                    try:
+                        start, end = range_queue.get(timeout=1)
+                    except Queue.Empty:
+                        return
+                    while ((start - self._expect_begin) > self.delay_star_size and
+                            data_queue.qsize() * self.bufsize > self.delay_cache_size):
+                        if thread_order > self._started_order:
+                            range_queue.put((start, end))
+                            return
+                        sleep(0.1)
+         
+                    response = self.rangefetch(start, end)
+                    if response is None:
                         range_queue.put((start, end))
-                        return
-                    sleep(0.1)
-     
-                response = self.rangefetch(start, end)
-                if response is None:
-                    range_queue.put((start, end))
-                    continue
+                        continue
 
-            try:
-                data = response.read(self.bufsize)
-                while data:
-                    if thread_order > self._stopped:
-                        return
-                    data_queue.put((start, data))
-                    start += len(data)
+                try:
                     data = response.read(self.bufsize)
-            except Exception as e:
-                response.close()
-            else:
-                response.release_conn()
-            finally:
-                logger.debug('receive %d bytes, expect_begin(%d)' % (start, self.expect_begin))
+                    while data:
+                        data_queue.put((start, data))
+                        start += len(data)
+                        if thread_order > self._started_order:
+                            raise
+                        data = response.read(self.bufsize)
+                except Exception as e:
+                    response.close()
+                    response._connection = None
+                finally:
+                    response.release_conn()
+                    logger.debug('receive %d bytes, expect_begin(%d)' % (start, self._expect_begin))
 
-                if start < end + 1:
-                    logger.warning('retry %d-%d' % (start, end))
-                    range_queue.put((start, end))
+                    if start < end + 1:
+                        logger.warning('retry %d-%d' % (start, end))
+                        range_queue.put((start, end))
+        finally:
+            del self._started_threads[thread_order]
+            logger.debug('thread - %d over' % thread_order)
 
 getbytes = re.compile(r'^bytes=(\d*)-(\d*)(,..)?').search
 getrange = re.compile(r'^bytes (\d+)-(\d+)/(\d+)').search
@@ -333,6 +353,13 @@ def spawn_later(seconds, target, *args, **kwargs):
         sleep(seconds)
         target(*args, **kwargs)
     thread.start_new_thread(wrap, args, kwargs)
+
+def get_path(url):
+    if url.find('://', 3, 12):
+        url = url[url.find('/', 12):]
+    if url[0] != '/':
+        url = '/' + url
+    return url
 
 
 def start_new_server(bind='', port=8806, first_size=None, max_size=None,
@@ -344,8 +371,8 @@ def start_new_server(bind='', port=8806, first_size=None, max_size=None,
     if threads:
         RangeFetch.threads = threads
     if down_rate:
-        RangeFetch.down_rate_min = int(down_rate * 1.5)
-        RangeFetch.down_rate_max = int(down_rate * 2.5)
+        RangeFetch.down_rate_min = int(down_rate * 2)
+        RangeFetch.down_rate_max = RangeFetch.down_rate_min + max(down_rate, 1024 * 100)
     if proxy:
         RangeFetch.proxy = proxy
     if scheme:

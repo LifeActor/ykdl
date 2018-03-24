@@ -123,17 +123,24 @@ class QQ(VideoExtractor):
     stream_ids = ['BD', 'TD', 'HD', 'SD', 'LD']
 
 
-    def get_streams_info(self):
+    def get_streams_info(self, profile='shd'):
         params = {
             'otype': 'json',
             'platform': PLAYER_PLATFORM,
             'vid': self.vid,
             'defnpayver': 1,
             'appver': PLAYER_VERSION,
+            'defn': profile,
         }
 
         content = get_content('http://vv.video.qq.com/getinfo?' + urlencode(params))
-        data = json.loads(match1(content, r'QZOutputJson=(.+);$'))
+        if profile == 'shd' and '"name":"fhd"' not in content:
+            for infos in self.get_streams_info('hd'):
+                yield infos
+            return
+        else:
+            data = json.loads(match1(content, r'QZOutputJson=(.+);$'))
+        self.logger.debug('data: ' + str(data))
 
         video = data['vl']['vi'][0]
         fn = video['fn']

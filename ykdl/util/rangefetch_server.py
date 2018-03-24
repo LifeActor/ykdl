@@ -124,10 +124,11 @@ class RangeFetch():
         self.delay_star_size = self.delay_cache_size * 2
         self.max_threads = min(self.threads * 2, 24)
 
+        timeout = urllib3.Timeout(connect=1, read=2)
         if self.http is None and self.proxy:
-            self.__class__.http = urllib3.ProxyManager(self.proxy, maxsize=self.max_threads)
+            self.__class__.http = urllib3.ProxyManager(self.proxy, timeout=timeout, maxsize=self.max_threads)
         else:
-            self.__class__.http = urllib3.PoolManager(maxsize=self.max_threads)
+            self.__class__.http = urllib3.PoolManager(timeout=timeout, maxsize=self.max_threads)
 
         self.firstrange = range_start, range_start + self.first_size - 1
         self.response = self.rangefetch(*self.firstrange)
@@ -156,7 +157,7 @@ class RangeFetch():
 
             tries += 1
             if tries >= max_tries:
-                logger.debug('request %d-%d fail' % (range_start, range_end))
+                logger.warning('request %d-%d fail' % (range_start, range_end))
                 break
             sleep(2)
 

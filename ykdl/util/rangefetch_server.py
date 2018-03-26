@@ -102,9 +102,9 @@ class RangeFetch():
 
         if self.http is None:
             if self.proxy:
-                self.__class__.http = urllib3.ProxyManager(self.proxy, timeout=self.timeout, maxsize=self.pool_size)
+                self.__class__.http = urllib3.ProxyManager(self.proxy, block=True, timeout=self.timeout, maxsize=self.pool_size)
             else:
-                self.__class__.http = urllib3.PoolManager(timeout=self.timeout, maxsize=self.pool_size)
+                self.__class__.http = urllib3.PoolManager(block=True, timeout=self.timeout, maxsize=self.pool_size)
 
         self.firstrange = range_start, range_start + self.first_size - 1
 
@@ -142,7 +142,7 @@ class RangeFetch():
             tries += 1
             if tries >= max_tries:
                 logger.warning('request %d-%d fail' % (range_start, range_end))
-                break
+                return response
             sleep(2)
 
     def adjust_threads(self, new_threads):
@@ -167,6 +167,9 @@ class RangeFetch():
     def fetch(self):
         self.response = response = self.rangefetch(*self.firstrange)
         response_status = response.status
+        if response_status != 206:
+            self.handler.send_error(response_status)
+            return
         response_headers = response.headers
 
         start, end, length = tuple(int(x) for x in getrange(response_headers['Content-Range']).group(1, 2, 3))
@@ -185,8 +188,8 @@ class RangeFetch():
 
         response_headers['Connection'] = 'close'
         self.handler.send_response_only(response_status)
-        for kv in response_headers.items():
-            self.handler._headers_buffer.append(('%s: %s\r\n' % kv).encode())
+        for k, v in response_headers.items():
+            self.handler.send_header(k, v)
         self.handler.end_headers()
 
         data_queue = self.data_queue
@@ -307,7 +310,7 @@ class RangeFetch():
                         sleep(0.1)
          
                     response = self.rangefetch(start, end)
-                    if response is None:
+                    if response.status != 206:
                         range_queue.put((start, end))
                         continue
 

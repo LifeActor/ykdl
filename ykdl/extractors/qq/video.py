@@ -249,7 +249,6 @@ class QQ(VideoExtractor):
 
         # Downloading some videos is very slow, use multithreading range fetch to speed up.
         # Only for video players now.
-        info.extra['proxy'] = 'http://127.0.0.1:8806'
         info.extra['rangefetch'] = {'first_size': 1024 * 16, 'max_size': 1024 * 32, 'threads': 10, 'video_rate': video_rate}
 
         if self.vip:

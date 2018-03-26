@@ -31,21 +31,25 @@ def launch_player(player, urls, **args):
             cmd += ['--force-media-title', args['title']]
         if args['header']:
             cmd += ['--http-header-fields', args['header']]
-
-    cmd += list(urls)
-
-    if args['proxy']:
+    
+    if args['rangefetch']:
+        cmd += ['http://127.0.0.1:8806/' + url for url in urls]
         env = os.environ.copy()
-        env['HTTP_PROXY'] = args['proxy']
-        if args['rangefetch']:
-            from ykdl.util.rangefetch_server import start_new_server
-            new_server = start_new_server(**args['rangefetch'])
-            subprocess.call(cmd, env=env)
-            new_server.server_close()
-        else:
-            subprocess.call(cmd, env=env)
+        env.pop('HTTP_PROXY', None)
+        env.pop('HTTPS_PROXY', None)
+        from ykdl.util.rangefetch_server import start_new_server
+        new_server = start_new_server(**args['rangefetch'])
+        subprocess.call(cmd, env=env)
+        new_server.server_close()
     else:
-        subprocess.call(cmd)
+        cmd += list(urls)
+        if args['proxy']:
+            env = os.environ.copy()
+            env['HTTP_PROXY'] = args['proxy']
+            env['HTTPS_PROXY'] = args['proxy']
+            subprocess.call(cmd, env=env)
+        else:
+            subprocess.call(cmd)
 
 def launch_ffmpeg(basename, ext, lenth):
     #build input

@@ -10,6 +10,7 @@ from ykdl.compact import (
     Queue, thread, urlsplit, HTTPStatus,
     BaseHTTPRequestHandler, SocketServer
     )
+from ykdl.util.html import fake_headers as _fake_headers
 
 import urllib3
 import re
@@ -17,6 +18,10 @@ import socket
 from time import time, sleep
 
 logger = getLogger('RangeFetch')
+
+fake_headers = _fake_headers.copy()
+# Set 'keep-alive'
+fake_headers['Connection'] = 'keep-alive'
 
 class LocalTCPServer(SocketServer.ThreadingTCPServer):
 
@@ -35,63 +40,33 @@ class LocalTCPServer(SocketServer.ThreadingTCPServer):
         self.socket.close()
 
 class RangeFetchHandler(BaseHTTPRequestHandler):
-    '''
-    HTTP Handler.
-
-    :property scheme:
-        Set the value to 'https' can connect remote server ues https.
-    '''
 
     protocol_version = 'HTTP/1.1'
-    scheme = 'http'
-
-    def do_CONNECT(self):
-        self.send_error(HTTPStatus.NOT_IMPLEMENTED,
-            'Range fetch via HTTPS can not be supported!')
 
     def do_GET(self):
-        url_parts = urlsplit(self.path)
-        self.netloc = netloc = self.headers.get('Host') or url_parts.netloc
-        self.url = self.join_path(self.path)
-        
-        need_rangefetch = not ('range=' in url_parts.query or
-                               'live=1' in url_parts.query or
-                               'range/' in url_parts.path
-                               )
-        range_start = range_end = 0
+        self.url = get_path(self.path)[1:]
+        self.url_parts = url_parts = urlsplit(self.url)
 
-        if need_rangefetch:
-            need_rangefetch = 1
-            request_range = self.headers.get('Range')
-            if request_range is not None:
-                request_range = getbytes(request_range)
-                if request_range:
-                    range_start, range_end, range_other = request_range.group(1, 2, 3)
-                    if not range_start or range_other:
-                        # Unable to process unspecified start range or discontinuous range
-                        range_start = 0
-                        need_rangefetch = 0
-                    else:
-                        range_start = int(range_start)
-                        if range_end:
-                            range_end = int(range_end)
-        else:
-            need_rangefetch = -1
+        if not url_parts.netloc:
+            self.send_error(HTTPStatus.BAD_REQUEST,
+                'No host found, range fetch can not be finished, url: %s' %  self.path)
+            return
 
-        if need_rangefetch is 1:
-            RangeFetch(self, range_start, range_end).fetch()
-        else:
+        if ('range=' in url_parts.query or
+            'live=1' in url_parts.query or
+            'range/' in url_parts.path):
             self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR,
-                'Range fetch can not be finished, url: %s' %  self.url)
+                'Range request not be accepted, range fetch can not be finished, url: %s' %  self.url)
+            return
 
-    def join_path(self, url):
-        return '%s://%s%s' % (self.scheme, self.netloc, get_path(url))
-
-    def join_redirect(self, url):
-        if url.find('://', 3, 12) < 0:
-            return self.join_path(url)
+        request_range = self.headers.get('Range')
+        if request_range:
+            request_range = getbytes(request_range)
+            range_start, range_end = [int(n) if n else 0 for n in request_range.group(1, 2)]
         else:
-            return url
+            range_start = range_end = 0
+
+        RangeFetch(self, range_start, range_end).fetch()
 
 class RangeFetch():
 
@@ -99,6 +74,9 @@ class RangeFetch():
     _started_order = -1
     proxy = None
     http = None
+    timeout = urllib3.Timeout(connect=1, read=2)
+    pool_size = 24
+    headers = fake_headers.copy()
 
     down_rate_min = 1024 * 160 # B/s
     down_rate_max = 1024 * 360
@@ -113,29 +91,35 @@ class RangeFetch():
         self.bufsize = handler.bufsize
         self.write = handler.wfile.write
         self.url = handler.url
-        self.headers = dict((k.title(), v) for k, v in handler.headers.items()
-                           if not k.title().startswith('Proxy-'))
-        # Set 'keep-alive'
-        self.headers['Connection'] = 'keep-alive'
+        self.scheme = handler.url_parts.scheme
+        self.netloc = handler.url_parts.netloc
 
         self.range_start = range_start
         self.range_end = range_end
         self.delay_cache_size = self.max_size * self.threads * 4
         self.delay_star_size = self.delay_cache_size * 2
-        self.max_threads = min(self.threads * 2, 24)
+        self.max_threads = min(self.threads * 2, self.pool_size)
 
-        timeout = urllib3.Timeout(connect=1, read=2)
-        if self.http is None and self.proxy:
-            self.__class__.http = urllib3.ProxyManager(self.proxy, timeout=timeout, maxsize=self.max_threads)
-        else:
-            self.__class__.http = urllib3.PoolManager(timeout=timeout, maxsize=self.max_threads)
+        if self.http is None:
+            if self.proxy:
+                self.__class__.http = urllib3.ProxyManager(self.proxy, timeout=self.timeout, maxsize=self.pool_size)
+            else:
+                self.__class__.http = urllib3.PoolManager(timeout=self.timeout, maxsize=self.pool_size)
 
         self.firstrange = range_start, range_start + self.first_size - 1
-        self.response = self.rangefetch(*self.firstrange)
 
         self.data_queue = Queue.PriorityQueue()
         self.range_queue = Queue.PriorityQueue()
         self._started_threads = {}
+
+    def join_path(self, url):
+        return '%s://%s%s' % (self.scheme, self.netloc, get_path(url))
+
+    def join_redirect(self, url):
+        if url.find('://', 3, 12) < 0:
+            return self.join_path(url)
+        else:
+            return url
 
     def rangefetch(self, range_start, range_end, max_tries=3):
         tries= 0
@@ -147,7 +131,7 @@ class RangeFetch():
 
             redirect_location = response.get_redirect_location()
             if redirect_location:
-                self.url = self.handler.join_redirect(redirect_location)
+                self.url = self.join_redirect(redirect_location)
                 response.read()
                 response.release_conn()
                 continue
@@ -181,8 +165,9 @@ class RangeFetch():
            spawn_later(self.delay * t, self.__fetchlet, i)
 
     def fetch(self):
-        response_status = self.response.status
-        response_headers = self.response.headers
+        self.response = response = self.rangefetch(*self.firstrange)
+        response_status = response.status
+        response_headers = response.headers
 
         start, end, length = tuple(int(x) for x in getrange(response_headers['Content-Range']).group(1, 2, 3))
         content_length = end + 1 - start
@@ -198,6 +183,7 @@ class RangeFetch():
             length = range_end + 1
             response_headers['Content-Length'] = str(length - start)
 
+        response_headers['Connection'] = 'close'
         self.handler.send_response_only(response_status)
         for kv in response_headers.items():
             self.handler._headers_buffer.append(('%s: %s\r\n' % kv).encode())
@@ -347,7 +333,7 @@ class RangeFetch():
             del self._started_threads[thread_order]
             logger.debug('thread - %d over' % thread_order)
 
-getbytes = re.compile(r'^bytes=(\d*)-(\d*)(,..)?').search
+getbytes = re.compile(r'^bytes=(\d*)-(\d*)').search
 getrange = re.compile(r'^bytes (\d+)-(\d+)/(\d+)').search
 
 def spawn_later(seconds, target, *args, **kwargs):
@@ -357,6 +343,8 @@ def spawn_later(seconds, target, *args, **kwargs):
     thread.start_new_thread(wrap, args, kwargs)
 
 def get_path(url):
+    if url[0] == '/':
+        return url
     if not url.find('://', 3, 12) < 0:
         url = url[url.find('/', 12):]
     if url[0] != '/':
@@ -365,7 +353,7 @@ def get_path(url):
 
 
 def start_new_server(bind='', port=8806, first_size=None, max_size=None,
-                     threads=None, down_rate=None, proxy=None, scheme=None, **kwargs):
+                     threads=None, down_rate=None, proxy=None, headers=None, **kwargs):
     if first_size:
         RangeFetch.first_size = first_size
     if max_size:
@@ -377,8 +365,8 @@ def start_new_server(bind='', port=8806, first_size=None, max_size=None,
         RangeFetch.down_rate_max = RangeFetch.down_rate_min + min(max(down_rate, 1024 * 100), 1024 * 200)
     if proxy:
         RangeFetch.proxy = proxy
-    if scheme:
-        RangeFetchHandler.scheme = scheme
+    if headers:
+        RangeFetch.headers.update(headers)
     new_server = LocalTCPServer((bind, port), RangeFetchHandler)
     thread.start_new_thread(new_server.serve_forever, ())
     sleep(0.1)

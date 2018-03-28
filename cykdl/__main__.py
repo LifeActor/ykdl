@@ -116,7 +116,8 @@ def handle_videoinfo(info, index=0):
     if args.proxy != 'none':
         proxy = 'http://' + args.proxy
         info.extra['proxy'] = proxy
-        info.extra['rangefetch']['proxy'] = proxy
+        if info.extra['rangefetch']:
+            info.extra['rangefetch']['proxy'] = proxy
     player_args = info.extra
     player_args['title'] = info.title
     if args.player:

@@ -1,6 +1,15 @@
 Change Log for ykdl
 ===================
 
+1.6.0
+-------
+
+- new internal proxy for slow video playback. by @SeaHOH
+- update youku, many bug fixed.
+- update bilibili, new api, playlist bug fixed.
+- update HTTP redirection for t.cn
+- use cryptodome as default.
+
 1.5.5
 -------
 

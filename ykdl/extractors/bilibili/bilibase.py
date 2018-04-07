@@ -38,6 +38,8 @@ class BiliBase(VideoExtractor):
         'flv360': ('SD', u'流畅 360P'),   #15
         }
 
+    sorted_format = ['BD', 'TD', 'HD', 'SD']
+
     def prepare(self):
         info = VideoInfo(self.name)
         add_header("Referer", "https://www.bilibili.com/")
@@ -78,4 +80,5 @@ class BiliBase(VideoExtractor):
         get_video_info()
 
         assert len(info.stream_types), "can't play this video!!"
+        info.stream_types = sorted(info.stream_types, key = self.sorted_format.index) 
         return info

@@ -19,7 +19,7 @@ class PandaXingyan(SimpleExtractor):
         info = VideoInfo(self.name, True)
 
         page = get_content(self.url)
-        page_meta = match1(page, r'window\.HOSTINFO=(.+?);')
+        page_meta = match1(page, r'window\.HOSTINFO=(.+?);<')
         page_meta = json.loads(page_meta)
 
         info.title = page_meta['roominfo']['name']
@@ -27,10 +27,7 @@ class PandaXingyan(SimpleExtractor):
         info.stream_types.append('current')
 
         stream_url = page_meta['videoinfo']['streamurl']
-        try:
-            urlopen(stream_url)
-        except:
-            assert 0, 'offline'
+        assert int(page_meta['roominfo']['playstatus']), 'live show is offline'
 
         info.streams['current'] = dict(container='flv', video_profile='current', src=[stream_url], size=float('inf'))
 

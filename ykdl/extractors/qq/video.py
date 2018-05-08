@@ -126,7 +126,6 @@ class QQ(VideoExtractor):
     def get_streams_info(self, profile='shd'):
         params = {
             'otype': 'json',
-            'platform': PLAYER_PLATFORM,
             'vid': self.vid,
             'defnpayver': 1,
             'appver': PLAYER_VERSION,

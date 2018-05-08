@@ -15,7 +15,7 @@ import struct
 import uuid
 import json
 
-PLAYER_PLATFORM = 1
+PLAYER_PLATFORM = 2
 PLAYER_VERSION = '3.2.19.333'
 """
 LEGACY FOR REFERENCE ONLY

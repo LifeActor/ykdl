@@ -119,7 +119,15 @@ class QQ(VideoExtractor):
     name = u"腾讯视频 (QQ)"
     vip = None
 
-    stream_2_id = { 'fhd': 'BD', 'shd': 'TD', 'hd': 'HD', 'sd': 'SD', 'msd':'LD' }
+    stream_2_id = {
+        'fhd': 'BD',
+        'shd': 'TD',
+        'hd': 'HD',
+        'mp4':'HD',
+        'flv': 'HD',
+        'sd': 'SD',
+        'msd':'LD'
+    }
     stream_ids = ['BD', 'TD', 'HD', 'SD', 'LD']
 
 

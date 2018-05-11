@@ -13,6 +13,14 @@ from ykdl.compact import compact_tempfile
 
 posix = os.name == 'posix'
 
+# The maximum length of cmd string
+if posix:
+    # Used in Unix is ARG_MAX in conf
+    ARG_MAX = int(os.popen('getconf ARG_MAX').read())
+else:
+    # Used in Windows CreateProcess is 32K
+    ARG_MAX = 32 * 1024
+
 def launch_player(player, urls, **args):
     if ' ' in player:
         cmd = shlex.split(player, posix=posix)
@@ -31,25 +39,44 @@ def launch_player(player, urls, **args):
             cmd += ['--force-media-title', args['title']]
         if args['header']:
             cmd += ['--http-header-fields', args['header']]
-    
+
     if args['rangefetch']:
-        cmd += ['http://127.0.0.1:8806/' + url for url in urls]
+        urls = ['http://127.0.0.1:8806/' + url for url in urls]
+        cmds = split_cmd_urls(cmd, urls)
         env = os.environ.copy()
         env.pop('HTTP_PROXY', None)
         env.pop('HTTPS_PROXY', None)
         from ykdl.util.rangefetch_server import start_new_server
         new_server = start_new_server(**args['rangefetch'])
-        subprocess.call(cmd, env=env)
+        for cmd in cmds:
+            subprocess.call(cmd, env=env)
         new_server.server_close()
     else:
-        cmd += list(urls)
+        urls = list(urls)
+        cmds = split_cmd_urls(cmd, urls)
         if args['proxy']:
             env = os.environ.copy()
             env['HTTP_PROXY'] = args['proxy']
             env['HTTPS_PROXY'] = args['proxy']
-            subprocess.call(cmd, env=env)
         else:
-            subprocess.call(cmd)
+            env = None
+        for cmd in cmds:
+            subprocess.call(cmd, env=env)
+
+def split_cmd_urls(cmd, urls):
+    _cmd = cmd + urls
+    cmd_len = len(subprocess.list2cmdline(_cmd))
+    if cmd_len > ARG_MAX:
+        n = cmd_len // ARG_MAX + 1
+        m = len(urls) // n + 1
+        cmds = []
+        for i in range(n):
+            s = i * m
+            e = s + m
+            cmds.append(cmd + urls[s:e])
+    else:
+        cmds = [_cmd]
+    return cmds
 
 def launch_ffmpeg(basename, ext, lenth):
     #build input

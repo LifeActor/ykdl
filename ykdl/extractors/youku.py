@@ -29,7 +29,7 @@ class Youku(VideoExtractor):
 
     def __init__(self):
         VideoExtractor.__init__(self)
-        self.ccode = '0502'
+        self.ccode = '0510', '0590'
         self.ref = 'http://v.youku.com'
 
 
@@ -52,10 +52,13 @@ class Youku(VideoExtractor):
                                '^(?:new-play|video)\.tudou\.com/v/([a-zA-Z0-9=]+)')
 
         self.logger.debug("VID: " + self.vid)
-        api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid={}&client_ts={}&ckey={}'.format(self.vid, self.ccode, quote(fetch_cna()), int(time.time()),ckey)
+        for ccode in self.ccode:
+            api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid={}&client_ts={}&ckey={}'.format(self.vid, ccode, quote(fetch_cna()), int(time.time()),ckey)
 
-        data = json.loads(get_content(api_url))
-        self.logger.debug("data: " + str(data))
+            data = json.loads(get_content(api_url))
+            self.logger.debug("data: " + str(data))
+            if data['e']['code'] == 0 and 'stream' in data['data']:
+                    break
         assert data['e']['code'] == 0, data['e']['desc']
         data = data['data']
         assert 'stream' in data, data['error']['note']

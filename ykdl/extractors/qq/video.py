@@ -142,7 +142,7 @@ class QQ(VideoExtractor):
         }
 
         content = get_content('http://vv.video.qq.com/getinfo?' + urlencode(params))
-        if profile == 'shd' and '"name":"fhd"' not in content:
+        if profile == 'shd' and '"name":"shd"' not in content and '"name":"fhd"' not in content:
             for infos in self.get_streams_info('hd'):
                 yield infos
             return

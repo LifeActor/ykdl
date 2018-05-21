@@ -52,6 +52,12 @@ class Youku(VideoExtractor):
                                '^static.+loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',
                                '^(?:new-play|video)\.tudou\.com/v/([a-zA-Z0-9=]+)')
 
+        if self.vid.isdigit():
+            import base64
+            vid = base64.b64encode(b'%d' % (int(self.vid) * 4))
+            if not isinstance(vid, str):
+                vid = vid.decode()
+            self.vid = 'X' + vid
         self.logger.debug("VID: " + self.vid)
         for ccode, ref, ckey in self.params:
             add_header("Referer", ref)

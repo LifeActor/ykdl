@@ -8,11 +8,6 @@ from ykdl.util.match import match1
 class Tudou(Youku):
     name = u"Tudou (土豆)"
 
-    def __init__(self):
-        Youku.__init__(self)
-        self.ccode = '050F',
-        self.ref = 'http://video.tudou.com/'
-
     def prepare(self):
         if match1(self.url, '(new-play|video)\.tudou\.com/') is None:
             self.url = get_location(self.url)

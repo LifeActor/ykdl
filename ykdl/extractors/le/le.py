@@ -7,11 +7,6 @@ import base64, time
 import sys
 import hashlib
 
-if sys.version_info[0] == 3:
-    WR_ord = int
-else:
-    WR_ord = ord
-
 from ykdl.util.html import get_content, url_info
 from ykdl.util.match import match1, matchall
 from ykdl.extractor import VideoExtractor
@@ -27,17 +22,17 @@ def decode(data):
     version = data[0:5]
     if version.lower() == b'vc_01':
         #get real m3u8
-        loc2 = data[5:]
+        loc2 = bytearray(data[5:])
         length = len(loc2)
         loc4 = [0]*(2*length)
         for i in range(length):
-            loc4[2*i] = WR_ord(loc2[i]) >> 4
-            loc4[2*i+1]= WR_ord(loc2[i]) & 15;
+            loc4[2*i] = loc2[i] >> 4
+            loc4[2*i+1]= loc2[i] & 15;
         loc6 = loc4[len(loc4)-11:]+loc4[:len(loc4)-11]
-        loc7 = [0]*length
+        loc7 = bytearray(length)
         for i in range(length):
             loc7[i] = (loc6[2 * i] << 4) +loc6[2*i+1]
-        return ''.join([chr(i) for i in loc7])
+        return loc7
     else:
         # directly return
         return data
@@ -62,7 +57,7 @@ class Letv(VideoExtractor):
             self.vid = match1(self.url, 'vplay/(\d+).html', '#record/(\d+)')
 
         #normal process
-        url = 'http://player-pc.le.com/mms/out/video/playJson?id={}&platid=1&splatid=101&format=1&tkey={}&domain=www.le.com&region=cn&source=1000&accesyx=1'.format(self.vid,calcTimeKey(int(time.time())))
+        url = 'http://player-pc.le.com/mms/out/video/playJson?id={}&platid=1&splatid=105&format=1&tkey={}&domain=www.le.com&region=cn&source=1000&accessyx=1'.format(self.vid, calcTimeKey(int(time.time())))
         r = get_content(url)
         data=json.loads(r)
         data = data['msgs']
@@ -84,7 +79,7 @@ class Letv(VideoExtractor):
             m3u8_list = decode(m3u8)
             stream_id = self.stream_2_id[stream]
             info.streams[stream_id] = {'container': 'm3u8', 'video_profile': self.stream_2_profile[stream], 'size' : 0}
-            stream_temp[stream] = compact_tempfile(mode='w+t', suffix='.m3u8')
+            stream_temp[stream] = compact_tempfile(mode='w+b', suffix='.m3u8')
             stream_temp[stream].write(m3u8_list)
             info.streams[stream_id]['src'] = [stream_temp[stream].name]
             stream_temp[stream].flush()

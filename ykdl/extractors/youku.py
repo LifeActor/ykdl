@@ -16,7 +16,7 @@ import ssl
 
 
 def fetch_cna():
-    url = 'http://gm.mmstat.com/yt/ykcomment.play.commentInit?cna='
+    url = 'https://gm.mmstat.com/yt/ykcomment.play.commentInit?cna='
     req = urlopen(url)
     cookies = req.info()['Set-Cookie']
     cna = match1(cookies, "cna=([^;]+)")
@@ -33,15 +33,11 @@ class Youku(VideoExtractor):
         self.params = (
             ('0510', self.ref_youku, self.ckey_default),
             ('050F', self.ref_tudou, self.ckey_default),
+            ('0590', self.ref_youku, self.ckey_default),
             )
 
     def prepare(self):
-        ssl_context = HTTPSHandler(
-            context=ssl.SSLContext(ssl.PROTOCOL_TLSv1))
-        cookie_handler = HTTPCookieProcessor()
-        opener = build_opener(ssl_context, cookie_handler)
-        opener.addheaders = [('Cookie','__ysuid=%d' % time.time())]
-        install_opener(opener)
+        add_header("Cookie", '__ysuid=%d' % time.time())
 
         info = VideoInfo(self.name)
 

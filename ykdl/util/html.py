@@ -86,7 +86,7 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
         charset = charset or match1(str(data), r'charset=\"([^\"]+)', 'charset=([^"]+)') or 'utf-8'
     logger.debug("get_content> Charset: " + charset)
     try:
-        data = data.decode(charset)
+        data = data.decode(charset, errors='replace')
     except:
         logger.warning("wrong charset for {}".format(url))
     return data

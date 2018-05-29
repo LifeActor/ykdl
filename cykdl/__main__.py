@@ -24,6 +24,7 @@ logger = logging.getLogger("YKDL")
 from ykdl.common import url_to_module
 from ykdl.compact import ProxyHandler, build_opener, install_opener, compact_str
 from ykdl.util import log
+from ykdl.util.html import default_proxy_handler
 from ykdl.util.wrap import launch_player, launch_ffmpeg, launch_ffmpeg_download
 from ykdl.util.m3u8_wrap import load_m3u8
 from ykdl.util.download import save_urls
@@ -146,6 +147,7 @@ def main():
     if not args.proxy == 'none':
         opener = build_opener(proxy_handler)
         install_opener(opener)
+        default_proxy_handler[:] = [proxy_handler]
 
     #mkdir and cd to output dir
     if not args.output_dir == '.':

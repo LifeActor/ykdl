@@ -7,6 +7,8 @@ from ykdl.compact import Request, urlopen
 
 from .match import match1
 
+default_proxy_handler = []
+
 fake_headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate',

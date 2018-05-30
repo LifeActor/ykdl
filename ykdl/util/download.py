@@ -20,6 +20,8 @@ import sys
 import time
 import socket
 import threading
+import subprocess
+import tempfile
 from logging import getLogger
 from shutil import get_terminal_size
 from concurrent.futures import ThreadPoolExecutor
@@ -287,7 +289,9 @@ def save_url(*args, tries=3, **kwargs):
             raise
 
 def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
-              fail_retry_eta=3600, reporthook=multi_hook):
+              fail_retry_eta=3600, reporthook=multi_hook, use_aria2=False):
+    if use_aria2 and not 'acgvideo.com' in urls[0]:
+        return aria_save_urls(urls, name, ext)
 
     if not hit_conn_cache(urls[0]):
         clear_conn_cache()  # clear useless caches
@@ -381,3 +385,21 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
             tries += 1
         print('Restart downloading: ' + name, file=sys.stderr)
     return succeed
+
+aria_args = ['aria2c', '-c', '--max-connection-per-server=16', '--split=16', '--min-split-size=5M', '--file-allocation=falloc']
+
+def aria_save_url(url, name, ext):
+    args = aria_args+['-o', name + '.' + ext, url]
+    return subprocess.call(args)==0
+
+def aria_save_urls(urls, name, ext):
+    if len(urls) == 1:
+        return aria_save_url(urls[0], name, ext)
+    inputfile = tempfile.NamedTemporaryFile(mode='w+t', suffix='.txt', dir='.', encoding='utf-8')
+    for no, u in enumerate(urls):
+        inputfile.write('%s\n'%u)
+        inputfile.write('  out=%s_%d_.%s\n'%(name,no,ext))
+    inputfile.flush()
+    args = aria_args+['-i', inputfile.name]
+    return subprocess.call(args)==0
+

@@ -52,6 +52,7 @@ def arg_parser():
     parser.add_argument('--no-sub', action='store_true', default=False, help='Do not download subtitles')
     parser.add_argument('-s', '--start', type=int, default=0, metavar='INDEX_NUM', help='Start from INDEX to play/download playlist')
     parser.add_argument('-j', '--jobs', type=int, default=8, metavar='NUM', help='Number of jobs for multiprocess download')
+    parser.add_argument('-A', '--aria2', action='store_true', default=False, help="Download by Aria2.")
     parser.add_argument('--debug', default=False, action='store_true', help='Print debug messages from ykdl')
     parser.add_argument('video_urls', type=str, nargs='+', help='video urls')
     global args
@@ -97,7 +98,7 @@ def download(urls, name, ext, live=False):
     else:
         if save_urls(urls, name, ext, jobs=args.jobs,
                      fail_confirm=not args.no_fail_confirm,
-                     fail_retry_eta=args.fail_retry_eta):
+                     fail_retry_eta=args.fail_retry_eta, use_aria2=args.aria2):
             lenth = len(urls)
             if lenth > 1 and not args.no_merge:
                 if m3u8_crypto:

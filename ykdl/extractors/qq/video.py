@@ -15,7 +15,7 @@ import struct
 import uuid
 import json
 
-PLAYER_PLATFORM = 2
+PLAYER_PLATFORMS = [11, 2, 1]
 PLAYER_VERSION = '3.2.19.333'
 """
 LEGACY FOR REFERENCE ONLY
@@ -93,11 +93,11 @@ def load_key():
 
 """
 
-def qq_get_final_url(url, vid, fmt_id, filename, fvkey):
+def qq_get_final_url(url, vid, fmt_id, filename, fvkey, platform):
     params = {
         'appver': PLAYER_VERSION,
         'otype': 'json',
-        'platform': PLAYER_PLATFORM,
+        'platform': platform,
         'filename': filename,
         'vid': vid,
         'format': fmt_id,
@@ -132,24 +132,34 @@ class QQ(VideoExtractor):
 
 
     def get_streams_info(self, profile='shd'):
-        params = {
-            'otype': 'json',
-            'platform': PLAYER_PLATFORM,
-            'vid': self.vid,
-            'defnpayver': 1,
-            'appver': PLAYER_VERSION,
-            'defn': profile,
-        }
+        for PLAYER_PLATFORM in PLAYER_PLATFORMS.copy():
+            params = {
+                'otype': 'json',
+                'platform': PLAYER_PLATFORM,
+                'vid': self.vid,
+                'defnpayver': 1,
+                'appver': PLAYER_VERSION,
+                'defn': profile,
+            }
 
-        content = get_content('http://vv.video.qq.com/getinfo?' + urlencode(params))
-        if profile == 'shd' and '"name":"shd"' not in content and '"name":"fhd"' not in content:
-            for infos in self.get_streams_info('hd'):
-                yield infos
-            return
-        else:
+            content = get_content('http://vv.video.qq.com/getinfo?' + urlencode(params))
             data = json.loads(match1(content, r'QZOutputJson=(.+);$'))
-        self.logger.debug('data: ' + str(data))
+            self.logger.debug('data: ' + str(data))
 
+            if 'msg' in data:
+                PLAYER_PLATFORMS.remove(PLAYER_PLATFORM)
+                continue
+
+            if PLAYER_PLATFORMS and \
+                    profile == 'shd' and \
+                    '"name":"shd"' not in content and \
+                    '"name":"fhd"' not in content:
+                for infos in self.get_streams_info('hd'):
+                    yield infos
+                return
+            break
+
+        assert 'msg' not in data, data['msg']
         video = data['vl']['vi'][0]
         fn = video['fn']
         title = video['ti']
@@ -213,14 +223,14 @@ class QQ(VideoExtractor):
 
             if num_clips == 0:
                 filename = '.'.join(fns)
-                url = qq_get_final_url(cdn_url, self.vid, fmt_id, filename, fvkey)
+                url = qq_get_final_url(cdn_url, self.vid, fmt_id, filename, fvkey, PLAYER_PLATFORM)
                 urls.append(url)
             else:
                 fns.insert(-1, '1')
                 for idx in range(1, num_clips+1):
                     fns[-2] = str(idx)
                     filename = '.'.join(fns)
-                    url = qq_get_final_url(cdn_url, self.vid, fmt_id, filename, fvkey)
+                    url = qq_get_final_url(cdn_url, self.vid, fmt_id, filename, fvkey, PLAYER_PLATFORM)
                     if url:
                         urls.append(url)
                     else:

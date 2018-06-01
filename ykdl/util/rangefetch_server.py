@@ -215,6 +215,9 @@ class RangeFetch():
                      }
 
         while self._expect_begin < length:
+            if self.handler.server.socket._closed:
+                break
+
             # Keeping single thread
             if self._started_order > 0 and self._started_order in self._started_threads:
                 pres_begin = self._expect_begin

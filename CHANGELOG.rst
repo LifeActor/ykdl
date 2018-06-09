@@ -1,6 +1,11 @@
 Change Log for ykdl
 ===================
 
+1.6.1
+-------
+
+- fix youku/tudou, QQ, mgtv, 163, bilibili by @SeaHOH
+
 1.6.0
 -------
 

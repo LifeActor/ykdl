@@ -106,11 +106,14 @@ def qq_get_final_url(url, vid, fmt_id, filename, fvkey, platform):
     content = get_content('http://vv.video.qq.com/getkey?' + urlencode(params))
     data = json.loads(match1(content, r'QZOutputJson=(.+);$'))
 
-    vkey = data.get('key')
-    if vkey is None:
-        vkey = fvkey
+    vkey = data.get('key', fvkey)
+    if vkey:
+        url = "{}{}?vkey={}".format(url, filename, vkey)
+    else:
+        url = None
+    vip = data.get('msg') == 'not pay'
 
-    return "{}{}?vkey={}".format(url, filename, vkey)
+    return url, vip
 
 
 
@@ -118,6 +121,7 @@ class QQ(VideoExtractor):
 
     name = u"腾讯视频 (QQ)"
     vip = None
+    iflag = None
 
     stream_2_id = {
         'fhd': 'BD',
@@ -164,9 +168,9 @@ class QQ(VideoExtractor):
         fn = video['fn']
         title = video['ti']
         td = float(video['td'])
-        fvkey = video['fvkey']
+        fvkey = video.get('fvkey')
         # Not to be absolutely accuracy.
-        self.vip = video['iflag']
+        self.iflag = video['iflag']
 
         # Priority for range fetch.
         cdn_url_1 = cdn_url_2 = cdn_url_3 = None
@@ -223,19 +227,22 @@ class QQ(VideoExtractor):
 
             if num_clips == 0:
                 filename = '.'.join(fns)
-                url = qq_get_final_url(cdn_url, self.vid, fmt_id, filename, fvkey, PLAYER_PLATFORM)
-                urls.append(url)
+                url, vip = qq_get_final_url(cdn_url, self.vid, fmt_id, filename, fvkey, PLAYER_PLATFORM)
+                if vip:
+                    self.vip = vip
+                elif url:
+                    urls.append(url)
             else:
                 fns.insert(-1, '1')
                 for idx in range(1, num_clips+1):
                     fns[-2] = str(idx)
                     filename = '.'.join(fns)
-                    url = qq_get_final_url(cdn_url, self.vid, fmt_id, filename, fvkey, PLAYER_PLATFORM)
-                    if url:
-                        urls.append(url)
-                    else:
-                        self.vip = True
+                    url, vip = qq_get_final_url(cdn_url, self.vid, fmt_id, filename, fvkey, PLAYER_PLATFORM)
+                    if vip:
+                        self.vip = vip
                         break
+                    elif url:
+                        urls.append(url)
 
             yield title, fmt_name, fmt_cname, type_name, urls, size, rate
 
@@ -258,20 +265,22 @@ class QQ(VideoExtractor):
         video_rate = {}
         for title, fmt_name, stream_profile, type_name, urls, size, rate in self.get_streams_info():
             stream_id = self.stream_2_id[fmt_name]
-            if stream_id not in info.stream_types:
+            if urls and stream_id not in info.stream_types:
                 info.stream_types.append(stream_id)
                 info.streams[stream_id] = {'container': type_name, 'video_profile': stream_profile, 'src' : urls, 'size': size}
                 video_rate[stream_id] = rate
+
+        assert len(info.stream_types), "can't play this video!!"
         info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
         info.title = title
 
-        # Downloading some videos is very slow, use multithreading range fetch to speed up.
-        # Only for video players now.
-        info.extra['rangefetch'] = {'first_size': 1024 * 16, 'max_size': 1024 * 32, 'threads': 10, 'video_rate': video_rate}
-
         if self.vip:
-            info.extra['rangefetch']['threads'] = 14
             self.logger.warning('This is a VIP video!')
+        elif self.iflag:
+            # Downloading some videos is very slow, use multithreading range fetch to speed up.
+            # Only for video players now.
+            info.extra['rangefetch'] = {'first_size': 1024 * 16, 'max_size': 1024 * 32, 'threads': 10, 'video_rate': video_rate}
+            self.logger.warning('This is a slow video!')
 
         return info
 

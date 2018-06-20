@@ -23,7 +23,7 @@ class BiliVideo(BiliBase):
             self.url = 'https://www.bilibili.com/video/av' + av_id
         if not self.vid:
             html = get_content(self.url)
-            vid = match1(html, 'cid(?==|")=?"?:?(\d+)')
+            vid = match1(html, 'cid=(\d+)', 'cid="(\d+)', '"cid":(\d+)')
             title = match1(html, '<h1 title="([^"]+)', '<title>([^<]+)').strip()
 
         return vid, title

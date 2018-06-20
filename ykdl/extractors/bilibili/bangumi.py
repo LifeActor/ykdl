@@ -27,7 +27,7 @@ class BiliBan(BiliBase):
             vid = Episode_info['currentEpisode']['danmaku']
             title = Episode_info['season']['title'] + ' ' + Episode_info['currentEpisode']['indexTitle'] + '.  ' + Episode_info['currentEpisode']['longTitle']
         else:
-            vid = match1(html, 'cid=(\d+)', 'cid=\"(\d+)', '\"cid\":(\d+)')
+            vid = match1(html, 'cid=(\d+)', 'cid="(\d+)', '"cid":(\d+)')
 
         return vid, title
 

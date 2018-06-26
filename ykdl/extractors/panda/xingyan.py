@@ -19,7 +19,7 @@ class PandaXingyan(SimpleExtractor):
         info = VideoInfo(self.name, True)
 
         page = get_content(self.url)
-        page_meta = match1(page, r'window\.HOSTINFO=(.+?);<')
+        page_meta = match1(page, r'window\.HOSTINFO=(.+?});</script>')
         page_meta = json.loads(page_meta)
 
         info.title = page_meta['roominfo']['name']

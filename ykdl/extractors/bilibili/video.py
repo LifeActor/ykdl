@@ -14,17 +14,27 @@ class BiliVideo(BiliBase):
     name = u'哔哩哔哩 (Bilibili)'
 
     def get_vid_title(self):
-        if "#page=" in self.url or "?p=" in self.url:
-            page_index = match1(self.url, '(?:#page|\?p)=(\d+)')
-            av_id = match1(self.url, '/av(\d+)')
-            self.url = 'https://www.bilibili.com/av{}/index_{}.html'.format(av_id, page_index)
-        if "aid=" in self.url:
-            av_id = match1(self.url, 'aid=(\d+)')
-            self.url = 'https://www.bilibili.com/video/av' + av_id
+        av_id = match1(self.url, '(?:/av|aid=)(\d+)')
+        page_index = '1'
+        if "#page=" in self.url or "?p=" in self.url or 'index_' in self.url:
+            page_index = match1(self.url, '(?:#page|\?p)=(\d+)', 'index_(\d+)\.')
+        if page_index == '1':
+            self.url = 'https://www.bilibili.com/av{}/'.format(av_id)
+        else:
+            self.url = 'https://www.bilibili.com/av{}/?p={}'.format(av_id, page_index)
         if not self.vid:
             html = get_content(self.url)
-            vid = match1(html, 'cid=(\d+)', 'cid="(\d+)', '"cid":(\d+)')
-            title = match1(html, '<h1 title="([^"]+)', '<title>([^<]+)').strip()
+            #vid = match1(html, 'cid=(\d+)', 'cid="(\d+)', '"cid":(\d+)')
+            title = match1(html, '"title":"([^"]+)', '<h1 title="([^"]+)', '<title>([^<]+)').strip()
+            video_list = matchall(html, ['"cid":(\d+),"page":(\d+),"from":"[^"]+","part":"([^"]+)",'])
+            for cid, page, part in video_list:
+               if page == page_index:
+                   vid = cid
+                   if len(video_list) > 1:
+                       title = '{} - {} - {}'.format(title, page, part)
+                   elif part:
+                       title = '{} - {}'.format(title, part)
+                   break
 
         return vid, title
 
@@ -34,11 +44,10 @@ class BiliVideo(BiliBase):
 
     def prepare_list(self):
         av_id = match1(self.url, '(?:/av|aid=)(\d+)')
-        if "aid=" in self.url:
-            self.url = 'https://www.bilibili.com/video/av' + av_id
+        self.url = 'https://www.bilibili.com/av{}/'.format(av_id)
         html = get_content(self.url)
         video_list = matchall(html, ['"page":(\d+),'])
         if video_list:
-            return ['https://www.bilibili.com/av{}/index_{}.html'.format(av_id, p) for p in video_list]
+            return ['https://www.bilibili.com/av{}/?p={}'.format(av_id, p) for p in video_list]
 
 site = BiliVideo()

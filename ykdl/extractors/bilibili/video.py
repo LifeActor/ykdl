@@ -26,7 +26,7 @@ class BiliVideo(BiliBase):
             html = get_content(self.url)
             #vid = match1(html, 'cid=(\d+)', 'cid="(\d+)', '"cid":(\d+)')
             title = match1(html, '"title":"([^"]+)', '<h1 title="([^"]+)', '<title>([^<]+)').strip()
-            video_list = matchall(html, ['"cid":(\d+),"page":(\d+),"from":"[^"]+","part":"([^"]+)",'])
+            video_list = matchall(html, ['"cid":(\d+),"page":(\d+),"from":"[^"]+","part":"([^"]*)",'])
             for cid, page, part in video_list:
                if page == page_index:
                    vid = cid

@@ -165,6 +165,7 @@ class QQ(VideoExtractor):
             break
 
         assert 'msg' not in data, data['msg']
+        self.fp2p = data.get('fp2p')
         video = data['vl']['vi'][0]
         fn = video['fn']
         title = video['ti']
@@ -282,17 +283,17 @@ class QQ(VideoExtractor):
                     continue
                 raise e
 
-        assert len(info.stream_types), "can't play this video!!"
-        info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
-        info.title = title
-
         if self.vip:
             self.logger.warning('This is a VIP video!')
-        elif self.iflag or self.pl:
+        elif self.fp2p and (self.iflag or self.pl):
             # Downloading some videos is very slow, use multithreading range fetch to speed up.
             # Only for video players now.
             info.extra['rangefetch'] = {'first_size': 1024 * 16, 'max_size': 1024 * 32, 'threads': 10, 'video_rate': video_rate}
             self.logger.warning('This is a slow video!')
+
+        assert len(info.stream_types), "can't play this video!!"
+        info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
+        info.title = title
 
         return info
 

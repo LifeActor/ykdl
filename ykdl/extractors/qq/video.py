@@ -292,7 +292,7 @@ class QQ(VideoExtractor):
             # Downloading some videos is very slow, use multithreading range fetch to speed up.
             # Only for video players now.
             info.extra['rangefetch'] = {'first_size': 1024 * 16, 'max_size': 1024 * 32, 'threads': 10, 'video_rate': video_rate}
-            self.logger.warning('This is a slow video!%r %r' % (self.iflag, self.pl))
+            self.logger.warning('This is a slow video!')
 
         return info
 

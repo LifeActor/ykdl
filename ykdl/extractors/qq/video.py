@@ -121,7 +121,6 @@ class QQ(VideoExtractor):
 
     name = u"腾讯视频 (QQ)"
     vip = None
-    iflag = None
 
     stream_2_id = {
         'fhd': 'BD',
@@ -165,16 +164,15 @@ class QQ(VideoExtractor):
             break
 
         assert 'msg' not in data, data['msg']
-        self.fp2p = data.get('fp2p')
+        #self.fp2p = data.get('fp2p')
         video = data['vl']['vi'][0]
         fn = video['fn']
         title = video['ti']
         td = float(video['td'])
         fvkey = video.get('fvkey')
         # Not to be absolutely accuracy.
-        self.iflag = video['iflag']
-        # video caps preview
-        self.pl = video['pl']
+        self.vip = video['drm']
+        self.slow = not self.vip and (video['iflag'] or video['pl'])
 
         # Priority for range fetch.
         cdn_url_1 = cdn_url_2 = cdn_url_3 = None
@@ -182,14 +180,17 @@ class QQ(VideoExtractor):
             cdn_url = cdn['url']
             # 'video.dispatch.tc.qq.com' supported keep-alive link.
             if cdn_url == 'http://video.dispatch.tc.qq.com/':
-                cdn_url_1 = cdn_url
-                break
-            # IP host.
-            if match1(cdn_url, '(^https?://[0-9\.]+/)'):
                 cdn_url_3 = cdn_url
-            else:
-                cdn_url_2 = cdn_url
-        cdn_url = cdn_url_1 or cdn_url_2 or cdn_url_3 
+            # IP host.
+            elif match1(cdn_url, '(^https?://[0-9\.]+/)'):
+                if not cdn_url_2:
+                    cdn_url_2 = cdn_url
+            elif not cdn_url_1:
+                cdn_url_1 = cdn_url
+        if self.slow:
+            cdn_url = cdn_url_3 or cdn_url_1 or cdn_url_2
+        else:
+            cdn_url = cdn_url_1 or cdn_url_2 or cdn_url_3
 
         dt = cdn['dt']
         if dt == 1:
@@ -285,15 +286,17 @@ class QQ(VideoExtractor):
 
         if self.vip:
             self.logger.warning('This is a VIP video!')
-        elif self.fp2p and (self.iflag or self.pl):
-            # Downloading some videos is very slow, use multithreading range fetch to speed up.
-            # Only for video players now.
-            info.extra['rangefetch'] = {'first_size': 1024 * 16, 'max_size': 1024 * 32, 'threads': 10, 'video_rate': video_rate}
-            self.logger.warning('This is a slow video!')
+            self.slow = False
 
         assert len(info.stream_types), "can't play this video!!"
         info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
         info.title = title
+
+        if self.slow:
+            # Downloading some videos is very slow, use multithreading range fetch to speed up.
+            # Only for video players now.
+            info.extra['rangefetch'] = {'first_size': 1024 * 16, 'max_size': 1024 * 32, 'threads': 10, 'video_rate': video_rate}
+            self.logger.warning('This is a slow video!')
 
         return info
 

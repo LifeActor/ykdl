@@ -67,3 +67,6 @@ class EmbedExtractor():
                 site = alias[site]
             s = import_module('.'.join(['ykdl','extractors',site])).site
             yield s.parser(vid)
+
+    def __getattr__(self, attr):
+        return None

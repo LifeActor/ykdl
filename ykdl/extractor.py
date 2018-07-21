@@ -32,6 +32,9 @@ class VideoExtractor():
         for video in video_list:
             yield self.parser(video)
 
+    def __getattr__(self, attr):
+        return None
+
     def prepare(self):
         pass
 

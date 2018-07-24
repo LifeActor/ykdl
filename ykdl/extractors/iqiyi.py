@@ -74,8 +74,10 @@ class Iqiyi(VideoExtractor):
                 self.vid = str(video_info['tvId']), str(video_info['vid'])
                 info.title = video_info['name']
             else:
-                tvid = match1(html, 'data-player-tvid="([^"]+)"', 'tvid=([^&]+)' , 'tvId:([^,]+)')
-                videoid = match1(html, 'data-player-videoid="([^"]+)"', 'vid=([^&]+)', 'vid:"([^"]+)')
+
+                tvid = match1(html, 'data-player-tvid="([^"]+)"', 'tvid=([^&]+)', 'tvId:([^,]+)', r'''param\['tvid'\]\s*=\s*"(.+?)"''', r'"tvid": "(\d+)"')
+                videoid = match1(
+                    html, 'data-player-videoid="([^"]+)"', 'vid=([^&]+)', 'vid:"([^"]+)', r'''param\['vid'\]\s*=\s*"(.+?)"''', r'"vid": "(\w+)"')
                 self.vid = (tvid, videoid)
                 info.title = match1(html, '<title>([^<]+)').split('-')[0]
 
@@ -83,6 +85,7 @@ class Iqiyi(VideoExtractor):
         vps_data = getvps(tvid, vid)
         assert vps_data['code'] == 'A00000', 'can\'t play this video!!'
         url_prefix = vps_data['data']['vp']['du']
+        print(vps_data)
         stream = vps_data['data']['vp']['tkl'][0]
         vs_array = stream['vs']
         for vs in vs_array:

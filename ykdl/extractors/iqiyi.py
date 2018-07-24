@@ -68,10 +68,16 @@ class Iqiyi(VideoExtractor):
 
         if self.url and not self.vid:
             html = get_content(self.url)
-            tvid = match1(html, 'data-player-tvid="([^"]+)"', 'tvid=([^&]+)' , 'tvId:([^,]+)')
-            videoid = match1(html, 'data-player-videoid="([^"]+)"', 'vid=([^&]+)', 'vid:"([^"]+)')
-            self.vid = (tvid, videoid)
-            info.title = match1(html, '<title>([^<]+)').split('-')[0]
+            video_info = match1(html, ":video-info='(.+?)'")
+            if video_info:
+                video_info = json.loads(video_info)
+                self.vid = str(video_info['tvId']), str(video_info['vid'])
+                info.title = video_info['name']
+            else:
+                tvid = match1(html, 'data-player-tvid="([^"]+)"', 'tvid=([^&]+)' , 'tvId:([^,]+)')
+                videoid = match1(html, 'data-player-videoid="([^"]+)"', 'vid=([^&]+)', 'vid:"([^"]+)')
+                self.vid = (tvid, videoid)
+                info.title = match1(html, '<title>([^<]+)').split('-')[0]
 
         tvid, vid = self.vid
         vps_data = getvps(tvid, vid)

@@ -27,13 +27,15 @@ class Youku(VideoExtractor):
     ref_youku = 'https://v.youku.com'
     ref_tudou = 'https://video.tudou.com'
     ckey_default = quote("DIl58SLFxFNndSV1GFNnMQVYkx1PP5tKe1siZu/86PR1u/Wh1Ptd+WOZsHHWxysSfAOhNJpdVWsdVJNsfJ8Sxd8WKVvNfAS8aS8fAOzYARzPyPc3JvtnPHjTdKfESTdnuTW6ZPvk2pNDh4uFzotgdMEFkzQ5wZVXl2Pf1/Y6hLK0OnCNxBj3+nb0v72gZ6b0td+WOZsHHWxysSo/0y9D2K42SaB8Y/+aD2K42SaB8Y/+ahU+WOZsHcrxysooUeND")
+    ckey_mobile = quote("7B19C0AB12633B22E7FE81271162026020570708D6CC189E4924503C49D243A0DE6CD84A766832C2C99898FC5ED31F3709BB3CDD82C96492E721BDD381735026")
 
     def __init__(self):
         VideoExtractor.__init__(self)
         self.params = (
-            ('0519', self.ref_youku, self.ckey_default),
-            ('0502', self.ref_youku, self.ckey_default),
-            ('050F', self.ref_tudou, self.ckey_default),
+            ('0808', self.ref_youku, self.ckey_mobile),
+            #('0519', self.ref_youku, self.ckey_default),
+            #('0502', self.ref_youku, self.ckey_default),
+            #('050F', self.ref_tudou, self.ckey_default),
             ('0590', self.ref_youku, self.ckey_default),
             )
 
@@ -58,12 +60,12 @@ class Youku(VideoExtractor):
         self.logger.debug("VID: " + self.vid)
         for ccode, ref, ckey in self.params:
             add_header("Referer", ref)
-            api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid={}&client_ts={}&ckey={}'.format(self.vid, ccode, quote(fetch_cna()), int(time.time()),ckey)
+            api_url = 'https://ups.youku.com/ups/get.json?vid={}&ccode={}&client_ip=192.168.1.1&utid={}&client_ts={}&ckey={}'.format(self.vid, ccode, quote(fetch_cna()), int(time.time()), ckey)
 
             data = json.loads(get_content(api_url))
             self.logger.debug("data: " + str(data))
             if data['e']['code'] == 0 and 'stream' in data['data']:
-                    break
+                break
         assert data['e']['code'] == 0, data['e']['desc']
         data = data['data']
         assert 'stream' in data, data['error']['note']

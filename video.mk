@@ -32,7 +32,7 @@ test_joy:
 	${PYTHON} -m cykdl -i http://www.joy.cn/video?resourceId=60239051
 
 test_ku6:
-	${PYTHON} -m cykdl -i http://v.ku6.com/special/show_6615055/ng4jKVcB-zw1r8wRYEtTMA...html?hpsrc=1_25_1_1_0
+	${PYTHON} -m cykdl -i http://www.ku6.com/video/detail?id=lfx8PD61clQ0knUJQad1R4Mbu2w
 
 test_kuwo:
 	${PYTHON} -m cykdl -i http://www.kuwo.cn/yinyue/7119332?catalog=yueku2016

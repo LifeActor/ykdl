@@ -15,7 +15,7 @@ class HuyaLive(VideoExtractor):
         html  = get_content(self.url)
 
         channel = match1(html, '"channel":"*(\d+)"*,')
-        sid = match1(html, '"sid":"*(\d+)"*,')
+        sid = match1(html, '"sid":"(\d+)",', '"sid":(\d+),')
         assert not channel == '0' and not sid == '0', "live video is offline"
 
 

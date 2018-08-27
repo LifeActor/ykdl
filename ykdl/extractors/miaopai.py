@@ -18,14 +18,17 @@ class Miaopai(VideoExtractor):
             self.vid = match1(self.url, 'https?://www.miaopai.com/show/channel/([^.]+)', \
                                         'https?://www.miaopai.com/show/([^.]+)', \
                                         'https?://m.miaopai.com/show/channel/([^.]+)')
-        content = json.loads(get_content('http://api.miaopai.com/m/v2_channel.json?fillType=259&scid={}&vend=miaopai'.format(self.vid)))
+        if not self.vid:
+            html = get_content(self.url)
+            self.vid = match1(html, 'scid ?= ?[\'"]([^\'"]+)[\'"]')
+        data = json.loads(get_content('http://api.miaopai.com/m/v2_channel.json?fillType=259&scid={}&vend=miaopai'.format(self.vid)))
 
-        assert content['status'] == 200, "something error!"
+        assert data['status'] == 200, "something error!"
 
-        content = content['result']
-        info.title = content['ext']['t'] or self.name + '_' + self.vid
-        url = content['stream']['base']
-        ext = content['stream']['and']
+        data = data['result']
+        info.title = data['ext']['t'] or self.name + '_' + self.vid
+        url = data['stream']['base']
+        ext = data['stream']['and']
 
         info.stream_types.append('current')
         info.streams['current'] = {'container': ext, 'src': [url], 'size' : 0}

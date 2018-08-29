@@ -21,9 +21,12 @@ class Sina(VideoExtractor):
 
     def prepare(self):
         info = VideoInfo(self.name)
+        self.vid = match1(self.url, '(\d+)\.swf')
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, 'video_id:\'([^\']+)') or match1(self.url, '#(\d+)')
+            self.vid = match1(html, 'video_id:\'([^\']+)') or \
+                       match1(self.url, '#(\d+)') or \
+                       match1(html, 'SINA_TEXT_PAGE_INFO[\s\S]+?video_id: ?(\d+)')
 
         assert self.vid, "can't get vid"
 

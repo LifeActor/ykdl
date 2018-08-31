@@ -40,7 +40,7 @@ def url_to_module(url):
             site = m.get_extractor(url)
         else:
             site = m.site
-        return site, site.url or url
+        return site, url
     except(ImportError):
         logger.debug('> Try HTTP Redirection!')
         new_url = get_location(url, headers = {})

@@ -13,7 +13,31 @@ from .youkujs import supported_stream_code, ids, stream_code_to_id, stream_code_
 import time
 import json
 import ssl
+import struct
+import hmac
+import base64
+import random
+import hashlib
+from ctypes import c_int
 
+
+def hashCode(str):
+    res = c_int(0)
+    if not isinstance(str, bytes):
+        str = str.encode()
+    for i in bytearray(str):
+        res = c_int(c_int(res.value * 0x1f).value + i)
+    return res.value
+
+def generateUtdid():
+    timestamp = int(time.time()) - 60 * 60 * 8
+    i31 = random.randint(0, (1 << 31) - 1)
+    imei = hashCode(str(i31))
+    msg = struct.pack('!2i2bi', timestamp, i31, 3, 0, imei)
+    key = b'd6fc3a4a06adbde89223bvefedc24fecde188aaa9161'
+    data = hmac.new(key, msg, hashlib.sha1).digest()
+    msg += struct.pack('!i', hashCode(base64.standard_b64encode(data)))
+    return base64.standard_b64encode(msg)
 
 def fetch_cna():
     url = 'https://gm.mmstat.com/yt/ykcomment.play.commentInit?cna='
@@ -28,11 +52,12 @@ class Youku(VideoExtractor):
     ref_tudou = 'https://video.tudou.com'
     ckey_default = "DIl58SLFxFNndSV1GFNnMQVYkx1PP5tKe1siZu/86PR1u/Wh1Ptd+WOZsHHWxysSfAOhNJpdVWsdVJNsfJ8Sxd8WKVvNfAS8aS8fAOzYARzPyPc3JvtnPHjTdKfESTdnuTW6ZPvk2pNDh4uFzotgdMEFkzQ5wZVXl2Pf1/Y6hLK0OnCNxBj3+nb0v72gZ6b0td+WOZsHHWxysSo/0y9D2K42SaB8Y/+aD2K42SaB8Y/+ahU+WOZsHcrxysooUeND"
     ckey_mobile = "7B19C0AB12633B22E7FE81271162026020570708D6CC189E4924503C49D243A0DE6CD84A766832C2C99898FC5ED31F3709BB3CDD82C96492E721BDD381735026"
+    ckey_m = "110#j4UkAUkfkdrOu0L82wgAMuy2kMUyfFGOmkm2hQ7/8DBLkPGMJx2IjQmkFXCS+MzQmakbhgJy8pcijkLaqMuySg3gkR5t81GOmJScScUIbRjIuRadzDmhUoRGIdEcOeLPMyZGlLvwsTvsQEbllAciskT47Tmwj3k4mPW3sGbLUTZI4yjOCxTQsFpaGLcOjTcw4w23sLFgsjgUkcaOs3rXzy1dSPtHpur/ak237kfFX/h32wHakT65FNgZWTcgPzUT+q10IKa92o1izzNnFN+DeHtS2e9nWRjvLaKYwvOesI98g1GoEXAhiOKBhAQ17pMvEHNhyb9jzGWuG+E/zqc9FCP0lG1YVd6HGqn+09LN6fwPm1EkoOmZLxIThxSPzMult7UdGTDZjfkE3iV5OTR4Ymmc86p4va2MvijtO9YbRp0ZaKuR8LVLCMRJWBnGQpRr2sKAc6DWoR9iOBGbX6CQbla=#0"
 
     def __init__(self):
         VideoExtractor.__init__(self)
         self.params = (
-            ('0515', self.ref_youku, self.ckey_default),
+            ('0103010102', self.ref_youku, self.ckey_mobile),
             ('0516', self.ref_youku, self.ckey_default),
             ('0517', self.ref_youku, self.ckey_default),
             )
@@ -60,10 +85,14 @@ class Youku(VideoExtractor):
         utid = fetch_cna()
         for ccode, ref, ckey in self.params:
             add_header("Referer", ref)
+            if len(ccode) > 4:
+               _utid = generateUtdid()
+            else:
+               _utid = utid
             params = {
                 'vid': self.vid,
                 'ccode': ccode,
-                'utid': utid,
+                'utid': _utid,
                 'ckey': ckey,
                 'client_ip': '192.168.1.1',
                 'client_ts': int(time.time()),

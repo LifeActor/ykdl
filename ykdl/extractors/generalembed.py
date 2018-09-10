@@ -30,8 +30,8 @@ qq_embed_patterns = [ 'v\.qq\.com[a-zA-Z0-9\/\?\.\;]+vid=([a-zA-Z0-9]+)',
 tv.sohu.com
 """
 sohu_embed_patterns = [ 'tv\.sohu\.com[a-zA-Z0-9\/\?=]+\&vid=([a-zA-Z0-9]+)\&',
-                        'share\.vrs\.sohu\.com\/my\/v.swf[&+=a-zA-z0-9]+&id=([^&]+)',
-                        'my\.tv\.sohu\.com\/[a-zA-Z0-9\/]+/([^\.]+)'
+                        'share\.vrs\.sohu\.com\/my\/v.swf[&+=a-zA-z0-9]+&id=(\d+)',
+                        'my\.tv\.sohu\.com\/[a-zA-Z0-9\/]+/(\d+)'
                       ]
 
 """
@@ -151,7 +151,7 @@ class GeneralEmbed(EmbedExtractor):
 
         vids = matchall(content, bilibili_embed_patterns)
         for v in vids:
-            v = "http://www.bilibili.com/video/av{}".format(v)
+            v = "https://www.bilibili.com/video/av{}".format(v)
             self.video_info_list.append(('bilibili.video', v))
 
 

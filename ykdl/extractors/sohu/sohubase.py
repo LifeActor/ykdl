@@ -62,7 +62,7 @@ class SohuBase(VideoExtractor):
         assert len(data['clipsURL']) == len(data['clipsBytes']) == len(data['su'])
         for new, clip, ck, in zip(data['su'], data['clipsURL'], data['ck']):
             params = {
-                'vid': lvid,
+                'vid': self.vid,
                 'tvid': tvid,
                 'file': urlparse(clip).path,
                 'new': new,
@@ -82,7 +82,7 @@ class SohuBase(VideoExtractor):
     def prepare(self):
         if self.url and not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, '\/([0-9]+)\/v\.swf', '\&id=(\d+)', 'vid=\"(\d+)\"')
+            self.vid = match1(html, '\/(\d+)\/v\.swf', '\&id=(\d+)', 'vid=\"(\d+)\"')
         if not self.vid:
             self.vid = match1(self.url, 'vid=(\d+)')
         self.logger.debug("VID> {}".format(self.vid))

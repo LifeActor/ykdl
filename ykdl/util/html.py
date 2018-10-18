@@ -72,7 +72,11 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     if 'Content-Encoding' in resheader:
         content_encoding = resheader['Content-Encoding']
     else:
-        content_encoding = None
+        payload = resheader.get_payload()
+        if isinstance(payload, str):
+            content_encoding =  match1(payload, r'Content-Encoding:\s*([\w-]+)')
+        else:
+            content_encoding = None
     if content_encoding == 'gzip':
         data = ungzip(data)
     elif content_encoding == 'deflate':
@@ -85,7 +89,7 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     if charset is None:
         if 'Content-Type' in resheader:
             charset = match1(resheader['Content-Type'], r'charset=([\w-]+)')
-        charset = charset or match1(str(data), r'charset=\"([^\"]+)', 'charset=([^"]+)') or 'utf-8'
+        charset = charset or match1(str(data), r'charset=\"([\w-]+)', 'charset=([\w-]+)') or 'utf-8'
     logger.debug("get_content> Charset: " + charset)
     try:
         data = data.decode(charset, errors='replace')

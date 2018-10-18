@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
+from ykdl.util.html import get_content, url_info
 from ykdl.util.match import match1, matchall
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
@@ -15,23 +15,23 @@ class Miaopai(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name)
         if not self.vid:
-            self.vid = match1(self.url, 'https?://www.miaopai.com/show/channel/([^.]+)', \
-                                        'https?://www.miaopai.com/show/([^.]+)', \
-                                        'https?://m.miaopai.com/show/channel/([^.]+)')
+            self.vid = match1(self.url, '/show(?:/channel)?/([^\./]+)',
+                                        '/media/([^\./]+)')
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, 'scid ?= ?[\'"]([^\'"]+)[\'"]')
-        data = json.loads(get_content('http://api.miaopai.com/m/v2_channel.json?fillType=259&scid={}&vend=miaopai'.format(self.vid)))
+            self.vid = match1(html, 's[cm]id ?= ?[\'"]([^\'"]+)[\'"]')
+        assert self.vid, "No VID match!"
 
-        assert data['status'] == 200, "something error!"
+        data = json.loads(get_content('https://n.miaopai.com/api/aj_media/info.json?smid={}'.format(self.vid)))
+        assert data['code'] == 200, data['msg']
 
-        data = data['result']
-        info.title = data['ext']['t'] or self.name + '_' + self.vid
-        url = data['stream']['base']
-        ext = data['stream']['and']
+        data = data['data']
+        info.title = data['description'] or self.name + '_' + self.vid
+        url = data['meta_data'][0]['play_urls']['m']
+        _, ext, _ = url_info(url)
 
         info.stream_types.append('current')
-        info.streams['current'] = {'container': ext, 'src': [url], 'size' : 0}
+        info.streams['current'] = {'container': ext or 'mp4', 'src': [url], 'size' : 0}
         return info
 
     def prepare_list(self):

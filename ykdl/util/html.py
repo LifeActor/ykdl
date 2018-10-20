@@ -71,12 +71,14 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     resheader = response.info()
     if 'Content-Encoding' in resheader:
         content_encoding = resheader['Content-Encoding']
-    else:
+    elif hasattr(resheader, 'get_payload'):
         payload = resheader.get_payload()
         if isinstance(payload, str):
             content_encoding =  match1(payload, r'Content-Encoding:\s*([\w-]+)')
         else:
             content_encoding = None
+    else:
+        content_encoding = None
     if content_encoding == 'gzip':
         data = ungzip(data)
     elif content_encoding == 'deflate':

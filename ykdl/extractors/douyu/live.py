@@ -31,13 +31,14 @@ class Douyutv(VideoExtractor):
 
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, '"room_id.?":(\d+)') or match1(html, 'data-onlineid=(\d+)')
+            self.vid = match1(html, 'room_id\s*=\s*(\d+);', '"room_id.?":(\d+)', 'data-onlineid=(\d+)')
         cdn = 'ws'
         authstr = 'room/{0}?aid=wp&cdn={1}&client_sys=wp&time={2}'.format(self.vid, cdn, int(time.time()))
         authmd5 = hashlib.md5((authstr + APPKEY).encode()).hexdigest()
         api_url = 'https://capi.douyucdn.cn/api/v1/{0}&auth={1}'.format(authstr,authmd5)
         html_content = get_content(api_url)
         live_data = json.loads(html_content)
+        print(live_data)
 
         assert live_data["error"] == 0, "server error!!"
         live_data = live_data["data"]

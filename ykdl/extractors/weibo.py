@@ -37,10 +37,10 @@ class Weibo(SimpleExtractor):
         self.url = self.url.replace('%3A', ':')
         fid = match1(self.url, r'\?fid=(\d{4}:\w+)')
         if fid is not None:
-            self.url = 'http://video.weibo.com/show?fid={}&type=mp4'.format(fid)
+            self.url = 'http://p.weibo.com/show/channerWbH5/{}'.format(fid)
         elif '/p/230444' in self.url:
             fid = match1(url, r'/p/230444(\w+)')
-            self.url = 'http://video.weibo.com/show?fid=1034:{}&type=mp4'.format(fid)
+            self.url = 'http://p.weibo.com/show/channerWbH5/1034:{}'.format(fid)
         else:
             html = get_content(self.url)
             url = match1(html, '"page_url": "([^"]+)')

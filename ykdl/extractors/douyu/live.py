@@ -38,7 +38,6 @@ class Douyutv(VideoExtractor):
         api_url = 'https://capi.douyucdn.cn/api/v1/{0}&auth={1}'.format(authstr,authmd5)
         html_content = get_content(api_url)
         live_data = json.loads(html_content)
-        print(live_data)
 
         assert live_data["error"] == 0, "server error!!"
         live_data = live_data["data"]

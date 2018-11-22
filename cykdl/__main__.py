@@ -4,6 +4,7 @@
 from __future__ import print_function
 import sys
 import os
+from base64 import b64encode
 try:
     import ykdl
 except(ImportError):
@@ -43,6 +44,7 @@ def arg_parser():
     parser.add_argument('-O', '--output-name', default='', help="downloaded videos with the NAME you want")
     parser.add_argument('-p', '--player', help="Directly play the video with PLAYER like mpv")
     parser.add_argument('--proxy', type=str, default='system', help="set proxy HOST:PORT for http(s) transfer. default: use system proxy settings")
+    parser.add_argument('--proxy-basic-auth', type=str, default='', help="set proxy username:password for proxy basic authorization.")
     parser.add_argument('-t', '--timeout', type=int, default=60, help="set socket timeout seconds, default 60s")
     parser.add_argument('--no-merge', action='store_true', default=False, help="do not merge video slides")
     parser.add_argument('-s', '--start', type=int, default=0, help="start from INDEX to play/download playlist")
@@ -146,6 +148,14 @@ def main():
         })
     if not args.proxy == 'none':
         opener = build_opener(proxy_handler)
+
+        if args.proxy_basic_auth:
+            base64_param = b64encode(args.proxy_basic_auth.encode('utf-8')).decode('ascii')
+
+            opener.addheaders = [
+                ('Proxy-Authorization', 'Basic ' + base64_param),
+            ]
+
         install_opener(opener)
         default_proxy_handler[:] = [proxy_handler]
 

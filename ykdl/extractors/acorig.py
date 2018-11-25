@@ -28,6 +28,8 @@ class Acorig(VideoExtractor):
         stream_data = json.loads(data)
         info.title = stream_data['video']['title']
         for s in stream_data['stream']:
+            if 'm3u8' in s['stream_type']:
+                continue
             if 'segs' in s:
                 stream_type = stream_code_to_id[s['stream_type']]
                 stream_urls = [seg['url'] for seg in s['segs']]

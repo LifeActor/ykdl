@@ -85,10 +85,10 @@ class SohuBase(VideoExtractor):
 
     def prepare(self):
         if self.url and not self.vid:
-            html = get_content(self.url)
-            self.vid = match1(html, '\/(\d+)\/v\.swf', '\&id=(\d+)', 'vid=\"(\d+)\"')
-        if not self.vid:
-            self.vid = match1(self.url, 'vid=(\d+)')
+            self.vid = match1(self.url, '\Wvid=(\d+)', '\Wid=(\d+)', 'share_play.html#(\d+)_')
+            if not self.vid:
+                html = get_content(self.url)
+                self.vid = match1(html, '/(\d+)/v\.swf', 'vid="(\d+)"', '\&id=(\d+)')
         self.logger.debug("VID> {}".format(self.vid))
 
         info = json.loads(get_content(self.apiurl % self.vid))

@@ -7,7 +7,6 @@ import sys
 from logging import getLogger
 from ykdl.compact import Request, urlopen
 from ykdl.util import log
-from ykdl.util.wrap import encode_for_wrap
 from .html import fake_headers
 
 logger = getLogger("downloader")
@@ -81,7 +80,6 @@ def save_url(url, name, ext, status, part = None, reporthook = simple_hook):
                 status[part] =1
 
 def save_urls(urls, name, ext, jobs=1):
-    ext = encode_for_wrap(ext)
     status = [0] * len(urls)
     if len(urls) == 1:
         save_url(urls[0], name, ext, status)

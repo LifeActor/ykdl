@@ -71,10 +71,13 @@ def save_url(url, name, ext, status, part = None, reporthook = simple_hook):
             tfp.write(block)
             blocknum += 1
             reporthook(blocknum, bs, size)
-    if part is None:
-        status[0] = 1
-    else:
-        status[part] =1
+    if os.path.exists(name):
+        filesize = os.path.getsize(name)
+        if filesize == size:
+            if part is None:
+                status[0] = 1
+            else:
+                status[part] =1
 
 def save_urls(urls, name, ext, jobs=1):
     status = [0] * len(urls)

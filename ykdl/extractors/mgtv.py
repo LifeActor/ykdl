@@ -23,14 +23,17 @@ else:
 
 encode_translation = maketrans(b'+/=', b'_~-')
 
-def generate_did_tk2():
-    did = str(uuid.uuid4())
-    s = 'pno=1000|ver=0.3.0001|did={}|clit={}'.format(did, int(time.time()))
+def encode_tk2(s):
     if not isinstance(s, bytes):
         s = s.encode()
     e = bytearray(base64.b64encode(s).translate(encode_translation))
     e.reverse()
-    return did, bytearray2str(e)
+    return bytearray2str(e)
+
+def generate_did_tk2():
+    did = str(uuid.uuid4())
+    s = 'pno=1000|ver=0.3.0001|did={}|clit={}'.format(did, int(time.time()))
+    return did, encode_tk2(s)
 
 class Hunantv(VideoExtractor):
     name = u"芒果TV (HunanTV)"
@@ -71,8 +74,10 @@ class Hunantv(VideoExtractor):
         data = meta['data']
         domain = data['stream_domain'][0]
         for lstream in data['stream']:
-            if lstream['url']:
-                url = json.loads(get_content(domain + lstream['url']))['info']
+            lurl = lstream['url']
+            if lurl:
+                lurl = '{}{}&tk2={}'.format(domain, lurl, tk2)
+                url = json.loads(get_content(lurl))['info']
                 info.streams[self.profile_2_types[lstream['name']]] = {'container': 'm3u8', 'video_profile': lstream['name'], 'src' : [url]}
                 info.stream_types.append(self.profile_2_types[lstream['name']])
         info.stream_types= sorted(info.stream_types, key = self.supported_stream_types.index)

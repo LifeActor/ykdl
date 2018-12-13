@@ -8,6 +8,7 @@ import datetime
 import random
 from ykdl.util.fs import legitimize
 from ykdl.util import log
+from ykdl.util.wrap import encode_for_wrap
 
 class VideoInfo():
     def __init__(self, site, live = False):
@@ -45,7 +46,7 @@ class VideoInfo():
         json_dict['stream_types'] = self.stream_types
         json_dict['extra'] = self.extra
         for s in json_dict['streams']:
-            if json_dict['streams'][s]['size'] == float('inf'):
+            if json_dict['streams'][s].get('size') == float('inf'):
                 json_dict['streams'][s].pop('size')
         return json_dict
 
@@ -69,4 +70,4 @@ class VideoInfo():
             name_list.append(stream_id)
         if self.live:
             name_list.append(datetime.datetime.now().isoformat())
-        return legitimize('_'.join(name_list))
+        return encode_for_wrap(legitimize('_'.join(name_list)), 'ignore')

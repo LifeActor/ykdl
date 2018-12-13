@@ -31,10 +31,11 @@ class Dilidili(VideoExtractor):
         
         # It is an embedded video from other websites
         else:
-            site, new_url = url_to_module(url)
+            site, new_url = url_to_module(source_url)
             info_embedded = site.parser(new_url)
             info.stream_types = info_embedded.stream_types
             info.streams = info_embedded.streams
+            info.extra = info_embedded.extra
         
         return info
 

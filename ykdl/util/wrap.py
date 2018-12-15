@@ -21,7 +21,7 @@ else:
     # Used in Windows CreateProcess is 32K
     ARG_MAX = 32 * 1024
 
-def launch_player(player, urls, **args):
+def launch_player(player, urls, ext, **args):
     if ' ' in player:
         cmd = shlex.split(player, posix=posix)
         if not posix:
@@ -30,7 +30,8 @@ def launch_player(player, urls, **args):
         cmd = [player]
 
     if 'mpv' in cmd[0]:
-        cmd += ['--demuxer-lavf-o', 'protocol_whitelist=[file,tcp,http]']
+        if ext == 'm3u8' and any(os.path.isfile(url) for url in urls):
+            cmd += ['--demuxer-lavf-o', 'protocol_whitelist=[file,tcp,http,https,tls]']
         if args['ua']:
             cmd += ['--user-agent', args['ua']]
         if args['referer']:
@@ -102,8 +103,8 @@ def launch_ffmpeg_download(url, name, live):
 
     cmd = ['ffmpeg', '-y']
 
-    if not url.startswith('http'):
-       cmd += ['-protocol_whitelist', 'file,tcp,http' ]
+    if os.path.isfile(url):
+       cmd += ['-protocol_whitelist', 'file,tcp,http,https,tls' ]
 
     cmd += ['-i', url, '-c', 'copy', '-absf', 'aac_adtstoasc',  '-hide_banner', name]
 

@@ -122,7 +122,7 @@ def handle_videoinfo(info, index=0):
     player_args = info.extra
     player_args['title'] = info.title
     if args.player:
-        launch_player(args.player, urls, **player_args)
+        launch_player(args.player, urls, ext, **player_args)
     else:
         download(urls, name, ext, live)
 

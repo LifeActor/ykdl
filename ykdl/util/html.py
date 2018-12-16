@@ -43,10 +43,18 @@ def undeflate(data):
     return decompressobj.decompress(data)+decompressobj.flush()
 
 def get_location(url, headers = fake_headers):
-    response = urlopen(Request(url, headers = headers))
+    req = Request(url, headers = headers)
+    req.get_method = lambda: 'HEAD'
+    response = urlopen(req)
     # urllib will follow redirections and it's too much code to tell urllib
     # not to do that
     return response.geturl()
+
+def get_location_and_header(url, headers = fake_headers):
+    req = Request(url, headers = headers)
+    req.get_method = lambda: 'HEAD'
+    response = urlopen(req)
+    return response.geturl(), response.info()
 
 def get_content(url, headers=fake_headers, data=None, charset = None):
     """Gets the content of a URL via sending a HTTP GET request.

@@ -4,7 +4,7 @@
 from importlib import import_module
 
 from .util.match import match1
-from .util.html import get_location
+from .util.html import get_location_and_header
 import logging
 
 logger = logging.getLogger("common")
@@ -43,11 +43,17 @@ def url_to_module(url):
         return site, url
     except(ImportError):
         logger.debug('> Try HTTP Redirection!')
-        new_url = get_location(url, headers = {})
+        new_url, resheader = get_location_and_header(url, headers = {})
         if new_url == url:
             logger.debug('> NO HTTP Redirection')
-            logger.debug('> Go Generalembed')
-            return import_module('ykdl.extractors.generalembed').site, url
+            content_type = resheader['Content-Type']
+            if content_type in ('application/vnd.apple.mpegurl', 'application/x-mpegURL') or \
+                content_type.startswith('video/'):
+                logger.debug('> Go DownloadDirectly')
+                return import_module('ykdl.extractors.downloaddirectly').site, url
+            else:
+                logger.debug('> Go Generalembed')
+                return import_module('ykdl.extractors.generalembed').site, url
         else:
             logger.debug('> new url ' + new_url)
             return url_to_module(new_url)

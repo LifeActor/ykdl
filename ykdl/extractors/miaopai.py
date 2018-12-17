@@ -23,12 +23,23 @@ class Miaopai(VideoExtractor):
         assert self.vid, "No VID match!"
 
         data = json.loads(get_content('https://n.miaopai.com/api/aj_media/info.json?smid={}'.format(self.vid)))
-        assert data['code'] == 200, data['msg']
+        if 'status' in data:
+            if data['status'] != 200:
+                data = json.loads(get_content('http://api.miaopai.com/m/v2_channel.json?fillType=259&scid={}&vend=miaopai'.format(self.vid)))
 
-        data = data['data']
-        info.title = data['description'] or self.name + '_' + self.vid
-        url = data['meta_data'][0]['play_urls']['m']
-        _, ext, _ = url_info(url)
+            assert data['status'] == 200, data['msg']
+
+            data = data['result']
+            info.title = data['ext']['t'] or self.name + '_' + self.vid
+            url = data['stream']['base']
+            ext = data['stream']['and']
+        else:
+            assert data['code'] == 200, data['msg']
+
+            data = data['data']
+            info.title = data['description'] or self.name + '_' + self.vid
+            url = data['meta_data'][0]['play_urls']['m']
+            _, ext, _ = url_info(url)
 
         info.stream_types.append('current')
         info.streams['current'] = {'container': ext or 'mp4', 'src': [url], 'size' : 0}

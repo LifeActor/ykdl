@@ -47,7 +47,6 @@ class SohuBase(VideoExtractor):
         'norVid': 'SD'
         }
     id_2_profile = { '4k': u'4K', 'BD': u'原画', 'TD': u'超清', 'HD': u'高清', 'SD': u'标清' }
-    realurls = { '4k': [], 'BD': [], 'TD': [], 'HD': [], 'SD': []}
 
     def parser_info(self, video, info, stream, lvid, uid):
         if not 'allot' in info or lvid != info['id']:
@@ -59,6 +58,7 @@ class SohuBase(VideoExtractor):
         tvid = info['tvid']
         data = info['data']
         size = sum(map(int,data['clipsBytes']))
+        urls = []
         assert len(data['clipsURL']) == len(data['clipsBytes']) == len(data['su'])
         for new, clip, ck, in zip(data['su'], data['clipsURL'], data['ck']):
             params = {
@@ -74,17 +74,21 @@ class SohuBase(VideoExtractor):
                 'pt': 1,
                 'rb': 1,
             }
-            self.realurls[stream_id].append('https://'+host+'/cdnList?' + urlencode(params))
-        video.streams[stream_id] = {'container': 'mp4', 'video_profile': stream_profile, 'size' : size}
+            if urlparse(new).netloc == '':
+                cdnurl = 'https://'+host+'/cdnList?' + urlencode(params)
+                url = json.loads(get_content(cdnurl))['url']
+            else:
+                url = new
+            urls.append(url)
+        video.streams[stream_id] = {'container': 'mp4', 'video_profile': stream_profile, 'src': urls, 'size' : size}
         video.stream_types.append(stream_id)
-        self.extract_single(video, stream_id)
 
     def prepare(self):
         if self.url and not self.vid:
-            html = get_content(self.url)
-            self.vid = match1(html, '\/(\d+)\/v\.swf', '\&id=(\d+)', 'vid=\"(\d+)\"')
-        if not self.vid:
-            self.vid = match1(self.url, 'vid=(\d+)')
+            self.vid = match1(self.url, '\Wvid=(\d+)', '\Wid=(\d+)', 'share_play.html#(\d+)_')
+            if not self.vid:
+                html = get_content(self.url)
+                self.vid = match1(html, '/(\d+)/v\.swf', 'vid="(\d+)"', '\&id=(\d+)')
         self.logger.debug("VID> {}".format(self.vid))
 
         info = json.loads(get_content(self.apiurl % self.vid))
@@ -135,11 +139,3 @@ class SohuBase(VideoExtractor):
 
                 self.parser_info(video, _info, stream, lvid, uid)
         return video
-
-
-    def extract_single(self, video, stream_id):
-        urls = []
-        for url in self.realurls[stream_id]:
-            info = json.loads(get_content(url))
-            urls.append(info['url'])
-        video.streams[stream_id]['src'] = urls

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import default_proxy_handler, get_content
+from ykdl.util.html import default_proxy_handler, get_content, add_header
 from ykdl.util.match import match1, matchall
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
@@ -22,15 +22,28 @@ else:
     bytearray2str = str
 
 encode_translation = maketrans(b'+/=', b'_~-')
+decode_translation = maketrans(b'_~-', b'+/=')
 
-def generate_did_tk2():
-    did = str(uuid.uuid4())
-    s = 'pno=1000|ver=0.3.0001|did={}|clit={}'.format(did, int(time.time()))
+def encode_tk2(s):
     if not isinstance(s, bytes):
         s = s.encode()
-    e = bytearray(base64.b64encode(s).translate(encode_translation))
-    e.reverse()
-    return did, bytearray2str(e)
+    s = bytearray(base64.b64encode(s).translate(encode_translation))
+    s.reverse()
+    return bytearray2str(s)
+
+def decode_tk2(s):
+    if not isinstance(s, bytes):
+        s = s.encode()
+    s = bytearray(s)
+    s.reverse()
+    s = base64.b64decode(s.translate(decode_translation))
+    if not isinstance(s, str):
+        s = s.decode()
+    return s
+
+def generate_tk2(did):
+    s = 'did={}|pno=1030|ver=0.3.0301|clit={}'.format(did, int(time.time()))
+    return encode_tk2(s)
 
 class Hunantv(VideoExtractor):
     name = u"芒果TV (HunanTV)"
@@ -44,6 +57,7 @@ class Hunantv(VideoExtractor):
         if default_proxy_handler:
             handlers += default_proxy_handler
         install_opener(build_opener(*handlers))
+        add_header("Referer", self.url)
 
         info = VideoInfo(self.name)
         if self.url and not self.vid:
@@ -52,8 +66,10 @@ class Hunantv(VideoExtractor):
                 html = get_content(self.url)
                 self.vid = match1(html, 'vid=(\d+)', 'vid=\"(\d+)', 'vid: (\d+)')
 
-        did, tk2 = generate_did_tk2()
-        api_info_url = 'https://pcweb.api.mgtv.com/player/video?video_id={}&did={}&tk2={}'.format(self.vid, did, tk2)
+        did = str(uuid.uuid4())
+        tk2 = generate_tk2(did)
+
+        api_info_url = 'https://pcweb.api.mgtv.com/player/video?tk2={}&video_id={}&type=pch5'.format(tk2, self.vid)
         meta = json.loads(get_content(api_info_url))
 
         assert meta['code'] == 200, '[failed] code: {}, msg: {}'.format(meta['code'], meta['msg'])
@@ -62,7 +78,7 @@ class Hunantv(VideoExtractor):
         pm2 = meta['data']['atc']['pm2']
         info.title = meta['data']['info']['title']
 
-        api_source_url = 'https://pcweb.api.mgtv.com/player/getSource?video_id={}&did={}&pm2={}&tk2={}'.format(self.vid, did, pm2, tk2)
+        api_source_url = 'https://pcweb.api.mgtv.com/player/getSource?pm2={}&tk2={}&video_id={}&type=pch5'.format(pm2, tk2, self.vid)
         meta = json.loads(get_content(api_source_url))
 
         assert meta['code'] == 200, '[failed] code: {}, msg: {}'.format(meta['code'], meta['msg'])
@@ -70,9 +86,12 @@ class Hunantv(VideoExtractor):
 
         data = meta['data']
         domain = data['stream_domain'][0]
+        tk2 = generate_tk2(did)
         for lstream in data['stream']:
-            if lstream['url']:
-                url = json.loads(get_content(domain + lstream['url']))['info']
+            lurl = lstream['url']
+            if lurl:
+                lurl = '{}{}&did={}'.format(domain, lurl, did)
+                url = json.loads(get_content(lurl))['info']
                 info.streams[self.profile_2_types[lstream['name']]] = {'container': 'm3u8', 'video_profile': lstream['name'], 'src' : [url]}
                 info.stream_types.append(self.profile_2_types[lstream['name']])
         info.stream_types= sorted(info.stream_types, key = self.supported_stream_types.index)

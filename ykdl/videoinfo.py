@@ -46,7 +46,7 @@ class VideoInfo():
         json_dict['stream_types'] = self.stream_types
         json_dict['extra'] = self.extra
         for s in json_dict['streams']:
-            if json_dict['streams'][s]['size'] == float('inf'):
+            if json_dict['streams'][s].get('size') == float('inf'):
                 json_dict['streams'][s].pop('size')
         return json_dict
 

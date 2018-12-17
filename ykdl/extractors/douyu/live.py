@@ -31,7 +31,7 @@ class Douyutv(VideoExtractor):
 
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, '"room_id.?":(\d+)') or match1(html, 'data-onlineid=(\d+)')
+            self.vid = match1(html, 'room_id\s*=\s*(\d+);', '"room_id.?":(\d+)', 'data-onlineid=(\d+)')
         cdn = 'ws'
         authstr = 'room/{0}?aid=wp&cdn={1}&client_sys=wp&time={2}'.format(self.vid, cdn, int(time.time()))
         authmd5 = hashlib.md5((authstr + APPKEY).encode()).hexdigest()

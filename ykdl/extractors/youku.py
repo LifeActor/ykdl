@@ -31,7 +31,7 @@ def hashCode(str):
 
 def generateUtdid():
     timestamp = int(time.time()) - 60 * 60 * 8
-    i31 = random.randint(0, (1 << 31) - 1)
+    i31 = random.randrange(1 << 31)
     imei = hashCode(str(i31))
     msg = struct.pack('!2i2bi', timestamp, i31, 3, 0, imei)
     key = b'd6fc3a4a06adbde89223bvefedc24fecde188aaa9161'
@@ -57,7 +57,7 @@ class Youku(VideoExtractor):
     def __init__(self):
         VideoExtractor.__init__(self)
         self.params = (
-            ('0103010102', self.ref_youku, self.ckey_mobile),
+            ('0502', self.ref_youku, self.ckey_mobile),
             ('0516', self.ref_youku, self.ckey_default),
             ('0517', self.ref_youku, self.ckey_default),
             )
@@ -67,12 +67,16 @@ class Youku(VideoExtractor):
 
         info = VideoInfo(self.name)
 
-        if self.url and not self.vid:
+        if not self.vid:
              self.vid = match1(self.url.split('//', 1)[1],
                                '^v[^\.]?\.[^/]+/v_show/id_([a-zA-Z0-9=]+)',
                                '^player[^/]+/(?:player\.php/sid|embed)/([a-zA-Z0-9=]+)',
                                '^static.+loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',
                                '^(?:new-play|video)\.tudou\.com/v/([a-zA-Z0-9=]+)')
+
+        if not self.vid:
+            html = get_content(self.url)
+            self.vid = match1(html, r'videoIds?[\"\']?\s*[:=]\s*[\"\']?([a-zA-Z0-9=]+)')
 
         if self.vid.isdigit():
             import base64

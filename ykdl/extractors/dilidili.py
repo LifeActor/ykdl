@@ -28,15 +28,13 @@ class Dilidili(VideoExtractor):
                 'src': [source_url],
                 'size' : 0
             }
+            return info
         
         # It is an embedded video from other websites
         else:
             site, new_url = url_to_module(source_url)
             info_embedded = site.parser(new_url)
-            info.stream_types = info_embedded.stream_types
-            info.streams = info_embedded.streams
-            info.extra = info_embedded.extra
-        
-        return info
+            info_embedded.title = info.title
+            return info_embedded
 
 site = Dilidili()

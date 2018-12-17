@@ -14,27 +14,48 @@ class Dilidili(VideoExtractor):
         info = VideoInfo(self.name)
         
         html = get_content(self.url)
-        info.title = match1(html, r'<meta name="description" content="(.+?)" />')
+        info.title = match1(html, u'<title>(.+?)丨嘀哩嘀哩</title>')
         source_url = match1(html, r'var sourceUrl\s?=\s?"(.+?)"')
-        ext = source_url.split('?')[0].split('.')[-1]
         
-        # Dilidili hosts this video itself
-        if ext in ('mp4', 'flv', 'f4v', 'm3u', 'm3u8'):
+        # First type
+        if source_url:
+            ext = source_url.split('?')[0].split('.')[-1]
+        
+            # Dilidili hosts this video itself
+            if ext in ('mp4', 'flv', 'f4v', 'm3u', 'm3u8'):
+                t = 'default'
+                info.stream_types.append(t)
+                info.streams[t] = {
+                    'container': ext,
+                    'video_profile': t,
+                    'src': [source_url],
+                    'size' : 0
+                }
+                return info
+        
+            # It is an embedded video from other websites
+            else:
+                site, new_url = url_to_module(source_url)
+                info_embedded = site.parser(new_url)
+                info_embedded.title = info.title
+                return info_embedded
+
+        # Second type
+        else:
+            player_url = match1(html, r'<iframe src="(.+?)"')
+            html = get_content(player_url)
+            video_url = match1(html, r'var main = "(.+?)"')
+            video_url_full = '/'.join(player_url.split('/')[0:3]) + video_url
+            ext = video_url.split('?')[0].split('.')[-1]
             t = 'default'
             info.stream_types.append(t)
             info.streams[t] = {
                 'container': ext,
                 'video_profile': t,
-                'src': [source_url],
+                'src': [video_url_full],
                 'size' : 0
             }
             return info
-        
-        # It is an embedded video from other websites
-        else:
-            site, new_url = url_to_module(source_url)
-            info_embedded = site.parser(new_url)
-            info_embedded.title = info.title
-            return info_embedded
+
 
 site = Dilidili()

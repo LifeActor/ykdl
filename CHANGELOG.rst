@@ -1,6 +1,12 @@
 Change Log for ykdl
 ===================
 
+1.6.3
+-------
+
+- update Sohu, mgtv, sina, etc a lot by @SeaHOH
+
+
 1.6.2
 -------
 

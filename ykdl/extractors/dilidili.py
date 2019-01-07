@@ -20,7 +20,7 @@ class Dilidili(VideoExtractor):
             info.streams[t] = {
                 'container': ext,
                 'video_profile': t,
-                'src': url,
+                'src': [url],
                 'size' : 0
             }
             channel += 1

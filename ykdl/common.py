@@ -49,8 +49,8 @@ def url_to_module(url):
             content_type = resheader['Content-Type']
             if content_type in ('application/vnd.apple.mpegurl', 'application/x-mpegURL') or \
                 content_type.startswith('video/'):
-                logger.debug('> Go DownloadDirectly')
-                return import_module('ykdl.extractors.downloaddirectly').site, url
+                logger.debug('> Go VideoFile')
+                return import_module('ykdl.extractors.videofile').site, url
             else:
                 logger.debug('> Go Generalembed')
                 return import_module('ykdl.extractors.generalembed').site, url

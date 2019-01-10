@@ -61,7 +61,7 @@ class VideoFile(VideoExtractor):
         # Get title
         title = self.url.split('?')[0].split('/')[-1]
         if title.endswith('.' + ext):
-            title = title.split('.')[0:-1]
+            title = title[0 : -len(ext) - 1]
         
         info = VideoInfo(self.name)
         info.title = title

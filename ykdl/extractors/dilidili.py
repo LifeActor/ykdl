@@ -3,11 +3,10 @@
 
 from ykdl.util.html import get_content
 from ykdl.util.match import match1
-from ykdl.extractor import VideoExtractor
+from ykdl.embedextractor import EmbedExtractor
 from ykdl.videoinfo import VideoInfo
-from ykdl.common import url_to_module
 
-class Dilidili(VideoExtractor):
+class Dilidili(EmbedExtractor):
     name = u'嘀哩嘀哩（dilidili）'
 
     def build_videoinfo(self, title, ext, *urls):
@@ -24,7 +23,7 @@ class Dilidili(VideoExtractor):
                 'size' : 0
             }
             channel += 1
-        return info
+        self.video_info['info'] = info
     
     def prepare(self):
         html = get_content(self.url)
@@ -39,14 +38,12 @@ class Dilidili(VideoExtractor):
         
             # Dilidili hosts this video itself
             if ext in ('mp4', 'flv', 'f4v', 'm3u', 'm3u8'):
-                return self.build_videoinfo(title, ext, source_url)
+                self.build_videoinfo(title, ext, source_url)
         
             # It is an embedded video from other websites
             else:
-                site, new_url = url_to_module(source_url)
-                info_embedded = site.parser(new_url)
-                info_embedded.title = title
-                return info_embedded
+                self.video_info['url'] = source_url
+                self.video_info['title'] = title
 
         # Second type, user-uploaded videos
         # http://www.dilidili.wang/huiyuan/76983/
@@ -56,7 +53,7 @@ class Dilidili(VideoExtractor):
             video_url = match1(html, r'var main = "(.+?)"')
             video_url_full = '/'.join(player_url.split('/')[0:3]) + video_url
             ext = video_url.split('?')[0].split('.')[-1]
-            return self.build_videoinfo(title, ext, video_url_full)
+            self.build_videoinfo(title, ext, video_url_full)
 
 
 site = Dilidili()

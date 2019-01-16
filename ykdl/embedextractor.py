@@ -3,26 +3,42 @@
 
 from importlib import import_module
 from logging import getLogger
-from .common import alias
+from .common import alias, url_to_module
 
 class EmbedExtractor():
     """
     this class is to help video embed site to handle
     video from other site.
-    we just need to know the source site name, and video ID
+    we just need to know the source URL, or source site name, and video ID
     that's enough.
-    with site name and VID, develop can easily to find out the real URL
+    with site name and VID, develop can easily to find out the real URL.
+
+        embedextractor.video_info['url'] = url
+
+    or
+
+        embedextractor.video_info['site'] = site
+        embedextractor.video_info['vid'] = vid
+
+    compatible: also receive the video info which will return directly.
+
+        embedextractor.video_info['info'] = info
 
     because embed site don't have video info, so they don't need stream_info.
     """
 
     def __init__(self):
         self.video_info = None
+        self.video_info_list = None
         self.logger = getLogger(self.name)
+
+    @staticmethod
+    def new_video_info():
+        return {'extra': {}}
 
     def prepare(self):
         """
-        this API is to do real job to get site and VID
+        this API is to do real job to get source URL, or site and VID
         sometimes title
         MUST override!!
         """
@@ -30,26 +46,49 @@ class EmbedExtractor():
 
     def prepare_playlist(self):
         """
-        this API is to do real job to get site and VID
+        this API is to do real job to get source URL, or site and VID
         sometimes title
         MUST override!!
         """
         pass
 
+    def _parser(self, video_info):
+        if 'info' in video_info:
+            return video_info['info']
+
+        elif 'site' in video_info:
+            site = video_info['site']
+            vid = video_info['vid']
+            if site in alias.keys():
+                site = alias[site]
+            s = import_module('.'.join(['ykdl','extractors',site])).site
+            info = s.parser(vid)
+ 
+        elif 'url' in video_info:
+            url = video_info['url']
+            if url.startswith('http'):
+                s, u = url_to_module(url)
+                info = s.parser(u)
+ 
+        if 'title' in video_info:
+            info.title = video_info['title']
+        if 'artist' in video_info:
+            info.title = video_info['artist']
+        if video_info['extra']:
+            info.extra.update(video_info['extra'])
+
+        return info
+
     def parser(self, url):
         if isinstance(url, str) and url.startswith('http'):
             self.url = url
-        self.video_info = None
+        self.video_info = self.new_video_info()
         self.prepare()
 
         if not self.video_info:
             raise NotImplementedError(self.url + " is not supported")
 
-        site, vid = self.video_info
-        if site in alias.keys():
-            site = alias[site]
-        s = import_module('.'.join(['ykdl','extractors',site])).site
-        return s.parser(vid)
+        return self._parser(self.video_info)
 
     def parser_list(self, url):
         if isinstance(url, str) and url.startswith('http'):
@@ -60,13 +99,8 @@ class EmbedExtractor():
         if not self.video_info_list:
             raise NotImplementedError('Playlist is not supported for ' + self.name + 'with url: ' + self.url)
 
-        info_list = []
         for v in self.video_info_list:
-            site, vid = v
-            if site in alias.keys():
-                site = alias[site]
-            s = import_module('.'.join(['ykdl','extractors',site])).site
-            yield s.parser(vid)
+            yield self._parser(v)
 
     def __getattr__(self, attr):
         return None

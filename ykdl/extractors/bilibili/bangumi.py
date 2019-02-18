@@ -21,7 +21,7 @@ class BiliBan(BiliBase):
 
         html = get_content(self.url)
         title = match1(html, '<h1 title="([^"]+)', '<title>([^<]+)').strip()
-        vid = match1(html, '"loaded":true[^\{]+?"cid":(\d+)', 'cid=(\d+)', 'cid="(\d+)')
+        vid = match1(html, '"loaded":true[^\{]+?"cid":(\d+)', '"cid":(\d+)', 'cid=(\d+)', 'cid="(\d+)')
         self.seasonType = match1(html, '"season_type":(\d+)', '"ssType":(\d+)')
 
         return vid, title

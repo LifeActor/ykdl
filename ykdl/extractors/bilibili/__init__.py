@@ -14,7 +14,6 @@ def get_extractor(url):
         from . import vc as s
     elif re.search("bangumi", url):
         from . import bangumi as s
-        s.site.url = url
     else:
         from . import video as s
     return s.site

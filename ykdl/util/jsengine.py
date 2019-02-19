@@ -65,7 +65,7 @@ elif platform.system() == 'Linux':
     elif find_executable('node') is not None:
         interpreter = ['node']
     else:
-        raise RuntimeError('Please install at lease one of the following Javascript interpreter: gjs, cjs, nodejs')
+        raise RuntimeError('Please install at least one of the following Javascript interpreter: gjs, cjs, nodejs')
 else:
     raise RuntimeError('Sorry, the Javascript engine is currently not supported on your system')
 

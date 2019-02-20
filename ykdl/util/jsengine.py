@@ -9,10 +9,15 @@
     Platform:
         macOS:   Use JavascriptCore
         Linux:   Use gjs on Gnome, cjs on Cinnamon or NodeJS if installed
-        Windows: Use NodeJS if available, otherwise use Windows Script Host
-                 Note that NodeJS is recommended, because WSH does not support ArrayBuffer
+        Windows: Use NodeJS if available
     
     Usage:
+    
+        from jsengine import JSEngine, javascript_is_supported
+        
+        if not javascript_is_supported:  # always check this first!
+            ......
+        
         ctx = JSEngine()
         ctx.eval('1 + 1')  # => 2
     
@@ -35,6 +40,9 @@ import re
 import sys
 import tempfile
 
+### Before using this library, check this variable first!!!
+javascript_is_supported = True
+
 # Exceptions
 class ProgramError(Exception):
     pass
@@ -47,13 +55,15 @@ class RuntimeError(Exception):
 # macOS: use built-in JavaScriptCore
 if platform.system() == 'Darwin':
     interpreter = ['/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources/jsc']
+
 # Windows: prefer Node.js, if not found use Windows Script Host
 elif platform.system() == 'Windows':
     if find_executable('node') is not None:
         interpreter = ['node']
     else:
-        print('It is recommended to install NodeJS, because the built-in Javascript interpreter of Windows does not support ArrayBuffer', file=sys.stderr)
-        interpreter = ['cscript', '//E:jscript', '//Nologo']
+        print('Please install Node.js!', file=sys.stderr)
+        javascript_is_supported = False
+
 # Linux: use gjs on Gnome, cjs on Cinnamon or NodeJS if installed
 elif platform.system() == 'Linux':
     if find_executable('gjs') is not None:
@@ -65,9 +75,11 @@ elif platform.system() == 'Linux':
     elif find_executable('node') is not None:
         interpreter = ['node']
     else:
-        raise RuntimeError('Please install at least one of the following Javascript interpreter: gjs, cjs, nodejs')
+        print('Please install at least one of the following Javascript interpreter: gjs, cjs, nodejs', file=sys.stderr)
+        javascript_is_supported = False
 else:
-    raise RuntimeError('Sorry, the Javascript engine is currently not supported on your system')
+    print('Sorry, the Javascript engine is currently not supported on your system', file=sys.stderr)
+    javascript_is_supported = False
 
 
 

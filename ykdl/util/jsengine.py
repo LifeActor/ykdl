@@ -133,9 +133,12 @@ class AbstractJSEngine:
 
 
 class ChakraJSEngine(AbstractJSEngine):
+    def __init__(self, source = None):
+        AbstractJSEngine.__init__(self, source)
+        if source is not None:
+            chakra.eval_js(source)
+            
     def _eval(self, code):
-        if self._source:
-            code = self._source + '\n' + code
         ok, result = chakra.eval_js(code)
         if ok:
             return result

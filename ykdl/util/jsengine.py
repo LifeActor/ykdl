@@ -136,12 +136,17 @@ class ChakraJSEngine(AbstractJSEngine):
     def __init__(self, source = None):
         AbstractJSEngine.__init__(self, source)
         if source is not None:
-            chakra.eval_js(source)
+            self._eval(source)
             
     def _eval(self, code):
+        if not code.strip():
+            data = "''"
+        else:
+            data =  json.dumps(code, ensure_ascii=True)
+        code = 'JSON.stringify(eval({data}));'.format(data=data);
         ok, result = chakra.eval_js(code)
         if ok:
-            return result
+            return json.loads(result)
         else:
             raise ProgramError(str(result))
 

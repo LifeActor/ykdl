@@ -3,6 +3,7 @@
 
 from ykdl.util.html import get_content
 from ykdl.util.match import matchall, match1
+from ykdl.util.jsengine import JSEngine, javascript_is_supported
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 
@@ -36,6 +37,18 @@ def get_vf(url_params):
     m.update(url_params.encode('utf-8'))
     vf = m.hexdigest()
     return vf
+
+def getdash(tvid, vid):
+    tm = int(time.time() * 1000)
+    host = 'https://cache.video.iqiyi.com'
+    tmts = '/dash?tvid={tvid}&bid=500&vid={vid}&src=01010031010000000000&vt=0&rs=1&uid=&ori=pcw&ps=0&tm={tm}&qd_v=1&k_uid={macid}&pt=0&d=0&s=&lid=&cf=&ct=&k_tag=1&ost=0&ppt=0&locale=zh_cn&pck=&k_err_retries=0&k_ft1=141287244169220&k_ft4=0&ut=0'
+    tmts = tmts.format(tvid=tvid, vid=vid, tm=tm, macid=get_macid())
+    js = get_content('http://static.iqiyi.com/js/common/7d183edd03bc4414b315e8964fb41826.js')
+    ctx = JSEngine(js)
+    vf = ctx.call('cmd5x', tmts)
+    req_url = host + tmts + '&vf=' + vf
+    html = get_content(req_url)
+    return json.loads(html)
 
 def getvps(tvid, vid):
     tm = int(time.time() * 1000)
@@ -82,25 +95,44 @@ class Iqiyi(VideoExtractor):
                 info.title = match1(html, '<title>([^<]+)').split('-')[0]
 
         tvid, vid = self.vid
-        vps_data = getvps(tvid, vid)
-        assert vps_data['code'] == 'A00000', 'can\'t play this video!!'
-        url_prefix = vps_data['data']['vp']['du']
-        stream = vps_data['data']['vp']['tkl'][0]
-        vs_array = stream['vs']
-        for vs in vs_array:
-            bid = vs['bid']
-            fs_array = vs['fs']
+        if javascript_is_supported:  # use dash
+            dash_data = getdash(tvid, vid)
+            assert dash_data['code'] == 'A00000', 'can\'t play this video!!'
+            url_prefix = dash_data['data']['dd']
+            streams = dash_data['data']['program']['video']
+            for stream in streams:
+                if 'fs' in stream:
+                    type, container, fs_array = stream['scrsz'], stream['ff'], stream['fs']
+                    break
             real_urls = []
             for seg_info in fs_array:
                 url = url_prefix + seg_info['l']
-                json_data=json.loads(get_content(url))
+                json_data = json.loads(get_content(url))
                 down_url = json_data['l']
                 real_urls.append(down_url)
-            stream = self.vd_2_id[bid]
-            info.stream_types.append(stream)
-            stream_profile = self.id_2_profile[stream]
-            info.streams[stream] = {'video_profile': stream_profile, 'container': 'flv', 'src': real_urls, 'size' : 0}
-        info.stream_types = sorted(info.stream_types, key = self.ids.index)
+            info.stream_types.append(type)
+            info.streams[type] = {'video_profile': type, 'container': container, 'src': real_urls, 'size' : 0}
+
+        else:    # use vps
+            vps_data = getvps(tvid, vid)
+            assert vps_data['code'] == 'A00000', 'can\'t play this video!!'
+            url_prefix = vps_data['data']['vp']['du']
+            stream = vps_data['data']['vp']['tkl'][0]
+            vs_array = stream['vs']
+            for vs in vs_array:
+                bid = vs['bid']
+                fs_array = vs['fs']
+                real_urls = []
+                for seg_info in fs_array:
+                    url = url_prefix + seg_info['l']
+                    json_data=json.loads(get_content(url))
+                    down_url = json_data['l']
+                    real_urls.append(down_url)
+                stream = self.vd_2_id[bid]
+                info.stream_types.append(stream)
+                stream_profile = self.id_2_profile[stream]
+                info.streams[stream] = {'video_profile': stream_profile, 'container': 'flv', 'src': real_urls, 'size' : 0}
+            info.stream_types = sorted(info.stream_types, key = self.ids.index)
         return info
 
     def prepare_list(self):

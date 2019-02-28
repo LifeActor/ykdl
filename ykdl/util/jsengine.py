@@ -62,7 +62,6 @@ if platform.system() == 'Darwin':
 elif platform.system() == 'Windows':
     from .jsengine_chakra import ChakraHandle, chakra_available
     if chakra_available:
-        chakra = ChakraHandle()
         use_chakra = True
     elif find_executable('node') is not None:
         interpreter = ['node']
@@ -121,48 +120,56 @@ function(program) {
 
 
 class AbstractJSEngine:
-    def __init__(self, source = None):
+    def __init__(self, source=''):
         self._source = source
     
     def call(self, identifier, *args):
         args = json.dumps(args)
-        return self._eval("{identifier}.apply(this, {args})".format(identifier=identifier, args=args))
+        code = '{identifier}.apply(this,{args})'.format(identifier=identifier, args=args)
+        return self._eval(code)
         
-    def eval(self, code = ''):
+    def eval(self, code=''):
         return self._eval(code)
 
 
 class ChakraJSEngine(AbstractJSEngine):
-    def __init__(self, source = None):
+    def __init__(self, source=''):
         AbstractJSEngine.__init__(self, source)
-        if source is not None:
-            self._eval(source)
+        self.chakra = ChakraHandle()
+        if source:
+            self.chakra.eval_js(source)
             
     def _eval(self, code):
         if not code.strip():
-            data = "''"
-        else:
-            data =  json.dumps(code, ensure_ascii=True)
-        code = 'JSON.stringify(eval({data}));'.format(data=data);
-        ok, result = chakra.eval_js(code)
+            return None
+        data =  json.dumps(code, ensure_ascii=True)
+        code = 'JSON.stringify([eval({data})]);'.format(data=data);
+        ok, result = self.chakra.eval_js(code)
         if ok:
-            return json.loads(result)
+            return json.loads(result)[0]
         else:
             raise ProgramError(str(result))
 
 
 class ExternalJSEngine(AbstractJSEngine):
+    def __init__(self, source=''):
+        AbstractJSEngine.__init__(self, source)
+        self._last_code = ''
+
     def _eval(self, code):
+        # TODO: may need a thread lock, if running multithreading
         if not code.strip():
-            data = "''"
-        else:
-            data = "'('+" + json.dumps(code, ensure_ascii=True) + "+')'"
-        code = 'return eval({data})'.format(data=data)
-        if self._source:
-            code = self._source + '\n' + code
+            return None
+        if self._last_code:
+            self._source += '\n' + self._last_code
+        self._last_code = code
+        data = json.dumps(code, ensure_ascii=True)
+        code = 'return eval({data});'.format(data=data)
         return self._exec(code)
     
     def _exec(self, code):
+        if self._source:
+            code = self._source + '\n' + code
         code = self._inject_script(code)
         output = self._run_interpreter_with_tempfile(code)
         output = output.replace('\r\n', '\n').replace('\r', '\n')
@@ -202,9 +209,9 @@ class ExternalJSEngine(AbstractJSEngine):
 
     def _inject_script(self, source):
         encoded_source = \
-            "(function(){ " + \
+            '(function(){ ' + \
             self._encode_unicode_codepoints(source) + \
-            " })()"
+            ' })()'
         return injected_script.replace('#{encoded_source}', json.dumps(encoded_source))
 
     def _encode_unicode_codepoints(self, str):

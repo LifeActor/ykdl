@@ -95,25 +95,8 @@ class Iqiyi(VideoExtractor):
                 info.title = match1(html, '<title>([^<]+)').split('-')[0]
 
         tvid, vid = self.vid
-        if javascript_is_supported:  # use dash
-            dash_data = getdash(tvid, vid)
-            assert dash_data['code'] == 'A00000', 'can\'t play this video!!'
-            url_prefix = dash_data['data']['dd']
-            streams = dash_data['data']['program']['video']
-            for stream in streams:
-                if 'fs' in stream:
-                    type, container, fs_array = stream['scrsz'], stream['ff'], stream['fs']
-                    break
-            real_urls = []
-            for seg_info in fs_array:
-                url = url_prefix + seg_info['l']
-                json_data = json.loads(get_content(url))
-                down_url = json_data['l']
-                real_urls.append(down_url)
-            info.stream_types.append(type)
-            info.streams[type] = {'video_profile': type, 'container': container, 'src': real_urls, 'size' : 0}
 
-        else:    # use vps
+        try:    # try vps first
             vps_data = getvps(tvid, vid)
             assert vps_data['code'] == 'A00000', 'can\'t play this video!!'
             url_prefix = vps_data['data']['vp']['du']
@@ -133,6 +116,25 @@ class Iqiyi(VideoExtractor):
                 stream_profile = self.id_2_profile[stream]
                 info.streams[stream] = {'video_profile': stream_profile, 'container': 'flv', 'src': real_urls, 'size' : 0}
             info.stream_types = sorted(info.stream_types, key = self.ids.index)
+            
+        except:   # use dash instead
+            assert javascript_is_supported, "No JS Interpreter found, can't parse iqiyi video!"
+            dash_data = getdash(tvid, vid)
+            assert dash_data['code'] == 'A00000', 'can\'t play this video!!'
+            url_prefix = dash_data['data']['dd']
+            streams = dash_data['data']['program']['video']
+            for stream in streams:
+                if 'fs' in stream:
+                    type, container, fs_array = stream['scrsz'], stream['ff'], stream['fs']
+                    break
+            real_urls = []
+            for seg_info in fs_array:
+                url = url_prefix + seg_info['l']
+                json_data = json.loads(get_content(url))
+                down_url = json_data['l']
+                real_urls.append(down_url)
+            info.stream_types.append(type)
+            info.streams[type] = {'video_profile': type, 'container': container, 'src': real_urls, 'size' : 0}
         return info
 
     def prepare_list(self):

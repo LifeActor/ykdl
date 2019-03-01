@@ -28,7 +28,6 @@ class ChakraHandle():
 
         context = _ctypes.c_void_p()
         chakra.JsCreateContext(runtime, point(context))
-        chakra.JsSetCurrentContext(context)
 
         self.__runtime = runtime
         self.__context = context
@@ -60,7 +59,9 @@ class ChakraHandle():
                             chakra internal error code
         """
 
+        # TODO: may need a thread lock, if running multithreading
         chakra = self.__chakra
+        chakra.JsSetCurrentContext(self.__context)
         # make sure they are unicode string
         if hasattr(script, 'decode'):
             script = script.decode('utf8')

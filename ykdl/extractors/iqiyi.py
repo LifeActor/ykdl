@@ -54,7 +54,7 @@ def cmd5x(s):
     #    02020031010010000000
     return cmd5(s + 'h2l6suw16pbtikmotf0j79cej4n8uw13')
 
-def getdash(tvid, vid, bid=600):
+def getdash(tvid, vid, bid=500):
     tm = int(time.time() * 1000)
     host = 'https://cache.video.iqiyi.com'
     params = {

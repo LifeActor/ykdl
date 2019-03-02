@@ -3,7 +3,6 @@
 
 from ykdl.util.html import get_content
 from ykdl.util.match import matchall, match1
-from ykdl.util.jsengine import JSEngine, javascript_is_supported
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 from ykdl.compact import urlencode, compact_bytes
@@ -14,7 +13,6 @@ import hashlib
 import random
 
 macid = None
-js_ctx = None
 
 def get_macid():
     '''获取macid,此值是通过mac地址经过算法变换而来,对同一设备不变'''
@@ -27,6 +25,9 @@ def get_macid():
             macid += list(chars)[random.randint(0,size-1)]
     return macid
 
+def md5(s):
+    return hashlib.md5(compact_bytes(s, 'utf8')).hexdigest()
+
 def md5x(s):
     #sufix = ''
     #for j in range(8):
@@ -37,23 +38,21 @@ def md5x(s):
     #        else:
     #            v8 = v4 + 49
     #        sufix += chr(v8)
-    sufix = '1j2k2k3l3l4m4m5n5n6o6o7p7p8q8q9r'
-    return hashlib.md5(compact_bytes(s + sufix, 'utf8')).hexdigest()
+    return md5(s + '1j2k2k3l3l4m4m5n5n6o6o7p7p8q8q9r')
 
 def cmd5x(s):
-    global js_ctx
-    if js_ctx is None:        
-        try:
-            # try load local .js file first
-            # cmd5x from https://static.iqiyi.com/js/player_v1/pcweb.wonder.js
-            from pkgutil import get_data
-            js = get_data(__name__, 'iqiyi.js')
-            if isinstance(js, bytes):
-                js = js.decode()
-        except IOError:
-            js = get_content('http://static.iqiyi.com/js/common/7d183edd03bc4414b315e8964fb41826.js')
-        js_ctx = JSEngine(js)
-    return js_ctx.call('cmd5x', s)
+    # the param src below uses salt h2l6suw16pbtikmotf0j79cej4n8uw13
+    #    01010031010000000000
+    #    01010031010010000000
+    #    01080031010000000000
+    #    01080031010010000000
+    #    03020031010000000000
+    #    03020031010010000000
+    #    03030031010000000000
+    #    03030031010010000000
+    #    02020031010000000000
+    #    02020031010010000000
+    return md5(s + 'h2l6suw16pbtikmotf0j79cej4n8uw13')
 
 def getdash(tvid, vid, bid=500):
     tm = int(time.time() * 1000)
@@ -203,10 +202,6 @@ class Iqiyi(VideoExtractor):
                 push_stream(bid, 'flv', fs_array, size)
 
         except:
-            if not javascript_is_supported:
-                self.logger.warning("No JS Interpreter found, can't parse iqiyi video!")
-                raise
-
             # use dash as fallback
             dash_data = getdash(tvid, vid)
             assert dash_data['code'] == 'A00000', 'can\'t play this video!!'

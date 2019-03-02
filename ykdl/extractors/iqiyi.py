@@ -25,7 +25,7 @@ def get_macid():
             macid += list(chars)[random.randint(0,size-1)]
     return macid
 
-def cmd5(s):
+def md5(s):
     return hashlib.md5(compact_bytes(s, 'utf8')).hexdigest()
 
 def md5x(s):
@@ -38,7 +38,7 @@ def md5x(s):
     #        else:
     #            v8 = v4 + 49
     #        sufix += chr(v8)
-    return cmd5(s + '1j2k2k3l3l4m4m5n5n6o6o7p7p8q8q9r')
+    return md5(s + '1j2k2k3l3l4m4m5n5n6o6o7p7p8q8q9r')
 
 def cmd5x(s):
     # the param src below uses salt h2l6suw16pbtikmotf0j79cej4n8uw13
@@ -52,7 +52,7 @@ def cmd5x(s):
     #    03030031010010000000
     #    02020031010000000000
     #    02020031010010000000
-    return cmd5(s + 'h2l6suw16pbtikmotf0j79cej4n8uw13')
+    return md5(s + 'h2l6suw16pbtikmotf0j79cej4n8uw13')
 
 def getdash(tvid, vid, bid=500):
     tm = int(time.time() * 1000)

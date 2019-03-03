@@ -52,14 +52,12 @@ class Youku(VideoExtractor):
     ref_tudou = 'https://video.tudou.com'
     ckey_default = "DIl58SLFxFNndSV1GFNnMQVYkx1PP5tKe1siZu/86PR1u/Wh1Ptd+WOZsHHWxysSfAOhNJpdVWsdVJNsfJ8Sxd8WKVvNfAS8aS8fAOzYARzPyPc3JvtnPHjTdKfESTdnuTW6ZPvk2pNDh4uFzotgdMEFkzQ5wZVXl2Pf1/Y6hLK0OnCNxBj3+nb0v72gZ6b0td+WOZsHHWxysSo/0y9D2K42SaB8Y/+aD2K42SaB8Y/+ahU+WOZsHcrxysooUeND"
     ckey_mobile = "7B19C0AB12633B22E7FE81271162026020570708D6CC189E4924503C49D243A0DE6CD84A766832C2C99898FC5ED31F3709BB3CDD82C96492E721BDD381735026"
-    ckey_m = "110#j4UkAUkfkdrOu0L82wgAMuy2kMUyfFGOmkm2hQ7/8DBLkPGMJx2IjQmkFXCS+MzQmakbhgJy8pcijkLaqMuySg3gkR5t81GOmJScScUIbRjIuRadzDmhUoRGIdEcOeLPMyZGlLvwsTvsQEbllAciskT47Tmwj3k4mPW3sGbLUTZI4yjOCxTQsFpaGLcOjTcw4w23sLFgsjgUkcaOs3rXzy1dSPtHpur/ak237kfFX/h32wHakT65FNgZWTcgPzUT+q10IKa92o1izzNnFN+DeHtS2e9nWRjvLaKYwvOesI98g1GoEXAhiOKBhAQ17pMvEHNhyb9jzGWuG+E/zqc9FCP0lG1YVd6HGqn+09LN6fwPm1EkoOmZLxIThxSPzMult7UdGTDZjfkE3iV5OTR4Ymmc86p4va2MvijtO9YbRp0ZaKuR8LVLCMRJWBnGQpRr2sKAc6DWoR9iOBGbX6CQbla=#0"
 
     def __init__(self):
         VideoExtractor.__init__(self)
         self.params = (
-            ('0502', self.ref_youku, self.ckey_mobile),
-            ('0516', self.ref_youku, self.ckey_default),
-            ('0517', self.ref_youku, self.ckey_default),
+            ('0503', self.ref_youku, self.ckey_default),
+            ('0590', self.ref_youku, self.ckey_default),
             )
 
     def prepare(self):
@@ -101,12 +99,28 @@ class Youku(VideoExtractor):
                 'client_ip': '192.168.1.1',
                 'client_ts': int(time.time()),
             }
-            data = json.loads(get_content('https://ups.youku.com/ups/get.json?' + urlencode(params)))
-            self.logger.debug("data: " + str(data))
-            if data['e']['code'] == 0 and 'stream' in data['data']:
+            data = None
+            while data is None:
+                e1 = 0
+                e2 = 0
+                data = json.loads(get_content('https://ups.youku.com/ups/get.json?' + urlencode(params)))
+                self.logger.debug("data: " + str(data))
+                e1 = data['e']['code']
+                e2 = data['data'].get('error')
+                if e2:
+                    e2 = e2['code']
+                if e1 == 0 and e2 in (-2002, -2003):
+                    from getpass import getpass
+                    data = None
+                    if e2 == -2002:
+                        self.logger.warning('This video has protected!')
+                    elif e2 == -2003:
+                        self.logger.warning('Your password [{}] is wrong!'.format(params['password']))
+                    params['password'] = getpass('Input password:')
+            if e1 == 0 and not e2:
                 break
 
-        assert data['e']['code'] == 0, data['e']['desc']
+        assert e1 == 0, data['e']['desc']
         data = data['data']
         assert 'stream' in data, data['error']['note']
 

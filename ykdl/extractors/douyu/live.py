@@ -88,7 +88,7 @@ class Douyutv(VideoExtractor):
         video_profile = rate_2_profile[live_data['rate']]
         stream = self.profile_2_id[video_profile]
         info.stream_types.append(stream)
-        info.streams['TD'] = {
+        info.streams[stream] = {
             'container': 'flv',
             'video_profile': video_profile,
             'src' : [real_url],

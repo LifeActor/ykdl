@@ -54,7 +54,7 @@ class Douyutv(VideoExtractor):
             if isinstance(js_md5, bytes):
                 js_md5 = js_md5.decode()
         except IOError:
-            js_md5 = get_content('https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/core.min.js')
+            js_md5 = get_content('https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js')
 
         js_ctx = JSEngine(js_md5)
         js_ctx.eval(js_enc)

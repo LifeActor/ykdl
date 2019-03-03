@@ -1,19 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
+from ykdl.util.html import get_content, add_header
 from ykdl.util.match import match1, matchall
+from ykdl.util.jsengine import JSEngine, javascript_is_supported
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
-from ykdl.compact import urlencode,compact_bytes
+from ykdl.compact import urlencode
 
 import time
-import hashlib
-import random
 import json
-import sys
-
-APPKEY = 'zNzMV1y4EMxOHS6I5WKm' #from android-hd client
+import uuid
 
 
 douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
@@ -22,31 +19,81 @@ douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
 class Douyutv(VideoExtractor):
     name = u'斗鱼直播 (DouyuTV)'
 
-    stream_ids = ['TD', 'HD', 'SD']
-    stream_id_2_rate = {'TD':3 , 'HD':2, 'SD':1}
-    id_2_profile = {'TD': u'超清' , 'HD':u'高清', 'SD':u'标清'}
+    stream_ids = ['4k', 'BD', 'TD', 'HD', 'SD']
+    profile_2_id = {
+        u'蓝光10M': '4k',
+        u'蓝光4M': 'BD',
+        u'超清': 'TD',
+        u'高清': 'HD',
+        u'流畅': 'SD'
+     }
 
     def prepare(self):
+        assert javascript_is_supported, "No JS Interpreter found, can't parse douyu live!"
+
         info = VideoInfo(self.name, True)
+        add_header("Referer", 'https://www.douyu.com')
 
-        if not self.vid:
-            html = get_content(self.url)
-            self.vid = match1(html, 'room_id\s*=\s*(\d+);', '"room_id.?":(\d+)', 'data-onlineid=(\d+)')
-        cdn = 'ws'
-        authstr = 'room/{0}?aid=wp&cdn={1}&client_sys=wp&time={2}'.format(self.vid, cdn, int(time.time()))
-        authmd5 = hashlib.md5((authstr + APPKEY).encode()).hexdigest()
-        api_url = 'https://capi.douyucdn.cn/api/v1/{0}&auth={1}'.format(authstr,authmd5)
-        html_content = get_content(api_url)
+        html = get_content(self.url)
+        self.vid = match1(html, 'room_id\s*=\s*(\d+);', '"room_id.?":(\d+)', 'data-onlineid=(\d+)')
+        info.title = match1(html, 'Title-headlineH2">([^<]+)<')
+        info.artist = match1(html, 'Title-anchorName" title="([^"]+)"')
+        if info.title and info.artist:
+            info.title = '{} - {}'.format(info.title, info.artist)
+
+        html_content = get_content('https://www.douyu.com/swf_api/homeH5Enc?rids=' + self.vid)
+        data = json.loads(html_content)
+        assert data['error'] == 0, data['msg']
+        js_enc = data['data']['room' + self.vid]
+
+        try:
+            # try load local .js file first
+            # from https://cdnjs.com/libraries/crypto-js
+            from pkgutil import get_data
+            js_md5 = get_data(__name__, 'crypto-js-md5.min.js')
+            if isinstance(js_md5, bytes):
+                js_md5 = js_md5.decode()
+        except IOError:
+            js_md5 = get_content('https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/core.min.js')
+
+        js_ctx = JSEngine(js_md5)
+        js_ctx.eval(js_enc)
+        did = uuid.uuid4().hex
+        tt = str(int(time.time()))
+        ub98484234 = js_ctx.call('ub98484234', self.vid, did, tt)
+        self.logger.debug('ub98484234: ' + ub98484234)
+        params = {
+            'v': match1(ub98484234, 'v=(\d+)'),
+            'did': did,
+            'tt': tt,
+            'sign': match1(ub98484234, 'sign=(\w{32})'),
+            'cdn': '',
+            'rate': 0,
+            'iar': 1,
+            'ive': 0
+        }
+
+        data = urlencode(params)
+        if not isinstance(data, bytes):
+            data = data.encode()
+        html_content = get_content('https://www.douyu.com/lapi/live/getH5Play/{}'.format(self.vid), data=data)
+        self.logger.debug(html_content)
+
         live_data = json.loads(html_content)
+        assert live_data['error'] == 0, live_data['msg']
 
-        assert live_data["error"] == 0, "server error!!"
         live_data = live_data["data"]
-        assert live_data['show_status'] == '1', "the show is not online!!"
-        info.title = live_data['room_name']
-        info.artist = live_data['nickname']
-        real_url = '/'.join([live_data['rtmp_url'], live_data['rtmp_live']])
-        info.stream_types.append('TD')
-        info.streams['TD'] = {'container': 'flv', 'video_profile': self.id_2_profile['TD'], 'src' : [real_url], 'size': float('inf')}
+        real_url = '{}/{}'.format(live_data['rtmp_url'], live_data['rtmp_live'])
+        rate_2_profile = dict((rate['rate'], rate['name']) for rate in live_data['multirates'])
+        video_profile = rate_2_profile[live_data['rate']]
+        stream = self.profile_2_id[video_profile]
+        info.stream_types.append(stream)
+        info.streams['TD'] = {
+            'container': 'flv',
+            'video_profile': video_profile,
+            'src' : [real_url],
+            'size': float('inf')
+        }
 
         return info
 

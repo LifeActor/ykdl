@@ -19,10 +19,12 @@ douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
 class Douyutv(VideoExtractor):
     name = u'斗鱼直播 (DouyuTV)'
 
-    stream_ids = ['4k', 'BD', 'TD', 'HD', 'SD']
+    stream_ids = ['BD10M', 'BD8M', 'BD4M', 'BD', 'TD', 'HD', 'SD']
     profile_2_id = {
-        u'蓝光10M': '4k',
-        u'蓝光4M': 'BD',
+        u'蓝光10M': 'BD10M',
+        u'蓝光8M': 'BD8M',
+        u'蓝光4M': 'BD4M',
+        u'蓝光': 'BD',
         u'超清': 'TD',
         u'高清': 'HD',
         u'流畅': 'SD'
@@ -81,33 +83,52 @@ class Douyutv(VideoExtractor):
             'tt': tt,
             'sign': match1(ub98484234, 'sign=(\w{32})'),
             'cdn': '',
-            'rate': 0,
-            'iar': 1,
+            'iar': 0,
             'ive': 0
         }
 
-        data = urlencode(params)
-        if not isinstance(data, bytes):
-            data = data.encode()
-        html_content = get_content('https://www.douyu.com/lapi/live/getH5Play/{}'.format(self.vid), data=data)
-        self.logger.debug(html_content)
+        def get_live_info(rate=0):
+            params['rate'] = rate
+            data = urlencode(params)
+            if not isinstance(data, bytes):
+                data = data.encode()
+            html_content = get_content('https://www.douyu.com/lapi/live/getH5Play/{}'.format(self.vid), data=data)
+            self.logger.debug(html_content)
 
-        live_data = json.loads(html_content)
-        assert live_data['error'] == 0, live_data['msg']
+            live_data = json.loads(html_content)
+            if live_data['error']:
+                return live_data['msg']
 
-        live_data = live_data["data"]
-        real_url = '{}/{}'.format(live_data['rtmp_url'], live_data['rtmp_live'])
-        rate_2_profile = dict((rate['rate'], rate['name']) for rate in live_data['multirates'])
-        video_profile = rate_2_profile[live_data['rate']]
-        stream = self.profile_2_id[video_profile]
-        info.stream_types.append(stream)
-        info.streams[stream] = {
-            'container': 'flv',
-            'video_profile': video_profile,
-            'src' : [real_url],
-            'size': float('inf')
-        }
+            live_data = live_data["data"]
+            real_url = '{}/{}'.format(live_data['rtmp_url'], live_data['rtmp_live'])
+            rate_2_profile = dict((rate['rate'], rate['name']) for rate in live_data['multirates'])
+            video_profile = rate_2_profile[live_data['rate']]
+            stream = self.profile_2_id[video_profile]
+            if stream in info.streams:
+                return
+            info.stream_types.append(stream)
+            info.streams[stream] = {
+                'container': 'flv',
+                'video_profile': video_profile,
+                'src' : [real_url],
+                'size': float('inf')
+            }
 
+            
+            error_msges = []
+            if rate == 0:
+                rate_2_profile.pop(0, None)
+                rate_2_profile.pop(live_data['rate'], None)
+                for rate in rate_2_profile:
+                    error_msg = get_live_info(rate)
+                    if error_msg:
+                        error_msges.append(error_msg)
+            if error_msges:
+                return ', '.join(error_msges)
+
+        error_msg = get_live_info()
+        assert len(info.stream_types), error_msg
+        info.stream_types = sorted(info.stream_types, key=self.stream_ids.index)
         return info
 
     def prepare_list(self):

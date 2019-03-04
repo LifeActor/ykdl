@@ -98,6 +98,7 @@ function(program) {
     var output;
     try {
         result = program();
+        var print = (this.print === undefined) ? (function(msg){console.log(msg);}) : this.print;
         print("");
         if (typeof result == 'undefined' && result !== null) {
             print('["ok"]');

@@ -69,12 +69,14 @@ elif platform.system() == 'Windows':
         print('Please install Node.js!', file=sys.stderr)
         javascript_is_supported = False
 
-# Linux: use gjs on Gnome, cjs on Cinnamon or NodeJS if installed
+# Linux: use gjs on Gnome, cjs on Cinnamon or JavaScriptCore/NodeJS if installed
 elif platform.system() == 'Linux':
     if find_executable('gjs') is not None:
         interpreter = ['gjs']
     elif find_executable('cjs') is not None:
         interpreter = ['cjs']
+    elif find_executable('jsc') is not None:
+        interpreter = ['jsc']
     elif find_executable('nodejs') is not None:
         interpreter = ['nodejs']
     elif find_executable('node') is not None:

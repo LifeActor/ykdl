@@ -38,7 +38,7 @@ class Douyutv(VideoExtractor):
 
         title = None
         artist = None
-        self.vid = match1(self.url, 'www.douyu.com/(\d+)')
+        self.vid = match1(self.url, 'douyu.com/(\d+)')
 
         if not self.vid:
             html = get_content(self.url)

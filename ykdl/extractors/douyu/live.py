@@ -53,7 +53,7 @@ class Douyutv(VideoExtractor):
                 title = data['data']['room_name']
                 artist = data['data']['owner_name']
 
-        info.title = '{} - {}'.format(title, artist)
+        info.title = u'{} - {}'.format(title, artist)
         info.artist = artist
 
         html_content = get_content('https://www.douyu.com/swf_api/homeH5Enc?rids=' + self.vid)

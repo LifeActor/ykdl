@@ -32,9 +32,9 @@ class BiliVideo(BiliBase):
                if page == page_index:
                    vid = cid
                    if len(video_list) > 1:
-                       title = '{} - {} - {}'.format(title, page, part)
+                       title = u'{} - {} - {}'.format(title, page, part)
                    elif part:
-                       title = '{} - {}'.format(title, part)
+                       title = u'{} - {}'.format(title, part)
                    break
 
         return vid, title

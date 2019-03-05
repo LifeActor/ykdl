@@ -94,13 +94,13 @@ else:
 injected_script = r'''
 (function(program, execJS) { execJS(program) })(
 function() {
+    var exports = undefined;
     return eval(#{encoded_source});
 },
 function(program) {
-    var output;
+    var print = (this.print === undefined) ? console.log : this.print;
     try {
         result = program();
-        var print = (this.print === undefined) ? console.log : this.print;
         print("");
         if (typeof result == 'undefined' && result !== null) {
             print('["ok"]');

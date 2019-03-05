@@ -25,7 +25,7 @@ class Acfun(EmbedExtractor):
         sourceId = data['sourceId']
         sub_title = data['title']
         if sub_title != 'Part1' or len(pageInfo['videoList']) > 1:
-            title = '{} - {}'.format(title, sub_title)
+            title = u'{} - {}'.format(title, sub_title)
 
         if sourceType == 'zhuzhan':
             sourceType = 'acorig'

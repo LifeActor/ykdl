@@ -173,13 +173,15 @@ class Iqiyi(VideoExtractor):
         tvid, vid = self.vid
 
         def push_stream(bid, container, fs_array, size):
+            stream = self.vd_2_id[bid]
+            if stream in info.streams:
+                return
             real_urls = []
             for seg_info in fs_array:
                 url = url_prefix + seg_info['l']
                 json_data = json.loads(get_content(url))
                 down_url = json_data['l']
                 real_urls.append(down_url)
-            stream = self.vd_2_id[bid]
             info.stream_types.append(stream)
             stream_profile = self.id_2_profile[stream]
             info.streams[stream] = {
@@ -203,18 +205,19 @@ class Iqiyi(VideoExtractor):
 
         except:
             # use dash as fallback
-            dash_data = getdash(tvid, vid)
-            assert dash_data['code'] == 'A00000', 'can\'t play this video!!'
-            url_prefix = dash_data['data']['dd']
-            streams = dash_data['data']['program']['video']
-            for stream in streams:
-                if 'fs' in stream:
-                    bid = stream['bid']
-                    container = stream['ff']
-                    fs_array = stream['fs']
-                    size = stream['vsize']
-                    break
-            push_stream(bid, container, fs_array, size)
+            for bid in (500, 300, 200, 100):
+                dash_data = getdash(tvid, vid, bid)
+                assert dash_data['code'] == 'A00000', 'can\'t play this video!!'
+                url_prefix = dash_data['data']['dd']
+                streams = dash_data['data']['program']['video']
+                for stream in streams:
+                    if 'fs' in stream:
+                        _bid = stream['bid']
+                        container = stream['ff']
+                        fs_array = stream['fs']
+                        size = stream['vsize']
+                        break
+                push_stream(_bid, container, fs_array, size)
 
         info.stream_types = sorted(info.stream_types, key=self.ids.index)
         return info

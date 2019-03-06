@@ -92,9 +92,9 @@ else:
 
 # Inject to the script to let it return jsonlized value to python
 injected_script = r'''
+var exports = undefined;
 (function(program, execJS) { execJS(program) })(
 function() {
-    var exports = undefined;
     return eval(#{encoded_source});
 },
 function(program) {

@@ -38,17 +38,24 @@ class Douyutv(VideoExtractor):
 
         title = None
         artist = None
+        html_room_info = None
         self.vid = match1(self.url, 'douyu.com/(\d+)')
+
+        if self.vid:
+            try:
+                html_room_info = get_content('https://open.douyucdn.cn/api/RoomApi/room/' + self.vid)
+            except:
+                self.vid = None
 
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, 'room_id\s*=\s*(\d+);', '"room_id.?":(\d+)', 'data-onlineid=(\d+)')
+            self.vid = match1(html, 'room_id\s*=\s*(\d+)', '"room_id.?":(\d+)', 'data-onlineid=(\d+)')
             title = match1(html, 'Title-headlineH2">([^<]+)<')
             artist = match1(html, 'Title-anchorName" title="([^"]+)"')
 
         if not artist:
-            html_content = get_content('https://open.douyucdn.cn/api/RoomApi/room/' + self.vid)
-            data = json.loads(html_content)
+            html_room_info = html_room_info or get_content('https://open.douyucdn.cn/api/RoomApi/room/' + self.vid)
+            data = json.loads(html_room_info)
             if data['error'] == 0:
                 title = data['data']['room_name']
                 artist = data['data']['owner_name']
@@ -56,8 +63,8 @@ class Douyutv(VideoExtractor):
         info.title = u'{} - {}'.format(title, artist)
         info.artist = artist
 
-        html_content = get_content('https://www.douyu.com/swf_api/homeH5Enc?rids=' + self.vid)
-        data = json.loads(html_content)
+        html_h5enc = get_content('https://www.douyu.com/swf_api/homeH5Enc?rids=' + self.vid)
+        data = json.loads(html_h5enc)
         assert data['error'] == 0, data['msg']
         js_enc = data['data']['room' + self.vid]
 

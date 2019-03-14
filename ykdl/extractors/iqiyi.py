@@ -54,6 +54,20 @@ def cmd5x(s):
     #    02020031010010000000
     return md5(s + 'h2l6suw16pbtikmotf0j79cej4n8uw13')
 
+def gettmts(tvid, vid):
+    tm = int(time.time() * 1000)
+    key = 'd5fb4bd9d50c4be6948c97edd7254b0e'
+    host = 'http://cache.m.iqiyi.com'
+    params = {
+        'src': '76f90cbd92f94a2e925d83e8ccd22cb7',
+        'sc': md5(str(tm) + key + vid),
+        't': tm
+    }
+    src = '/tmts/{}/{}/?{}'.format(tvid, vid, urlencode(params))
+    req_url = '{}{}'.format(host, src)
+    html = get_content(req_url)
+    return json.loads(html)
+
 def getdash(tvid, vid, bid=500):
     tm = int(time.time() * 1000)
     host = 'https://cache.video.iqiyi.com'
@@ -172,7 +186,22 @@ class Iqiyi(VideoExtractor):
 
         tvid, vid = self.vid
 
-        def push_stream(bid, container, fs_array, size):
+        def push_stream_vd(vs):
+            vd = vs['vd']
+            stream = self.vd_2_id[vd]
+            if int(vd) < 10 and stream in info.streams:
+                return
+            m3u8 = vs['m3utx']
+            info.stream_types.append(stream)
+            stream_profile = self.id_2_profile[stream]
+            info.streams[stream] = {
+                'video_profile': stream_profile,
+                'container': 'm3u8',
+                'src': [m3u8],
+                'size': 0
+            }
+
+        def push_stream_bid(bid, container, fs_array, size):
             stream = self.vd_2_id[bid]
             if stream in info.streams:
                 return
@@ -192,32 +221,51 @@ class Iqiyi(VideoExtractor):
             }
 
         try:
-            # try use vps firt
-            vps_data = getvps(tvid, vid)
-            assert vps_data['code'] == 'A00000', 'can\'t play this video!!'
-            url_prefix = vps_data['data']['vp']['du']
-            vs_array = vps_data['data']['vp']['tkl'][0]['vs']
+            # try use tmts first
+            # less http requests, get results quickly
+            tmts_data = gettmts(tvid, vid)
+            assert tmts_data['code'] == 'A00000', 'can\'t play this video!!'
+            vs_array = tmts_data['data']['vidl']
             for vs in vs_array:
-                bid = vs['bid']
-                fs_array = vs['fs']
-                size = vs['vsize']
-                push_stream(bid, 'flv', fs_array, size)
+                push_stream_vd(vs)
+            vip_conf = tmts_data['data'].get('ctl', {}).get('configs')
+            if vip_conf:
+                for vds in (('10', '19'), ('18', '5')):
+                    for vd in vds:
+                        if vd in vip_conf:
+                            tmts_data = gettmts(tvid, vip_conf[vd]['vid'])
+                            if tmts_data['code'] == 'A00000':
+                                push_stream_vd(tmts_data['data'])
+                                break
 
         except:
-            # use dash as fallback
-            for bid in (500, 300, 200, 100):
-                dash_data = getdash(tvid, vid, bid)
-                assert dash_data['code'] == 'A00000', 'can\'t play this video!!'
-                url_prefix = dash_data['data']['dd']
-                streams = dash_data['data']['program']['video']
-                for stream in streams:
-                    if 'fs' in stream:
-                        _bid = stream['bid']
-                        container = stream['ff']
-                        fs_array = stream['fs']
-                        size = stream['vsize']
-                        break
-                push_stream(_bid, container, fs_array, size)
+            try:
+                # use vps as preferred fallback
+                vps_data = getvps(tvid, vid)
+                assert vps_data['code'] == 'A00000', 'can\'t play this video!!'
+                url_prefix = vps_data['data']['vp']['du']
+                vs_array = vps_data['data']['vp']['tkl'][0]['vs']
+                for vs in vs_array:
+                    bid = vs['bid']
+                    fs_array = vs['fs']
+                    size = vs['vsize']
+                    push_stream_bid(bid, 'flv', fs_array, size)
+
+            except:
+                # use dash as fallback
+                for bid in (500, 300, 200, 100):
+                    dash_data = getdash(tvid, vid, bid)
+                    assert dash_data['code'] == 'A00000', 'can\'t play this video!!'
+                    url_prefix = dash_data['data']['dd']
+                    streams = dash_data['data']['program']['video']
+                    for stream in streams:
+                        if 'fs' in stream:
+                            _bid = stream['bid']
+                            container = stream['ff']
+                            fs_array = stream['fs']
+                            size = stream['vsize']
+                            break
+                    push_stream_bid(_bid, container, fs_array, size)
 
         info.stream_types = sorted(info.stream_types, key=self.ids.index)
         return info

@@ -89,7 +89,7 @@ class Douyutv(VideoExtractor):
             'did': did,
             'tt': tt,
             'sign': match1(ub98484234, 'sign=(\w{32})'),
-            'cdn': '',
+            'cdn': 'ws-h5',
             'iar': 0,
             'ive': 0
         }

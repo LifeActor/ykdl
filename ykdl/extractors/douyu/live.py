@@ -16,6 +16,13 @@ import uuid
 douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
                         'data-room_id="([^"]+)'
                       ]
+
+def get_room_info(vid):
+    html = get_content('https://open.douyucdn.cn/api/RoomApi/room/' + vid)
+    room_data = json.loads(html)
+    if room_data['error'] == 0:
+        return room_data['data']
+
 class Douyutv(VideoExtractor):
     name = u'斗鱼直播 (DouyuTV)'
 
@@ -38,13 +45,15 @@ class Douyutv(VideoExtractor):
 
         title = None
         artist = None
-        html_room_info = None
+        room_data = None
         self.vid = match1(self.url, 'douyu.com/(\d+)')
 
         if self.vid:
             try:
-                html_room_info = get_content('https://open.douyucdn.cn/api/RoomApi/room/' + self.vid)
+                room_data = get_room_info(self.vid)
+                assert room_data['owner_name'] != u'用户已注销'
             except:
+                room_data = None
                 self.vid = None
 
         if not self.vid:
@@ -54,11 +63,10 @@ class Douyutv(VideoExtractor):
             artist = match1(html, 'Title-anchorName" title="([^"]+)"')
 
         if not artist:
-            html_room_info = html_room_info or get_content('https://open.douyucdn.cn/api/RoomApi/room/' + self.vid)
-            data = json.loads(html_room_info)
-            if data['error'] == 0:
-                title = data['data']['room_name']
-                artist = data['data']['owner_name']
+            room_data = room_data or get_room_info(self.vid)
+            if room_data:
+                title = room_data['room_name']
+                artist = room_data['owner_name']
 
         info.title = u'{} - {}'.format(title, artist)
         info.artist = artist

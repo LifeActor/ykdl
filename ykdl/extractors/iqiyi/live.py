@@ -68,6 +68,14 @@ class IqiyiLive(VideoExtractor):
         data = data['data']
 
         for stream in data['streams']:
+            # TODO: parse more format types.
+            # Streams which use formatType 'TS' are slow,
+            # and rolling playback use formatType 'HLFLV' with scheme 'hcdnlive://'.
+            # Its host and path encoded as like:
+            #   'AMAAAAD3PV2R2QI7MXRQ4L2BD5Y...'
+            # the real url is:
+            #   'https://hlslive.video.iqiyi.com/live/{hl_slid}.flv?{params}'
+            # Request it, the response is a json data which contains CDN informations.
             if stream['formatType'] == 'TS':
                 m3u8 = stream['url']
                 # miswrote 'streamType' to 'steamType'

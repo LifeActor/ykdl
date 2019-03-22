@@ -65,7 +65,7 @@ class IqiyiLive(VideoExtractor):
         info = VideoInfo(self.name, True)
         html = get_content(self.url)
         self.vid = match1(html, '"user_id":"([^"]+)",')
-        title = json.loads(match1(html, '"room_name":("[^"]+"),'))
+        title = json.loads(match1(html, '"room_name":("[^"]*"),'))
         artist = json.loads(match1(html, '"nick_name":("[^"]+"),'))
         info.title = u'{} - {}'.format(title, artist)
         info.artist = artist

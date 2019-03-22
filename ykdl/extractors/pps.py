@@ -46,7 +46,7 @@ def getlive(uid, rate='source'):
     html = get_content(api, data=data)
     return json.loads(html)
 
-class IqiyiLive(VideoExtractor):
+class PPS(VideoExtractor):
     name = u"奇秀（Qixiu)"
 
     ids = ['TD', 'HD', 'SD']
@@ -74,10 +74,10 @@ class IqiyiLive(VideoExtractor):
             data = getlive(self.vid, rate)
             self.logger.debug('data:\n' + str(data))
             if data['code'] != 'A00000':
-                return data.get('msg', '')
+                return data.get('msg')
 
             data = data['data']
-            url = data.get('https_flv', data.get('flv', data.get('rtmp')))
+            url = data.get('https_flv') or data.get('flv') or data.get('rtmp')
             if url:
                 url = url.replace('rtmp://', 'http://')
                 ran = random.randrange(1e4)
@@ -115,4 +115,4 @@ class IqiyiLive(VideoExtractor):
 
         return info
 
-site = IqiyiLive()
+site = PPS()

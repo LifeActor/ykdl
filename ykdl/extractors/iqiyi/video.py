@@ -106,6 +106,7 @@ class Iqiyi(VideoExtractor):
 
     def prepare(self):
         info = VideoInfo(self.name)
+
         if self.url and not self.vid:
             vid = matchall(self.url, ['curid=([^_]+)_([\w]+)'])
             if vid:
@@ -117,7 +118,7 @@ class Iqiyi(VideoExtractor):
                 real_html = get_content(real_u)
                 info.title = match1(real_html, '<title>([^<]+)').split('-')[0]
 
-        if self.url and not self.vid:
+        def get_vid():
             html = get_content(self.url)
             video_info = match1(html, ":video-info='(.+?)'")
 
@@ -128,20 +129,25 @@ class Iqiyi(VideoExtractor):
 
             else:
                 tvid = match1(html,
-                              'data-player-tvid="([^"]+)"',
-                              'tvid="(.+?)"',
-                              'tvId:([^,]+)',
-                              r'''param\['tvid'\]\s*=\s*"(.+?)"''',
-                              r'"tvid":\s*"(\d+)"')
+                              'tvId:\s*"([^"]+)',
+                              'data-video-tvId="([^"]+)',
+                              '''\['tvid'\]\s*=\s*"([^"]+)''',
+                              '"tvId":\s*([^,]+)')
                 videoid = match1(html,
-                                'data-player-videoid="([^"]+)"',
-                                'vid="(.+?)"',
-                                'vid:"([^"]+)',
-                                r'''param\['vid'\]\s*=\s*"(.+?)"''',
-                                r'"vid":\s*"(\w+)"')
+                                'data-video-vid="([^"]+)',
+                                'vid:\s*"([^"]+)',
+                                '''\['vid'\]\s*=\s*"([^"]+)''',
+                                '"vid":\s*([^,]+)')
+                if not (tvid and videoid):
+                    url = match1(html, '(www\.iqiyi\.com/v_\w+\.html)')
+                    if url:
+                        self.url = 'https://' + url
+                        return get_vid()
                 self.vid = (tvid, videoid)
                 info.title = match1(html, '<title>([^<]+)').split('-')[0]
 
+        if self.url and not self.vid:
+            get_vid()
         tvid, vid = self.vid
         assert tvid and vid, 'can\'t play this video!!'
 

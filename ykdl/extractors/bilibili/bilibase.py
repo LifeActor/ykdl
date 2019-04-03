@@ -57,7 +57,7 @@ class BiliBase(VideoExtractor):
 
             api_url = self.get_api_url(qn)
             html = get_content(api_url)
-            self.logger.debug("HTML> {}".format(html))
+            self.logger.debug('HTML> ' + html)
             code = match1(html, '<code>([^<])')
             if code:
                 return

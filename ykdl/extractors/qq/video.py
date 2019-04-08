@@ -108,7 +108,7 @@ def qq_get_final_url(url, vid, fmt_id, filename, fvkey, platform):
 
     vkey = data.get('key', fvkey)
     if vkey:
-        url = "{}{}?vkey={}".format(url, filename, vkey)
+        url = '{}{}?vkey={}'.format(url, filename, fvkey)
     else:
         url = None
     vip = data.get('msg') == 'not pay'
@@ -150,7 +150,7 @@ class QQ(VideoExtractor):
             self.logger.debug('data: ' + str(data))
 
             if 'msg' in data:
-                assert data['msg'] != 'vid status wrong', 'wrong vid'
+                assert data['msg'] not in ('vid is wrong', 'vid status wrong'), 'wrong vid'
                 PLAYER_PLATFORMS.remove(PLAYER_PLATFORM)
                 continue
 
@@ -164,7 +164,6 @@ class QQ(VideoExtractor):
             break
 
         assert 'msg' not in data, data['msg']
-        #self.fp2p = data.get('fp2p')
         video = data['vl']['vi'][0]
         fn = video['fn']
         title = video['ti']
@@ -179,10 +178,10 @@ class QQ(VideoExtractor):
         for cdn in video['ul']['ui']:
             cdn_url = cdn['url']
             # 'video.dispatch.tc.qq.com' supported keep-alive link.
-            if cdn_url == 'http://video.dispatch.tc.qq.com/':
+            if cdn_url.startswith('http://video.dispatch.tc.qq.com/'):
                 cdn_url_3 = cdn_url
             # IP host.
-            elif match1(cdn_url, '(^https?://[0-9\.]+/)'):
+            elif match1(cdn_url, '(^http://[0-9\.]+/)'):
                 if not cdn_url_2:
                     cdn_url_2 = cdn_url
             elif not cdn_url_1:
@@ -198,7 +197,7 @@ class QQ(VideoExtractor):
         elif dt == 2:
             type_name = 'mp4'
         else:
-            type_name = 'unknown'
+            type_name = fn.split('.')[-1]
 
         _num_clips = video['cl']['fc']
 
@@ -210,7 +209,7 @@ class QQ(VideoExtractor):
             rate = size // td
 
             fns = fn.split('.')
-            fmt_id_num = fmt_id
+            fmt_id_num = int(fmt_id)
             fmt_id_prefix = None
             num_clips = 0
 
@@ -222,7 +221,8 @@ class QQ(VideoExtractor):
             if fmt_id_prefix:
                 fmt_id_name = fmt_id_prefix + str(fmt_id_num % 10000)
                 if fns[1][0] in ('p', 'm') and not fns[1].startswith('mp'):
-                    fns[1] = fmt_id_name
+                    #fns[1] = fmt_id_name
+                    pass
                 else:
                     fns.insert(1, fmt_id_name)
             elif fns[1][0] in ('p', 'm') and not fns[1].startswith('mp'):
@@ -254,7 +254,7 @@ class QQ(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name)
         if not self.vid:
-            self.vid = match1(self.url, 'vid=(\w+)', '/(\w+)\.html')
+            self.vid = match1(self.url, 'vid=(\w+)', '/(\w+)\.html', 'cover/\w+/(\w+)', 'cover/(\w+)')
 
         if self.vid and match1(self.url, '(^https?://film\.qq\.com)'):
             self.url = 'http://v.qq.com/x/cover/%s.html' % self.vid
@@ -280,7 +280,7 @@ class QQ(VideoExtractor):
             except AssertionError as e:
                 if 'wrong vid' in str(e):
                     html = get_content(self.url)
-                    self.vid = match1(html, '&vid=(\w+)', 'vid:\s*[\"\'](\w+)', 'vid\s*=\s*[\"\']\s*(\w+)')
+                    self.vid = match1(html, '&vid=(\w+)', 'vid:\s*[\"\'](\w+)', 'vid\s*=\s*[\"\']\s*(\w+)', '"vid":"(\w+)"')
                     continue
                 raise e
 
@@ -298,6 +298,7 @@ class QQ(VideoExtractor):
             info.extra['rangefetch'] = {'first_size': 1024 * 16, 'max_size': 1024 * 32, 'threads': 10, 'video_rate': video_rate}
             self.logger.warning('This is a slow video!')
 
+        info.extra['referer'] = 'https://v.qq.com/'
         return info
 
     def prepare_list(self):

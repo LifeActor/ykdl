@@ -108,7 +108,7 @@ def qq_get_final_url(url, vid, fmt_id, filename, fvkey, platform):
 
     vkey = data.get('key', fvkey)
     if vkey:
-        url = '{}{}?vkey={}'.format(url, filename, fvkey)
+        url = '{}{}?vkey={}'.format(url, filename, vkey)
     else:
         url = None
     vip = data.get('msg') == 'not pay'
@@ -221,8 +221,8 @@ class QQ(VideoExtractor):
             if fmt_id_prefix:
                 fmt_id_name = fmt_id_prefix + str(fmt_id_num % 10000)
                 if fns[1][0] in ('p', 'm') and not fns[1].startswith('mp'):
-                    #fns[1] = fmt_id_name
-                    pass
+                    if not self.slow:
+                        fns[1] = fmt_id_name
                 else:
                     fns.insert(1, fmt_id_name)
             elif fns[1][0] in ('p', 'm') and not fns[1].startswith('mp'):

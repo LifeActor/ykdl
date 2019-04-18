@@ -22,7 +22,7 @@ import logging
 logger = logging.getLogger("YKDL")
 
 from ykdl.common import url_to_module
-from ykdl.compact import ProxyHandler, build_opener, install_opener, compact_str
+from ykdl.compact import ProxyHandler, build_opener, install_opener, compact_str, urlparse
 from ykdl.util import log
 from ykdl.util.html import default_proxy_handler
 from ykdl.util.wrap import launch_player, launch_ffmpeg, launch_ffmpeg_download
@@ -64,12 +64,17 @@ def download(urls, name, ext, live = False):
     # for live video, always use ffmpeg to rebuild timeline.
     if live:
         m3u8_internal = False
-    # change m3u8 ext to mp4
-    # rebuild urls when use internal downloader
+    # rebuild m3u8 urls when use internal downloader,
+    # change the ext to segment's ext, default is "ts",
+    # otherwise change the ext to "mp4".
     if ext == 'm3u8':
-        ext = 'ts'
         if m3u8_internal:
             urls = load_m3u8(urls[0])
+            ext = urlparse(urls[0])[2].split('.')[-1]
+            if ext not in ['ts', 'm4s', 'mp4']:
+                ext = 'ts'
+        else:
+            ext = 'mp4'
 
     # OK check m3u8_internal
     if not m3u8_internal:

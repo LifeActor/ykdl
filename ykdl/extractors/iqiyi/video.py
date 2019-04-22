@@ -111,12 +111,12 @@ class Iqiyi(VideoExtractor):
             vid = matchall(self.url, ['curid=([^_]+)_([\w]+)'])
             if vid:
                 self.vid = vid[0]
-                info_u = 'http://mixer.video.iqiyi.com/jp/mixin/videos/' + self.vid[0]
-                mixin = get_content(info_u)
-                mixin_json = json.loads(mixin[len('var tvInfoJs='):])
-                real_u = mixin_json['url']
-                real_html = get_content(real_u)
-                info.title = match1(real_html, '<title>([^<]+)').split('-')[0]
+                info_u = 'http://pcw-api.iqiyi.com/video/video/playervideoinfo?tvid=' + self.vid[0]
+                try:
+                    info_json = json.loads(get_content(info_u))
+                    info.title = info_json['data']['vn']
+                except:
+                    self.vid = None
 
         def get_vid():
             html = get_content(self.url)

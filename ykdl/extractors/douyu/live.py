@@ -17,12 +17,6 @@ douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
                         'data-room_id="([^"]+)'
                       ]
 
-def get_room_info(vid):
-    html = get_content('https://open.douyucdn.cn/api/RoomApi/room/' + vid)
-    room_data = json.loads(html)
-    if room_data['error'] == 0:
-        return room_data['data']
-
 class Douyutv(VideoExtractor):
     name = u'斗鱼直播 (DouyuTV)'
 
@@ -43,28 +37,18 @@ class Douyutv(VideoExtractor):
         info = VideoInfo(self.name, True)
         add_header("Referer", 'https://www.douyu.com')
 
-        title = None
-        artist = None
-        room_data = None
-        self.vid = match1(self.url, 'douyu.com/(\d+)')
+        html = get_content(self.url)
+        self.vid = match1(html, 'room_id\s*=\s*(\d+)',
+                                '"room_id.?":(\d+)',
+                                'data-onlineid=(\d+)')
+        title = match1(html, 'Title-headlineH2">([^<]+)<')
+        artist = match1(html, 'Title-anchorName" title="([^"]+)"')
 
-        if self.vid:
-            try:
-                room_data = get_room_info(self.vid)
-                assert room_data['owner_name'] != u'用户已注销'
-            except:
-                room_data = None
-                self.vid = None
-
-        if not self.vid:
-            html = get_content(self.url)
-            self.vid = match1(html, 'room_id\s*=\s*(\d+)', '"room_id.?":(\d+)', 'data-onlineid=(\d+)')
-            title = match1(html, 'Title-headlineH2">([^<]+)<')
-            artist = match1(html, 'Title-anchorName" title="([^"]+)"')
-
-        if not artist:
-            room_data = room_data or get_room_info(self.vid)
-            if room_data:
+        if not title or not artist:
+            html = get_content('https://open.douyucdn.cn/api/RoomApi/room/' + self.vid)
+            room_data = json.loads(html)
+            if room_data['error'] == 0:
+                room_data = room_data['data']
                 title = room_data['room_name']
                 artist = room_data['owner_name']
 
@@ -129,7 +113,6 @@ class Douyutv(VideoExtractor):
                 'size': float('inf')
             }
 
-            
             error_msges = []
             if rate == 0:
                 rate_2_profile.pop(0, None)

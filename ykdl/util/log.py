@@ -12,6 +12,15 @@ IS_ANSI_TERMINAL = os.getenv('TERM') in (
     'vt100',
     'xterm')
 
+if os.name == 'nt':
+    try:
+        import colorama
+    except ImportError:
+        pass
+    else:
+        colorama.init()
+        IS_ANSI_TERMINAL = True
+
 # ANSI escape code
 # See <http://en.wikipedia.org/wiki/ANSI_escape_code>
 RESET = 0
@@ -69,7 +78,7 @@ _LOG_COLOR_MAP_ = {
     logging.ERROR    : RED,
     logging.WARNING  : YELLOW,
     logging.INFO     : BLUE,
-    logging.DEBUG    : LIGHT_GRAY,
+    logging.DEBUG    : GREEN,
     logging.NOTSET   : DEFAULT }
 
 _colorFormatter = logging.Formatter("\33[%(color)sm%(levelname)s:%(name)s:%(message)s\33[0m")
@@ -84,4 +93,3 @@ class ColorHandler(logging.StreamHandler):
         if IS_ANSI_TERMINAL:
             recode.color = _LOG_COLOR_MAP_[recode.levelno]
         return logging.StreamHandler.format(self, recode)
-    

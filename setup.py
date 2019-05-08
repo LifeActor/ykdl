@@ -24,6 +24,10 @@ def find_packages(*tops):
 from ykdl.version import __version__
 
 REQ = ['m3u8', 'pycryptodome', 'urllib3']
+EXT = {}
+if os.name == 'nt':
+    EXT['ansi-escape'] = ['colorama']
+
 
 setup(
     name = "ykdl",
@@ -38,6 +42,7 @@ setup(
     packages = find_packages('ykdl', 'cykdl'),
     requires = REQ,
     install_requires = REQ,
+    extras_require = EXT,
     platforms = 'any',
     zip_safe = True,
     package_data = {

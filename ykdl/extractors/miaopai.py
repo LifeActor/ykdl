@@ -8,12 +8,18 @@ from ykdl.videoinfo import VideoInfo
 
 import json
 
+api_info = 'http://api.miaopai.com/m/v2_channel.json?fillType=259&scid={}&vend='
+api_stream = 'http://gslb.miaopai.com/stream/{}.json?vend='
+
 class Miaopai(VideoExtractor):
 
     name = u'秒拍 (Miaopai)'
 
     def prepare(self):
         info = VideoInfo(self.name)
+        html = None
+        title = None
+
         if not self.vid:
             self.vid = match1(self.url, '/show(?:/channel)?/([^\./]+)',
                                         '/media/([^\./]+)')
@@ -21,28 +27,45 @@ class Miaopai(VideoExtractor):
             html = get_content(self.url)
             self.vid = match1(html, 's[cm]id ?= ?[\'"]([^\'"]+)[\'"]')
         assert self.vid, "No VID match!"
+        info.title = self.name + '_' + self.vid
 
-        data = json.loads(get_content('https://n.miaopai.com/api/aj_media/info.json?smid={}'.format(self.vid)))
-        if 'status' in data:
-            if data['status'] != 200:
-                data = json.loads(get_content('http://api.miaopai.com/m/v2_channel.json?fillType=259&scid={}&vend=miaopai'.format(self.vid)))
-
+        try:
+            data = json.loads(get_content(api_info.format(self.vid)))
             assert data['status'] == 200, data['msg']
 
             data = data['result']
-            info.title = data['ext']['t'] or self.name + '_' + self.vid
-            url = data['stream']['base']
+            title = data['ext']['t']
+            scid = data['scid'] or self.vid
             ext = data['stream']['and']
-        else:
-            assert data['code'] == 200, data['msg']
+            base = data['stream']['base']
+            vend = data['stream']['vend']
+            url = '{}{}.{}?vend={}'.format(base, scid, ext, vend)
+        except:
+            # fallback
+            data = json.loads(get_content(api_stream.format(self.vid)))
+            assert data['status'] == 200, data['msg']
 
-            data = data['data']
-            info.title = data['description'] or self.name + '_' + self.vid
-            url = data['meta_data'][0]['play_urls']['m']
-            _, ext, _ = url_info(url)
+            data = data['result'][0]
+            ext = None
+            scheme = data['scheme']
+            host = data['host']
+            path = data['path']
+            sign = data['sign']
+            url = '{}{}{}{}'.format(scheme, host, path, sign)
+
+        if not title:
+            if not html:
+                html = get_content(self.url)
+            title = match1(html, '<meta name="description" content="([^"]+)">')
+        if title:
+            info.title = title
 
         info.stream_types.append('current')
-        info.streams['current'] = {'container': ext or 'mp4', 'src': [url], 'size' : 0}
+        info.streams['current'] = {
+            'container': ext or 'mp4',
+            'src': [url],
+            'size' : 0
+        }
         return info
 
     def prepare_list(self):

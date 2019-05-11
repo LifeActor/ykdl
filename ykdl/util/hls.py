@@ -30,7 +30,7 @@ import socket
 import subprocess
 import sys
 from distutils.spawn import find_executable
-from ykdl.compact import Request, urlopen, urlparse, compat_struct_pack
+from ykdl.compact import Request, urlopen, urljoin, compat_struct_pack
 from ykdl.util.html import get_location, get_content, fake_headers
 try:
     from Crypto.Cipher import AES
@@ -166,7 +166,7 @@ def download_hls(m3u8_url, name):
                     frag_url = (
                         line
                         if re.match(r'^https?://', line)
-                        else urlparse.urljoin(m3u8_url, line))
+                        else urljoin(m3u8_url, line))
 
                     # Download segment
                     print('[down_hls] Download segments: (%i/%i)' % (frag_index, total_frags), end='\r')
@@ -209,7 +209,7 @@ def download_hls(m3u8_url, name):
                         if 'IV' in decrypt_info:
                             decrypt_info['IV'] = binascii.unhexlify(decrypt_info['IV'][2:].zfill(32))
                         if not re.match(r'^https?://', decrypt_info['URI']):
-                            decrypt_info['URI'] = urlparse.urljoin(
+                            decrypt_info['URI'] = urljoin(
                                 m3u8_url, decrypt_info['URI'])
                         if decrypt_url != decrypt_info['URI']:
                             decrypt_info['KEY'] = None

@@ -24,13 +24,13 @@ logger = logging.getLogger("YKDL")
 from ykdl.common import url_to_module
 from ykdl.compact import ProxyHandler, build_opener, install_opener, compact_str, urlparse
 from ykdl.util import log
+from ykdl.util.hls import download_hls
 from ykdl.util.html import default_proxy_handler
 from ykdl.util.wrap import launch_player, launch_ffmpeg, launch_ffmpeg_download
 from ykdl.util.m3u8_wrap import load_m3u8
 from ykdl.util.download import save_urls
 from ykdl.version import __version__
 
-m3u8_internal = True
 args = None
 
 def arg_parser():
@@ -58,27 +58,14 @@ def clean_slices(name, ext, lenth):
         os.remove(file_name)
 
 def download(urls, name, ext, live = False):
-    # ffmpeg can't handle local m3u8.
-    # only use ffmpeg to hanle m3u8.
-    global m3u8_internal
-    # for live video, always use ffmpeg to rebuild timeline.
-    if live:
-        m3u8_internal = False
-    # rebuild m3u8 urls when use internal downloader,
-    # change the ext to segment's ext, default is "ts",
-    # otherwise change the ext to "mp4".
+    # Download HLS streams
     if ext == 'm3u8':
-        if m3u8_internal:
-            urls = load_m3u8(urls[0])
-            ext = urlparse(urls[0])[2].split('.')[-1]
-            if ext not in ['ts', 'm4s', 'mp4']:
-                ext = 'ts'
+        if live:
+            launch_ffmpeg_download(urls[0], name + '.mp4', live)
         else:
-            ext = 'mp4'
+            download_hls(urls[0], name)
 
-    # OK check m3u8_internal
-    if not m3u8_internal:
-        launch_ffmpeg_download(urls[0], name + '.' + ext, live)
+    # Download normal video files
     else:
         if save_urls(urls, name, ext, jobs = args.jobs):
             lenth = len(urls)

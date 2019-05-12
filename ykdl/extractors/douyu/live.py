@@ -38,7 +38,8 @@ class Douyutv(VideoExtractor):
         add_header("Referer", 'https://www.douyu.com')
 
         html = get_content(self.url)
-        self.vid = match1(html, 'room_id\s*=\s*(\d+)',
+        self.vid = match1(html, '\$ROOM\.room_id\s*\=\s*(\d+)',
+                                'room_id\s*=\s*(\d+)',
                                 '"room_id.?":(\d+)',
                                 'data-onlineid=(\d+)')
         title = match1(html, 'Title-headlineH2">([^<]+)<')

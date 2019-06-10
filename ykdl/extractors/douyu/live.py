@@ -11,11 +11,16 @@ from ykdl.compact import urlencode
 import time
 import json
 import uuid
+import random
+import string
 
 
 douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
                         'data-room_id="([^"]+)'
                       ]
+
+def get_random_str(l):
+    return ''.join(random.sample(string.ascii_letters + string.digits, l))
 
 class Douyutv(VideoExtractor):
     name = u'斗鱼直播 (DouyuTV)'
@@ -38,7 +43,7 @@ class Douyutv(VideoExtractor):
         add_header("Referer", 'https://www.douyu.com')
 
         html = get_content(self.url)
-        self.vid = match1(html, '\$ROOM\.room_id\s*\=\s*(\d+)',
+        self.vid = match1(html, '\$ROOM.room_id\s*=\s*(\d+)',
                                 'room_id\s*=\s*(\d+)',
                                 '"room_id.?":(\d+)',
                                 'data-onlineid=(\d+)')
@@ -66,17 +71,64 @@ class Douyutv(VideoExtractor):
             # from https://cdnjs.com/libraries/crypto-js
             from pkgutil import get_data
             js_md5 = get_data(__name__, 'crypto-js-md5.min.js')
-            if isinstance(js_md5, bytes):
+            if not isinstance(js_md5, str):
                 js_md5 = js_md5.decode()
         except IOError:
             js_md5 = get_content('https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js')
 
-        js_ctx = JSEngine(js_md5)
+        names_dict = {
+            'debugMessages': get_random_str(8),
+            'decryptedCodes': get_random_str(8),
+            'resoult': get_random_str(8),
+            '_ub98484234': get_random_str(8),
+            'workflow': match1(js_enc, 'function ub98484234\(.+?\Weval\((\w+)\);'),
+        }
+        js_dom = '''
+        {debugMessages} = {{{decryptedCodes}: []}};
+        window = {{}};
+        document = {{}};
+        '''.format(**names_dict)
+        js_patch = '''
+        {debugMessages}.{decryptedCodes}.push({workflow});
+        var replacer = function (match, p1, p2, offset, string) {{
+                return p1 ? ";" + p2 : ";!" + p2;
+        }}
+        {workflow} = {workflow}.replace(/;(!?)(\w+ && \(function\()/g, replacer);
+        var subWorkflow = /eval\((\w+)\);/.exec({workflow});
+        if (subWorkflow) {{
+            var subPatch = `
+                {debugMessages}.{decryptedCodes}.push('sub workflow: ' + subWorkflow);
+                subWorkflow = subWorkflow.replace(/;(!?)(\\\\w+ && \\\\(function\\\\()/g, replacer);
+                eval(subWorkflow);
+            `.replace(/subWorkflow/g, subWorkflow[1]);
+            {workflow} = {workflow}.replace(subWorkflow[0], subPatch);
+        }}
+        eval({workflow});
+        '''.format(**names_dict)
+        js_debug = '''
+        var {_ub98484234} = ub98484234;
+        ub98484234 = function(p1, p2, p3){{
+            try {{
+                var resoult = {_ub98484234}(p1, p2, p3);
+                {debugMessages}.{resoult} = resoult;
+            }}catch(e) {{
+                {debugMessages}.{resoult} = e.message;
+            }}
+            return {debugMessages};
+        }};
+        '''.format(**names_dict)
+        js_enc = js_enc.replace('eval({workflow});'.format(**names_dict), js_patch)
+
+        js_ctx = JSEngine()
+        js_ctx.eval(js_md5)
+        js_ctx.eval(js_dom)
         js_ctx.eval(js_enc)
+        js_ctx.eval(js_debug)
         did = uuid.uuid4().hex
         tt = str(int(time.time()))
         ub98484234 = js_ctx.call('ub98484234', self.vid, did, tt)
-        self.logger.debug('ub98484234: ' + ub98484234)
+        self.logger.debug('ub98484234: %s', ub98484234)
+        ub98484234 = ub98484234[names_dict['resoult']]
         params = {
             'v': match1(ub98484234, 'v=(\d+)'),
             'did': did,

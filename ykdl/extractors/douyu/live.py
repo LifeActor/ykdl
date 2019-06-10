@@ -19,8 +19,9 @@ douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
                         'data-room_id="([^"]+)'
                       ]
 
-def get_random_str(l):
-    return ''.join(random.sample(string.ascii_letters + string.digits, l))
+def get_random_name(l):
+    return random.choice(string.ascii_letters) + \
+           ''.join(random.sample(string.ascii_letters + string.digits, l - 1))
 
 class Douyutv(VideoExtractor):
     name = u'斗鱼直播 (DouyuTV)'
@@ -43,7 +44,7 @@ class Douyutv(VideoExtractor):
         add_header("Referer", 'https://www.douyu.com')
 
         html = get_content(self.url)
-        self.vid = match1(html, '\$ROOM.room_id\s*=\s*(\d+)',
+        self.vid = match1(html, '\$ROOM\.room_id\s*=\s*(\d+)',
                                 'room_id\s*=\s*(\d+)',
                                 '"room_id.?":(\d+)',
                                 'data-onlineid=(\d+)')
@@ -77,10 +78,10 @@ class Douyutv(VideoExtractor):
             js_md5 = get_content('https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js')
 
         names_dict = {
-            'debugMessages': get_random_str(8),
-            'decryptedCodes': get_random_str(8),
-            'resoult': get_random_str(8),
-            '_ub98484234': get_random_str(8),
+            'debugMessages': get_random_name(8),
+            'decryptedCodes': get_random_name(8),
+            'resoult': get_random_name(8),
+            '_ub98484234': get_random_name(8),
             'workflow': match1(js_enc, 'function ub98484234\(.+?\Weval\((\w+)\);'),
         }
         js_dom = '''
@@ -92,7 +93,7 @@ class Douyutv(VideoExtractor):
         {debugMessages}.{decryptedCodes}.push({workflow});
         var replacer = function (match, p1, p2, offset, string) {{
                 return p1 ? ";" + p2 : ";!" + p2;
-        }}
+        }};
         {workflow} = {workflow}.replace(/;(!?)(\w+ && \(function\()/g, replacer);
         var subWorkflow = /eval\((\w+)\);/.exec({workflow});
         if (subWorkflow) {{

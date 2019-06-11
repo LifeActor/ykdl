@@ -73,7 +73,7 @@ class EmbedExtractor():
         if 'title' in video_info:
             info.title = video_info['title']
         if 'artist' in video_info:
-            info.title = video_info['artist']
+            info.artist = video_info['artist']
         if 'extra' in video_info and video_info['extra']:
             info.extra.update(video_info['extra'])
 

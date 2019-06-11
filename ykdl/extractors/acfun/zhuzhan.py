@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from .youkujs import *
+from ..youkujs import *
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 from ykdl.compact import urlencode
@@ -10,7 +10,7 @@ from ykdl.util.html import get_content, add_header
 import json
 import base64, time
 
-class Acorig(VideoExtractor):
+class ZhuZhan(VideoExtractor):
     name = u'AcFun 优酷合作视频'
 
     client_id = '908a519d032263f8'
@@ -52,4 +52,4 @@ class Acorig(VideoExtractor):
         info.extra['ua'] = 'abcd'
         return info
 
-site = Acorig()
+site = ZhuZhan()

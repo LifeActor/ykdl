@@ -52,6 +52,14 @@ class EmbedExtractor():
         """
         pass
 
+    def list_only(self):
+        """
+        this API is to check if only the list informations is included
+        if true, go to parser list mode
+        MUST override!!
+        """
+        pass
+
     def _parser(self, video_info):
         if 'info' in video_info:
             return video_info['info']
@@ -66,9 +74,8 @@ class EmbedExtractor():
  
         elif 'url' in video_info:
             url = video_info['url']
-            if url.startswith('http'):
-                s, u = url_to_module(url)
-                info = s.parser(u)
+            s, u = url_to_module(url)
+            info = s.parser(u)
  
         if 'title' in video_info:
             info.title = video_info['title']
@@ -80,19 +87,20 @@ class EmbedExtractor():
         return info
 
     def parser(self, url):
-        if isinstance(url, str) and url.startswith('http'):
-            self.url = url
+        self.url = url
+        if self.list_only():
+            return self.parser_list(url)
+
         self.video_info = self.new_video_info()
         self.prepare()
 
         if not self.video_info:
-            raise NotImplementedError(self.url + " is not supported")
+            raise NotImplementedError(self.url + ' is not supported')
 
         return self._parser(self.video_info)
 
     def parser_list(self, url):
-        if isinstance(url, str) and url.startswith('http'):
-            self.url = url
+        self.url = url
         self.video_info_list = []
         self.prepare_playlist()
 

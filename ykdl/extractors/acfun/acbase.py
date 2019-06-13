@@ -22,39 +22,39 @@ class AcBase(EmbedExtractor):
         self.video_info['info'] = info
 
     def prepare(self):
-        add_header('Referer', 'https://www.acfun.cn/')
         html = get_content(self.url)
         title, artist, sourceVid = self.get_page_info(html)
 
+        add_header('Referer', 'https://www.acfun.cn/')
         try:
             data = json.loads(get_content('https://www.acfun.cn/video/getVideo.aspx?id={}'.format(sourceVid)))
-        except:
+
+            sourceType = data['sourceType']
+            sourceId = data['sourceId']
+            if sourceType == 'zhuzhan':
+                sourceType = 'acfun.zhuzhan'
+                encode = data['encode']
+                sourceId = (sourceId, encode)
+            elif sourceType == 'letv':
+                #workaround for letv, because it is letvcloud
+                sourceType = 'le.letvcloud'
+                sourceId = (sourceId, '2d8c027396')
+            elif sourceType == 'qq':
+                sourceType = 'qq.video'
+
+            self.video_info = {
+                'site': sourceType,
+                'vid': sourceId,
+                'title': title,
+                'artist': artist
+            }
+        except IOError:
             # TODO: get more qualities
             data = json.loads(get_content('https://www.acfun.cn/rest/pc-direct/play/playInfo/m3u8Auto?videoId={}'.format(sourceVid)))
             stream = data['playInfo']['streams'][0]
             size = stream['size']
             urls = stream['playUrls']
             self.build_videoinfo(title, artist, size, urls)
-            return
-
-        sourceType = data['sourceType']
-        sourceId = data['sourceId']
-
-        if sourceType == 'zhuzhan':
-            sourceType = 'acfun.zhuzhan'
-            encode = data['encode']
-            sourceId = (sourceId, encode)
-        elif sourceType == 'letv':
-            #workaround for letv, because it is letvcloud
-            sourceType = 'le.letvcloud'
-            sourceId = (sourceId, '2d8c027396')
-        elif sourceType == 'qq':
-            sourceType = 'qq.video'
-
-        self.video_info['site'] = sourceType
-        self.video_info['vid'] = sourceId
-        self.video_info['title'] = title
-        self.video_info['artist'] = artist
 
     def prepare_playlist(self):
         for p in self.get_path_list():
@@ -63,4 +63,3 @@ class AcBase(EmbedExtractor):
             video_info['url'] = next_url
             self.video_info_list.append(video_info)
 
-site = AcBase()

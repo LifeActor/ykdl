@@ -15,6 +15,9 @@ class AcBan(AcBase):
 
     name = u'ACfun 弹幕视频网 (番剧)'
 
+    def list_only(self):
+        return '/bangumi/aa' in self.url
+
     def get_page_info(self, html):
         artist = None
         bgmInfo = json.loads(match1(html, u'var bgmInfo = ({.+?})</script>'))
@@ -32,11 +35,12 @@ class AcBan(AcBase):
         html = get_content(self.url)
         albumId = match1(self.url, '/a[ab](\d+)')
         groupId = match1(html, '"groups":[{[^}]*?"id":(\d+)')
+        contentsCount = int(match1(html, '"contentsCount":(\d+)'))
         params = {
             'albumId': albumId,
             'groupId': groupId,
             'num': 1,
-            'size': 20,
+            'size': max(contentsCount, 20),
             '_': int(time.time() * 1000),
         }
         data = json.loads(get_content('https://www.acfun.cn/album/abm/bangumis/video?' + urlencode(params)))

@@ -62,3 +62,4 @@ class AcBase(EmbedExtractor):
             video_info = self.new_video_info()
             video_info['url'] = next_url
             self.video_info_list.append(video_info)
+

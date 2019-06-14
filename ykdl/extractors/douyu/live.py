@@ -20,7 +20,7 @@ douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
                       ]
 
 def get_random_name(l):
-    return random.choice(string.ascii_letters) + \
+    return random.choice(string.ascii_lowercase) + \
            ''.join(random.sample(string.ascii_letters + string.digits, l - 1))
 
 class Douyutv(VideoExtractor):
@@ -86,33 +86,35 @@ class Douyutv(VideoExtractor):
         }
         js_dom = '''
         {debugMessages} = {{{decryptedCodes}: []}};
-        window = {{}};
-        document = {{}};
+        if (!this.window) {{window = {{}};}}
+        if (!this.document) {{document = {{}};}}
         '''.format(**names_dict)
         js_patch = '''
         {debugMessages}.{decryptedCodes}.push({workflow});
-        var replacer = function (match, p1, p2, offset, string) {{
-                return p1 ? ";" + p2 : ";!" + p2;
+        var patchCode = function(workflow) {{
+            var testVari = /(\w+)=(\w+)\([\w\+]+\);.*?(\w+)="\w+";/.exec(workflow);
+            if (testVari && testVari[1] == testVari[2]) {{
+                {workflow} += testVari[1] + "[" + testVari[3] + "] = function() {{return true;}};";
+            }}
         }};
-        {workflow} = {workflow}.replace(/;(!?)(\w+ && \(function\()/g, replacer);
-        var subWorkflow = /eval\((\w+)\);/.exec({workflow});
+        patchCode({workflow});
+        var subWorkflow = /(?:\w+=)?eval\((\w+)\)/.exec({workflow});
         if (subWorkflow) {{
-            var subPatch = `
-                {debugMessages}.{decryptedCodes}.push('sub workflow: ' + subWorkflow);
-                subWorkflow = subWorkflow.replace(/;(!?)(\\\\w+ && \\\\(function\\\\()/g, replacer);
-                eval(subWorkflow);
-            `.replace(/subWorkflow/g, subWorkflow[1]);
+            var subPatch = (
+                "{debugMessages}.{decryptedCodes}.push('sub workflow: ' + subWorkflow);" +
+                "patchCode(subWorkflow);"
+            ).replace(/subWorkflow/g, subWorkflow[1]) + subWorkflow[0];
             {workflow} = {workflow}.replace(subWorkflow[0], subPatch);
         }}
         eval({workflow});
         '''.format(**names_dict)
         js_debug = '''
         var {_ub98484234} = ub98484234;
-        ub98484234 = function(p1, p2, p3){{
+        ub98484234 = function(p1, p2, p3) {{
             try {{
                 var resoult = {_ub98484234}(p1, p2, p3);
                 {debugMessages}.{resoult} = resoult;
-            }}catch(e) {{
+            }} catch(e) {{
                 {debugMessages}.{resoult} = e.message;
             }}
             return {debugMessages};

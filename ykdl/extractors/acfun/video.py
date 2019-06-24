@@ -14,14 +14,14 @@ class AcVideo(AcBase):
     name = u'ACfun 弹幕视频网'
 
     def get_page_info(self, html):
-        pageInfo = json.loads(match1(html, u'var pageInfo = ({.+?})</script>'))
+        pageInfo = json.loads(match1(html, u'(?:pageInfo|videoInfo) = ({.+?})</script>'))
         videoList = pageInfo['videoList']
-        videoInfo = videoList[pageInfo['P']]
+        videoInfo = pageInfo.get('currentVideoInfo') or videoList[pageInfo['P']]
         title = pageInfo['title']
         sub_title = videoInfo['title']
-        artist = pageInfo['username']
-        sourceVid = pageInfo['videoId']
-        if sub_title != 'Part1' or len(videoList) > 1:
+        artist = pageInfo.get('username') or pageInfo['name']
+        sourceVid = videoInfo['id']
+        if sub_title not in ('noTitle', 'Part1') or len(videoList) > 1:
             title = u'{} - {}'.format(title, sub_title)
 
         return title, artist, sourceVid

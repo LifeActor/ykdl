@@ -46,7 +46,7 @@ class BiliBase(VideoExtractor):
         info.extra["referer"] = "https://www.bilibili.com/"
         info.extra["ua"] = fake_headers['User-Agent']
 
-        self.vid, info.title = self.get_vid_title()
+        self.vid, info.title, info.artist = self.get_page_info()
 
         assert self.vid, "can't play this video: {}".format(self.url)
 
@@ -80,5 +80,5 @@ class BiliBase(VideoExtractor):
         get_video_info()
 
         assert len(info.stream_types), "can't play this video!!"
-        info.stream_types = sorted(info.stream_types, key = self.sorted_format.index) 
+        info.stream_types = sorted(info.stream_types, key=self.sorted_format.index)
         return info

@@ -21,7 +21,7 @@ class AcVideo(AcBase):
         sub_title = videoInfo['title']
         artist = pageInfo.get('username') or pageInfo['user']['name']
         sourceVid = videoInfo['id']
-        if sub_title not in ('noTitle', 'Part1') or len(videoList) > 1:
+        if sub_title not in ('noTitle', 'Part1', title) or len(videoList) > 1:
             title = u'{} - {}'.format(title, sub_title)
         m3u8Info = videoInfo.get('playInfos')
         if m3u8Info:

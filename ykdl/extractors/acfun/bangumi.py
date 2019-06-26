@@ -20,6 +20,7 @@ class AcBan(AcBase):
 
     def get_page_info(self, html):
         artist = None
+        m3u8Info = None
         bgmInfo = json.loads(match1(html, u'var bgmInfo = ({.+?})</script>'))
         videoInfo = bgmInfo['video']['videos'][0]
         title = u'{} - {} {}'.format(
@@ -29,7 +30,7 @@ class AcBan(AcBase):
         ).rstrip()
         sourceVid = videoInfo['videoId']
 
-        return title, artist, sourceVid
+        return title, artist, sourceVid, m3u8Info
 
     def get_path_list(self):
         html = get_content(self.url)

@@ -76,7 +76,7 @@ class EmbedExtractor():
             url = video_info['url']
             s, u = url_to_module(url)
             info = s.parser(u)
- 
+
         if 'title' in video_info:
             info.title = video_info['title']
         if 'artist' in video_info:
@@ -97,7 +97,9 @@ class EmbedExtractor():
         if not self.video_info:
             raise NotImplementedError(self.url + ' is not supported')
 
-        return self._parser(self.video_info)
+        info = self._parser(self.video_info)
+        info.site = '{} / {}'.format(self.name, info.site)
+        return info
 
     def parser_list(self, url):
         self.url = url

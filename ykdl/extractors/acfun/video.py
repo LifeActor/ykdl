@@ -14,7 +14,7 @@ class AcVideo(AcBase):
     name = u'ACfun 弹幕视频网'
 
     def get_page_info(self, html):
-        pageInfo = json.loads(match1(html, u'(?:pageInfo|videoInfo) = ({.+?})</script>'))
+        pageInfo = json.loads(match1(html, u'(?:pageInfo|videoInfo) = ({.+?});?</script>'))
         videoList = pageInfo['videoList']
         videoInfo = pageInfo.get('currentVideoInfo') or videoList[pageInfo['P']]
         title = pageInfo['title']
@@ -23,8 +23,11 @@ class AcVideo(AcBase):
         sourceVid = videoInfo['id']
         if sub_title not in ('noTitle', 'Part1') or len(videoList) > 1:
             title = u'{} - {}'.format(title, sub_title)
+        m3u8Info = videoInfo.get('playInfos')
+        if m3u8Info:
+            m3u8Info = m3u8Info[0]
 
-        return title, artist, sourceVid
+        return title, artist, sourceVid, m3u8Info
 
     def get_path_list(self):
         html = get_content(self.url)

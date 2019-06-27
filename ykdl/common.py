@@ -37,7 +37,7 @@ def url_to_module(url):
     try:
         m = import_module('.'.join(['ykdl','extractors', short_name]))
         if hasattr(m, "get_extractor"):
-            site = m.get_extractor(url)
+            site, url = m.get_extractor(url)
         else:
             site = m.site
         return site, url

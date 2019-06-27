@@ -42,13 +42,32 @@ def undeflate(data):
     decompressobj = zlib.decompressobj(-zlib.MAX_WBITS)
     return decompressobj.decompress(data)+decompressobj.flush()
 
-def get_location(url, headers = fake_headers):
-    response = urlopen(Request(url, headers = headers))
+def get_head_response(url, headers=fake_headers):
+    try:
+        req = Request(url, headers=headers)
+        req.get_method = lambda: 'HEAD'
+        response = urlopen(req)
+    except IOError as e:
+        # if HEAD method is not supported
+        if 'HTTP Error 405' in str(e):
+            req = Request(url, headers=headers)
+            response = urlopen(req)
+            response.close()
+        else:
+            raise
     # urllib will follow redirections and it's too much code to tell urllib
     # not to do that
+    return response
+
+def get_location(url, headers=fake_headers):
+    response = get_head_response(url, headers=headers)
     return response.geturl()
 
-def get_content(url, headers=fake_headers, data=None, charset = None):
+def get_location_and_header(url, headers=fake_headers):
+    response = get_head_response(url, headers=headers)
+    return response.geturl(), response.info()
+
+def get_content(url, headers=fake_headers, data=None, charset=None):
     """Gets the content of a URL via sending a HTTP GET request.
 
     Args:
@@ -100,13 +119,13 @@ def get_content(url, headers=fake_headers, data=None, charset = None):
     return data
 
 #DEPRECATED below, return None or 0
-def url_size(url, faker = False):
+def url_size(url, faker=False):
     return 0
 
 def urls_size(urls):
     return sum(map(url_size, urls))
 
-def url_info(url, faker = False):
+def url_info(url, faker=False):
     # in case url is http(s)://host/a/b/c.dd?ee&fff&gg
     # below is to get c.dd
     f = url.split('?')[0].split('/')[-1]

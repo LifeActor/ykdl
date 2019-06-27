@@ -37,9 +37,9 @@ class BiliBan(BiliBase):
 
     def prepare_list(self):
         html = get_content(self.url)
-        eplist = match1(html, '"epList":(\[.+?\])')
+        eplist = matchall(html, ['"epList":(\[.*?\])'])
         if eplist:
-            eplist = matchall(eplist, [',"id":(\d+),'])
+            eplist = sum(map(matchall, eplist, [[',"id":(\d+),']] * len(eplist)), [])
             return ['https://www.bilibili.com/bangumi/play/ep{}'.format(eid) for eid in eplist]
 
 site = BiliBan()

@@ -16,15 +16,7 @@ class BiliVideo(BiliBase):
     name = u'哔哩哔哩 (Bilibili)'
 
     def get_page_info(self):
-        av_id = match1(self.url, '(?:/av|aid=)(\d+)')
-        page_index = '1'
-        if "#page=" in self.url or "?p=" in self.url or 'index_' in self.url:
-            page_index = match1(self.url, '(?:#page|\?p)=(\d+)', 'index_(\d+)\.')
-        if page_index == '1':
-            self.url = 'https://www.bilibili.com/av{}/'.format(av_id)
-        else:
-            self.url = 'https://www.bilibili.com/av{}/?p={}'.format(av_id, page_index)
-
+        page_index = match1(self.url, '\?p=(\d+)', 'index_(\d+)\.') or '1'
         html = get_content(self.url)
         date = json.loads(match1(html, '__INITIAL_STATE__=({.+?});'))['videoData']
         title = date['title']
@@ -48,8 +40,7 @@ class BiliVideo(BiliBase):
         return sign_api_url(api_url, params_str, SECRETKEY)
 
     def prepare_list(self):
-        av_id = match1(self.url, '(?:/av|aid=)(\d+)')
-        self.url = 'https://www.bilibili.com/av{}/'.format(av_id)
+        av_id = match1(self.url, '/av(\d+)')
         html = get_content(self.url)
         video_list = matchall(html, ['"page":(\d+),'])
         if video_list:

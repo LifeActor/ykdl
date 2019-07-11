@@ -14,7 +14,7 @@ class HuyaLive(VideoExtractor):
     name = u"Huya Live (虎牙直播)"
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = VideoInfo(self.name, True)
 
         html  = get_content(self.url)
 

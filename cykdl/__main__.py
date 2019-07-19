@@ -22,7 +22,7 @@ import logging
 logger = logging.getLogger("YKDL")
 
 from ykdl.common import url_to_module
-from ykdl.compact import ProxyHandler, build_opener, install_opener, compact_str, urlparse
+from ykdl.compact import ProxyHandler, build_opener, install_opener, compact_str, urlparse, socks, SocksiPyHandler
 from ykdl.util import log
 from ykdl.util.html import default_proxy_handler
 from ykdl.util.wrap import launch_player, launch_ffmpeg, launch_ffmpeg_download
@@ -144,26 +144,21 @@ def main():
     if args.proxy == 'system':
         proxy_handler = ProxyHandler()
         args.proxy = os.environ.get('HTTP_PROXY', 'none')
-    else:
-        if args.proxy.startswith("socks"):
-            try:
-                import socks
-                from sockshandler import SocksiPyHandler
-            except ImportError:
-                logger.error('Failed to load PySocks module, if you use pip package manager you can install it with command `pip install PySocks`')
-                exit = 1
-            from urllib.parse import urlparse
-            parsed_socks_proxy = urlparse(args.proxy)
-            if  parsed_socks_proxy.scheme == "socks4":
+    elif args.proxy.startswith("socks"):
+        parsed_socks_proxy = urlparse(args.proxy)
+        try:
+            if parsed_socks_proxy.scheme == "socks4":
                 sockstype = socks.SOCKS4
-            if  parsed_socks_proxy.scheme == "socks5":
+            if parsed_socks_proxy.scheme == "socks5":
                 sockstype = socks.SOCKS5
-            proxy_handler = SocksiPyHandler(sockstype,  parsed_socks_proxy.hostname, parsed_socks_proxy.port, True, parsed_socks_proxy.username, parsed_socks_proxy.password)
-        else:
-            proxy_handler = ProxyHandler({
-                'http': args.proxy,
-                'https': args.proxy
-            })
+            proxy_handler = SocksiPyHandler(sockstype, parsed_socks_proxy.hostname, parsed_socks_proxy.port, False, parsed_socks_proxy.username, parsed_socks_proxy.password)
+        except (socks.SOCKS5Error, socks.SOCKS5AuthError, socks.SOCKS4Error, socks.GeneralProxyError) as e:
+            logger.error(compact_str(e))
+    else:
+        proxy_handler = ProxyHandler({
+            'http': args.proxy,
+            'https': args.proxy
+        })
     if not args.proxy == 'none':
         opener = build_opener(proxy_handler)
         install_opener(opener)

@@ -73,12 +73,4 @@ class JustFunLive(VideoExtractor):
 
         return info
 
-
 site = JustFunLive()
-
-            info.streams['current'] = {'container': 'flv', 'video_profile': 'current',
-                                       'src': [decoded["origin"]], 'size': 0}
-        return info
-
-
-site = ZHULive()

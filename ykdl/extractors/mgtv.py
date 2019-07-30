@@ -13,6 +13,8 @@ import base64
 import uuid
 import time
 
+ua = 'AppleCoreMedia/1.0.0.16E227 (iPhone; U; CPU OS 12_2 like Mac OS X; zh_cn)'
+
 py3 = sys.version_info[0] == 3
 if py3:
     maketrans = bytes.maketrans
@@ -57,7 +59,8 @@ class Hunantv(VideoExtractor):
         if default_proxy_handler:
             handlers += default_proxy_handler
         install_opener(build_opener(*handlers))
-        add_header("Referer", self.url)
+        add_header('Referer', self.url)
+        add_header('User-Agent', ua)
 
         info = VideoInfo(self.name)
         if self.url and not self.vid:
@@ -86,15 +89,22 @@ class Hunantv(VideoExtractor):
 
         data = meta['data']
         domain = data['stream_domain'][0]
-        tk2 = generate_tk2(did)
         for lstream in data['stream']:
             lurl = lstream['url']
             if lurl:
                 lurl = '{}{}&did={}'.format(domain, lurl, did)
                 url = json.loads(get_content(lurl))['info']
-                info.streams[self.profile_2_types[lstream['name']]] = {'container': 'm3u8', 'video_profile': lstream['name'], 'src' : [url]}
-                info.stream_types.append(self.profile_2_types[lstream['name']])
+                video_profile = lstream['name']
+                stream = self.profile_2_types[video_profile]
+                info.streams[stream] = {
+                    'container': 'm3u8',
+                    'video_profile': video_profile,
+                    'src' : [url]
+                }
+                info.stream_types.append(stream)
         info.stream_types= sorted(info.stream_types, key = self.supported_stream_types.index)
+        info.extra['referer'] = self.url
+        info.extra['ua'] = ua
         return info
 
     def prepare_list(self):

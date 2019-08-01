@@ -1,8 +1,9 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 '''
     Simple Javascript engines' wrapper
-    
+
     Description:
         This library wraps the system's built-in Javascript interpreter to python.
 
@@ -10,23 +11,30 @@
         macOS:   Use JavascriptCore
         Linux:   Use gjs on Gnome, cjs on Cinnamon or NodeJS if installed
         Windows: Use Win10's built-in Chakra, if not available use NodeJS
-    
+
     Usage:
-    
+
         from jsengine import JSEngine, javascript_is_supported
         
         if not javascript_is_supported:  # always check this first!
             ......
-        
+
         ctx = JSEngine()
         ctx.eval('1 + 1')  # => 2
-    
+
         ctx2 = JSEngine("""
             function add(x, y) {
-            return x + y;
-        }
-        """)
+                return x + y;
+            }
+            """)
         ctx2.call("add", 1, 2)  # => 3
+
+        ctx.append("""
+            function square(x) {
+                return x ** 2;
+            }
+            """)
+        ctx.call("square", 9)  # => 81
 '''
 
 from __future__ import print_function
@@ -40,6 +48,10 @@ import re
 import sys
 import tempfile
 
+__all__ = ['ProgramError', 'RuntimeError',
+    'javascript_is_supported', 'interpreter',
+    'ChakraJSEngine', 'ExternalJSEngine', 'JSEngine']
+
 ### Before using this library, check this variable first!!!
 javascript_is_supported = True
 
@@ -52,6 +64,7 @@ class RuntimeError(Exception):
 
 
 use_chakra = False
+interpreter = []
 
 # Choose javascript interpreter
 # macOS: use built-in JavaScriptCore
@@ -60,7 +73,10 @@ if platform.system() == 'Darwin':
 
 # Windows: Try Chakra, if fails, load Node.js
 elif platform.system() == 'Windows':
-    from .jsengine_chakra import ChakraHandle, chakra_available
+    try:
+        from .jsengine_chakra import ChakraHandle, chakra_available
+    except (SystemError, ValueError):
+        from jsengine_chakra import ChakraHandle, chakra_available
     if chakra_available:
         use_chakra = True
     elif find_executable('node') is not None:
@@ -82,20 +98,22 @@ elif platform.system() == 'Linux':
     elif find_executable('node') is not None:
         interpreter = ['node']
     else:
-        print('Please install at least one of the following Javascript interpreter: gjs, cjs, nodejs', file=sys.stderr)
+        print('Please install at least one of the following Javascript interpreter'
+              ': gjs, cjs, nodejs', file=sys.stderr)
         javascript_is_supported = False
 else:
-    print('Sorry, the Javascript engine is currently not supported on your system', file=sys.stderr)
+    print('Sorry, the Javascript engine is currently not supported on your system',
+          file=sys.stderr)
     javascript_is_supported = False
 
 
 
 # Inject to the script to let it return jsonlized value to python
-injected_script = r'''
+injected_script = '''\
 var exports = undefined;
 (function(program, execJS) { execJS(program) })(
 function() {
-    return eval(#{encoded_source});
+    return #{encoded_source};
 },
 function(program) {
     var print = (this.print === undefined) ? console.log : this.print;
@@ -124,55 +142,81 @@ function(program) {
 
 class AbstractJSEngine:
     def __init__(self, source=''):
-        self._source = source
-    
+        self._source = []
+        self.append(source)
+
+    @property
+    def source(self):
+        return self._get_source()
+
+    def _append_source(self, code):
+        self._source.append(code)
+        # Simple end-split check
+        if code.lstrip()[-1:] not in ';,)}':
+            self._source.append(';')
+
+    def append(self, code):
+        if code.strip():
+            self._append(code)
+
     def call(self, identifier, *args):
         args = json.dumps(args)
         code = '{identifier}.apply(this,{args})'.format(identifier=identifier, args=args)
         return self._eval(code)
-        
+
     def eval(self, code=''):
-        return self._eval(code)
+        if code.strip():
+            return self._eval(code)
 
 
 class ChakraJSEngine(AbstractJSEngine):
     def __init__(self, source=''):
-        AbstractJSEngine.__init__(self, source)
+        if not chakra_available:
+            raise RuntimeError('No supported chakra binary found on your system!')
         self.chakra = ChakraHandle()
-        if source:
-            self.chakra.eval_js(source)
-            
+        AbstractJSEngine.__init__(self, source)
+
+    def _get_source(self):
+        return '\n'.join(self._source)
+
+    def _append(self, code):
+        self._append_source(code)
+        ok, result = self.chakra.eval_js(code)
+        if not ok:
+            raise ProgramError(str(result))
+
     def _eval(self, code):
-        if not code.strip():
-            return None
-        data =  json.dumps(code, ensure_ascii=True)
-        code = 'JSON.stringify([eval({data})]);'.format(data=data);
+        self._append_source(code)
         ok, result = self.chakra.eval_js(code)
         if ok:
-            return json.loads(result)[0]
+            return result
         else:
             raise ProgramError(str(result))
 
 
 class ExternalJSEngine(AbstractJSEngine):
     def __init__(self, source=''):
-        AbstractJSEngine.__init__(self, source)
+        if not interpreter:
+            raise RuntimeError('No supported Javascript interpreter found on your system!')
         self._last_code = ''
+        AbstractJSEngine.__init__(self, source)
+
+    def _get_source(self, last_code=None):
+        if last_code is None:
+            last_code = self._last_code
+        if last_code:
+            source = self._source + [last_code]
+        else:
+            source = self._source
+        return '\n'.join(source)
+
+    def _append(self, code):
+        if self._last_code:
+            self._append_source(self._last_code)
+        self._last_code = code
 
     def _eval(self, code):
-        # TODO: may need a thread lock, if running multithreading
-        if not code.strip():
-            return None
-        if self._last_code:
-            self._source += '\n' + self._last_code
-        self._last_code = code
-        data = json.dumps(code, ensure_ascii=True)
-        code = 'return eval({data});'.format(data=data)
-        return self._exec(code)
-    
-    def _exec(self, code):
-        if self._source:
-            code = self._source + '\n' + code
+        self._append(code)
         code = self._inject_script(code)
         output = self._run_interpreter_with_tempfile(code)
         output = output.replace('\r\n', '\n').replace('\r', '\n')
@@ -185,21 +229,23 @@ class ExternalJSEngine(AbstractJSEngine):
             return value
         else:
             raise ProgramError(value)
-        
+
     def _run_interpreter_with_tempfile(self, code):
         (fd, filename) = tempfile.mkstemp(prefix='execjs', suffix='.js')
         os.close(fd)
         try:
-            # decoding in python2
+            # Decoding in python2
             if hasattr(code, 'decode'):
                 code = code.decode('utf8')
             with io.open(filename, 'w', encoding='utf8') as fp:
                 fp.write(code)
-            
+
             cmd = interpreter + [filename]
             p = None
             try:
                 p = Popen(cmd, stdout=PIPE, universal_newlines=True)
+                # Wrapped output with 'utf8' encoding
+                p.stdout = FileWrapper(p.stdout, encoding='utf8')
                 stdoutdata, stderrdata = p.communicate()
                 ret = p.wait()
             finally:
@@ -210,23 +256,72 @@ class ExternalJSEngine(AbstractJSEngine):
         finally:
             os.remove(filename)
 
-    def _inject_script(self, source):
-        encoded_source = \
-            '(function(){ ' + \
-            self._encode_unicode_codepoints(source) + \
-            ' })()'
-        return injected_script.replace('#{encoded_source}', json.dumps(encoded_source))
-
-    def _encode_unicode_codepoints(self, str):
-        codepoint_format = '\\u{0:04x}'.format
-        def codepoint(m):
-            return codepoint_format(ord(m.group(0)))
-        return re.sub('[^\x00-\x7f]', codepoint, str)
+    def _inject_script(self, code):
+        source = self._get_source('')
+        source = encode_unicode_codepoints(source)
+        data = json.dumps(code)
+        encoded_source = '''\
+        (function() {{
+            {source}
+            return eval({data});
+        }})()'''.format(source=source, data=data)
+        return injected_script.replace('#{encoded_source}', encoded_source)
 
 
 if use_chakra:
-    class JSEngine(ChakraJSEngine):
-        pass
+    JSEngine = ChakraJSEngine
 else:
-    class JSEngine(ExternalJSEngine):
-        pass
+    JSEngine = ExternalJSEngine
+
+
+# Used for code input to support non-ascii encoding
+def encode_unicode_codepoints(str):
+    codepoint_format = '\\u{0:04x}'.format
+    def codepoint(m):
+        return codepoint_format(ord(m.group(0)))
+    return re.sub('[^\x00-\x7f]', codepoint, str)
+
+
+# Used for PIPE ouput to support non-ascii encoding
+if sys.version_info[0] < 3:
+    class FileWrapper(object):
+        def __init__(self, file, encoding, errors='strict'):
+            object.__setattr__(self, 'wrappedfile', file)
+            object.__setattr__(self, 'encoding', encoding)
+            object.__setattr__(self, 'errors', errors)
+
+        def __getattr__(self, name):
+            return getattr(self.wrappedfile, name)
+
+        def __setattr__(self, name, value):
+            setattr(self.wrappedfile, name, value)
+
+        def write(self, s):
+            if isinstance(s, unicode):
+                s = s.encode(encoding=self.encoding, errors=self.errors)
+            self.wrappedfile.write(s)
+else:
+    def FileWrapper(file, encoding, errors='strict'):
+        return io.TextIOWrapper(file.detach(),
+                                encoding=encoding,
+                                errors=errors,
+                                line_buffering=True)
+
+
+if __name__ == '__main__':
+    #interpreter = ['S:/jsshell-win64/js']
+    #interpreter = ['S:/node/node']
+    for JSEngine in (ChakraJSEngine, ExternalJSEngine):
+        try:
+            ctx = JSEngine()
+            assert ctx._eval('') is None, 'eval empty fail!'
+            assert ctx.eval('1 + 1') == 2, 'eval fail!'
+            assert ctx.eval('[1, 2]') == [1, 2], 'eval fail!'
+            assert ctx.eval('(() => {return {a: 2}})()')['a'] == 2, 'eval fail!'
+            print(ctx.eval(u'"αβγ"'))
+        except:
+            import traceback
+            traceback.print_exception(*sys.exc_info())
+    if platform.system() == 'Windows':
+        import msvcrt
+        msvcrt.getch()

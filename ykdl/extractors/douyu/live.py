@@ -123,10 +123,10 @@ class Douyutv(VideoExtractor):
         js_enc = js_enc.replace('eval({workflow});'.format(**names_dict), js_patch)
 
         js_ctx = JSEngine()
-        js_ctx.eval(js_md5)
-        js_ctx.eval(js_dom)
-        js_ctx.eval(js_enc)
-        js_ctx.eval(js_debug)
+        js_ctx.append(js_md5)
+        js_ctx.append(js_dom)
+        js_ctx.append(js_enc)
+        js_ctx.append(js_debug)
         did = uuid.uuid4().hex
         tt = str(int(time.time()))
         ub98484234 = js_ctx.call('ub98484234', self.vid, did, tt)

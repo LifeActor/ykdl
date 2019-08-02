@@ -9,6 +9,7 @@ support Win10's built-in Chakra.
 
 
 import ctypes as _ctypes
+import json
 
 
 # load win10's built-in chakra binary
@@ -33,10 +34,20 @@ class ChakraHandle():
         self.__context = context
         self.__chakra = chakra
 
+        # get JSON.stringify reference, and create its called arguments array
+        stringify = self.eval_js('JSON.stringify;', raw=True)[1]
+        undefined = _ctypes.c_void_p()
+        chakra.JsGetUndefinedValue(point(undefined))
+        args = (_ctypes.c_void_p * 2)()
+        args[0] = undefined
+
+        self.__jsonStringify = stringify
+        self.__jsonStringifyArgs = args
+
     def __del__(self):
         self.__chakra.JsDisposeRuntime(self.__runtime)
 
-    def eval_js(self, script, source=u""):
+    def eval_js(self, script, source=u"", raw=False):
         """
             Eval javascript string
 
@@ -47,6 +58,8 @@ class ChakraHandle():
             Parameters:
                 script(str): javascript code string
                 source(str?): code path (optional)
+                raw(bool?): whether return result as chakra JsValueRef directly
+                            (optional, default is False)
 
             Returns:
                 (bool, result)
@@ -74,15 +87,38 @@ class ChakraHandle():
 
         # no error
         if err == 0:
-            return (True, self.__js_value_to_str(result))
+            if raw:
+                return (True, result)
+            else:
+                return self.__js_value_to_py_value(result)
 
-        # js exception
-        elif err == 196609:
-            return (False, self.__get_exception())
+        return self.__get_error(err)
 
-        # other error
-        else:
-            return (False, err)
+    def __js_value_to_py_value(self, js_value):
+        args = self.__jsonStringifyArgs
+        args[1] = js_value
+
+        # value => json
+        result = _ctypes.c_void_p()
+        err = self.__chakra.JsCallFunction(
+            self.__jsonStringify, point(args), 2, point(result))
+
+        if err == 0:
+            result = self.__js_value_to_str(result)
+            if result == "undefined":
+                result = None
+            else:
+                # json => value
+                result = json.loads(result)
+            return (True, result)
+
+        return self.__get_error(err)
+
+    def __get_error(self, err):
+        # js exception or other error
+        if err == 196609:
+            err = self.__get_exception()
+        return (False, err)
 
     def __get_exception(self):
         exception = _ctypes.c_void_p()

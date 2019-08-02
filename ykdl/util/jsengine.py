@@ -113,7 +113,7 @@ injected_script = '''\
 var exports = undefined;
 (function(program, execJS) { execJS(program) })(
 function() {
-    return #{encoded_source};
+    #{encoded_source}
 },
 function(program) {
     var print = (this.print === undefined) ? console.log : this.print;
@@ -261,10 +261,8 @@ class ExternalJSEngine(AbstractJSEngine):
         source = encode_unicode_codepoints(source)
         data = json.dumps(code)
         encoded_source = '''\
-        (function() {{
-            {source}
-            return eval({data});
-        }})()'''.format(source=source, data=data)
+        {source}
+        return eval({data});'''.format(source=source, data=data)
         return injected_script.replace('#{encoded_source}', encoded_source)
 
 

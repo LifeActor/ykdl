@@ -48,9 +48,8 @@ import re
 import sys
 import tempfile
 
-__all__ = ['ProgramError', 'RuntimeError',
-    'javascript_is_supported', 'interpreter',
-    'ChakraJSEngine', 'ExternalJSEngine', 'JSEngine']
+__all__ = ['ProgramError', 'javascript_is_supported', 'interpreter',
+           'ChakraJSEngine', 'ExternalJSEngine', 'JSEngine']
 
 ### Before using this library, check this variable first!!!
 javascript_is_supported = True
@@ -59,30 +58,38 @@ javascript_is_supported = True
 class ProgramError(Exception):
     pass
 
-class RuntimeError(Exception):
-    pass
-
 
 use_chakra = False
 interpreter = []
 
 # Choose javascript interpreter
+# Try PyChakra
+try:
+    from PyChakra import Runtime as ChakraHandle, get_lib_path
+    get_lib_path()
+except (ImportError, RuntimeError):
+    pass
+else:
+    use_chakra = True
+if use_chakra:
+    pass
+
 # macOS: use built-in JavaScriptCore
-if platform.system() == 'Darwin':
+elif platform.system() == 'Darwin':
     interpreter = ['/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources/jsc']
 
 # Windows: Try Chakra, if fails, load Node.js
 elif platform.system() == 'Windows':
     try:
-        from .jsengine_chakra import ChakraHandle, chakra_available
-    except (SystemError, ValueError):
         from jsengine_chakra import ChakraHandle, chakra_available
+    except ImportError:
+        from .jsengine_chakra import ChakraHandle, chakra_available
     if chakra_available:
         use_chakra = True
     elif find_executable('node') is not None:
         interpreter = ['node']
     else:
-        print('Please install Node.js!', file=sys.stderr)
+        print('Please install PyChakra or Node.js!', file=sys.stderr)
         javascript_is_supported = False
 
 # Linux: use gjs on Gnome, cjs on Cinnamon or JavaScriptCore/NodeJS if installed
@@ -99,8 +106,9 @@ elif platform.system() == 'Linux':
         interpreter = ['node']
     else:
         print('Please install at least one of the following Javascript interpreter'
-              ': gjs, cjs, nodejs', file=sys.stderr)
+              ': PyChakra, gjs, cjs, nodejs', file=sys.stderr)
         javascript_is_supported = False
+
 else:
     print('Sorry, the Javascript engine is currently not supported on your system',
           file=sys.stderr)
@@ -181,13 +189,13 @@ class ChakraJSEngine(AbstractJSEngine):
 
     def _append(self, code):
         self._append_source(code)
-        ok, result = self.chakra.eval_js(code)
+        ok, result = self.chakra.eval(code)
         if not ok:
             raise ProgramError(str(result))
 
     def _eval(self, code):
         self._append_source(code)
-        ok, result = self.chakra.eval_js(code)
+        ok, result = self.chakra.eval(code)
         if ok:
             return result
         else:
@@ -315,8 +323,13 @@ if __name__ == '__main__':
             assert ctx._eval('') is None, 'eval empty fail!'
             assert ctx.eval('1 + 1') == 2, 'eval fail!'
             assert ctx.eval('[1, 2]') == [1, 2], 'eval fail!'
+            assert ctx.eval('[void((()=>{})()), 1]') == [None, 1], 'eval fail!'
             assert ctx.eval('(() => {return {a: 2}})()')['a'] == 2, 'eval fail!'
             print(ctx.eval(u'"αβγ"'))
+            try:
+                ctx.eval('a')
+            except Exception as e:
+                assert 'ReferenceError' in e.args[0], 'exception fail!'
         except:
             import traceback
             traceback.print_exception(*sys.exc_info())

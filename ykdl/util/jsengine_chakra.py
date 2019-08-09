@@ -35,7 +35,7 @@ class ChakraHandle():
         self.__chakra = chakra
 
         # get JSON.stringify reference, and create its called arguments array
-        stringify = self.eval_js("JSON.stringify;", raw=True)[1]
+        stringify = self.eval("JSON.stringify;", raw=True)[1]
         undefined = _ctypes.c_void_p()
         chakra.JsGetUndefinedValue(point(undefined))
         args = (_ctypes.c_void_p * 2)()

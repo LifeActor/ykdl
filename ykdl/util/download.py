@@ -386,7 +386,7 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
         print('Restart downloading: ' + name, file=sys.stderr)
     return succeed
 
-aria_args = ['aria2c', '-c', '--max-connection-per-server=16', '--split=16', '--min-split-size=5M', '--file-allocation=falloc']
+aria_args = ['aria2c', '-c', '--max-connection-per-server=16', '--split=16', '--min-split-size=5M', '--file-allocation=falloc', '--max-tries=0', '--lowest-speed-limit=100K']
 
 def aria_save_url(url, name, ext):
     args = aria_args+['-o', name + '.' + ext, url]

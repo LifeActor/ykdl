@@ -59,7 +59,7 @@ class ProgramError(Exception):
     pass
 
 
-use_chakra = False
+use_chakra = chakra_available = False
 interpreter = []
 
 # Choose javascript interpreter
@@ -70,7 +70,7 @@ try:
 except (ImportError, RuntimeError):
     pass
 else:
-    use_chakra = True
+    use_chakra = chakra_available = True
 if use_chakra:
     pass
 

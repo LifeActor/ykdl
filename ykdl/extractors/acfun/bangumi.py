@@ -31,6 +31,9 @@ class AcBan(AcBase):
         if m3u8Info:
             m3u8Info = m3u8Info[0]
 
+        if self.check_uptime(bgmInfo['createTime']):
+            sourceVid = None
+
         return title, artist, sourceVid, m3u8Info
 
     def get_path_list(self):

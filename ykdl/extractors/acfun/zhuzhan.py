@@ -29,11 +29,7 @@ class ZhuZhan(VideoExtractor):
             'time': int(time.time() * 1000)
         }
         api = 'https://player.acfun.cn/flash_data?' + urlencode(params)
-        try:
-            rc4_data = json.loads(get_content(api, charset='utf-8'))['data']
-        except:
-            # fallback to m3u8
-            raise IOError
+        rc4_data = json.loads(get_content(api, charset='utf-8'))['data']
         data = rc4(self.key, base64.b64decode(rc4_data))
         stream_data = json.loads(data)
         info.title = stream_data['video']['title']

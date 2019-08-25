@@ -25,12 +25,20 @@ class AcBase(EmbedExtractor):
         'SD': u'标清'
     }
 
+    def check_uptime(self, uptime):
+        uptime = ''.join(['{:0>2}'.format(i) for i in uptime.split('-')])
+        return uptime > '20190814'
+
     def prepare(self):
         html = get_content(self.url)
         title, artist, sourceVid, m3u8Info = self.get_page_info(html)
 
         add_header('Referer', 'https://www.acfun.cn/')
         try:
+            if sourceVid is None:
+                # fallback to m3u8 (zhuzhan)
+                raise IOError
+
             data = json.loads(get_content('https://www.acfun.cn/video/getVideo.aspx?id={}'.format(sourceVid)))
 
             sourceType = data['sourceType']

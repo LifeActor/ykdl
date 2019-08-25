@@ -14,25 +14,27 @@ class ZhuZhan(VideoExtractor):
     name = u'AcFun 优酷合作视频'
 
     client_id = '908a519d032263f8'
-    ct = 85
     refer = 'http://player-vod.cn-beijing.aliyuncs.com/player/2017030915/core/cloud.swf'
     key = '8bdc7e1a'
 
     def prepare(self):
         info = VideoInfo(self.name)
-        add_header('User-Agent', 'abcd')
-        add_header('Referer', 'https://www.acfun.cn/')
-        self.vid, self.embsig = self.vid
+        vid, embsig = self.vid
 
         params = {
-            'vid': self.vid,
-            'ct': self.ct,
-            'ev':3,
-            'sign': self.embsig,
+            'vid': vid,
+            'ct': 85,
+            'ev': 3,
+            'sign': embsig,
             'time': int(time.time() * 1000)
         }
         api = 'https://player.acfun.cn/flash_data?' + urlencode(params)
-        data = rc4(self.key, base64.b64decode(json.loads(get_content(api, charset='utf-8'))['data']))
+        try:
+            rc4_data = json.loads(get_content(api, charset='utf-8'))['data']
+        except:
+            # fallback to m3u8
+            raise IOError
+        data = rc4(self.key, base64.b64decode(rc4_data))
         stream_data = json.loads(data)
         info.title = stream_data['video']['title']
         for s in stream_data['stream']:
@@ -46,10 +48,10 @@ class ZhuZhan(VideoExtractor):
                 info.streams[stream_type] = {
                     'container': 'mp4',
                     'video_profile': stream_code_to_profiles[stream_type],
-                    'src': stream_urls, 'size' : size
+                    'src': stream_urls,
+                    'size' : size
                 }
         info.stream_types = sorted(info.stream_types, key=ids.index)
-        info.extra['ua'] = 'abcd'
         return info
 
 site = ZhuZhan()

@@ -40,7 +40,7 @@ class AcBase(EmbedExtractor):
                 encode = data['encode']
                 sourceId = (sourceId, encode)
             elif sourceType == 'letv':
-                #workaround for letv, because it is letvcloud
+                # workaround for letv, because it is letvcloud
                 sourceType = 'le.letvcloud'
                 sourceId = (sourceId, '2d8c027396')
             elif sourceType == 'qq':

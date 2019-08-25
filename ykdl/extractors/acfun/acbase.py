@@ -11,57 +11,61 @@ import json
 
 class AcBase(EmbedExtractor):
 
-    stream_ids = ['BD', 'TD', 'HD', 'SD']
+    stream_ids = ['BD', 'TD', 'HD', 'SD', 'LD']
     quality_2_id = {
-        '1920': 'BD',
-        '1280': 'TD',
-        '960':  'HD',
-        '640':  'SD'
+        1080: 'BD',
+        720: 'TD',
+        540: 'HD',
+        360: 'SD',
+        270: 'LD'
     }
     id_2_profile = {
         'BD': u'1080P',
         'TD': u'超清',
         'HD': u'高清',
-        'SD': u'标清'
+        'SD': u'标清',
+        'LD': u'流畅'
     }
 
     def check_uptime(self, uptime):
-        uptime = ''.join(['{:0>2}'.format(i) for i in uptime.split('-')])
-        return uptime > '20190814'
+        # fallback to m3u8 (zhuzhan)
+        # 1565827200000 == 2019-08-15 00:00:00
+        self.parse_m3u8 = uptime > 1565827200000
 
     def prepare(self):
+        self.parse_m3u8 = False
         html = get_content(self.url)
         title, artist, sourceVid, m3u8Info = self.get_page_info(html)
 
         add_header('Referer', 'https://www.acfun.cn/')
-        try:
-            if sourceVid is None:
-                # fallback to m3u8 (zhuzhan)
-                raise IOError
+        if not self.parse_m3u8:
+            try:
+                data = json.loads(get_content('https://www.acfun.cn/video/getVideo.aspx?id={}'.format(sourceVid)))
 
-            data = json.loads(get_content('https://www.acfun.cn/video/getVideo.aspx?id={}'.format(sourceVid)))
+                sourceType = data['sourceType']
+                sourceId = data['sourceId']
+                if sourceType == 'zhuzhan':
+                    sourceType = 'acfun.zhuzhan'
+                    encode = data['encode']
+                    sourceId = (sourceId, encode)
+                elif sourceType == 'letv':
+                    # workaround for letv, because it is letvcloud
+                    sourceType = 'le.letvcloud'
+                    sourceId = (sourceId, '2d8c027396')
+                elif sourceType == 'qq':
+                    sourceType = 'qq.video'
 
-            sourceType = data['sourceType']
-            sourceId = data['sourceId']
-            if sourceType == 'zhuzhan':
-                sourceType = 'acfun.zhuzhan'
-                encode = data['encode']
-                sourceId = (sourceId, encode)
-            elif sourceType == 'letv':
-                # workaround for letv, because it is letvcloud
-                sourceType = 'le.letvcloud'
-                sourceId = (sourceId, '2d8c027396')
-            elif sourceType == 'qq':
-                sourceType = 'qq.video'
+                self.video_info = {
+                    'site': sourceType,
+                    'vid': sourceId,
+                    'title': title,
+                    'artist': artist
+                }
 
-            self.video_info = {
-                'site': sourceType,
-                'vid': sourceId,
-                'title': title,
-                'artist': artist
-            }
+            except IOError:
+                self.parse_m3u8 = True
 
-        except IOError:
+        if self.parse_m3u8:
             info = VideoInfo(self.name)
             info.title = title
             info.artist = artist
@@ -69,7 +73,8 @@ class AcBase(EmbedExtractor):
             if m3u8Info is None:
                 data = json.loads(get_content('https://www.acfun.cn/rest/pc-direct/play/playInfo/m3u8Auto?videoId={}'.format(sourceVid)))
                 m3u8Info = data['playInfo']['streams'][0]
-            m3u8api = m3u8Info['playUrls'][0]
+            # some videos are broken with CDN, choose them here
+            m3u8api = m3u8Info['playUrls'][-1]
             lines = get_content(m3u8api)
             self.logger.debug('m3u8 api: %s', lines)
             lines = lines.split('\n')
@@ -79,7 +84,7 @@ class AcBase(EmbedExtractor):
                 if resolution is None:
                     resolution = match1(line, 'RESOLUTION=(\d+x\d+)')
                 elif match1(line, '(\.m3u8)'):
-                    quality = resolution.split('x')[0]
+                    quality = min(int(q) for q in resolution.split('x'))
                     resolution = None
                     if line.startswith('http'):
                         url = line

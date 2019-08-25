@@ -31,8 +31,7 @@ class AcBan(AcBase):
         if m3u8Info:
             m3u8Info = m3u8Info[0]
 
-        if self.check_uptime(bgmInfo['createTime']):
-            sourceVid = None
+        self.check_uptime(bgmInfo['createTimeMillis'])
 
         return title, artist, sourceVid, m3u8Info
 

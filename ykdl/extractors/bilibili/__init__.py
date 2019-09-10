@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_location
+from ykdl.util.html import get_location, fake_headers
 from ykdl.util.match import match1, matchall
 
 import re
 
 def get_extractor(url):
+    fake_headers.pop('Accept-Language', None)
+
     if 'live.bilibili' in url:
         from . import live as s
         return s.site, url

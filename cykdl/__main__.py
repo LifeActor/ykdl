@@ -144,6 +144,22 @@ def main():
     if args.proxy == 'system':
         proxy_handler = ProxyHandler()
         args.proxy = os.environ.get('HTTP_PROXY', 'none')
+    elif args.proxy.upper().startswith('SOCKS'):
+        try:
+            import socks
+            from sockshandler import SocksiPyHandler
+        except ImportError:
+            logger.error('To use SOCKS proxy, please install PySocks first!')
+            raise
+        parsed_socks_proxy = urlparse(args.proxy)
+        sockstype = socks.PROXY_TYPES[parsed_socks_proxy.scheme.upper()]
+        rdns = True
+        proxy_handler = SocksiPyHandler(sockstype,
+                                        parsed_socks_proxy.hostname,
+                                        parsed_socks_proxy.port,
+                                        rdns,
+                                        parsed_socks_proxy.username,
+                                        parsed_socks_proxy.password)
     else:
         proxy_handler = ProxyHandler({
             'http': args.proxy,

@@ -24,7 +24,10 @@ def find_packages(*tops):
 from ykdl.version import __version__
 
 REQ = ['m3u8', 'pycryptodome', 'urllib3']
-EXT = {'js-engine': 'PyChakra>=2.2.0'}
+EXT = {
+  'socks': ['PySocks>=1.7.1'],
+  'js-engine': ['PyChakra>=2.2.0']
+}
 if os.name == 'nt':
     EXT['ansi-escape'] = ['colorama']
 

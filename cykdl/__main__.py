@@ -144,7 +144,7 @@ def main():
     if args.proxy == 'system':
         proxy_handler = ProxyHandler()
         args.proxy = os.environ.get('HTTP_PROXY', 'none')
-    elif args.proxy.upper().startswith("SOCKS"):
+    elif args.proxy.upper().startswith('SOCKS'):
         try:
             import socks
             from sockshandler import SocksiPyHandler

@@ -22,7 +22,7 @@ import logging
 logger = logging.getLogger("YKDL")
 
 from ykdl.common import url_to_module
-from ykdl.compact import ProxyHandler, build_opener, install_opener, compact_str, urlparse, socks, SocksiPyHandler
+from ykdl.compact import ProxyHandler, build_opener, install_opener, compact_str, urlparse
 from ykdl.util import log
 from ykdl.util.html import default_proxy_handler
 from ykdl.util.wrap import launch_player, launch_ffmpeg, launch_ffmpeg_download
@@ -144,16 +144,21 @@ def main():
     if args.proxy == 'system':
         proxy_handler = ProxyHandler()
         args.proxy = os.environ.get('HTTP_PROXY', 'none')
-    elif args.proxy.startswith("socks"):
-        parsed_socks_proxy = urlparse(args.proxy)
+    elif args.proxy.upper().startswith("SOCKS"):
         try:
-            if parsed_socks_proxy.scheme == "socks4":
-                sockstype = socks.SOCKS4
-            if parsed_socks_proxy.scheme == "socks5":
-                sockstype = socks.SOCKS5
-            proxy_handler = SocksiPyHandler(sockstype, parsed_socks_proxy.hostname, parsed_socks_proxy.port, False, parsed_socks_proxy.username, parsed_socks_proxy.password)
-        except (socks.SOCKS5Error, socks.SOCKS5AuthError, socks.SOCKS4Error, socks.GeneralProxyError) as e:
-            logger.error(compact_str(e))
+            import socks, SocksiPyHandler
+        except ImportError:
+            logger.error('To use SOCKS proxy, please install PySocks first!')
+            raise
+        parsed_socks_proxy = urlparse(args.proxy)
+        sockstype = socks.PROXY_TYPES[parsed_socks_proxy.scheme.upper()]
+        rdns = True
+        proxy_handler = SocksiPyHandler(sockstype,
+                                        parsed_socks_proxy.hostname,
+                                        parsed_socks_proxy.port,
+                                        rdns,
+                                        parsed_socks_proxy.username,
+                                        parsed_socks_proxy.password)
     else:
         proxy_handler = ProxyHandler({
             'http': args.proxy,

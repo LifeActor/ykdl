@@ -146,7 +146,8 @@ def main():
         args.proxy = os.environ.get('HTTP_PROXY', 'none')
     elif args.proxy.upper().startswith("SOCKS"):
         try:
-            import socks, SocksiPyHandler
+            import socks
+            from sockshandler import SocksiPyHandler
         except ImportError:
             logger.error('To use SOCKS proxy, please install PySocks first!')
             raise

@@ -13,30 +13,37 @@ from .acbase import AcBase
 
 class AcBan(AcBase):
 
-    name = u'ACfun 弹幕视频网 (番剧)'
+    name = u'AcFun 弹幕视频网 (番剧)'
 
     def list_only(self):
         return '/bangumi/aa' in self.url
 
     def get_page_info(self, html):
         artist = None
-        m3u8Info = None
-        bgmInfo = json.loads(match1(html, u'var bgmInfo = ({.+?})</script>'))
-        videoInfo = bgmInfo['video']['videos'][0]
-        title = u'{} - {} {}'.format(
-                bgmInfo['album']['title'],
-                videoInfo['episodeName'],
-                videoInfo['newTitle']
-        ).rstrip()
-        sourceVid = videoInfo['videoId']
+        bgmInfo = json.loads(match1(html, u'window.bangumiData = ({.+?});'))
+        videoInfo = bgmInfo['currentVideoInfo']
+        title = u'{} - {}'.format(
+                bgmInfo['bangumiTitle'],
+                bgmInfo['episodeName'],
+        )
+        sourceVid = videoInfo['id']
+        m3u8Info = videoInfo.get('playInfos')
+        if m3u8Info:
+            m3u8Info = m3u8Info[0]
+
+        self.check_uptime(bgmInfo['createTimeMillis'])
 
         return title, artist, sourceVid, m3u8Info
 
     def get_path_list(self):
-        html = get_content(self.url)
         albumId = match1(self.url, '/a[ab](\d+)')
+        if self.list_only():
+            html = get_content(self.url)
+        else:
+            html = get_content('https://www.acfun.cn/bangumi/aa' + albumId)
         groupId = match1(html, '"groups":[{[^}]*?"id":(\d+)')
         contentsCount = int(match1(html, '"contentsCount":(\d+)'))
+
         params = {
             'albumId': albumId,
             'groupId': groupId,

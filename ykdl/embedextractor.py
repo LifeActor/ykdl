@@ -98,7 +98,8 @@ class EmbedExtractor():
             raise NotImplementedError(self.url + ' is not supported')
 
         info = self._parser(self.video_info)
-        info.site = '{} / {}'.format(self.name, info.site)
+        if self.name != info.site:
+            info.site = u'{} / {}'.format(self.name, info.site)
         return info
 
     def parser_list(self, url):

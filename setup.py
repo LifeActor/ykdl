@@ -23,8 +23,8 @@ def find_packages(*tops):
 
 from ykdl.version import __version__
 
-REQ = ['m3u8', 'pycryptodome', 'urllib3', 'pysocks']
-EXT = {}
+REQ = ['m3u8', 'pycryptodome', 'urllib3']
+EXT = {'socks': ['PySocks>=1.7.1']}
 if os.name == 'nt':
     EXT['ansi-escape'] = ['colorama']
 

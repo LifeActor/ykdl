@@ -1,14 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_location, fake_headers
+from ykdl.util.html import get_location, add_header
 from ykdl.util.match import match1, matchall
 
 import re
 
 def get_extractor(url):
-    fake_headers.pop('Accept-Language', None)
-
     if 'live.bilibili' in url:
         from . import live as s
         return s.site, url
@@ -25,6 +23,7 @@ def get_extractor(url):
         url = 'https://www.bilibili.com/av{}/'.format(av_id)
     else:
         url = 'https://www.bilibili.com/av{}/?p={}'.format(av_id, page_index)
+    add_header('Referer', 'https://www.bilibili.com/')
     url = get_location(url)
 
     if '/bangumi/' in url:

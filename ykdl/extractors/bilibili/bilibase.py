@@ -3,7 +3,7 @@
 
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
-from ykdl.util.html import get_content, add_header, fake_headers, get_location
+from ykdl.util.html import get_content, fake_headers
 from ykdl.util.match import match1, matchall
 from ykdl.compact import compact_bytes
 
@@ -42,9 +42,8 @@ class BiliBase(VideoExtractor):
 
     def prepare(self):
         info = VideoInfo(self.name)
-        add_header("Referer", "https://www.bilibili.com/")
-        info.extra["referer"] = "https://www.bilibili.com/"
-        info.extra["ua"] = fake_headers['User-Agent']
+        info.extra['referer'] = 'https://www.bilibili.com/'
+        info.extra['ua'] = fake_headers['User-Agent']
 
         self.vid, info.title, info.artist = self.get_page_info()
 

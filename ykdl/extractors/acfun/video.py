@@ -16,18 +16,17 @@ class AcVideo(AcBase):
     def get_page_info(self, html):
         pageInfo = json.loads(match1(html, u'(?:pageInfo|videoInfo) = ({.+?});'))
         videoList = pageInfo['videoList']
-        videoInfo = pageInfo.get('currentVideoInfo') or videoList[pageInfo['P']]
+        videoInfo = pageInfo.get('currentVideoInfo')
+        assert videoInfo, bgmInfo.get('playErrorMessage') or "can't play this video!!"
         title = pageInfo['title']
         sub_title = videoInfo['title']
-        artist = pageInfo.get('username') or pageInfo['user']['name']
+        artist = pageInfo['user']['name']
         if sub_title not in ('noTitle', 'Part1', title) or len(videoList) > 1:
             title = u'{} - {}'.format(title, sub_title)
         sourceVid = videoInfo['id']
         m3u8Info = videoInfo.get('playInfos')
         if m3u8Info:
             m3u8Info = m3u8Info[0]
-
-        self.check_uptime(pageInfo['createTimeMillis'])
 
         return title, artist, sourceVid, m3u8Info
 

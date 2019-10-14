@@ -301,7 +301,7 @@ class ExternalJSEngine(AbstractJSEngine):
             output = self._run_interpreter_with_tempfile(code)
 
         output = output.replace(u'\r\n', u'\n').replace(u'\r', u'\n')
-        for result_line in output.split(u'\n')[-3:]:
+        for result_line in output.split(u'\n')[-5:]:
             if result_line[:1] == u'[':
                 break
         ok, result = json.loads(result_line)

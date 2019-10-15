@@ -128,10 +128,10 @@ catch (err) {{
     var result = '' + err, status = false;
 }}
 try {{
-    print('\\n' + JSON.stringify([status, result]));
+    print('\\n' + JSON.stringify(["result", status, result]));
 }}
 catch (err) {{
-    print('\\n[false, "Script returns a value with an unsupported type"]');
+    print('\\n["result", false, "Script returns a value with an unsupported type"]');
 }}
 '''
 
@@ -173,7 +173,7 @@ def json_encoder_fallback(o):
     # Allow bytes (python3)
     if isinstance(o, bytes):
         return to_unicode(o)
-    return json_encoder.default(o)
+    return json.JSONEncoder.default(json_encoder, o)
 
 json_encoder = json.JSONEncoder(
     skipkeys=True,
@@ -301,10 +301,11 @@ class ExternalJSEngine(AbstractJSEngine):
             output = self._run_interpreter_with_tempfile(code)
 
         output = output.replace(u'\r\n', u'\n').replace(u'\r', u'\n')
-        for result_line in output.split(u'\n')[-3:]:
-            if result_line[:1] == u'[':
+        # Search result in the last 5 lines of output
+        for result_line in output.split(u'\n')[-5:]:
+            if result_line[:9] == u'["result"':
                 break
-        ok, result = json.loads(result_line)
+        _, ok, result = json.loads(result_line)
         if ok:
             return result
         else:
@@ -374,10 +375,10 @@ if __name__ == '__main__':
             print(ctx.eval('"es:αβγ"'))
             print(ctx.eval(u'"eu:αβγ"'))
             print(ctx.eval(to_bytes('"eb:αβγ"')))
-            if JSEngine is ExternalJSEngine:
-                ctx.append('ping=((s1,s2,s3)=>{return [s1,s2,s3]})')
-                # Mixed string types input
-                print(ctx.call('ping', 'cs:αβγ', u'cu:αβγ', to_bytes('cb:αβγ')))
+            ctx.append('ping=((s1,s2,s3)=>{return [s1,s2,s3]})')
+            # Mixed string types input
+            for s in ctx.call('ping', 'cs:αβγ', u'cu:αβγ', to_bytes('cb:αβγ')):
+                print(s)
             print('source code:')
             print(ctx.source)
             try:

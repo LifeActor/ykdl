@@ -37,7 +37,7 @@ class HuyaVideo(VideoExtractor):
             self.vid = match1(html, 'data-vid="(\d+)')
         title = match1(html, '<h1 class="video-title">(.+?)</h1>')
         info.artist = artist = match1(html, "<div class='video-author'>[\s\S]+?<h3>(.+?)</h3>")
-        info.title = '{} - {}'.format(title, artist)
+        info.title = u'{} - {}'.format(title, artist)
 
         t1 = int(time.time() * 1000)
         t2 = t1 + random.randrange(5, 10)

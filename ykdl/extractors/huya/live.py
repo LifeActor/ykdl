@@ -24,7 +24,7 @@ class HuyaLive(VideoExtractor):
         assert data['status'] == 200, data['msg']
 
         room_info = data['data'][0]['gameLiveInfo']
-        info.title = '%s「%s - %s」' % (room_info['roomName'], room_info['nick'], room_info['introduction'])
+        info.title = u'{}「{} - {}」'.format(room_info['roomName'], room_info['nick'], room_info['introduction'])
         info.artist = room_info['nick']
 
         stream_info = random.choice(data['data'][0]['gameStreamInfoList'])
@@ -32,7 +32,7 @@ class HuyaLive(VideoExtractor):
         sStreamName = stream_info['sStreamName']
         sHlsUrlSuffix = stream_info['sHlsUrlSuffix']
         sHlsAntiCode = stream_info['sHlsAntiCode']
-        hls_url = '{}/{}.{}?{}'.format(sHlsUrl, sStreamName, sHlsUrlSuffix, sHlsAntiCode)
+        hls_url = u'{}/{}.{}?{}'.format(sHlsUrl, sStreamName, sHlsUrlSuffix, sHlsAntiCode)
 
         info.stream_types.append("current")
         info.streams["current"] = {

@@ -6,14 +6,14 @@
 
     Description:
         This library wraps the system's built-in Javascript interpreter to python.
-        It also support PyChakra.
+        It also support PyChakra, QuickJS and Node.js.
 
     Platform:
         macOS:   Use JavascriptCore
-        Linux:   Use gjs on Gnome, cjs on Cinnamon or NodeJS if installed
-        Windows: Use Win10's built-in Chakra, if not available use NodeJS
+        Linux:   Use Gjs on Gnome, CJS on Cinnamon
+        Windows: Use Chakra
 
-        PyChakra can run in all the above.
+        PyChakra, QuickJS and Node.js can run in all the above.
 
     Usage:
 
@@ -55,13 +55,10 @@ except ImportError:
     from distutils.spawn import find_executable as which
 
 
-__all__ = ['ProgramError', 'ChakraJSEngine', 'ExternalJSEngine', 'JSEngine']
+### Before using this library, check JSEngine first!!!
+__all__ = ['ProgramError', 'ChakraJSEngine', 'QuickJSEngine', 'ExternalJSEngine', 'JSEngine']
 
 
-### Before using this library, check this variable first!!!
-# **DEPRECATED**
-# Now, we check JSEngine directly.
-javascript_is_supported = True
 
 # Exceptions
 class ProgramError(Exception):
@@ -70,20 +67,31 @@ class ProgramError(Exception):
 
 ### Detect javascript interpreters
 chakra_available = False
-interpreter = None
+quickjs_available = False
+external_interpreter = None
+external_interpreter_tempfile = False
 
 # PyChakra
 try:
     from PyChakra import Runtime as ChakraHandle, get_lib_path
-    get_lib_path()
+    if not os.path.exists(get_lib_path()):
+        raise RuntimeError
 except (ImportError, RuntimeError):
     pass
 else:
     chakra_available = True
 
+# PyQuickJS
+try:
+    import quickjs
+except ImportError:
+    pass
+else:
+    quickjs_available = True
+
 # macOS: built-in JavaScriptCore
 if platform.system() == 'Darwin':
-    interpreter = '/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources/jsc'
+    external_interpreter = '/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources/jsc'
 
 # Windows: built-in Chakra, Node.js if installed
 elif platform.system() == 'Windows':
@@ -93,28 +101,25 @@ elif platform.system() == 'Windows':
         except ImportError:
             from .jsengine_chakra import ChakraHandle, chakra_available
 
-    interpreter = which('node')
+    external_interpreter = which('node')
 
-    if not chakra_available and interpreter is None:
+    if not chakra_available and not quickjs_available and external_interpreter is None:
         print('Please install PyChakra or Node.js!', file=sys.stderr)
-        javascript_is_supported = False
 
-# Linux: gjs on Gnome, cjs on Cinnamon or JavaScriptCore/NodeJS if installed
+# Linux: Gjs on Gnome, CJS on Cinnamon or JavaScriptCore/Node.js if installed
 elif platform.system() == 'Linux':
-    for interpreter in ('gjs', 'cjs', 'jsc', 'nodejs', 'node'):
-        interpreter = which(interpreter)
-        if interpreter:
+    for interpreter in ('gjs', 'cjs', 'jsc', 'qjs', 'nodejs', 'node'):
+        external_interpreter = which(interpreter)
+        if external_interpreter:
             break
 
-    if not chakra_available and interpreter is None:
+    if not chakra_available and not quickjs_available and external_interpreter is None:
         print('Please install at least one of the following Javascript interpreter'
-              ': PyChakra, gjs, cjs, jsc, nodejs', file=sys.stderr)
-        javascript_is_supported = False
+              ': PyChakra, Gjs, CJS, JavaScriptCore, Node.js.', file=sys.stderr)
 
 else:
-    print('Sorry, the Javascript engine is currently not supported on your system',
+    print('Sorry, the Javascript engine is currently not supported on your system.',
           file=sys.stderr)
-    javascript_is_supported = False
 
 
 # Inject to the script to let it return jsonlized value to python
@@ -144,15 +149,19 @@ if (typeof print === 'undefined' && typeof console === 'object') {
 '''
 init_global_script = u'''\
 if (typeof global === 'undefined') {
-    global = new Proxy(this, {});
+    if (typeof Proxy === 'object') {
+        global = new Proxy(this, {});
+    } else {
+        global = this;
+    }
 }
 '''
-init_del_gvar_script = u'''\
-if (typeof {gvar} === 'object') {{
-    {gvar} = undefined;
+init_del_gobject_script = u'''\
+if (typeof {gobject} === 'object') {{
+    {gobject} = undefined;
 }}
 '''
-init_del_gvars = ['exports']
+init_del_gobjects = ['exports']
 
 end_split_char = set(u';)}')
 
@@ -187,22 +196,23 @@ json_encoder = json.JSONEncoder(
 
 
 class AbstractJSEngine:
-    def __init__(self, source=u'', init_global=True, init_del_gvars=init_del_gvars):
+    def __init__(self, source=u'', init_global=True, init_del_gobjects=init_del_gobjects):
         self._source = []
         init_script = [init_print_script]
         if init_global:
             init_script.append(init_global_script)
-        if init_del_gvars:
-            for gvar in init_del_gvars:
-                if gvar == 'print' and hasattr(self, '_tempfile'):
+        if init_del_gobjects:
+            for gobject in init_del_gobjects:
+                if gobject == 'print' and hasattr(self, '_tempfile'):
                     continue
-                init_script.append(init_del_gvar_script.format(gvar=gvar))
+                init_script.append(init_del_gobject_script.format(gobject=gobject))
         init_script = u''.join(init_script)
         self.append(init_script)
         self.append(source)
 
     @property
     def source(self):
+        '''All the inputted Javascript code.'''
         return self._get_source()
 
     def _append_source(self, code):
@@ -220,62 +230,119 @@ class AbstractJSEngine:
             return code
 
     def append(self, code):
+        '''Run Javascript code and return none.'''
         code = self._check_code(code)
         if code:
             self._append(code)
 
     def eval(self, code):
+        '''Run Javascript code and return result.'''
         code = self._check_code(code)
         if code:
             return self._eval(code)
 
     def call(self, identifier, *args):
+        '''Use name string and arguments to call Javascript function.'''
         chunks = json_encoder.iterencode(args, _one_shot=True)
         chunks = [to_unicode(chunk) for chunk in chunks]
         args = u''.join(chunks)[1:-1]
         code = u'{identifier}({args})'.format(identifier=identifier, args=args)
         return self._eval(code)
 
-
-class ChakraJSEngine(AbstractJSEngine):
-    def __init__(self, source=u''):
-        if not chakra_available:
-            msg = 'No supported chakra binary found on your system!'
-            if interpreter:
-                msg += 'Please install PyChakra or use ExternalJSEngine.'
-            raise RuntimeError(msg)
-        self.chakra = ChakraHandle()
-        AbstractJSEngine.__init__(self, source)
+class InternalJSEngine(AbstractJSEngine):
+    '''Wrappered for Internal(DLL) Javascript interpreter.'''
 
     def _get_source(self):
         return u'\n'.join(self._source)
 
     def _append(self, code):
-        self._append_source(code)
-        ok, result = self.chakra.eval(code, True)
-        if not ok:
-            raise ProgramError(str(result))
+        self._context.eval(code, eval=False)
 
     def _eval(self, code):
-        self._append_source(code)
-        ok, result = self.chakra.eval(code)
-        if ok:
-            return result
-        else:
-            raise ProgramError(str(result))
+        return self._context.eval(code)
+
+
+class ChakraJSEngine(InternalJSEngine):
+    '''Wrappered for system's built-in Chakra or PyChakra(ChakraCore).'''
+
+    def __init__(self, source=u''):
+        if not chakra_available:
+            msg = 'No supported Chakra binary found on your system!'
+            if quickjs_available:
+                msg += ' Please install PyChakra or use QuickJSEngine.'
+            elif external_interpreter:
+                msg += ' Please install PyChakra or use ExternalJSEngine.'
+            else:
+                msg += ' Please install PyChakra.'
+            raise RuntimeError(msg)
+        self._context = self.Context(self)
+        InternalJSEngine.__init__(self, source)
+
+    class Context:
+        def __init__(self, engine):
+            self._engine = engine
+            self._context = ChakraHandle()
+
+        def eval(self, code, eval=True, raw=False):
+            self._engine._append_source(code)
+            ok, result = self._context.eval(code, raw=raw)
+            if ok:
+                if eval:
+                    return result
+            else:
+                raise ProgramError(str(result))
+
+
+class QuickJSEngine(InternalJSEngine):
+    '''Wrappered for QuickJS python binding quickjs.'''
+
+    def __init__(self, source=u''):
+        if not quickjs_available:
+            msg = 'No supported QuickJS package found on custom python environment!'
+            if chakra_available:
+                msg += ' Please install python package quickjs or use ChakraJSEngine.'
+            elif external_interpreter:
+                msg += ' Please install python package quickjs or use ExternalJSEngine.'
+            else:
+                msg += ' Please install python package quickjs.'
+            raise RuntimeError(msg)
+        self._context = self.Context(self)
+        InternalJSEngine.__init__(self, source)
+
+    class Context:
+        def __init__(self, engine):
+            self._engine = engine
+            self._context = quickjs.Context()
+
+        def eval(self, code, eval=True, raw=False):
+            self._engine._append_source(code)
+            try:
+                result = self._context.eval(code)
+            except quickjs.JSException as e:
+                raise ProgramError(*e.args)
+            else:
+                if eval:
+                    if raw or not isinstance(result, quickjs.Object):
+                        return result
+                    else:
+                        return json.loads(result.json())
 
 
 class ExternalJSEngine(AbstractJSEngine):
+    '''Wrappered for external Javascript interpreter.'''
+
     def __init__(self, source=u''):
-        if not interpreter:
+        if not external_interpreter:
+            msg = 'No supported external Javascript interpreter found on your system!'
             if chakra_available:
-                msg = ('ExternalJSEngine is not available now! Please install '
-                       'a Javascript interpreter or use ChakraJSEngine.')
+                msg += (' Please install one or use ChakraJSEngine.')
+            elif quickjs_available:
+                msg += (' Please install one or use QuickJSEngine.')
             else:
-                msg = 'No supported Javascript interpreter found on your system!'
+                msg += (' Please install one.')
             raise RuntimeError(msg)
         self._last_code = u''
-        self._tempfile = False
+        self._tempfile = external_interpreter_tempfile
         AbstractJSEngine.__init__(self, source)
 
     def _get_source(self, last_code=True):
@@ -311,25 +378,26 @@ class ExternalJSEngine(AbstractJSEngine):
         else:
             raise ProgramError(result)
 
-    def _run_interpreter(self, cmd, stdin=None, input=None):
+    def _run_interpreter(self, cmd, input=None):
         p = None
+        stdin = PIPE if input else None
         try:
             p = Popen(cmd, stdin=stdin, stdout=PIPE, stderr=PIPE)
-            stdoutdata, stderrdata = p.communicate(input=input)
-            ret = p.wait()
+            stdout_data, stderr_data = p.communicate(input=input)
+            retcode = p.wait()
         finally:
             del p
-        if ret != 0:
+        if retcode != 0:
             raise RuntimeError('Javascript interpreter returns non-zero value! '
-                               'Error msg: %s' % stderrdata.decode('utf8'))
+                               'Error msg: %s' % stderr_data.decode('utf8'))
         # Output unicode
-        return stdoutdata.decode('utf8')
+        return stdout_data.decode('utf8')
 
     def _run_interpreter_with_pipe(self, code):
-        cmd = [interpreter]
+        cmd = [external_interpreter]
         # Input bytes
         code = to_bytes(code)
-        return self._run_interpreter(cmd, stdin=PIPE, input=code)
+        return self._run_interpreter(cmd, input=code)
 
     def _run_interpreter_with_tempfile(self, code):
         (fd, filename) = tempfile.mkstemp(prefix='execjs', suffix='.js')
@@ -340,7 +408,7 @@ class ExternalJSEngine(AbstractJSEngine):
             with io.open(filename, 'wb') as fp:
                 fp.write(code)
 
-            cmd = [interpreter, filename]
+            cmd = [external_interpreter, filename]
             return self._run_interpreter(cmd)
         finally:
             os.remove(filename)
@@ -351,21 +419,47 @@ class ExternalJSEngine(AbstractJSEngine):
         return injected_script.format(source=source, data=data)
 
 
-# Prefer ChakraJSEngine (via dynamic library loading)
+def set_external_interpreter(interpreter):
+    global external_interpreter
+    external_interpreter = which(interpreter)
+    if external_interpreter is None:
+        print("Can not find given interpreter's path: %r" % interpreter, file=sys.stderr)
+    else:
+        set_external_interpreter_tempfile()
+
+
+def set_external_interpreter_tempfile():
+    global external_interpreter_tempfile
+    interpreter_name = os.path.basename(external_interpreter).split('.')[0]
+    external_interpreter_tempfile = interpreter_name in ('qjs', 'd8')
+
+
+if external_interpreter:
+    set_external_interpreter_tempfile()
+
+
+# Prefer ChakraJSEngine & QuickJSEngine (via dynamic library loading)
 if chakra_available:
     JSEngine = ChakraJSEngine
-elif javascript_is_supported:
+elif quickjs_available:
+    JSEngine = QuickJSEngine
+elif external_interpreter:
     JSEngine = ExternalJSEngine
 else:
     JSEngine = None
 
 
 if __name__ == '__main__':
-    #interpreter = 'S:/jsshell-win64/js'
-    #interpreter = 'S:/node/node'
-    for JSEngine in (ChakraJSEngine, ExternalJSEngine):
+    #set_external_interpreter('S:/jsshell-win64/js.exe')
+    #set_external_interpreter('S:/node/node.exe')
+    #set_external_interpreter('S:/quickjs-2019-10-27-win64/qjs.exe')
+    #set_external_interpreter('S:/hermes-cli-windows-v0.3.0/hermes.exe')
+    #set_external_interpreter('S:/v8-win64-rel-8.0.354/d8.exe')
+    print('JSEngine is %r' % JSEngine)
+    print('external_interpreter is %r' % external_interpreter)
+    for JSEngine in (ChakraJSEngine, QuickJSEngine, ExternalJSEngine):
         try:
-            print('start test %s:' % JSEngine.__name__)
+            print('\nStart test %s:' % JSEngine.__name__)
             ctx = JSEngine()
             assert ctx._eval('') is None, 'eval empty fail!'
             assert ctx.eval('1 + 1') == 2, 'eval fail!'
@@ -389,7 +483,7 @@ if __name__ == '__main__':
             import traceback
             traceback.print_exception(*sys.exc_info())
         finally:
-            print('end test %s' % JSEngine.__name__)
+            print('End test %s\n' % JSEngine.__name__)
     if platform.system() == 'Windows':
         import msvcrt
         msvcrt.getch()

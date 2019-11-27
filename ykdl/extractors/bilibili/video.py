@@ -3,10 +3,12 @@
 
 from ykdl.util.html import get_content
 from ykdl.util.match import match1, matchall
+from ykdl.compact import urlencode
 
 from .bilibase import BiliBase, sign_api_url
 
 import json
+
 
 APPKEY = 'iVGUTjsxvpLeuDCf'
 SECRETKEY = 'aHRmhWMLkdeMuILqORnYZocwMBpMEOdt'
@@ -36,7 +38,13 @@ class BiliVideo(BiliBase):
         return vid, title, artist
 
     def get_api_url(self, qn):
-        params_str = 'appkey={}&cid={}&player=0&qn={}'.format(APPKEY, self.vid, qn)
+        params_str = urlencode({
+            'appkey': APPKEY,
+            'cid': self.vid,
+            'platform': 'html5',
+            'player': 0,
+            'qn': qn
+        })
         return sign_api_url(api_url, params_str, SECRETKEY)
 
     def prepare_list(self):

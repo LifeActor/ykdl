@@ -3,7 +3,7 @@
 
 from ykdl.util.html import get_location, get_content
 from ykdl.util.match import match1, matchall
-from ykdl.compact import compact_bytes, urlencode
+from ykdl.compact import urlencode
 
 import json
 
@@ -28,12 +28,20 @@ class BiliBan(BiliBase):
         mediaInfo = date['mediaInfo']
         self.seasonType = mediaInfo.get('season_type') or mediaInfo.get('ssType')
         upInfo = mediaInfo.get('upInfo')
-        artist = upInfo and upInfo.get('name') or None
+        artist = upInfo and upInfo.get('name')
 
         return vid, title, artist
 
     def get_api_url(self, qn):
-        params_str = 'appkey={}&cid={}&module=bangumi&player=1&qn={}&season_type={}'.format(APPKEY, self.vid, qn, self.seasonType)
+        params_str = urlencode({
+            'appkey': APPKEY,
+            'cid': self.vid,
+            'module': 'bangumi',
+            'platform': 'html5',
+            'player': 1,
+            'qn': qn,
+            'season_type': self.seasonType
+        })
         return sign_api_url(api_url, params_str, SECRETKEY)
 
     def prepare_list(self):

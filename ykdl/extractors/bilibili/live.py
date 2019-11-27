@@ -53,6 +53,7 @@ class BiliLive(VideoExtractor):
             params = {
                 'player': 1,
                 'cid': self.vid,
+                'platform': 'html5',
                 'quality': q,
                 'otype': 'json'
             }

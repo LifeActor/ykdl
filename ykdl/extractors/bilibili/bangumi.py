@@ -23,11 +23,12 @@ class BiliBan(BiliBase):
     def get_page_info(self):
         html = get_content(self.url)
         date = json.loads(match1(html, '__INITIAL_STATE__=({.+?});'))
-        title = match1(html, '<title>(.+?)_番剧_bilibili_哔哩哔哩<')
+        title = date.get('h1Title') or match1(html, '<title>(.+?)_番剧_bilibili_哔哩哔哩<')
         vid = date['epInfo']['cid']
         mediaInfo = date['mediaInfo']
-        self.seasonType = mediaInfo['season_type']
-        artist = None
+        self.seasonType = mediaInfo.get('season_type') or mediaInfo.get('ssType')
+        upInfo = mediaInfo.get('upInfo')
+        artist = upInfo and upInfo.get('name') or None
 
         return vid, title, artist
 
@@ -39,7 +40,7 @@ class BiliBan(BiliBase):
         html = get_content(self.url)
         eplist = matchall(html, ['"epList":(\[.*?\])'])
         if eplist:
-            eplist = sum(map(matchall, eplist, [['"ep_id":(\d+),']] * len(eplist)), [])
+            eplist = sum(map(matchall, eplist, [['"(?:ep_)?id":(\d+),']] * len(eplist)), [])
             return ['https://www.bilibili.com/bangumi/play/ep{}'.format(eid) for eid in eplist]
 
 site = BiliBan()

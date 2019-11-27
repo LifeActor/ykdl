@@ -160,7 +160,7 @@ if (typeof print === 'undefined' && typeof console === 'object') {
 '''
 init_global_script = u'''\
 if (typeof global === 'undefined') {
-    if (typeof Proxy === 'object') {
+    if (typeof Proxy === 'function') {
         global = new Proxy(this, {});
     } else {
         global = this;
@@ -267,7 +267,7 @@ class InternalJSEngine(AbstractJSEngine):
         return u'\n'.join(self._source)
 
     def _append(self, code):
-        self._context.eval(code, eval=False)
+        self._context.eval(code, eval=False, raw=True)
 
     def _eval(self, code):
         return self._context.eval(code)

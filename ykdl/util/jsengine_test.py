@@ -18,6 +18,8 @@ def skip(func):
             except:
                 ctx = JSEngine()
                 raise
+        else:
+            raise unittest.SkipTest('init failed')
     return newfunc
 
 class JSEngineES6Tests(unittest.TestCase):
@@ -90,8 +92,7 @@ class JSEngineES6Tests(unittest.TestCase):
 
     @skip
     def test_06_function_arrow(self):
-        ctx.eval('(()=>{})()')
-        ctx.eval('(arg => arg)(1)')
+        self.assertEqual(ctx.eval('(arg => arg)(1)'), 1)
         _ctx = JSEngine()
         with self.assertRaises(self.expected_exceptions):
             _ctx.eval('''
@@ -106,15 +107,23 @@ class JSEngineES6Tests(unittest.TestCase):
     def test_08_class_super(self):
         ctx.eval('''
         class C1 {
-            method() {return 1;}
+            constructor() {this.id = 1;}
+            method() {return 2;}
         }
         var c1 = new C1()''')
         ctx.append('''
         class C2 extends C1 {
-            method() {return super.method();}
+            constructor() {
+                super()
+                this.id += super.method();}
         }
         ''')
-        self.assertEqual(ctx.eval('new C2().method()'), 1)
+        self.assertEqual(ctx.eval('new C2().id'), 3)
+        _ctx = JSEngine()
+        with self.assertRaises(self.expected_exceptions):
+            _ctx.eval('''
+            var c3 = new C3();
+            class C3 {}''')
 
     @skip
     def test_09_type_symbol(self):
@@ -124,7 +133,7 @@ class JSEngineES6Tests(unittest.TestCase):
         self.assertFalse(ctx.eval('sym1 === sym2'))
         _ctx = JSEngine()
         with self.assertRaises(self.expected_exceptions):
-            _ctx.eval('var sym3 = new Symbol()')
+            _ctx.eval('new Symbol()')
 
     @skip
     def test_10_type_set_map(self):
@@ -207,7 +216,7 @@ class JSEngineES6Tests(unittest.TestCase):
 def test_engine(engine):
     global JSEngine, ctx
     engine_name = engine.__name__
-    print('\nStart test %s:' % engine_name)
+    print('\nStart test %s' % engine_name)
     if engine_name == 'ExternalJSEngine':
         print('Used external_interpreter: %r' % jsengine.external_interpreter)
     JSEngine = engine
@@ -229,7 +238,7 @@ def test_main(external_interpreters):
 
     if platform.system() == 'Windows':
         import msvcrt
-        print('Press any key for continue ...')
+        print('Press any key to continue ...')
         msvcrt.getch()
 
 default_external_interpreters = [

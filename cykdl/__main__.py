@@ -14,6 +14,7 @@ except(ImportError):
 
 from argparse import ArgumentParser
 import socket
+import ssl
 import json
 import types
 from multiprocessing import cpu_count
@@ -42,6 +43,7 @@ def arg_parser():
     parser.add_argument('-o', '--output-dir', default='.', help="Set the output directory for downloaded videos.")
     parser.add_argument('-O', '--output-name', default='', help="downloaded videos with the NAME you want")
     parser.add_argument('-p', '--player', help="Directly play the video with PLAYER like mpv")
+    parser.add_argument('-k', '--insecure', action='store_true', default=False,  help="Allow insecure server connections when using SSL.")
     parser.add_argument('--proxy', type=str, default='system', help="set proxy HOST:PORT for http(s) transfer. default: use system proxy settings")
     parser.add_argument('-t', '--timeout', type=int, default=60, help="set socket timeout seconds, default 60s")
     parser.add_argument('--no-merge', action='store_true', default=False, help="do not merge video slides")
@@ -140,6 +142,9 @@ def main():
 
     if args.timeout:
         socket.setdefaulttimeout(args.timeout)
+
+    if args.insecure:
+        ssl._create_default_https_context = ssl._create_unverified_context
 
     if args.proxy == 'system':
         proxy_handler = ProxyHandler()

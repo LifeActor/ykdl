@@ -29,6 +29,7 @@ class ChakraHandle():
 
         context = _ctypes.c_void_p()
         chakra.JsCreateContext(runtime, point(context))
+        chakra.JsSetCurrentContext(context)
 
         self.__runtime = runtime
         self.__context = context

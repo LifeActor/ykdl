@@ -77,12 +77,12 @@ class JSEngineES6Tests(unittest.TestCase):
         fconst(), vconst'''), 1)
 
     @skip
-    def test_03_operator_power(self):
-        self.assertEqual(ctx.eval('3 ** 3'), 27)
+    def test_03_keyword_for_of(self):
+        ctx.eval('for (n of []) {}')
 
     @skip
-    def test_04_keyword_for_of(self):
-        ctx.eval('for (n of []) {}')
+    def test_04_operator_power(self):
+        self.assertEqual(ctx.eval('3 ** 3'), 27)
 
     @skip
     def test_05_operator_spread_rest(self):
@@ -191,17 +191,19 @@ class JSEngineES6Tests(unittest.TestCase):
 
     @skip
     def test_98_engine_in_out_string(self):
-        self.assertEqual(ctx.eval('"es:αβγ"'), u'es:αβγ')
-        self.assertEqual(ctx.eval(u'"eu:αβγ"'), u'eu:αβγ')
-        self.assertEqual(ctx.eval(jsengine.to_bytes('"eb:αβγ"')), u'eb:αβγ')
+        ss = 'αβγ'        
+        rs = '"αβγ"'
+        us = jsengine.to_unicode(ss)
+        self.assertEqual(ctx.eval(rs), us)
+        self.assertEqual(ctx.eval(jsengine.to_unicode(rs)), us)
+        self.assertEqual(ctx.eval(jsengine.to_bytes(rs)), us)
         ctx.append('''
         function ping(s1, s2, s3) {
             return [s1, s2, s3]
         }''')
         # Mixed string types input
         self.assertEqual(ctx.call('ping',
-                'cs:αβγ', u'cu:αβγ', jsengine.to_bytes('cb:αβγ')),
-                [u'cs:αβγ', u'cu:αβγ', u'cb:αβγ'])
+                ss, jsengine.to_unicode(ss), jsengine.to_bytes(ss)), [us] * 3)
 
     @skip
     def test_99_engine_get_source(self):
@@ -215,14 +217,13 @@ class JSEngineES6Tests(unittest.TestCase):
 
 def test_engine(engine):
     global JSEngine, ctx
-    engine_name = engine.__name__
-    print('\nStart test %s' % engine_name)
-    if engine_name == 'ExternalJSEngine':
-        print('Used external_interpreter: %r' % jsengine.external_interpreter)
+    print('\nStart test %s' % engine.__name__)
+    if engine is ExternalJSEngine:
+        print('Used external interpreter: %r' % jsengine.external_interpreter)
     JSEngine = engine
     ctx = None
     unittest.TestProgram(exit=False)
-    print('End test %s\n' % engine_name)
+    print('End test %s\n' % engine.__name__)
     
 def test_main(external_interpreters):
     print('Default JSEngine is %r' % jsengine.JSEngine)
@@ -232,8 +233,7 @@ def test_main(external_interpreters):
         test_engine(JSEngine)
 
     for external_interpreter in external_interpreters:
-        set_external_interpreter(external_interpreter)
-        if jsengine.external_interpreter:
+        if set_external_interpreter(external_interpreter):
             test_engine(ExternalJSEngine)
 
     if platform.system() == 'Windows':

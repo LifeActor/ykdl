@@ -8,13 +8,13 @@
     This library wraps the system's built-in Javascript interpreter to python.
     It also support PyChakra, QuickJS, Node.js, etc.
 
-    If your want use other Javascript interpreters , please call
-    'set_external_interpreter' with binary's path after imported this module:
+    If your want use a special external Javascript interpreter, please call
+    `set_external_interpreter` with binary's path after imported this module:
       
       from jsengine import *
 
-      set_external_interpreter(binary_path)
-      ctx = ExternalJSEngine()
+      if set_external_interpreter(binary_path):  # setting OK
+          ctx = ExternalJSEngine()
 
   Platform:
     macOS:   Use JavascriptCore
@@ -377,10 +377,7 @@ class ExternalJSEngine(AbstractJSEngine):
                 self._tempfile = True
         if self._tempfile:
             output = self._run_interpreter_with_tempfile(code)
-        #else:
-        #    output = self._run_interpreter_with_pipe(code)
 
-        #print(output)
         output = output.replace(u'\r\n', u'\n').replace(u'\r', u'\n')
         # Search result in the last 5 lines of output
         for result_line in output.split(u'\n')[-5:]:
@@ -436,20 +433,22 @@ class ExternalJSEngine(AbstractJSEngine):
 def set_external_interpreter(interpreter):
     global external_interpreter
     external_interpreter = which(interpreter)
-    if external_interpreter is None:
-        print("Can not find the given interpreter's path: %r" % interpreter, file=sys.stderr)
+    res = external_interpreter is not None
+    if res:
+        _set_external_interpreter_tempfile()
     else:
-        set_external_interpreter_tempfile()
+        print("Can not find the given interpreter's path: %r" % interpreter, file=sys.stderr)
+    return res
 
 
-def set_external_interpreter_tempfile():
+def _set_external_interpreter_tempfile():
     global external_interpreter_tempfile
     interpreter_name = os.path.basename(external_interpreter).split('.')[0]
     external_interpreter_tempfile = interpreter_name in ('qjs', 'qjsbn', 'd8')
 
 
 if external_interpreter:
-    set_external_interpreter_tempfile()
+    _set_external_interpreter_tempfile()
 
 
 # Prefer InternalJSEngine (via dynamic library loading)

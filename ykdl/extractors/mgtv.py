@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import default_proxy_handler, get_content, add_header
+from ykdl.util.html import add_default_handler, install_default_handlers, get_content, add_header
 from ykdl.util.match import match1, matchall
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
-from ykdl.compact import install_opener, build_opener, HTTPCookieProcessor
+from ykdl.compact import HTTPCookieProcessor
 
 import json
 import sys
@@ -55,10 +55,8 @@ class Hunantv(VideoExtractor):
     profile_2_types = { u'蓝光': 'BD', u'超清': 'TD', u'高清': 'HD', u'标清': 'SD' }
     
     def prepare(self):
-        handlers = [HTTPCookieProcessor()]
-        if default_proxy_handler:
-            handlers += default_proxy_handler
-        install_opener(build_opener(*handlers))
+        add_default_handler(HTTPCookieProcessor)
+        install_default_handlers()
         add_header('Referer', self.url)
         add_header('User-Agent', ua)
 

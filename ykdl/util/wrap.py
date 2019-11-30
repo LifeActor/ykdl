@@ -57,7 +57,7 @@ def launch_player(player, urls, ext, **args):
     else:
         urls = list(urls)
         cmds = split_cmd_urls(cmd, urls)
-        if args['proxy']:
+        if args['proxy'].lower().startswith('http'):
             env = os.environ.copy()
             env['HTTP_PROXY'] = args['proxy']
             env['HTTPS_PROXY'] = args['proxy']
@@ -102,7 +102,7 @@ def launch_ffmpeg(basename, ext, lenth):
             ext = 'mp4'
         outputfile = basename + '.' + ext
 
-        cmd = ['ffmpeg', '-y', '-i', inputfile, '-c', 'copy', '-hide_banner']
+        cmd = ['J:\\Video\\Animation\\Temp\\ffmpeg.exe', '-y', '-i', inputfile, '-c', 'copy', '-hide_banner']
     else:
         #build input
         inputfile = compact_tempfile(mode='w+t', suffix='.txt', dir='.', encoding='utf-8')
@@ -112,14 +112,13 @@ def launch_ffmpeg(basename, ext, lenth):
 
         outputfile = basename + '.' + ext
 
-        cmd = ['ffmpeg', '-safe', '-1', '-y', '-f', 'concat', '-i', inputfile.name, '-c', 'copy', '-hide_banner']
+        cmd = ['J:\\Video\\Animation\\Temp\\ffmpeg.exe', '-safe', '-1', '-y', '-f', 'concat', '-i', inputfile.name, '-c', 'copy', '-hide_banner']
         if ext == 'mp4':
             cmd += ['-bsf:a', 'aac_adtstoasc']
 
     cmd.append(outputfile)
     print('Merging video %s using ffmpeg:' % basename)
     subprocess.call(cmd)
-
     if os.name == 'nt':
         try:
             inputfile.close()
@@ -132,7 +131,7 @@ def launch_ffmpeg_download(url, name, live):
     if live:
         print('stop downloading by press \'q\'')
 
-    cmd = ['ffmpeg', '-y']
+    cmd = ['J:\\Video\\Animation\\Temp\\ffmpeg.exe', '-y']
 
     url = encode_for_wrap(url)
     if os.path.isfile(url):

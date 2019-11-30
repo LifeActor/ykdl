@@ -20,6 +20,7 @@ class AcBan(AcBase):
         bgmInfo = json.loads(match1(html, u'(?:pageInfo|bangumiData) = ({.+?});'))
         videoInfo = bgmInfo.get('currentVideoInfo')
         assert videoInfo, bgmInfo.get('playErrorMessage') or "can't play this video!!"
+
         title = u'{} - {}'.format(
                 bgmInfo['bangumiTitle'],
                 bgmInfo['episodeName'],
@@ -28,6 +29,8 @@ class AcBan(AcBase):
         m3u8Info = videoInfo.get('playInfos')
         if m3u8Info:
             m3u8Info = m3u8Info[0]
+        else:
+            m3u8Info = videoInfo.get('ksPlayJson')
 
         return title, artist, sourceVid, m3u8Info
 

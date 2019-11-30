@@ -17,7 +17,7 @@ def add_default_handler(handler):
         handler = handler()
     remove = []
     for default_handler in default_handlers:
-        if isinstance(handler, type(default_handler)):
+        if isinstance(handler, type(default_handler)) or isinstance(default_handler, type(handler)):
             remove.append(default_handler)
     for _handler in remove:
         default_handlers.remove(_handler)

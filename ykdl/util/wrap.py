@@ -57,7 +57,7 @@ def launch_player(player, urls, ext, **args):
     else:
         urls = list(urls)
         cmds = split_cmd_urls(cmd, urls)
-        if args['proxy']:
+        if args['proxy'].lower().startswith('http'):
             env = os.environ.copy()
             env['HTTP_PROXY'] = args['proxy']
             env['HTTPS_PROXY'] = args['proxy']

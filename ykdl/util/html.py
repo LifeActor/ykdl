@@ -3,11 +3,30 @@
 
 import re
 from logging import getLogger
-from ykdl.compact import Request, urlopen
+from ykdl.compact import Request, urlopen, install_opener, build_opener
 
 from .match import match1
 
-default_proxy_handler = []
+
+logger = getLogger("html")
+
+default_handlers = []
+
+def add_default_handler(handler):
+    if isinstance(handler, type):
+        handler = handler()
+    remove = []
+    for default_handler in default_handlers:
+        if isinstance(handler, type(default_handler)) or isinstance(default_handler, type(handler)):
+            remove.append(default_handler)
+    for _handler in remove:
+        default_handlers.remove(_handler)
+        logger.debug('Remove %s from default handlers' % _handler)
+    default_handlers.append(handler)
+    logger.debug('Add %s to default handlers' % handler)
+
+def install_default_handlers():
+    install_opener(build_opener(*default_handlers))
 
 fake_headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -15,8 +34,6 @@ fake_headers = {
     'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0 Iceweasel/38.2.1'
 }
-
-logger = getLogger("html")
 
 def add_header(key, value):
     global fake_headers

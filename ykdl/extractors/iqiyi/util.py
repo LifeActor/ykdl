@@ -57,9 +57,9 @@ def cmd5x(s):
     # out of date
 
     global js_ctx
-    if js_ctx is None:        
-        from ykdl.util.jsengine import JSEngine, javascript_is_supported
-        assert javascript_is_supported, "No JS Interpreter found, can't use cmd5x!"
+    if js_ctx is None:
+        from ykdl.util.jsengine import JSEngine
+        assert JSEngine, "No JS Interpreter found, can't use cmd5x!"
 
         # code from https://zsaim.github.io/2019/08/23/Iqiyi-cmd5x-Analysis/
         try:

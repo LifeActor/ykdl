@@ -12,6 +12,16 @@ import json
 import uuid
 import time
 import string
+import pkgutil
+
+try:
+    # try load local .js file first
+    # from https://cdnjs.com/libraries/crypto-js
+    js_md5 = pkgutil.get_data(__name__, 'crypto-js-md5.min.js')
+    if not isinstance(js_md5, str):
+        js_md5 = js_md5.decode()
+except IOError:
+    js_md5 = get_content('https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js')
 
 def get_random_name(l):
     return random.choice(string.ascii_lowercase) + \
@@ -27,16 +37,6 @@ def get_h5enc(html, vid):
     return js_enc
 
 def ub98484234(js_enc, extractor, params):
-    try:
-        # try load local .js file first
-        # from https://cdnjs.com/libraries/crypto-js
-        from pkgutil import get_data
-        js_md5 = get_data(__name__, 'crypto-js-md5.min.js')
-        if not isinstance(js_md5, str):
-            js_md5 = js_md5.decode()
-    except IOError:
-        js_md5 = get_content('https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js')
-
     names_dict = {
         'debugMessages': get_random_name(8),
         'decryptedCodes': get_random_name(8),
@@ -61,8 +61,8 @@ def ub98484234(js_enc, extractor, params):
     var subWorkflow = /(?:\w+=)?eval\((\w+)\)/.exec({workflow});
     if (subWorkflow) {{
         var subPatch = (
-            "{debugMessages}.{decryptedCodes}.push('sub workflow: ' + subWorkflow);" +
-            "patchCode(subWorkflow);"
+            `{debugMessages}.{decryptedCodes}.push('sub workflow: ' + subWorkflow);
+            patchCode(subWorkflow);`
         ).replace(/subWorkflow/g, subWorkflow[1]) + subWorkflow[0];
         {workflow} = {workflow}.replace(subWorkflow[0], subPatch);
     }}
@@ -87,6 +87,7 @@ def ub98484234(js_enc, extractor, params):
     js_ctx.append(js_dom)
     js_ctx.append(js_enc)
     js_ctx.append(js_debug)
+
     did = uuid.uuid4().hex
     tt = str(int(time.time()))
     ub98484234 = js_ctx.call('ub98484234', extractor.vid, did, tt)

@@ -18,15 +18,19 @@ class AcVideo(AcBase):
         videoList = pageInfo['videoList']
         videoInfo = pageInfo.get('currentVideoInfo')
         assert videoInfo, bgmInfo.get('playErrorMessage') or "can't play this video!!"
+
         title = pageInfo['title']
         sub_title = videoInfo['title']
         artist = pageInfo['user']['name']
         if sub_title not in ('noTitle', 'Part1', title) or len(videoList) > 1:
             title = u'{} - {}'.format(title, sub_title)
         sourceVid = videoInfo['id']
+
         m3u8Info = videoInfo.get('playInfos')
         if m3u8Info:
             m3u8Info = m3u8Info[0]
+        else:
+            m3u8Info = videoInfo.get('ksPlayJson')
 
         return title, artist, sourceVid, m3u8Info
 

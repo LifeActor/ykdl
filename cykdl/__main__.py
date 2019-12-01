@@ -23,7 +23,7 @@ import logging
 logger = logging.getLogger("YKDL")
 
 from ykdl.common import url_to_module
-from ykdl.compact import ProxyHandler, compact_str, urlparse, parse_proxy, splitport, getproxies
+from ykdl.compact import ProxyHandler, compact_str, urlparse, getproxies
 from ykdl.util.html import add_default_handler, install_default_handlers
 from ykdl.util.wrap import launch_player, launch_ffmpeg, launch_ffmpeg_download
 from ykdl.util.m3u8_wrap import load_m3u8
@@ -154,12 +154,15 @@ def main():
         except ImportError:
             logger.error('To use SOCKS proxy, please install PySocks first!')
             raise
-        socks_type, socks_user, socks_password, socks_address = parse_proxy(args.proxy)
-        socks_type = socks.PROXY_TYPES[socks_type.upper()]
-        socks_host, socks_port = splitport(socks_address)
+        parsed_socks_proxy = urlparse(args.proxy)
+        sockstype = socks.PROXY_TYPES[parsed_socks_proxy.scheme.upper()]
         rdns = None
-        proxy_handler = SocksiPyHandler(socks_type, socks_host, socks_port,
-                                        rdns, socks_user, socks_password)
+        proxy_handler = SocksiPyHandler(sockstype,
+                                        parsed_socks_proxy.hostname,
+                                        parsed_socks_proxy.port,
+                                        rdns,
+                                        parsed_socks_proxy.username,
+                                        parsed_socks_proxy.password)
     elif args.proxy == 'none':
         proxy_handler = ProxyHandler({})
     else:

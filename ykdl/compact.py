@@ -6,8 +6,8 @@ import platform
 import struct
 
 if sys.version_info[0] == 3:
-    from urllib.request import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler, _parse_proxy as parse_proxy, getproxies
-    from urllib.parse import urlencode, urlparse, urlsplit, urljoin, parse_qs, splitport
+    from urllib.request import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler, getproxies
+    from urllib.parse import urlencode, urlparse, urlsplit, urljoin, parse_qs
     from http.client import HTTPConnection
     from http.server import BaseHTTPRequestHandler
     import socketserver as SocketServer
@@ -28,8 +28,8 @@ if sys.version_info[0] == 3:
     def compact_isstr(s):
         return isinstance(s, str)
 else:
-    from urllib2 import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler, _parse_proxy as parse_proxy
-    from urllib import urlencode, splitport, getproxies
+    from urllib2 import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler
+    from urllib import urlencode, getproxies
     from urlparse import urlparse, urlsplit, urljoin, parse_qs
     from httplib import HTTPConnection
     from BaseHTTPServer import BaseHTTPRequestHandler

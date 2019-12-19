@@ -17,6 +17,13 @@ this project is a fork of `you-get <https://github.com/soimort/you-get>`_ with b
 2. focus on China mainland video sites
 3. support Python2
 
+Consider install from source by:
+```
+sudo apt-get install ffmpeg mpv python3-pip
+pip3 install git+git://github.com/zhangn1985/ykdl.git --upgrade --user
+```
+add `~/.local/bin` to your PATH
+
 Simple installation guide:
 
 Linux/debian:

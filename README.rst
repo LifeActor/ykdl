@@ -18,11 +18,10 @@ this project is a fork of `you-get <https://github.com/soimort/you-get>`_ with b
 3. support Python2
 
 Consider install from source by:
-```
-sudo apt-get install ffmpeg mpv python3-pip
-pip3 install git+git://github.com/zhangn1985/ykdl.git --upgrade --user
-```
-add `~/.local/bin` to your PATH
+
+0. sudo apt-get install ffmpeg mpv python3-pip
+1. pip3 install git+git://github.com/zhangn1985/ykdl.git --upgrade --user
+2. add `~/.local/bin` to your PATH
 
 Simple installation guide:
 

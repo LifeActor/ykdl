@@ -38,13 +38,13 @@ class BiliVideo(BiliBase):
         return vid, title, artist
 
     def get_api_url(self, qn):
-        params_str = urlencode({
-            'appkey': APPKEY,
-            'cid': self.vid,
-            'platform': 'html5',
-            'player': 0,
-            'qn': qn
-        })
+        params_str = urlencode([
+            ('appkey', APPKEY),
+            ('cid', self.vid),
+            ('platform', 'html5'),
+            ('player', 0),
+            ('qn', qn)
+        ])
         return sign_api_url(api_url, params_str, SECRETKEY)
 
     def prepare_list(self):

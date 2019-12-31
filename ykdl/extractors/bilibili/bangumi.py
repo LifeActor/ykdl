@@ -33,15 +33,15 @@ class BiliBan(BiliBase):
         return vid, title, artist
 
     def get_api_url(self, qn):
-        params_str = urlencode({
-            'appkey': APPKEY,
-            'cid': self.vid,
-            'module': 'bangumi',
-            'platform': 'html5',
-            'player': 1,
-            'qn': qn,
-            'season_type': self.seasonType
-        })
+        params_str = urlencode([
+            ('appkey', APPKEY),
+            ('cid', self.vid),
+            ('module', 'bangumi'),
+            ('platform', 'html5'),
+            ('player', 1),
+            ('qn', qn),
+            ('season_type', self.seasonType)
+        ])
         return sign_api_url(api_url, params_str, SECRETKEY)
 
     def prepare_list(self):

@@ -27,6 +27,8 @@ class BiliLive(VideoExtractor):
     supported_stream_profile = [prf for prf, _ in profile_type]
     profile_2_type = dict(profile_type)
 
+    sorted_format = [fmt for _, fmt in profile_type]
+
     def prepare(self):
         info = VideoInfo(self.name, True)
 
@@ -84,6 +86,7 @@ class BiliLive(VideoExtractor):
                     get_live_info(aqlt)
 
         get_live_info()
+        info.stream_types = sorted(info.stream_types, key=self.sorted_format.index)
         return info
 
 site = BiliLive()

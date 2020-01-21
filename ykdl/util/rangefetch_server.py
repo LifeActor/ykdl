@@ -104,12 +104,12 @@ class RangeFetch():
         self.max_threads = min(self.threads * 2, self.pool_size)
 
         if self.http is None:
+            connection_pool_kw = {
+                'block': True,
+                'timeout': self.timeout,
+                'maxsize': self.pool_size
+            }
             if self.proxy:
-                connection_pool_kw = {
-                    'block': True,
-                    'timeout': self.timeout,
-                    'maxsize': self.pool_size
-                }
                 if self.proxy.lower().startswith('socks'):
                     from urllib3.contrib.socks import SOCKSProxyManager as ProxyManager
                 else:

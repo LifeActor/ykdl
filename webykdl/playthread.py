@@ -17,7 +17,7 @@ def launch_player(urls, **args):
     if args['referer']:
         cmd += ['--referrer', args['referer']]
     if args['title']:
-        cmd += ['--force-media-title', args['title']]
+        cmd += ['--force-media-title=' + args['title']]
     if args['header']:
         cmd += ['--http-header-fields', args['header']]
     cmd += list(urls)

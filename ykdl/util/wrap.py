@@ -38,7 +38,7 @@ def launch_player(player, urls, ext, **args):
         if args['referer']:
             cmd += ['--referrer', args['referer']]
         if args['title']:
-            cmd += ['--force-media-title', encode_for_wrap(args['title'], 'ignore')]
+            cmd += ['--force-media-title=' + encode_for_wrap(args['title'], 'ignore')]
         if args['header']:
             cmd += ['--http-header-fields', args['header']]
 

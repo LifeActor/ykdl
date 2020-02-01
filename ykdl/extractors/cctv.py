@@ -11,8 +11,8 @@ import json
 class CNTV(VideoExtractor):
     name = u'央视网 (cctv)'
 
-    supported_stream_types = ['TD', 'HD', 'SD', 'LD']
-    type_2_cpt = {'TD': 'chapters4', 'HD': 'chapters3', 'SD':'chapters2', 'LD':'lowChapters' }
+    supported_stream_types = ['NONAME', 'TD', 'HD', 'SD', 'LD']
+    type_2_cpt = {'NONAME': 'chapters5', 'TD': 'chapters4', 'HD': 'chapters3', 'SD':'chapters2', 'LD':'lowChapters' }
 
     def prepare(self):
         info = VideoInfo(self.name)

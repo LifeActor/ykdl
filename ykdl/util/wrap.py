@@ -34,13 +34,13 @@ def launch_player(player, urls, ext, **args):
         if ext == 'm3u8' and any(os.path.isfile(url) for url in urls):
             cmd += ['--demuxer-lavf-o', 'protocol_whitelist=[file,http,https,tls,rtp,tcp,udp,crypto,httpproxy]']
         if args['ua']:
-            cmd += ['--user-agent', args['ua']]
+            cmd += ['--user-agent=' + args['ua']]
         if args['referer']:
-            cmd += ['--referrer', args['referer']]
+            cmd += ['--referrer=' + args['referer']]
         if args['title']:
             cmd += ['--force-media-title=' + encode_for_wrap(args['title'], 'ignore')]
         if args['header']:
-            cmd += ['--http-header-fields', args['header']]
+            cmd += ['--http-header-fields=' + args['header']]
 
     urls = [encode_for_wrap(url) for url in urls]
     if args['rangefetch']:

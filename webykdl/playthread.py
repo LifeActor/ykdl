@@ -13,13 +13,13 @@ def launch_player(urls, **args):
     if len(urls) > 1:
         cmd += ['--merge-files']
     if args['ua']:
-        cmd += ['--user-agent', args['ua']]
+        cmd += ['--user-agent=' + args['ua']]
     if args['referer']:
-        cmd += ['--referrer', args['referer']]
+        cmd += ['--referrer=' + args['referer']]
     if args['title']:
         cmd += ['--force-media-title=' + args['title']]
     if args['header']:
-        cmd += ['--http-header-fields', args['header']]
+        cmd += ['--http-header-fields=' + args['header']]
     cmd += list(urls)
     return subprocess.Popen(cmd)
 

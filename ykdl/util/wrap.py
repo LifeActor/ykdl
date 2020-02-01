@@ -32,7 +32,7 @@ def launch_player(player, urls, ext, **args):
 
     if 'mpv' in cmd[0]:
         if ext == 'm3u8' and any(os.path.isfile(url) for url in urls):
-            cmd += ['--demuxer-lavf-o', 'protocol_whitelist=[file,http,https,tls,rtp,tcp,udp,crypto,httpproxy]']
+            cmd += ['--demuxer-lavf-o=' + 'protocol_whitelist=[file,http,https,tls,rtp,tcp,udp,crypto,httpproxy]']
         if args['ua']:
             cmd += ['--user-agent=' + args['ua']]
         if args['referer']:

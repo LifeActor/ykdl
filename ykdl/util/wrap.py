@@ -11,6 +11,7 @@ from logging import getLogger
 logger = getLogger("wrap")
 
 from ykdl.compact import compact_tempfile
+from .html import fake_headers
 
 posix = os.name == 'posix'
 
@@ -170,7 +171,7 @@ def launch_ffmpeg_download(url, name, live):
     if live:
         print('stop downloading by press \'q\'')
 
-    cmd = ['ffmpeg', '-y']
+    cmd = ['ffmpeg', '-headers', ''.join('%s: %s\r\n' % x for x in fake_headers.items()), '-y']
 
     url = encode_for_wrap(url)
     if os.path.isfile(url):

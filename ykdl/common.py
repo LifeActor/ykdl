@@ -16,7 +16,8 @@ alias = {
         'cntv' : 'cctv',
         'letv' : 'le',
         'douyutv' : 'douyu',
-        'aixifan' : 'acfun'
+        'aixifan' : 'acfun',
+        'wetv': 'qq'
 }
 exclude_list = ['com', 'net', 'org']
 def url_to_module(url):

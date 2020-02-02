@@ -8,7 +8,7 @@ app = Flask(__name__)
 from pydbus import SessionBus
 bus = SessionBus()
 try:
-    player = bus.get("github.zhangn1985.dbplay")
+    player = bus.get('github.zhangn1985.dbplay')
 except:
     from playthread import Mpvplayer
     player = Mpvplayer()
@@ -19,13 +19,24 @@ import types
 
 from ykdl.common import url_to_module
 
+
+def handle_videoinfo(info):
+    player_args = info.extra
+    player_args['title'] = info.title
+    stream = info.streams[info.stream_types[0]]
+    video = json.dumps({
+        'urls': stream['src'],
+        'ext': stream['container'],
+        'args': player_args})
+    player.play(video)
+
 @app.route('/play', methods=['POST', 'GET'])
 def play():
     if request.method == 'POST':
         url = request.form['url']
         try:
             islist = request.form['list']
-            islist = islist == "True"
+            islist = islist == 'True'
         except:
             islist = False
         m,u = url_to_module(url)
@@ -39,29 +50,21 @@ def play():
            return str(e)
         if type(info) is types.GeneratorType or type(info) is list:
             for i in info:
-                player_args = i.extra
-                player_args['title'] = i.title
-                urls = i.streams[i.stream_types[0]]['src']
-                video = json.dumps({"urls": urls, "args": player_args})
-                player.play(video)
+                handle_videoinfo(i)
         else:
-            player_args = info.extra
-            player_args['title'] = info.title
-            urls = info.streams[info.stream_types[0]]['src']
-            video = json.dumps({"urls": urls, "args": player_args})
-            player.play(video)
-        return "OK"
+            handle_videoinfo(info)
+        return 'OK'
     else:
-        return "curl --data-urlencode \"url=<URL>\" http://IP:5000/play"
+        return 'curl --data-urlencode "url=<URL>" http://IP:5000/play'
 
 @app.route('/stop')
 def stop():
     player.stop()
-    return "OK"
+    return 'OK'
 
 @app.route('/')
 def index():
-    string = """
+    return '''
 <!DOCTYPE html>
 <html>
 <head>
@@ -81,7 +84,7 @@ def index():
 
 </body>
 </html>
-"""
-    return string
+'''
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0')

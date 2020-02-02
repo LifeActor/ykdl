@@ -12,17 +12,17 @@ player = Mpvplayer()
 player.start()
 
 class DBUSPlayerService(object):
-    """
+    '''
         <node>
             <interface name='github.zhangn1985.dbplay'>
                 <method name='play'>
                     <arg type='s' name='playinfo' direction='in'/>
                 </method>
-				<method name='stop'/>
-				<method name='exit'/>
+                <method name='stop'/>
+                <method name='exit'/>
             </interface>
         </node>
-    """
+    '''
 
     def play(self, playinfo):
         player.play(playinfo)
@@ -33,5 +33,5 @@ class DBUSPlayerService(object):
         loop.quit()
 
 bus = SessionBus()
-bus.publish("github.zhangn1985.dbplay", DBUSPlayerService())
+bus.publish('github.zhangn1985.dbplay', DBUSPlayerService())
 loop.run()

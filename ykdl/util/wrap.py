@@ -22,7 +22,45 @@ else:
     # Used in Windows CreateProcess is 32K
     ARG_MAX = 32 * 1024
 
-def launch_player(player, urls, ext, **args):
+class PlayerHandle(object):
+    def __init__(self, cmds, env, cleanup=[]):
+        self.handle = None
+        self.cmds = cmds
+        self.env = env
+        if cleanup:
+            if callable(cleanup):
+                cleanup = [cleanup]
+            else:
+                try:
+                    cleanup = [c for c in cleanup if callable(c)]
+                except:
+                    cleanup = []
+        self.cleanup = cleanup
+
+    def __getattr__(self, name):
+        return getattr(self.handle, name)
+
+    def wait(self, *args, **kwargs):
+        if not self.handle:
+            self.play()
+
+    def play(self):
+        try:
+            for cmd in self.cmds:
+                self.handle = handle = subprocess.Popen(cmd, env=self.env)
+                handle.wait()
+        finally:
+            self.terminate()
+
+    def terminate(self):
+        if self.handle:
+            self.handle.terminate()
+        while self.cleanup:
+            self.cleanup.pop()()
+
+    kill = terminate
+
+def launch_player(player, urls, ext, play=True, **args):
     if ' ' in player:
         cmd = shlex.split(player, posix=posix)
         if not posix:
@@ -50,10 +88,8 @@ def launch_player(player, urls, ext, **args):
         env.pop('HTTP_PROXY', None)
         env.pop('HTTPS_PROXY', None)
         from ykdl.util.rangefetch_server import start_new_server
-        new_server = start_new_server(**args['rangefetch'])
-        for cmd in cmds:
-            subprocess.call(cmd, env=env)
-        new_server.server_close()
+        cleanup = start_new_server(**args['rangefetch']).server_close
+        phandle = PlayerHandle(cmds, env, cleanup=cleanup)
     else:
         urls = list(urls)
         cmds = split_cmd_urls(cmd, urls)
@@ -63,8 +99,10 @@ def launch_player(player, urls, ext, **args):
             env['HTTPS_PROXY'] = args['proxy']
         else:
             env = None
-        for cmd in cmds:
-            subprocess.call(cmd, env=env)
+        phandle = PlayerHandle(cmds, env)
+    if play:
+        phandle.play()
+    return phandle
 
 def split_cmd_urls(cmd, urls):
     _cmd = cmd + urls

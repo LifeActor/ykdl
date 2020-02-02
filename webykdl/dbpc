@@ -8,7 +8,7 @@ bus = SessionBus()
 player = bus.get("github.zhangn1985.dbplay")
 
 if len(sys.argv) == 1:
-	print(sys.argv[0] + " URI")
+    print(sys.argv[0] + " URI")
 
 for u in sys.argv[1:]:
     i = json.dumps({"urls": [os.path.abspath(u)]})

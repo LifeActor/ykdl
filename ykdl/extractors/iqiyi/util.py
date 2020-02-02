@@ -9,6 +9,31 @@ import random
 macids = {}
 js_ctx = None
 
+def init_jsengine():
+    global js_ctx
+    if js_ctx is None:
+        from ykdl.util.jsengine import JSEngine
+        assert JSEngine, "No JS Interpreter found, can't use cmd5x!"
+        js_ctx = JSEngine()
+
+        from pkgutil import get_data
+        # code from https://zsaim.github.io/2019/08/23/Iqiyi-cmd5x-Analysis/
+        try:
+            # try load local .js file first
+            js = get_data(__name__, 'cmd5x.js')
+        except IOError:
+            # origin https://raw.githubusercontent.com/ZSAIm/ZSAIm.github.io/master/misc/2019-08-23/iqiyi_cmd5x.js
+            js = get_content('https://raw.githubusercontent.com/zhangn1985/ykdl/master/ykdl/extractors/iqiyi/cmd5x.js')
+        js_ctx.append(js)
+
+        # code from https://github.com/lldy/js
+        try:
+            # try load local .js file first
+            js = get_data(__name__, 'cmd5x_iqiyi3.js')
+        except IOError:
+            js = get_content('https://raw.githubusercontent.com/zhangn1985/ykdl/master/ykdl/extractors/iqiyi/cmd5x_iqiyi3.js')
+        js_ctx.append(js)
+
 def get_random_str(l):
     string = []
     chars = list('abcdefghijklnmopqrstuvwxyz0123456789')
@@ -56,17 +81,10 @@ def cmd5x(s):
     #return md5(s + 'h2l6suw16pbtikmotf0j79cej4n8uw13')
     # out of date
 
-    global js_ctx
-    if js_ctx is None:
-        from ykdl.util.jsengine import JSEngine
-        assert JSEngine, "No JS Interpreter found, can't use cmd5x!"
-
-        # code from https://zsaim.github.io/2019/08/23/Iqiyi-cmd5x-Analysis/
-        try:
-            # try load local .js file first
-            from pkgutil import get_data
-            js = get_data(__name__, 'cmd5x.js')
-        except IOError:
-            js = get_content('https://raw.githubusercontent.com/ZSAIm/ZSAIm.github.io/master/misc/2019-08-23/iqiyi_cmd5x.js')
-        js_ctx = JSEngine(js)
+    init_jsengine()
     return js_ctx.call('cmd5x_exports.cmd5x', s)
+
+def cmd5x_iqiyi3(s):
+    # used for live
+    init_jsengine()
+    return js_ctx.call('cmd5x', s)

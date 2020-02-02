@@ -7,7 +7,7 @@ from ykdl.util.html import get_content, add_header
 from ykdl.util.match import match1
 from ykdl.compact import urlencode
 
-from .util import get_random_str, get_macid, cmd5x
+from .util import get_random_str, get_macid, cmd5x_iqiyi3 as cmd5x
 
 import json
 import time

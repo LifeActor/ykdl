@@ -39,29 +39,32 @@ def save_url(url, name, ext, status, part = None, reporthook = simple_hook):
     else:
         print("Download: " + name + " part %d" % part)
         name = name + '_%d_.' % part + ext
-    bs = 1024*8
+    bs = 1024 * 8
     size = -1
     read = 0
     blocknum = 0
     open_mode = 'wb'
     req = Request(url, headers = fake_headers)
-    response = urlopen(req, None)
-    if "content-length" in response.headers:
-        size = int(response.headers["Content-Length"])
     if os.path.exists(name):
         filesize = os.path.getsize(name)
-        if filesize == size:
-            print('Skipped: file already downloaded')
-            if part is None:
-                status[0] = 1
-            else:
-                status[part] =1
-            return
-        elif -1 != size:
-            req.add_header('Range', 'bytes=%d-' % filesize)
-            blocknum = int(filesize / bs)
-            response = urlopen(req, None)
+        req.add_header('Range', 'bytes=%d-' % filesize)
+        response = urlopen(req, None)
+        if response.status == 206:
+            size = int(response.headers['Content-Range'].split('/')[-1])
+            if filesize == size:
+                print('Skipped: file already downloaded')
+                if part is None:
+                    status[0] = 1
+                else:
+                    status[part] =1
+                return
+            if filesize:
+                blocknum = int(filesize / bs)
             open_mode = 'ab'
+    else:
+        response = urlopen(req, None)
+    if size < 0:
+        size = int(response.headers.get('Content-Length', -1))
     reporthook(blocknum, bs, size)
     with open(name, open_mode) as tfp:
         while True:

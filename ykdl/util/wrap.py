@@ -131,40 +131,57 @@ def encode_for_wrap(string, errors='strict'):
     return string
 
 def launch_ffmpeg(basename, ext, lenth):
+    print('Merging video %s using ffmpeg:' % basename)
     if ext in ['ts', 'mpg', 'mpeg']:
-        inputfile = []
-        for i in range(lenth):
-            inputfile.append('%s_%d_.%s' % (basename, i, ext))
-        inputfile = 'concat:%s' % '|'.join(inputfile)
-
         if ext == 'ts':
-            ext = 'mp4'
-        outputfile = basename + '.' + ext
+            outputfile = basename + '.mp4'
+        else:
+            outputfile = basename + '.' + ext
 
-        cmd = ['ffmpeg', '-y', '-i', inputfile, '-c', 'copy', '-hide_banner']
+        cmd = [ 'ffmpeg',
+                '-y', 
+                '-i', '-',
+                '-c', 'copy',
+                '-hide_banner',
+                outputfile ]
+        pipe_input = subprocess.Popen(cmd, stdin=subprocess.PIPE).stdin
+
+        # use pipe need not to wait subprocess
+        bufsize = 1024 * 64
+        for i in range(lenth):
+            inputfile = '%s_%d_.%s' % (basename, i, ext)
+            with open(inputfile, 'rb') as fp:
+                data = fp.read(bufsize)
+                while data:
+                    pipe_input.write(data)
+                    data = fp.read(bufsize)
     else:
         #build input
         inputfile = compact_tempfile(mode='w+t', suffix='.txt', dir='.', encoding='utf-8')
         for i in range(lenth):
-            inputfile.write('file \'%s_%d_.%s\'\n' % (basename, i, ext))
+            inputfile.write("file '%s_%d_.%s'\n" % (basename, i, ext))
         inputfile.flush()
 
         outputfile = basename + '.' + ext
 
-        cmd = ['ffmpeg', '-safe', '-1', '-y', '-f', 'concat', '-i', inputfile.name, '-c', 'copy', '-hide_banner']
+        cmd = [ 'ffmpeg',
+                '-safe', '-1',
+                '-y',
+                '-f', 'concat',
+                '-i', inputfile.name,
+                '-c', 'copy',
+                '-hide_banner']
         if ext == 'mp4':
             cmd += ['-bsf:a', 'aac_adtstoasc']
+        cmd += [outputfile]
+        subprocess.call(cmd)
 
-    cmd.append(outputfile)
-    print('Merging video %s using ffmpeg:' % basename)
-    subprocess.call(cmd)
-
-    if os.name == 'nt':
-        try:
-            inputfile.close()
-            os.remove(inputfile.name)
-        except:
-            pass
+        if os.name == 'nt':
+            try:
+                inputfile.close()
+                os.remove(inputfile.name)
+            except:
+                pass
 
 def launch_ffmpeg_download(url, name, live):
     print('Now downloading: %s' % name)

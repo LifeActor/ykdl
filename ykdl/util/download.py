@@ -58,9 +58,10 @@ def save_url(url, name, ext, status, part = None, reporthook = simple_hook):
                 else:
                     status[part] =1
                 return
-            if filesize:
-                blocknum = int(filesize / bs)
-            open_mode = 'ab'
+            if filesize < size:
+                if filesize:
+                    blocknum = int(filesize / bs)
+                open_mode = 'ab'
     else:
         response = urlopen(req, None)
     if size < 0:

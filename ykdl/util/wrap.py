@@ -132,21 +132,20 @@ def encode_for_wrap(string, errors='strict'):
 
 def launch_ffmpeg(basename, ext, lenth):
     print('Merging video %s using ffmpeg:' % basename)
-    if ext in ['ts', 'mpg', 'mpeg']:
-        if ext == 'ts':
-            outputfile = basename + '.mp4'
-        else:
-            outputfile = basename + '.' + ext
+    if ext == 'ts':
+        outputfile = basename + '.mp4'
+    else:
+        outputfile = basename + '.' + ext
 
+    if ext in ['ts', 'mpg', 'mpeg']:
         cmd = [ 'ffmpeg',
-                '-y', 
+                '-y', '-hide_banner',
                 '-i', '-',
                 '-c', 'copy',
-                '-hide_banner',
                 outputfile ]
         pipe_input = subprocess.Popen(cmd, stdin=subprocess.PIPE).stdin
 
-        # use pipe need not to wait subprocess
+        # use pipe pass data need not to wait subprocess
         bufsize = 1024 * 64
         for i in range(lenth):
             inputfile = '%s_%d_.%s' % (basename, i, ext)
@@ -156,24 +155,21 @@ def launch_ffmpeg(basename, ext, lenth):
                     pipe_input.write(data)
                     data = fp.read(bufsize)
     else:
-        #build input
+        # build input file
         inputfile = compact_tempfile(mode='w+t', suffix='.txt', dir='.', encoding='utf-8')
         for i in range(lenth):
             inputfile.write("file '%s_%d_.%s'\n" % (basename, i, ext))
         inputfile.flush()
 
-        outputfile = basename + '.' + ext
-
         cmd = [ 'ffmpeg',
+                '-y', '-hide_banner',
                 '-safe', '-1',
-                '-y',
                 '-f', 'concat',
                 '-i', inputfile.name,
                 '-c', 'copy',
-                '-hide_banner']
+                outputfile ]
         if ext == 'mp4':
-            cmd += ['-bsf:a', 'aac_adtstoasc']
-        cmd += [outputfile]
+            cmd[-1:-1] = ['-bsf:a', 'aac_adtstoasc']
         subprocess.call(cmd)
 
         if os.name == 'nt':
@@ -186,14 +182,21 @@ def launch_ffmpeg(basename, ext, lenth):
 def launch_ffmpeg_download(url, name, live):
     print('Now downloading: %s' % name)
     if live:
-        print('stop downloading by press \'q\'')
-
-    cmd = ['ffmpeg', '-headers', ''.join('%s: %s\r\n' % x for x in fake_headers.items()), '-y']
+        logger.warning('''
+=================================
+  stop downloading by press 'q'
+=================================
+''')
 
     url = encode_for_wrap(url)
+    cmd = [ 'ffmpeg',
+            '-y', '-hide_banner',
+            '-headers', ''.join('%s: %s\r\n' % x for x in fake_headers.items()),
+            '-i', url,
+            '-c', 'copy',
+            '-bsf:a', 'aac_adtstoasc',
+            name ]
     if os.path.isfile(url):
-       cmd += ['-protocol_whitelist', 'file,http,https,tls,rtp,tcp,udp,crypto,httpproxy']
-
-    cmd += ['-i', url, '-c', 'copy', '-bsf:a', 'aac_adtstoasc', '-hide_banner', name]
+       cmd[2:2] = ['-protocol_whitelist', 'file,http,https,tls,rtp,tcp,udp,crypto,httpproxy']
 
     subprocess.call(cmd)

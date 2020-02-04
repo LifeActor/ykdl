@@ -5,7 +5,7 @@ from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 from ykdl.util.html import get_content, add_header
 from ykdl.util.match import match1
-from ykdl.compact import urlencode
+from ykdl.compact import urlencode, parse_qs
 
 from .util import get_random_str, get_macid, cmd5x_iqiyi3 as cmd5x
 
@@ -72,14 +72,20 @@ class IqiyiLive(VideoExtractor):
             stream_id = self.type_2_id[stream_type]
 
             if stream['formatType'] == 'HLFLV':
+                stream_params = stream['url'].split('?')[-1]
+                stream_params_dict = dict((k, v[0]) for k, v in parse_qs(stream_params).items())
+                if stream_params_dict['hl_sttp'] != 'flv':
+                    continue
                 params = {
                     'streamName': stream['streamName'],
-                    'streamParams': stream['url'].split('?')[-1],
-                    'hl_stid': match1(stream['url'], 'hl_stid=(.+?)&')
+                    'streamParams': stream_params,
+                    'hl_stid': stream_params_dict['hl_stid'],
+                    'hl_stft': stream_params_dict['hl_stft'],
+                    'hl_stapp': stream_params_dict['hl_stapp']
                 }
-                url = 'https://flvlive.video.iqiyi.com/liveugc/{streamName}.flv?{streamParams}'.format(**params)
+                url = 'https://flvlive.video.iqiyi.com/{hl_stapp}/{streamName}.{hl_stft}?{streamParams}'.format(**params)
                 url = json.loads(get_content(url))['l']
-                url = url.replace('{streamName}.flv?'.format(**params), '{hl_stid}.flv?'.format(**params))
+                url = url.replace('{streamName}.'.format(**params), '{hl_stid}.'.format(**params))
                 ext = 'flv'
             elif stream_id in info.streams:
                 continue

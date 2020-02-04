@@ -68,27 +68,34 @@ class IqiyiLive(VideoExtractor):
         data = data['data']
 
         for stream in data['streams']:
-            # TODO: parse more format types.
-            # Streams which use formatType 'TS' are slow,
-            # and rolling playback use formatType 'HLFLV' with scheme 'hcdnlive://'.
-            # Its host and path encoded as like:
-            #   'AMAAAAD3PV2R2QI7MXRQ4L2BD5Y...'
-            # the real url is:
-            #   'https://hlslive.video.iqiyi.com/live/{hl_slid}.flv?{params}'
-            # Request it, the response is a json data which contains CDN informations.
-            if stream['formatType'] == 'TS':
-                m3u8 = stream['url']
-                # miswrote 'streamType' to 'steamType'
-                stream_type = stream['steamType']
-                stream_profile = stream['screenSize']
-                stream_id = self.type_2_id[stream_type]
-                info.stream_types.append(stream_id)
-                info.streams[stream_id] = {
-                    'video_profile': stream_profile,
-                    'container': 'm3u8',
-                    'src' : [m3u8],
-                    'size': float('inf')
+            stream_type = stream['steamType']  # typo 'streamType' to 'steamType'
+            stream_id = self.type_2_id[stream_type]
+
+            if stream['formatType'] == 'HLFLV':
+                params = {
+                    'streamName': stream['streamName'],
+                    'streamParams': stream['url'].split('?')[-1],
+                    'hl_stid': match1(stream['url'], 'hl_stid=(.+?)&')
                 }
+                url = 'https://flvlive.video.iqiyi.com/liveugc/{streamName}.flv?{streamParams}'.format(**params)
+                url = json.loads(get_content(url))['l']
+                url = url.replace('{streamName}.flv?'.format(**params), '{hl_stid}.flv?'.format(**params))
+                ext = 'flv'
+            elif stream_id in info.streams:
+                continue
+            elif stream['formatType'] == 'TS':
+                url = stream['url']
+                ext = 'm3u8'
+
+            stream_profile = stream['screenSize']
+            if stream_id not in info.streams:
+                 info.stream_types.append(stream_id)
+            info.streams[stream_id] = {
+                'video_profile': stream_profile,
+                'container': ext,
+                'src' : [url],
+                'size': float('inf')
+            }
 
         assert info.stream_types, 'can\'t play this live video!!'
         if len(info.stream_types) == 1:

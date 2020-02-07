@@ -77,7 +77,7 @@ class Hunantv(VideoExtractor):
         assert meta['data'], '[Failed] Video info not found.'
 
         pm2 = meta['data']['atc']['pm2']
-        info.title = meta['data']['info']['title']
+        info.title = meta['data']['info']['title']+' '+meta['data']['info']['desc']
 
         api_source_url = 'https://pcweb.api.mgtv.com/player/getSource?pm2={}&tk2={}&video_id={}&type=pch5'.format(pm2, tk2, self.vid)
         meta = json.loads(get_content(api_source_url))

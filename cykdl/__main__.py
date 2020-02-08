@@ -144,34 +144,28 @@ def main():
     if args.insecure:
         ssl._create_default_https_context = ssl._create_unverified_context
 
+    proxies = None
     if args.proxy == 'system':
-        args.proxy = getproxies().get('http', 'none')
+        proxies = getproxies()
+        args.proxy = proxies.get('http') or proxies.get('https', 'none')
+    args.proxy = args.proxy.lower()
+    if not args.proxy.startswith(('http', 'socks', 'none')):
+        args.proxy = 'http://' + args.proxy
 
-    if args.proxy.lower().startswith('socks'):
-        try:
-            import socks
-            from sockshandler import SocksiPyHandler
-        except ImportError:
-            logger.error('To use SOCKS proxy, please install PySocks first!')
-            raise
-        parsed_socks_proxy = urlparse(args.proxy)
-        sockstype = socks.PROXY_TYPES[parsed_socks_proxy.scheme.upper()]
-        rdns = None
-        proxy_handler = SocksiPyHandler(sockstype,
-                                        parsed_socks_proxy.hostname,
-                                        parsed_socks_proxy.port,
-                                        rdns,
-                                        parsed_socks_proxy.username,
-                                        parsed_socks_proxy.password)
-    elif args.proxy == 'none':
-        proxy_handler = ProxyHandler({})
-    else:
-        if not args.proxy.lower().startswith('http'):
-            args.proxy = 'http://' + args.proxy
-        proxy_handler = ProxyHandler({
+    if args.proxy == 'none':
+        proxies = {}
+    elif args.proxy.startswith(('http', 'socks')):
+        if args.proxy.startswith(('https', 'socks')):
+            try:
+                import extproxy
+            except ImportError:
+                logger.error('Please install ExtProxy to use proxy: ' + args.proxy)
+                raise
+        proxies = {
             'http': args.proxy,
             'https': args.proxy
-        })
+        }
+    proxy_handler = ProxyHandler(proxies)
 
     add_default_handler(proxy_handler)
     install_default_handlers()
@@ -192,7 +186,7 @@ def main():
         exit = 0
         for url in args.video_urls:
             try:
-                m,u = url_to_module(url)
+                m, u = url_to_module(url)
                 if args.playlist:
                     parser = m.parser_list
                 else:
@@ -202,10 +196,10 @@ def main():
                     ind = 0
                     for i in info:
                         if ind < args.start:
-                            ind+=1
+                            ind += 1
                             continue
                         handle_videoinfo(i, index=ind)
-                        ind+=1
+                        ind += 1
                 else:
                     handle_videoinfo(info)
             except AssertionError as e:

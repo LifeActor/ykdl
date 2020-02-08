@@ -25,7 +25,7 @@ from ykdl.version import __version__
 
 REQ = ['m3u8', 'pycryptodome', 'urllib3']
 EXT = {
-  'socks': ['PySocks>=1.7.1'],
+  'ext-proxy': ['ExtProxy'],
   'js-engine': ['PyChakra>=2.2.0']
 }
 if os.name == 'nt':

@@ -14,7 +14,7 @@ def init_jsengine():
     if js_ctx is None:
         from ykdl.util.jsengine import JSEngine
         assert JSEngine, "No JS Interpreter found, can't use cmd5x!"
-        js_ctx = JSEngine()
+        js_ctx = JSEngine(init_global=True)
 
         from pkgutil import get_data
         # code from https://zsaim.github.io/2019/08/23/Iqiyi-cmd5x-Analysis/

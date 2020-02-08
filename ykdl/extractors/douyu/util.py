@@ -60,10 +60,10 @@ def ub98484234(js_enc, extractor, params):
     patchCode({workflow});
     var subWorkflow = /(?:\w+=)?eval\((\w+)\)/.exec({workflow});
     if (subWorkflow) {{
-        var subPatch = (
-            `{debugMessages}.{decryptedCodes}.push('sub workflow: ' + subWorkflow);
-            patchCode(subWorkflow);`
-        ).replace(/subWorkflow/g, subWorkflow[1]) + subWorkflow[0];
+        var subPatch = `
+            {debugMessages}.{decryptedCodes}.push('sub workflow: ' + subWorkflow);
+            patchCode(subWorkflow);
+        `.replace(/subWorkflow/g, subWorkflow[1]) + subWorkflow[0];
         {workflow} = {workflow}.replace(subWorkflow[0], subPatch);
     }}
     eval({workflow});

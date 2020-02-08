@@ -79,6 +79,9 @@ chakra_available = False
 quickjs_available = False
 external_interpreter = None
 external_interpreter_tempfile = False
+external_interpreter_tempfile_bin = 'd8',
+external_interpreter_pipesign = False
+external_interpreter_pipesign_bin = 'qjs',
 
 # PyChakra
 try:
@@ -172,7 +175,6 @@ if (typeof {gobject} === 'object') {{
     {gobject} = undefined;
 }}
 '''
-init_del_gobjects = ['exports']
 
 end_split_char = set(u',;\\{}([')
 
@@ -207,7 +209,7 @@ json_encoder = json.JSONEncoder(
 
 
 class AbstractJSEngine:
-    def __init__(self, source=u'', init_global=True, init_del_gobjects=init_del_gobjects):
+    def __init__(self, source=u'', init_global=False, init_del_gobjects=None):
         self._source = []
         init_script = [init_print_script]
         if init_global:
@@ -321,9 +323,22 @@ class QuickJSEngine(InternalJSEngine):
         InternalJSEngine.__init__(self, *args, **kwargs)
 
     class Context:
+
+        class Function:
+            # PetterS/quickjs/Issue7
+            # Escape StackOverflow when calling function outside
+            def __init__(self, context, function):
+                self._context = context
+                self._function = function
+
+            def __call__(self, *args):
+                return self._function(*args)
+
         def __init__(self, engine):
+            typeof = u'(function(){return function(obj){return typeof obj}})()'
             self._engine = engine
             self._context = quickjs.Context()
+            self.typeof = self.Function(self, self._context.eval(typeof))
 
         def eval(self, code, eval=True, raw=False):
             self._engine._append_source(code)
@@ -335,6 +350,8 @@ class QuickJSEngine(InternalJSEngine):
                 if eval:
                     if raw or not isinstance(result, quickjs.Object):
                         return result
+                    elif callable(result) and self.typeof(result) == u'function':
+                        return self.Function(self, result)
                     else:
                         return json.loads(result.json())
 
@@ -342,8 +359,16 @@ class QuickJSEngine(InternalJSEngine):
 class ExternalJSEngine(AbstractJSEngine):
     '''Wrappered for external Javascript interpreter.'''
 
-    def __init__(self, *args, **kwargs):
-        if not external_interpreter:
+    def __init__(self, source=u'', init_global=False, init_del_gobjects=[], interpreter=None):
+        if interpreter:
+            interpreter = which(interpreter)
+        if interpreter:
+            self._tempfile, elf._pipesign = _set_external_interpreter(interpreter)
+        elif external_interpreter:
+            interpreter = external_interpreter
+            self._tempfile = external_interpreter_tempfile
+            self._pipesign = external_interpreter_pipesign
+        else:
             msg = 'No supported external Javascript interpreter found on your system!'
             if chakra_available:
                 msg += ' Please install one or use ChakraJSEngine.'
@@ -353,8 +378,9 @@ class ExternalJSEngine(AbstractJSEngine):
                 msg += ' Please install one.'
             raise RuntimeError(msg)
         self._last_code = u''
-        self._tempfile = external_interpreter_tempfile
-        AbstractJSEngine.__init__(self, *args, **kwargs)
+        # Del 'exports' to ignore import error, eg. Node.js
+        init_del_gobjects = list(init_del_gobjects) + ['exports']
+        AbstractJSEngine.__init__(self, source, init_global, init_del_gobjects)
 
     def _get_source(self, last_code=True):
         if last_code and self._last_code:
@@ -390,22 +416,21 @@ class ExternalJSEngine(AbstractJSEngine):
             raise ProgramError(result)
 
     def _run_interpreter(self, cmd, input=None):
-        p = None
         stdin = PIPE if input else None
-        try:
-            p = Popen(cmd, stdin=stdin, stdout=PIPE, stderr=PIPE)
-            stdout_data, stderr_data = p.communicate(input=input)
-            retcode = p.wait()
-        finally:
-            del p
-        if retcode != 0:
-            raise RuntimeError('Javascript interpreter returns non-zero value! '
-                               'Error msg: %s' % stderr_data.decode('utf8'))
+        p = Popen(cmd, stdin=stdin, stdout=PIPE, stderr=PIPE)
+        stdout_data, stderr_data = p.communicate(input=input)
+        if p.returncode != 0:
+            raise RuntimeError('%r returns non-zero value! Error msg: %s' %
+                               (external_interpreter, stderr_data.decode('utf8')))
+        elif stderr_data:
+            print("%r has warnings:" % external_interpreter, stderr_data.decode('utf8'))
         # Output unicode
         return stdout_data.decode('utf8')
 
     def _run_interpreter_with_pipe(self, code):
         cmd = [external_interpreter]
+        if self._pipesign:
+            cmd += ['-']
         # Input bytes
         code = to_bytes(code)
         return self._run_interpreter(cmd, input=code)
@@ -431,24 +456,27 @@ class ExternalJSEngine(AbstractJSEngine):
 
 
 def set_external_interpreter(interpreter):
-    global external_interpreter
+    global external_interpreter, external_interpreter_tempfile, external_interpreter_pipesign
     external_interpreter = which(interpreter)
     res = external_interpreter is not None
     if res:
-        _set_external_interpreter_tempfile()
+        external_interpreter_tempfile, external_interpreter_pipesign = \
+                                _set_external_interpreter(external_interpreter)
     else:
         print("Can not find the given interpreter's path: %r" % interpreter, file=sys.stderr)
     return res
 
 
-def _set_external_interpreter_tempfile():
-    global external_interpreter_tempfile
-    interpreter_name = os.path.basename(external_interpreter).split('.')[0]
-    external_interpreter_tempfile = interpreter_name in ('qjs', 'qjsbn', 'd8')
+def _set_external_interpreter(interpreter):
+    interpreter_name = os.path.basename(interpreter).split('.')[0]
+    tempfile = interpreter_name in external_interpreter_tempfile_bin
+    pipesign = interpreter_name in external_interpreter_pipesign_bin
+    return tempfile, pipesign
 
 
 if external_interpreter:
-    _set_external_interpreter_tempfile()
+    external_interpreter_tempfile, external_interpreter_pipesign = \
+                                _set_external_interpreter(external_interpreter)
 
 
 # Prefer InternalJSEngine (via dynamic library loading)

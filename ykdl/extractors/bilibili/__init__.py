@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_location, add_header
+from ykdl.util.html import get_location, add_header, add_default_handler, install_default_handlers
 from ykdl.util.match import match1, matchall
+from ykdl.compact import HTTPCookieProcessor
 
 import re
+
+
+add_default_handler(HTTPCookieProcessor)
+install_default_handlers()
 
 def get_extractor(url):
     if 'live.bilibili' in url:

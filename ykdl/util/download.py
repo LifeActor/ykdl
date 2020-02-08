@@ -32,10 +32,11 @@ def simple_hook(arg1, arg2, arg3):
         sys.stdout.write('\r' + str(round(arg1 * arg2 / 1048576, 1)) + 'MB')
         sys.stdout.flush()
 
-def save_url(url, name, ext, status, part = None, reporthook = simple_hook):
+def save_url(url, name, ext, status, part=None, reporthook=simple_hook):
     if part is None:
         print("Download: " + name)
         name = name + '.' + ext
+        part = 0
     else:
         print("Download: " + name + " part %d" % part)
         name = name + '_%d_.' % part + ext
@@ -44,7 +45,7 @@ def save_url(url, name, ext, status, part = None, reporthook = simple_hook):
     read = 0
     blocknum = 0
     open_mode = 'wb'
-    req = Request(url, headers = fake_headers)
+    req = Request(url, headers=fake_headers)
     if os.path.exists(name):
         filesize = os.path.getsize(name)
         req.add_header('Range', 'bytes=%d-' % filesize)
@@ -53,10 +54,7 @@ def save_url(url, name, ext, status, part = None, reporthook = simple_hook):
             size = int(response.headers['Content-Range'].split('/')[-1])
             if filesize == size:
                 print('Skipped: file already downloaded')
-                if part is None:
-                    status[0] = 1
-                else:
-                    status[part] =1
+                status[part] = 1
                 return
             if filesize < size:
                 if filesize:
@@ -79,10 +77,7 @@ def save_url(url, name, ext, status, part = None, reporthook = simple_hook):
     if os.path.exists(name):
         filesize = os.path.getsize(name)
         if filesize == size:
-            if part is None:
-                status[0] = 1
-            else:
-                status[part] =1
+            status[part] = 1
 
 def save_urls(urls, name, ext, jobs=1):
     ext = encode_for_wrap(ext)
@@ -94,15 +89,13 @@ def save_urls(urls, name, ext, jobs=1):
         return not 0 in status
     if not MultiThread:
         for no, u in enumerate(urls):
-            save_url(u, name, ext, status, part = no)
+            save_url(u, name, ext, status, part=no)
     else:
         with ThreadPoolExecutor(max_workers=jobs) as worker:
             for no, u in enumerate(urls):
-                worker.submit(save_url, u, name, ext, status, part = no)
+                worker.submit(save_url, u, name, ext, status, part=no)
             worker.shutdown()
-    i = 0
-    for a in status:
+    for no, a in enumerate(status):
         if a == 0:
-            logger.error("downloader failed at part {}".format(i))
-        i += 1
+            logger.error("downloader failed at part {}".format(no))
     return not 0 in status

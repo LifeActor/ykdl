@@ -15,23 +15,8 @@ youku_embed_patterns = [ 'youku\.com/v_show/id_([a-zA-Z0-9=]+)',
                          'loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',
                          'player\.youku\.com/embed/([a-zA-Z0-9=]+)',
                          'YKU.Player\(\'[a-zA-Z0-9]+\',{ client_id: \'[a-zA-Z0-9]+\', vid: \'([a-zA-Z0-9]+)\'',
-                         'vid: \'([a-zA-Z0-9=]+)\',',
                          'data-youku=\"[a-zA-Z0-9,:]+vid:([a-zA-Z0-9=]+)\"'
                        ]
-
-"""
-http://www.tudou.com/programs/view/html5embed.action?type=0&amp;code=3LS_URGvl54&amp;lcode=&amp;resourceId=0_06_05_99
-http://www.tudou.com/v/voahn6inu8k/&resourceId=402221676_04_02_99/v.swf
-"""
-tudou_embed_patterns = [ 'tudou\.com[a-zA-Z0-9\/\?=\&\.\;\#]+code=([^&]+)',
-                         'tudou\.com\/[a-zA-Z]\/([^\/]+)'
-                       ]
-
-"""
-refer to http://open.tudou.com/wiki/video/info
-"""
-tudou_api_patterns = [ ]
-
 
 """
 v.qq.com
@@ -45,8 +30,8 @@ qq_embed_patterns = [ 'v\.qq\.com[a-zA-Z0-9\/\?\.\;]+vid=([a-zA-Z0-9]+)',
 tv.sohu.com
 """
 sohu_embed_patterns = [ 'tv\.sohu\.com[a-zA-Z0-9\/\?=]+\&vid=([a-zA-Z0-9]+)\&',
-                        'share\.vrs\.sohu\.com\/my\/v.swf[&+=a-zA-z0-9]+&id=([^&]+)',
-                        'my\.tv\.sohu\.com\/[a-zA-Z0-9\/]+/([^\.]+)'
+                        'share\.vrs\.sohu\.com\/my\/v.swf[&+=a-zA-z0-9]+&id=(\d+)',
+                        'my\.tv\.sohu\.com\/[a-zA-Z0-9\/]+/(\d+)'
                       ]
 
 """
@@ -74,7 +59,8 @@ iqiyi_embed_patterns = [ 'definitionID=([^&]+)&tvId=([^&]+)'
 Letv Cloud
 """
 lecloud_embed_patterns = [ '{"uu":"([^\"]+)","vu":"([^\"]+)"',
-                           'bcloud.swf\?uu=([^&]+)&amp;vu=([^&]+)'
+                           'bcloud.swf\?uu=([^&]+)&amp;vu=([^&]+)',
+                           'uu=([^&]+)&amp;vu=([^&]+)'
                      ]
 
 """
@@ -95,32 +81,42 @@ Sina
 sina_embed_patterns = [ 'http://video.sina.com.cn/share/video/(\d+).swf'
                      ]
 
+"""
+Dilidili
+"""
+dilidili_embed_patterns = [ 'vid=([^&]+)&v=([^&]+)&'
+                     ]
 
-
+"""
+Bilibili
+"""
+bilibili_embed_patterns = [ 'flashvars="aid=(\d+)'
+                     ]
 
 class GeneralEmbed(EmbedExtractor):
     name = u"GeneralEmbed (通用嵌入视频)"
 
     def prepare_playlist(self):
+
+        def append_video_info(site, vid):
+            video_info = self.new_video_info()
+            video_info['site'] = site
+            video_info['vid'] = vid
+            self.video_info_list.append(video_info)
+
         content = get_content(self.url)
 
         vids = matchall(content, youku_embed_patterns)
         for vid in vids:
-            self.video_info_list.append(('youku',vid))
-
-        vids = matchall(content, tudou_embed_patterns)
-        for vid in vids:
-            new_url = get_location("http://tudou.com/v/"+vid)
-            iid = match1(new_url, 'iid=([^&]+)')
-            self.video_info_list.append(('tdorig',iid))
+            append_video_info('youku',vid)
 
         vids = matchall(content, qq_embed_patterns)
         for vid in vids:
-            self.video_info_list.append(('qq.video',vid))
+            append_video_info('qq.video',vid)
 
         vids = matchall(content, sohu_embed_patterns)
         for vid in vids:
-            self.video_info_list.append(('sohu.my',vid))
+            append_video_info('sohu.my',vid)
 
         urls = matchall(content, ku6_embed_url)
         for url in urls:
@@ -128,37 +124,57 @@ class GeneralEmbed(EmbedExtractor):
             flashvars = matchall(html, ['vid=([^&]+)', 'style=([^&]+)', 'sn=([^&]+)'])
             data = json.loads(get_content('http://v.ku6vms.com/phpvms/player/forplayer/vid/{}/style/{}/sn/{}'.format(flashvars[0], flashvars[1],flashvars[2])))
             vid = data['ku6vid']
-            self.video_info_list.append(('ku6',vid))
+            append_video_info('ku6',vid)
+
         vids = matchall(content, ku6_embed_patterns)
         for v in vids:
-            self.video_info_list.append(('ku6', v))
+            append_video_info('ku6', v)
+
         vids = matchall(content, netease_embed_patterns)
         for v in vids:
-            self.video_info_list.append(('netease.video', v))
+            append_video_info('netease.video', v)
 
         vids = matchall(content, iqiyi_embed_patterns)
         for v in vids:
             videoid, tvid = v
-            self.video_info_list.append(('iqiyi', (tvid, videoid)))
+            append_video_info('iqiyi', (tvid, videoid))
 
         vids = matchall(content, lecloud_embed_patterns)
         for v in vids:
             uu, vu = v
-            self.video_info_list.append(('le.letvcloud', (vu, uu)))
+            append_video_info('le.letvcloud', (vu, uu))
 
         vids = matchall(content, ifeng_embed_patterns)
         for v in vids:
             v  = v.split('&')[0]
-            self.video_info_list.append(('ifeng', v))
+            append_video_info('ifeng.news', v)
 
         vids = matchall(content, weibo_embed_patterns)
         for v in vids:
-            self.video_info_list.append(('weibo','http://weibo.com/p/' + v))
+            append_video_info('weibo', 'http://weibo.com/p/' + v)
 
         vids = matchall(content, sina_embed_patterns)
         for v in vids:
             v  = v.split('&')[0]
-            self.video_info_list.append(('sina', v))
+            append_video_info('sina.video', v)
+
+        vids = matchall(content, bilibili_embed_patterns)
+        for v in vids:
+            v = "https://www.bilibili.com/video/av{}".format(v)
+            append_video_info('bilibili.video', v)
+
+
+        vids = matchall(content, dilidili_embed_patterns)
+        for v in vids:
+            v,site  = v
+            if site == 'bilibili':
+                site = 'bilibili.video'
+            elif site == 'qq':
+                site = 'qq.video'
+            elif site =='yun':
+                site = 'le.letvcloud'
+                v = v.split(':')
+            append_video_info(site, v)
 
         tmp = []
         for v in self.video_info_list:

@@ -1,16 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-try:
-    from setuptools import setup
-except:
-    from distutils.core import setup
+from setuptools import setup
 
 try:
     import wheel
 except:
     pass
 
-import os, codecs
+import os, codecs, platform
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = codecs.open(os.path.join(here, 'README.rst'), encoding='utf8').read()
@@ -26,6 +23,15 @@ def find_packages(*tops):
 
 from ykdl.version import __version__
 
+REQ = ['m3u8', 'pycryptodome', 'urllib3']
+EXT = {
+  'ext-proxy': ['ExtProxy'],
+  'js-engine': ['PyChakra>=2.2.0']
+}
+if os.name == 'nt':
+    EXT['ansi-escape'] = ['colorama']
+
+
 setup(
     name = "ykdl",
     version = __version__,
@@ -36,11 +42,16 @@ setup(
     description = "a video downloader written in Python",
     long_description = README + '\n\n' +  CHANGES,
     keywords = "video download youku acfun bilibili",
-    packages = find_packages('ykdl'),
-    requires = ['m3u8'],
-    install_requires = ['m3u8'],
+    packages = find_packages('ykdl', 'cykdl'),
+    requires = REQ,
+    install_requires = REQ,
+    extras_require = EXT,
     platforms = 'any',
     zip_safe = True,
+    package_data = {
+        'ykdl': ['extractors/*.js', 'extractors/*/*.js'],
+    },
+
     classifiers = [
         "Development Status :: 4 - Beta",
         "Environment :: Console",
@@ -53,16 +64,17 @@ setup(
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4",
         "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
         "Topic :: Internet",
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Multimedia",
-        "Topic :: Multimedia :: Graphics",
         "Topic :: Multimedia :: Sound/Audio",
         "Topic :: Multimedia :: Video",
         "Topic :: Utilities"
     ],
-    scripts = ['bin/ykdl.py']
+    entry_points={
+        "console_scripts": ["ykdl=cykdl.__main__:main"]
+    },
 )

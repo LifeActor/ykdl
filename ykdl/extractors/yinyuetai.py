@@ -18,7 +18,7 @@ class YinYueTai(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name)
         if not self.vid:
-            self.vid = match1(self.url, 'http://\w+.yinyuetai.com/video/(\d+)')
+            self.vid = match1(self.url, 'http://\w+.yinyuetai.com/video/(\d+)', 'http://\w+.yinyuetai.com/video/h5/(\d+)')
 
         data = json.loads(get_content('http://ext.yinyuetai.com/main/get-h-mv-info?json=true&videoId={}'.format(self.vid)))
 

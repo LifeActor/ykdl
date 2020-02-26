@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import json
 import sys
 import datetime
 import random
 from ykdl.util.fs import legitimize
 from ykdl.util import log
+from ykdl.util.wrap import encode_for_wrap
 
 class VideoInfo():
     def __init__(self, site, live = False):
@@ -16,6 +18,7 @@ class VideoInfo():
         self.stream_types = []
         self.streams = {}
         self.live = live
+        self.extra = {"ua": "", "referer": "", "header": "", "proxy": "", "rangefetch": ""}
 
     def print_stream_info(self, stream_id, show_all = False):
         stream = self.streams[stream_id]
@@ -41,6 +44,10 @@ class VideoInfo():
                     }
         json_dict['streams'] = self.streams
         json_dict['stream_types'] = self.stream_types
+        json_dict['extra'] = self.extra
+        for s in json_dict['streams']:
+            if json_dict['streams'][s].get('size') == float('inf'):
+                json_dict['streams'][s].pop('size')
         return json_dict
 
     def print_info(self, stream_id = None, show_all = False):
@@ -63,4 +70,4 @@ class VideoInfo():
             name_list.append(stream_id)
         if self.live:
             name_list.append(datetime.datetime.now().isoformat())
-        return legitimize('_'.join(name_list))
+        return encode_for_wrap(legitimize('_'.join(name_list)), 'ignore')

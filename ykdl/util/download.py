@@ -1,26 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 import os
 import sys
-from threading import Thread
+from logging import getLogger
 from ykdl.compact import Request, urlopen
-
+from ykdl.util import log
+from ykdl.util.wrap import encode_for_wrap
 from .html import fake_headers
 
+logger = getLogger("downloader")
 
-class downloadThread(Thread):
-    def __init__(self, url, file_name):
-        super(downloadThread, self).__init__()
-        self.url = url
-        self.file_name = file_name
-
-    def run(self):
-        try:
-            save_url(self.url, self.file_name)
-        except:
-            import traceback
-            traceback.print_exc()
+try:
+    from concurrent.futures import ThreadPoolExecutor
+    MultiThread = True
+except:
+    MultiThread = False
+    logger.warning("failed to import ThreadPoolExecutor!")
+    logger.warning("multithread download disabled!")
+    logger.warning("please install concurrent.futures from https://github.com/agronholm/pythonfutures !")
 
 def simple_hook(arg1, arg2, arg3):
     if arg3 > 0:
@@ -33,26 +32,38 @@ def simple_hook(arg1, arg2, arg3):
         sys.stdout.write('\r' + str(round(arg1 * arg2 / 1048576, 1)) + 'MB')
         sys.stdout.flush()
 
-def save_url(url, name, reporthook = simple_hook):
-    bs = 1024*8
+def save_url(url, name, ext, status, part=None, reporthook=simple_hook):
+    if part is None:
+        print("Download: " + name)
+        name = name + '.' + ext
+        part = 0
+    else:
+        print("Download: " + name + " part %d" % part)
+        name = name + '_%d_.' % part + ext
+    bs = 1024 * 8
     size = -1
     read = 0
     blocknum = 0
     open_mode = 'wb'
-    req = Request(url, headers = fake_headers)
-    response = urlopen(req, None)
-    if "content-length" in response.headers:
-        size = int(response.headers["Content-Length"])
+    req = Request(url, headers=fake_headers)
     if os.path.exists(name):
         filesize = os.path.getsize(name)
-        if filesize == size:
-            print('Skipped: file already downloaded')
-            return
-        elif -1 != size:
-            req.add_header('Range', 'bytes=%d-' % filesize)
-            blocknum = int(filesize / bs)
-            response = urlopen(req, None)
-            open_mode = 'ab'
+        req.add_header('Range', 'bytes=%d-' % filesize)
+        response = urlopen(req, None)
+        if response.status == 206:
+            size = int(response.headers['Content-Range'].split('/')[-1])
+            if filesize == size:
+                print('Skipped: file already downloaded')
+                status[part] = 1
+                return
+            if filesize < size:
+                if filesize:
+                    blocknum = int(filesize / bs)
+                open_mode = 'ab'
+    else:
+        response = urlopen(req, None)
+    if size < 0:
+        size = int(response.headers.get('Content-Length', -1))
     reporthook(blocknum, bs, size)
     with open(name, open_mode) as tfp:
         while True:
@@ -63,21 +74,28 @@ def save_url(url, name, reporthook = simple_hook):
             tfp.write(block)
             blocknum += 1
             reporthook(blocknum, bs, size)
+    if os.path.exists(name):
+        filesize = os.path.getsize(name)
+        if filesize == size:
+            status[part] = 1
 
-def save_urls(urls, name, ext):
-    no = 0
-    downloads_pool = []
-    for u in urls:
-        if type(urls) is list and len(urls) == 1:
-            print("Download: " + name)
-            n = name + '.' + ext
-        else:
-            print("Download: " + name + " part %d" % no)
-            n = name + '_%d_.' % no + ext
-        t = downloadThread(u, n)
-        downloads_pool.append(t)
-        t.start()
-        print("")
-        no += 1
-    for t in downloads_pool:
-        t.join()
+def save_urls(urls, name, ext, jobs=1):
+    ext = encode_for_wrap(ext)
+    status = [0] * len(urls)
+    if len(urls) == 1:
+        save_url(urls[0], name, ext, status)
+        if 0 in status:
+            logger.error("donwload failed")
+        return not 0 in status
+    if not MultiThread:
+        for no, u in enumerate(urls):
+            save_url(u, name, ext, status, part=no)
+    else:
+        with ThreadPoolExecutor(max_workers=jobs) as worker:
+            for no, u in enumerate(urls):
+                worker.submit(save_url, u, name, ext, status, part=no)
+            worker.shutdown()
+    for no, a in enumerate(status):
+        if a == 0:
+            logger.error("downloader failed at part {}".format(no))
+    return not 0 in status

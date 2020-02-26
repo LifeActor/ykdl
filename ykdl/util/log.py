@@ -12,6 +12,15 @@ IS_ANSI_TERMINAL = os.getenv('TERM') in (
     'vt100',
     'xterm')
 
+if os.name == 'nt':
+    try:
+        import colorama
+    except ImportError:
+        pass
+    else:
+        colorama.init()
+        IS_ANSI_TERMINAL = True
+
 # ANSI escape code
 # See <http://en.wikipedia.org/wiki/ANSI_escape_code>
 RESET = 0
@@ -62,34 +71,25 @@ def sprint(text, *colors):
     color = ";".join([str(color) for color in colors])
     return "\33[%sm%s\33[%dm" % (color, text, RESET) if IS_ANSI_TERMINAL and colors else text
 
-def println(text, *colors):
-    """Print text to standard output."""
-    sys.stdout.write(sprint(text, *colors) + "\n")
+import logging
 
-def print_err(text, *colors):
-    """Print text to standard error."""
-    sys.stderr.write(sprint(text, *colors) + "\n")
+_LOG_COLOR_MAP_ = {
+    logging.CRITICAL : "31;1",
+    logging.ERROR    : RED,
+    logging.WARNING  : YELLOW,
+    logging.INFO     : BLUE,
+    logging.DEBUG    : GREEN,
+    logging.NOTSET   : DEFAULT }
 
-def print_log(text, *colors):
-    """Print a log message to standard error."""
-    sys.stderr.write(sprint("%s: %s" % (library_name, text), *colors) + "\n")
+_colorFormatter = logging.Formatter("\33[%(color)sm%(levelname)s:%(name)s:%(message)s\33[0m")
 
-def i(message):
-    """Print a normal log message."""
-    print_log(message)
+class ColorHandler(logging.StreamHandler):
+    def __init__(self):
+        logging.StreamHandler.__init__(self)
+        if IS_ANSI_TERMINAL:
+            self.formatter = _colorFormatter
 
-def d(message):
-    """Print a debug log message."""
-    print_log(message, BLUE)
-
-def w(message):
-    """Print a warning log message."""
-    print_log(message, YELLOW)
-
-def e(message):
-    """Print an error log message."""
-    print_log(message, YELLOW, BOLD)
-
-def wtf(message):
-    """What a Terrible Failure!"""
-    print_log(message, RED, BOLD)
+    def format(self, recode):
+        if IS_ANSI_TERMINAL:
+            recode.color = _LOG_COLOR_MAP_[recode.levelno]
+        return logging.StreamHandler.format(self, recode)

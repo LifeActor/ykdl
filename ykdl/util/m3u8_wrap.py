@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+from logging import getLogger
+from .html import fake_headers
+
+logger = getLogger("m3u8_wrap")
+
 try:
     import m3u8
     import time
@@ -19,7 +24,7 @@ try:
     def load_m3u8_playlist(url):
         stream_types = []
         streams = {}
-        m = m3u8.load(url).playlists
+        m = m3u8.load(url, headers=fake_headers).playlists
         for l in m:
             stream_types.append(str(l.stream_info.bandwidth))
             streams[str(l.stream_info.bandwidth)] = {'container': 'm3u8', 'video_profile': str(l.stream_info.bandwidth), 'src' : [l.absolute_uri], 'size': 0}
@@ -28,7 +33,7 @@ try:
 
     def load_m3u8(url):
         urls = []
-        m =  m3u8.load(url)
+        m =  m3u8.load(url, headers=fake_headers)
         for seg in m.segments:
             urls.append(seg.absolute_uri)
         return urls
@@ -44,7 +49,7 @@ try:
         the stream is live stream. so we use sleep to simulate player. but not perfact!
         """
         global __lenth__
-        m =  m3u8.load(url)
+        m =  m3u8.load(url, headers=fake_headers)
         __lenth__ = now = d = 0
         i = 0
         m3u8_live_stopper()
@@ -67,19 +72,19 @@ try:
                 delta = d -( time.time() - now)
                 if (delta) > 0:
                     time.sleep(d - (time.time() - now))
-                m = m3u8.load(url)
+                m = m3u8.load(url, headers=fake_headers)
                 now = time.time()
                 d = 0
 except:
     from ykdl.util import log
     def load_m3u8_playlist(url):
-        log.w("No python-m3u8 found, use stub m3u8!!! please install it by pip install m3u8")
+        logger.warning("No python-m3u8 found, use stub m3u8!!! please install it by pip install m3u8")
         stream_types = ['current']
         streams['current'] = {'container': 'm3u8', 'video_profile': 'current', 'src' : [url], 'size': 0}
         return stream_types, streams
 
     def load_m3u8(url):
-        log.w("No python-m3u8 found, use stub m3u8!!! please install it by pip install m3u8")
+        logger.warning("No python-m3u8 found, use stub m3u8!!! please install it by pip install m3u8")
         return [url]
 
     def load_live_m3u8(url):

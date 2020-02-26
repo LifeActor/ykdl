@@ -7,14 +7,21 @@ import datetime
 import platform
 
 
-from ykdl.util.html import get_content, url_info
+from ykdl.util.html import get_location, get_content, url_info
 from ykdl.util.match import match1, matchall
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 
 
+def get_playback(vid):
+    from .le import Letv
+    site = Letv()
+    site.name = u"Le Live(乐视直播回看)"
+    site.vid = vid
+    return site.prepare()
+
 class LeLive(VideoExtractor):
-    name = u"Le Live (乐视轮播)"
+    name = u"Le Live(乐视直播)"
 
     supported_stream_types = ['flv_1080p3m', 'flv_1080p', 'flv_1300', 'flv_1000', 'flv_720p', 'flv_350']
 
@@ -25,15 +32,28 @@ class LeLive(VideoExtractor):
     stream_ids = ['BD', 'TD', 'HD', 'SD', 'LD']
 
     def prepare(self):
+        self.vid = match1(self.url, 'd=(\d+)', 'live/(\d+)')
+        if '/izt/' in self.url:
+            vid = self.vid
+            if not vid:
+                html = get_content(self.url)
+                vid = match1(html, 'vid\s*:\s*"(\d+)",', 'vid="(\d+)"')
+            return get_playback(vid)
+        else:
+            if not self.vid:
+                html = get_content(self.url)
+                self.vid = match1(html, 'liveId\s*:\s*"(\d+)"')
+
+        live_data = json.loads(get_content('http://api.live.letv.com/v1/liveRoom/single/1001?id={}'.format(self.vid)))
+        if live_data.get('status') != 2:
+            return get_playback(live_data['recordingId'])
+
+        # live video is dead, the followed code will not be used
+        live_data = json.loads(get_content('http://player.pc.le.com/player/startup_by_pid/1001/{}?host=live.le.com'.format(self.vid)))
+
         info = VideoInfo(self.name, True)
-        if not self.vid:
-            self.vid = match1(self.url, 'channel=([\d]+)')
-
-        live_data = json.loads(get_content('http://player.pc.le.com/player/startup_by_channel_id/1001/{}?host=live.le.com'.format(self.vid)))
-
-        info.title = live_data['channelName']
-
-        stream_data = live_data['streams']
+        info.title = live_data['title']
+        stream_data = live_data['rows']
 
         for s in stream_data:
             stream_id = self.stream_2_id[s['rateType']]
@@ -46,5 +66,11 @@ class LeLive(VideoExtractor):
                 info.streams[stream_id] = {'container': 'm3u8', 'video_profile': stream_profile, 'size' : float('inf'), 'src' : [src]}
         info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
         return info
+
+    def prepare_list(self):
+        html = get_content(self.url)
+        vids = matchall(html, ['vid="(\d+)"'])
+        # fake urls
+        return ['http://live.le.com/izt/vid={}'.format(vid) for vid in vids]
 
 site = LeLive()

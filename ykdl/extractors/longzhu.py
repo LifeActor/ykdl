@@ -20,8 +20,8 @@ class LongzhuLive(VideoExtractor):
 
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, 'roomid: (\d+)')
-            info.title = match1(html, '"title":"([^"]+)')
+            self.vid = match1(html, 'roomid: (\d+)', '__ROOMID = \'(\d+)\';', '"RoomId":(\d+)')
+            info.title = match1(html, '"title":"([^"]+)', '<title>([^>]+)<')
             info.artist = match1(html, '"Name":"([^"]+)')
 
         api_url = 'http://livestream.plu.cn/live/getlivePlayurl?roomId={}&{}'.format(self.vid, int(time.time()))

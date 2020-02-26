@@ -125,7 +125,15 @@ class Youku(VideoExtractor):
         data = data['data']
         assert 'stream' in data, data['error']['note']
 
-        info.title = data['video']['title']
+        try:
+            # stage > 0，日期或集数等作为放映顺序，如 https://v.youku.com/v_show/id_XNDEyNDExMDIyNA==.html
+            # stage == 0，未提供有意义的信息，如 https://v.youku.com/v_show/id_XNDU1MDMyMDI1Ng==.html
+            stage = data['show']['stage'] or ''
+        except KeyError:
+            # 未提供相关信息，如 https://v.youku.com/v_show/id_XOTI0MTE2NDg4.html
+            stage = ''
+        info.title = '{} {}'.format(stage, data['video']['title']).lstrip()
+
         audio_lang = 'default'
         if 'dvd' in data and 'audiolang' in data['dvd']:
             for l in data['dvd']["audiolang"]:

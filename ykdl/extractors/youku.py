@@ -125,7 +125,15 @@ class Youku(VideoExtractor):
         data = data['data']
         assert 'stream' in data, data['error']['note']
 
-        info.title = data['video']['title']
+        try:
+            stage = data['show']['stage']
+        except KeyError:  # 有的网址没有这两个key,如https://v.youku.com/v_show/id_XOTI0MTE2NDg4.html?spm=a2h3j.8428770.3416059.1
+            stage = 0
+        if stage > 0:  # 有的stage=0，在文件名的生成上没有意义，https://v.youku.com/v_show/id_XNDU1MDMyMDI1Ng==.html?spm=a2h0k.11417342.soresults.dtitle&s=adee048d2edc41949017
+            info.title = str(stage) + ' ' + data['video']['title']
+        else:
+            info.title = data['video']['title']  # 如https://v.youku.com/v_show/id_XNDEyNDExMDIyNA==.html?spm=a2h0k.11417342.soresults.dselectbutton&s=a4a4e501455d4318b4b8
+
         audio_lang = 'default'
         if 'dvd' in data and 'audiolang' in data['dvd']:
             for l in data['dvd']["audiolang"]:

@@ -3,45 +3,59 @@
 
 import platform
 
-def legitimize(text, os=platform.system()):
+
+system = platform.system()
+translate_table = None
+
+def legitimize(text, compress='. -_', strip='. -_', trim=82):
     """Converts a string to a valid filename.
     """
 
-    # POSIX systems
-    text = text.translate({
-        0: None,
-        ord('/'): u'-',
-    })
+    global translate_table
 
-    if os == 'Windows':
-        # Windows (non-POSIX namespace)
-        text = text.translate({
-            # Reserved in Windows VFAT and NTFS
-            ord(':'): u'-',
-            ord('*'): u'-',
-            ord('?'): u'-',
-            ord('\\'): u'-',
-            ord('|'): u'-',
-            ord('\"'): u'\'',
-            ord('\n'): u'_',
-            # Reserved in Windows VFAT
-            ord('+'): u'-',
-            ord('<'): u'-',
-            ord('>'): u'-',
-            ord('['): u'(',
-            ord(']'): u')',
+    if translate_table is None:
+        # Non-Printable Characters
+        # POSIX systems could accept 1-31, but we wouldn't like this
+        # Delete them except tab and newline
+        translate_table = dict.fromkeys(range(32))
+        translate_table.update({
+            ord('\t'): ' ',
+            ord('\n'): '-',
+            ord('/'): '／',
         })
-    else:
-        # *nix
-        if os == 'Darwin':
+        if system == 'Windows':
+            # Windows (non-POSIX namespace), drop old reserved characters
+            translate_table.update({
+                ord('\\'): '＼',
+                ord(':'): '：',
+                ord('*'): '＊',
+                ord('?'): '？',
+                ord('"'): '＂',
+                ord('<'): '＜',
+                ord('>'): '＞',
+                ord('|'): '｜',
+            })
+        elif system == 'Darwin':
             # Mac OS HFS+
-            text = text.translate({
-                ord(':'): u'-',
+            translate_table.update({
+                ord(':'): '：',
             })
 
-        # Remove leading .
-        if text.startswith("."):
-            text = text[1:]
+    text = text.translate(translate_table)
 
-    text = text[:82] # Trim to 82 Unicode characters long
-    return text
+    # Compress same characters, default target are dot, space, minus and underline
+    compress = set(list(compress))
+    chars = []
+    last_char = None
+    for char in text:
+        if not (char is last_char and char in compress):
+            chars.append(char)
+        last_char = char
+    text = ''.join(chars)
+
+
+    # Strip characters, default target are same as compress default target
+    text = text.strip(strip)
+
+    # Trim to specifying Unicode characters length, default target is 82
+    return text[:trim]

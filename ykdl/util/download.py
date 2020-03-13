@@ -10,36 +10,36 @@ from ykdl.util import log
 from ykdl.util.wrap import encode_for_wrap
 from .html import fake_headers
 
-logger = getLogger("downloader")
+logger = getLogger('downloader')
 
 try:
     from concurrent.futures import ThreadPoolExecutor
     MultiThread = True
 except:
     MultiThread = False
-    logger.warning("failed to import ThreadPoolExecutor!")
-    logger.warning("multithread download disabled!")
-    logger.warning("please install concurrent.futures from https://github.com/agronholm/pythonfutures !")
+    logger.warning('failed to import ThreadPoolExecutor!')
+    logger.warning('multithread download disabled!')
+    logger.warning('please install concurrent.futures from https://github.com/agronholm/pythonfutures !')
 
 def simple_hook(arg1, arg2, arg3):
     if arg3 > 0:
         percent = int(arg1 * arg2 * 100 / arg3)
         if percent > 100:
             percent = 100
-        sys.stdout.write('\r %3d' % percent + '%')
+        sys.stdout.write('\r %3d%%' % percent)
         sys.stdout.flush()
     else:
-        sys.stdout.write('\r' + str(round(arg1 * arg2 / 1048576, 1)) + 'MB')
+        sys.stdout.write('\r %sMB' % round(arg1 * arg2 / 1048576, 1))
         sys.stdout.flush()
 
 def save_url(url, name, ext, status, part=None, reporthook=simple_hook):
     if part is None:
-        print("Download: " + name)
+        print('Download: ' + name)
         name = name + '.' + ext
         part = 0
     else:
-        print("Download: " + name + " part %d" % part)
-        name = name + '_%d_.' % part + ext
+        print('\nDownload: %s part %d' % (name, part))
+        name = '%s_%d.%s' % (name, part, ext)
     bs = 1024 * 8
     size = -1
     read = 0
@@ -85,7 +85,7 @@ def save_urls(urls, name, ext, jobs=1):
     if len(urls) == 1:
         save_url(urls[0], name, ext, status)
         if 0 in status:
-            logger.error("donwload failed")
+            logger.error('donwload failed')
         return not 0 in status
     if not MultiThread:
         for no, u in enumerate(urls):
@@ -97,5 +97,5 @@ def save_urls(urls, name, ext, jobs=1):
             worker.shutdown()
     for no, a in enumerate(status):
         if a == 0:
-            logger.error("downloader failed at part {}".format(no))
+            logger.error('downloader failed at part %d' % no)
     return not 0 in status

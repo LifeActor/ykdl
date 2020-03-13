@@ -55,7 +55,7 @@ def arg_parser():
 
 def clean_slices(name, ext, lenth):
     for i in range(lenth):
-        file_name = name + '_%d_.' % i + ext
+        file_name = '%s_%d.%s' % (name, i, ext)
         os.remove(file_name)
 
 def download(urls, name, ext, live = False):

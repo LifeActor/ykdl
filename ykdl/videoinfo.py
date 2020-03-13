@@ -65,9 +65,11 @@ class VideoInfo():
     def build_file_name(self,stream_id):
         if not self.title:
             self.title = self.site + str(random.randint(1, 9999))
-        name_list = [self.title]
+        unique_suffixes = []
         if not stream_id == 'current':
-            name_list.append(stream_id)
+            unique_suffixes.append(stream_id)
         if self.live:
-            name_list.append(datetime.datetime.now().isoformat())
-        return encode_for_wrap(legitimize('_'.join(name_list)), 'ignore')
+            unique_suffixes.append(datetime.datetime.now().isoformat())
+        unique_suffix = '_'.join(unique_suffixes)
+        name = legitimize(self.title, trim= 81 - len(unique_suffix))
+        return encode_for_wrap('_'.join([name, unique_suffix]), 'ignore')

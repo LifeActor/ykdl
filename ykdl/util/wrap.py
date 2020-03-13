@@ -46,6 +46,8 @@ class PlayerHandle(object):
             self.play()
 
     def play(self):
+        if self.handle:
+            return
         try:
             for cmd in self.cmds:
                 self.handle = handle = subprocess.Popen(cmd, env=self.env)
@@ -145,10 +147,10 @@ def launch_ffmpeg(basename, ext, lenth):
                 outputfile ]
         pipe_input = subprocess.Popen(cmd, stdin=subprocess.PIPE).stdin
 
-        # use pipe pass data need not to wait subprocess
+        # use pipe pass data does not need to wait subprocess
         bufsize = 1024 * 64
         for i in range(lenth):
-            inputfile = '%s_%d_.%s' % (basename, i, ext)
+            inputfile = '%s_%d.%s' % (basename, i, ext)
             with open(inputfile, 'rb') as fp:
                 data = fp.read(bufsize)
                 while data:
@@ -158,7 +160,7 @@ def launch_ffmpeg(basename, ext, lenth):
         # build input file
         inputfile = compact_tempfile(mode='w+t', suffix='.txt', dir='.', encoding='utf-8')
         for i in range(lenth):
-            inputfile.write("file '%s_%d_.%s'\n" % (basename, i, ext))
+            inputfile.write("file '%s_%d.%s'\n" % (basename, i, ext))
         inputfile.flush()
 
         cmd = [ 'ffmpeg',

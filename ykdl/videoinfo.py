@@ -8,7 +8,6 @@ import datetime
 import random
 from ykdl.util.fs import legitimize
 from ykdl.util import log
-from ykdl.util.wrap import encode_for_wrap
 
 class VideoInfo():
     def __init__(self, site, live = False):
@@ -70,6 +69,8 @@ class VideoInfo():
             unique_suffixes.append(stream_id)
         if self.live:
             unique_suffixes.append(legitimize(datetime.datetime.now().isoformat()))
-        unique_suffix = '_'.join(unique_suffixes)
-        name = legitimize(self.title, trim= 81 - len(unique_suffix))
-        return encode_for_wrap('_'.join([name, unique_suffix]), 'ignore')
+        if unique_suffixes:
+            unique_suffix = '_'.join(unique_suffixes)
+            return '_'.join([legitimize(self.title, trim= 81 - len(unique_suffix)), unique_suffix])
+        else:
+            return legitimize(self.title)

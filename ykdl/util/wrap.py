@@ -79,11 +79,10 @@ def launch_player(player, urls, ext, play=True, **args):
         if args['referer']:
             cmd += ['--referrer=' + args['referer']]
         if args['title']:
-            cmd += ['--force-media-title=' + encode_for_wrap(args['title'], 'ignore')]
+            cmd += ['--force-media-title=' + args['title']]
         if args['header']:
             cmd += ['--http-header-fields=' + args['header']]
 
-    urls = [encode_for_wrap(url) for url in urls]
     if args['rangefetch']:
         urls = ['http://127.0.0.1:8806/' + url for url in urls]
         cmds = split_cmd_urls(cmd, urls)
@@ -122,18 +121,8 @@ def split_cmd_urls(cmd, urls):
         cmds = [_cmd]
     return cmds
 
-def encode_for_wrap(string, errors='strict'):
-    sys_code = sys.getfilesystemencoding()
-    if isinstance(string, type(u'')):
-        if isinstance(string, str):
-            string = string.encode(sys_code, errors).decode(sys_code)
-        else:
-            string = string.encode(sys_code, errors)
-    # ignore str in py2, bytes in py3
-    return string
-
 def launch_ffmpeg(basename, ext, lenth):
-    print('Merging video %s using ffmpeg:' % basename)
+    print('Merging video %s using FFmpeg:' % basename)
     if ext == 'ts':
         outputfile = basename + '.mp4'
     else:
@@ -190,7 +179,6 @@ def launch_ffmpeg_download(url, name, live):
 =================================
 ''')
 
-    url = encode_for_wrap(url)
     cmd = [ 'ffmpeg',
             '-y', '-hide_banner',
             '-headers', ''.join('%s: %s\r\n' % x for x in fake_headers.items()),

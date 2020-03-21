@@ -243,23 +243,26 @@ def test_main(external_interpreters):
 
 default_external_interpreters = [
     # test passed
-    'gjs',          # Gjs
+    'chakra',       # ChakraCore
     'cjs',          # CJS
+    'gjs',          # Gjs
     'jsc',          # JavaScriptCore
-    'qjs',          # QuickJS
     'node',         # Node.js
     'nodejs',       # Node.js
+    'qjs',          # QuickJS
     'spidermonkey', # SpiderMonkey
-    'chakra',       # ChakraCore
+    'xst',          # XS
 
     # test passed, but unceremonious names
-    #'d8',          # V8
-    #'js',          # SpiderMonkey
     #'ch',          # ChakraCore
+    #'js',          # SpiderMonkey
+    #'d8',          # V8
+    #'xs':          # XS
 
     # test failed
-    'hermes',       # Hermes
     'duk',          # Duktape
+    'hermes',       # Hermes
+    'jscript',      # JScript
 ]
 
 
@@ -272,5 +275,5 @@ if __name__ == '__main__':
     else:
         print_source_code = True
     external_interpreters = sys.argv[1:] or default_external_interpreters
-    del sys.argv[1:] # clear arguments
+    del sys.argv[1:]  # clear arguments
     test_main(external_interpreters)

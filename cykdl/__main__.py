@@ -17,7 +17,6 @@ import socket
 import ssl
 import json
 import types
-from multiprocessing import cpu_count
 
 import logging
 logger = logging.getLogger("YKDL")
@@ -47,7 +46,7 @@ def arg_parser():
     parser.add_argument('-t', '--timeout', type=int, default=60, help="set socket timeout seconds, default 60s")
     parser.add_argument('--no-merge', action='store_true', default=False, help="do not merge video slides")
     parser.add_argument('-s', '--start', type=int, default=0, help="start from INDEX to play/download playlist")
-    parser.add_argument('-j', '--jobs', type=int, default=cpu_count(), help="number of jobs for multiprocess download")
+    parser.add_argument('-j', '--jobs', type=int, default=8, help="number of jobs for multiprocess download")
     parser.add_argument('--debug', default=False, action='store_true', help="print debug messages from ykdl")
     parser.add_argument('video_urls', type=str, nargs='+', help="video urls")
     global args

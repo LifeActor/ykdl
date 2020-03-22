@@ -48,20 +48,23 @@
     from jsengine import *
 
     binary = binary_name or binary_path
-    name = None or any_string  # see ExternalInterpreterNameAlias.keys()
-    args = [args1, args2, ...]
-    tempfile = True   # use tempfile or not
+    name = None or any_string   # see ExternalInterpreterNameAlias.keys()
+    tempfile = True             # use tempfile or not
+    evalstring = True           # can run command string as Javascript or can't
+    args = [args1, args2, ...]  # arguments used for interpreter
 
     interpreter = ExternalInterpreter.get(binary, name=name,
-                                          args=args,
-                                          tempfile=tempfile)
+                                          tempfile=tempfile,
+                                          evalstring=evalstring,
+                                          args=args)
     if interpreter:
         # found
         ctx = ExternalJSEngine(interpreter)
       
     if set_external_interpreter(binary, name=name,
-                                args=args,
-                                tempfile=tempfile):
+                                tempfile=tempfile,
+                                evalstring=evalstring,
+                                args=args)
         # set default external interpreter OK
         ctx = ExternalJSEngine()
 '''
@@ -96,7 +99,7 @@ class ProgramError(Exception):
     pass
 
 
-# The maximum length of cmd string
+# The maximum length of command string
 if os.name == 'posix':
     # Used in Unix is ARG_MAX in conf
     ARG_MAX = int(os.popen('getconf ARG_MAX').read())
@@ -105,7 +108,7 @@ else:
     ARG_MAX = 32 * 1024
 
 
-### Detect javascript interpreters
+### Detect Javascript interpreters
 chakra_available = False
 quickjs_available = False
 external_interpreter = None
@@ -417,17 +420,6 @@ class QuickJSEngine(InternalJSEngine):
         InternalJSEngine.__init__(self, *args, **kwargs)
 
     class Context:
-
-        class Function:
-            # PetterS/quickjs/Issue7
-            # Escape StackOverflow when calling function outside
-            def __init__(self, context, function):
-                self._context = context
-                self._function = function
-
-            def __call__(self, *args):
-                return self._function(*args)
-
         def __init__(self, engine):
             self._engine = engine
             self._context = quickjs.Context()
@@ -448,6 +440,16 @@ class QuickJSEngine(InternalJSEngine):
                     else:
                         return json.loads(result.json())
 
+        class Function:
+            # PetterS/quickjs/Issue7
+            # Escape StackOverflow when calling function outside
+            def __init__(self, context, function):
+                self._context = context
+                self._function = function
+
+            def __call__(self, *args):
+                return self._function(*args)
+
 
 class ExternalJSEngine(AbstractJSEngine):
     '''Wrappered for external Javascript interpreter.'''
@@ -457,7 +459,7 @@ class ExternalJSEngine(AbstractJSEngine):
             interpreter = ExternalInterpreter.get(interpreter)
         if isinstance(interpreter, ExternalInterpreter):
             self.interpreter = interpreter
-        elif external_interpreter:
+        elif isinstance(external_interpreter, ExternalInterpreter):
             self.interpreter = external_interpreter
         else:
             msg = 'No supported external Javascript interpreter found on your system!'
@@ -478,14 +480,16 @@ class ExternalJSEngine(AbstractJSEngine):
     def _eval(self, code):
         self._append_source(code)
         code = self._inject_script()
-        try:
-            output = self._run_interpreter_with_string(code)
-            evalstring = True
-        except ValueError:
-            evalstring = False
-        except _RuntimeError:
-            self.interpreter.evalstring = False
-            evalstring = False
+
+        evalstring = False
+        if self.interpreter.evalstring:
+            try:
+                output = self._run_interpreter_with_string(code)
+                evalstring = True
+            except ValueError:
+                pass
+            except _RuntimeError:
+                self.interpreter.evalstring = False
 
         if not evalstring and not self.interpreter.tempfile:
             try:
@@ -505,9 +509,10 @@ class ExternalJSEngine(AbstractJSEngine):
             try:
                 _, ok, result = json.loads(result_line)
             except json.decoder.JSONDecodeError as e:
-                if self.interpreter.tempfile:
+                if not evalstring and self.interpreter.tempfile:
                     raise RuntimeError('%s:\n%s' % (e, output))
                 else:
+                    evalstring = False
                     self.interpreter.tempfile = True
                     continue
             if ok:
@@ -528,10 +533,10 @@ class ExternalJSEngine(AbstractJSEngine):
         return stdout_data.decode('utf8')
 
     def _run_interpreter_with_string(self, code):
-        # `-e`, `-eval` means run string as Javascript
+        # `-e`, `-eval` means run command string as Javascript
         # But some interpreters don't use `-eval`
         cmd = self.interpreter.command + ['-e', code]
-        if len(list2cmdline(cmd)) < ARG_MAX:  # Direct compare, don't wait an Exception
+        if len(list2cmdline(cmd)) > ARG_MAX:  # Direct compare, don't wait an Exception
             raise ValueError('code length is too long to run as a command')
         return self._run_interpreter(cmd)
 
@@ -577,9 +582,6 @@ class ExternalInterpreter:
         name = ExternalInterpreterNameAlias.get(name.lower().replace('.', ''), name)
         if name in DefaultExternalInterpreterOptions:
             tempfile, evalstring, args = DefaultExternalInterpreterOptions[name]
-        else:
-            if evalstring:
-                tempfile = False
         self.name = name
         self.path = path
         self.tempfile = tempfile

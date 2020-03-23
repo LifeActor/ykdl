@@ -23,13 +23,14 @@ def get_extractor(url):
         return s.site, url
 
     av_id = match1(url, '(?:/av|aid=)(\d+)')
-    page_index = match1(url, '(?:page|\?p)=(\d+)', 'index_(\d+)\.') or '1'
-    if page_index == '1':
-        url = 'https://www.bilibili.com/av{}/'.format(av_id)
-    else:
-        url = 'https://www.bilibili.com/av{}/?p={}'.format(av_id, page_index)
-    add_header('Referer', 'https://www.bilibili.com/')
-    url = get_location(url)
+    if av_id:
+        page_index = match1(url, '(?:page|\?p)=(\d+)', 'index_(\d+)\.') or '1'
+        if page_index == '1':
+            url = 'https://www.bilibili.com/av{}/'.format(av_id)
+        else:
+            url = 'https://www.bilibili.com/av{}/?p={}'.format(av_id, page_index)
+        add_header('Referer', 'https://www.bilibili.com/')
+        url = get_location(url)
 
     if '/bangumi/' in url:
         from . import bangumi as s

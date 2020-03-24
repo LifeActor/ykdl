@@ -4,6 +4,7 @@
 from ykdl.util.html import get_location, add_header, add_default_handler, install_default_handlers
 from ykdl.util.match import match1, matchall
 from ykdl.compact import HTTPCookieProcessor
+from .av2bv import dec
 
 import re
 
@@ -23,6 +24,9 @@ def get_extractor(url):
         return s.site, url
 
     av_id = match1(url, '(?:/av|aid=)(\d+)')
+    bv_id = match1(url, '/(BV\w+)')
+    if bv_id:
+        av_id = dec(bv_id)
     if av_id:
         page_index = match1(url, '(?:page|\?p)=(\d+)', 'index_(\d+)\.') or '1'
         if page_index == '1':

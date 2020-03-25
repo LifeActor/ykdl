@@ -22,19 +22,20 @@ def get_extractor(url):
         from . import bangumi as s
         return s.site, url
 
+    page_index = match1(url, '(?:page|\?p)=(\d+)', 'index_(\d+)\.') or '1'
+
     av_id = match1(url, '(?:/av|aid=)(\d+)')
     if av_id:
-        page_index = match1(url, '(?:page|\?p)=(\d+)', 'index_(\d+)\.') or '1'
-        if page_index == '1':
-            url = 'https://www.bilibili.com/av{}/'.format(av_id)
-        else:
-            url = 'https://www.bilibili.com/av{}/?p={}'.format(av_id, page_index)
-        add_header('Referer', 'https://www.bilibili.com/')
-        url = get_location(url)
+        url = 'https://www.bilibili.com/av{}'.format(av_id)
+
+    add_header('Referer', 'https://www.bilibili.com/')
+    url = get_location(url).rstrip('/')
 
     if '/bangumi/' in url:
         from . import bangumi as s
     else:
+        if page_index > '1':
+            url = '{}?p={}'.format(url, page_index)
         from . import video as s
 
     return s.site, url

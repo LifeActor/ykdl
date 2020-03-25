@@ -48,10 +48,10 @@ class BiliVideo(BiliBase):
         return sign_api_url(api_url, params_str, SECRETKEY)
 
     def prepare_list(self):
-        av_id = match1(self.url, '/av(\d+)')
+        vid = match1(self.url, '/(av\d+|BV[0-9A-Za-z]+)')
         html = get_content(self.url)
         video_list = matchall(html, ['"page":(\d+),'])
         if video_list:
-            return ['https://www.bilibili.com/av{}/?p={}'.format(av_id, p) for p in video_list]
+            return ['https://www.bilibili.com/{}/?p={}'.format(vid, p) for p in video_list]
 
 site = BiliVideo()

@@ -6,6 +6,7 @@ from ykdl.util.match import match1, matchall
 from ykdl.compact import urlencode
 
 from .bilibase import BiliBase, sign_api_url
+from .idconvertor import av2bv
 
 import json
 
@@ -48,10 +49,13 @@ class BiliVideo(BiliBase):
         return sign_api_url(api_url, params_str, SECRETKEY)
 
     def prepare_list(self):
-        vid = match1(self.url, '/(av\d+|BV[0-9A-Za-z]+)')
+        # backup https://api.bilibili.com/x/player/pagelist?bvid=
+        vid = match1(self.url, '/(av\d+|BV[0-9A-Za-z]{10})')
+        if vid[:2] == 'av':
+            vid = av2bv(vid)
         html = get_content(self.url)
         video_list = matchall(html, ['"page":(\d+),'])
         if video_list:
-            return ['https://www.bilibili.com/{}/?p={}'.format(vid, p) for p in video_list]
+            return ['https://www.bilibili.com/video/{}?p={}'.format(vid, p) for p in video_list]
 
 site = BiliVideo()

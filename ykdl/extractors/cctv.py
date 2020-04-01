@@ -23,7 +23,7 @@ class CNTV(VideoExtractor):
 
     def prepare(self):
         info = VideoInfo(self.name)
-        self.vid = match1(self.url, 'videoCenterId=(\w+)')
+        self.vid = match1(self.url, '(?:guid|videoCenterId)=(\w+)', '(\w+)/index\.shtml')
         if self.url and not self.vid:
             content = get_content(self.url)
             self.vid = match1(content, 'guid = "([^"]+)', '"videoCenterId","([^"]+)')

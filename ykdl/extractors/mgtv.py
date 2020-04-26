@@ -50,10 +50,15 @@ def generate_tk2(did):
 class Hunantv(VideoExtractor):
     name = u"芒果TV (HunanTV)"
 
-    supported_stream_profile = [ u'蓝光', u'超清', u'高清', u'标清' ]
     supported_stream_types = [ 'BD', 'TD', 'HD', 'SD' ]
-    profile_2_types = { u'蓝光': 'BD', u'超清': 'TD', u'高清': 'HD', u'标清': 'SD' }
-    
+    profile_2_types = {
+        u'复刻版': 'BD',
+        u'蓝光': 'BD',
+        u'超清': 'TD',
+        u'高清': 'HD',
+        u'标清': 'SD'
+    }
+
     def prepare(self):
         add_default_handler(HTTPCookieProcessor)
         install_default_handlers()

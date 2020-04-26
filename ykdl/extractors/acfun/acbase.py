@@ -46,18 +46,17 @@ class AcBase(VideoExtractor):
             m3u8Info = json.loads(m3u8Info)['adaptationSet']['representation']
             url = random.choice(['url', 'backupUrl'])
             for q in m3u8Info:
-                try:
-                    quality = min([q['width'],  q['height']])
-                    stream_type = self.quality1_2_id[quality]
-                except:
-                    quality = max([q['width'],  q['height']])
-                    stream_type = self.quality2_2_id[quality]
-                stream_profile = self.id_2_profile[stream_type]
+                quality = int(match1(q['qualityType'], '(\d+)'))
+                stream_type = self.quality1_2_id[quality]
+                stream_profile = q['qualityLabel']
+                urls = q[url]
+                if not isinstance(urls, list):
+                    urls = [urls]
                 info.stream_types.append(stream_type)
                 info.streams[stream_type] = {
                     'container': 'm3u8',
                     'video_profile': stream_profile,
-                    'src': [q[url]],
+                    'src': urls,
                     'size': 0
                 }
 

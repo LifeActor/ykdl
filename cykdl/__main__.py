@@ -37,6 +37,7 @@ def arg_parser():
     parser.add_argument('-l', '--playlist', action='store_true', default=False, help="Download as a playlist.")
     parser.add_argument('-i', '--info', action='store_true', default=False, help="Display the information of videos without downloading.")
     parser.add_argument('-J', '--json', action='store_true', default=False, help="Display info in json format.")
+    parser.add_argument('-L', '--list-playlist', action='store_true', default=False, help="List content of playlist.")
     parser.add_argument('-F', '--format',  help="Video format code, or resolution level 0, 1, ...")
     parser.add_argument('-o', '--output-dir', default='.', help="Set the output directory for downloaded videos.")
     parser.add_argument('-O', '--output-name', default='', help="downloaded videos with the NAME you want")
@@ -185,8 +186,14 @@ def main():
         exit = 0
         for url in args.video_urls:
             try:
-                m, u = url_to_module(url)
-                if args.playlist:
+                m,u = url_to_module(url)
+                if args.list_playlist:
+                    m.url = url
+                    url_list = m.prepare_list()
+                    for u in url_list:
+                        print(u)
+                    return
+                elif args.playlist:
                     parser = m.parser_list
                 else:
                     parser = m.parser

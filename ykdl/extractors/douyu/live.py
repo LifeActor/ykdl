@@ -43,12 +43,11 @@ class Douyutv(VideoExtractor):
                                 'room_id\s*=\s*(\d+)',
                                 '"room_id.?":(\d+)',
                                 'data-onlineid=(\d+)')
-        title = match1(html, 'Title-headlineH2">([^<]+)<')
-        artist = match1(html, 'Title-anchorName" title="([^"]+)"')
 
+        title = match1(html, 'Title-head\w*">([^<]+)<')
+        artist = match1(html, 'Title-anchorName\w*" title="([^"]+)"')
         if not title or not artist:
-            html = get_content('https://open.douyucdn.cn/api/RoomApi/room/' + self.vid)
-            room_data = json.loads(html)
+            room_data = json.loads(get_content('https://open.douyucdn.cn/api/RoomApi/room/' + self.vid))
             if room_data['error'] == 0:
                 room_data = room_data['data']
                 title = room_data['room_name']

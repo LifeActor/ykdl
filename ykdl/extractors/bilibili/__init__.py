@@ -35,7 +35,7 @@ def get_extractor(url):
     if av_id:
         bv_id = av2bv(av_id)
     else:
-        bv_id = match1(url, '(BV[0-9A-Za-z]{10})')
+        bv_id = match1(url, '((?:BV|bv)[0-9A-Za-z]{10})')
 
     try:
         data = json.loads(get_content(API_view + bv_id))

@@ -50,7 +50,7 @@ class BiliVideo(BiliBase):
 
     def prepare_list(self):
         # backup https://api.bilibili.com/x/player/pagelist?bvid=
-        vid = match1(self.url, '/(av\d+|BV[0-9A-Za-z]{10})')
+        vid = match1(self.url, '/(av\d+|(?:BV|bv)[0-9A-Za-z]{10})')
         if vid[:2] == 'av':
             vid = av2bv(vid)
         html = get_content(self.url)

@@ -25,27 +25,26 @@ class HuyaLive(VideoExtractor):
         assert data['status'] == 200, data['msg']
 
         room_info = data['data'][0]['gameLiveInfo']
-        info.title = u'{}「{} - {}」'.format(room_info['roomName'], room_info['nick'], room_info['introduction'])
+        info.title = u'{}「{} - {}」'.format(
+            room_info['roomName'], room_info['nick'], room_info['introduction'])
         info.artist = room_info['nick']
 
-        stream_list = data['data'][0]['gameStreamInfoList']
-        sCdnType = 'TX'
-        while sCdnType == 'TX':
-            stream_info = random.choice(stream_list)
-            sCdnType = stream_info['sCdnType']
-            if len(stream_list) == 1:  # 预防死循环
-                break
-        sHlsUrl = stream_info['sHlsUrl']
+        stream_info = random.choice(data['data'][0]['gameStreamInfoList'])
         sStreamName = stream_info['sStreamName']
-        sHlsUrlSuffix = stream_info['sHlsUrlSuffix']
-        sHlsAntiCode = stream_info['sHlsAntiCode']
-        hls_url = u'{}/{}.{}?{}'.format(sHlsUrl, sStreamName, sHlsUrlSuffix, sHlsAntiCode)
+        
+        def link_urls():
+            for sType in ('flv', 'hls'):
+                sType = sType.title()
+                sUrl = stream_info['s{}Url'.format(sType)]
+                sUrlSuffix = stream_info['s{}UrlSuffix'.format(sType)]
+                sAntiCode = stream_info['s{}AntiCode'.format(sType)]
+                yield u'{}/{}.{}?{}'.format(sUrl, sStreamName, sUrlSuffix, sAntiCode)
 
         info.stream_types.append("current")
         info.streams["current"] = {
             'container': 'flv',
             'video_profile': 'current',
-            'src': [unescape(hls_url)],
+            'src': [unescape(url) for url in link_urls()],
             'size' : float('inf')
         }
         return info

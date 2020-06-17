@@ -28,7 +28,13 @@ class HuyaLive(VideoExtractor):
         info.title = u'{}「{} - {}」'.format(room_info['roomName'], room_info['nick'], room_info['introduction'])
         info.artist = room_info['nick']
 
-        stream_info = random.choice(data['data'][0]['gameStreamInfoList'])
+        stream_list = data['data'][0]['gameStreamInfoList']
+        sCdnType = 'TX'
+        while sCdnType == 'TX':
+            stream_info = random.choice(stream_list)
+            sCdnType = stream_info['sCdnType']
+            if len(stream_list) == 1:  # 预防死循环
+                break
         sHlsUrl = stream_info['sHlsUrl']
         sStreamName = stream_info['sStreamName']
         sHlsUrlSuffix = stream_info['sHlsUrlSuffix']
@@ -37,7 +43,7 @@ class HuyaLive(VideoExtractor):
 
         info.stream_types.append("current")
         info.streams["current"] = {
-            'container': 'm3u8',
+            'container': 'flv',
             'video_profile': 'current',
             'src': [unescape(hls_url)],
             'size' : float('inf')

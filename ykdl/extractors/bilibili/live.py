@@ -26,9 +26,7 @@ class BiliLive(VideoExtractor):
         (u'高清', 'HD'),
         (u'流畅', 'SD')
     ]
-    supported_stream_profile = [prf for prf, _ in profile_type]
     profile_2_type = dict(profile_type)
-
     sorted_format = [fmt for _, fmt in profile_type]
 
     def prepare(self):
@@ -68,7 +66,7 @@ class BiliLive(VideoExtractor):
             data = data['data']
             urls = [random.choice(data['durl'])['url']]
             qlt = data['current_qn']
-            aqlts = {x['qn']:x['desc'] for x in data['quality_description']}
+            aqlts = {x['qn']: x['desc'] for x in data['quality_description']}
             size = float('inf')
             ext = 'flv'
             prf = aqlts[qlt]

@@ -44,12 +44,14 @@ def save_url(url, name, ext, status, part=None, reporthook=simple_hook):
     read = 0
     blocknum = 0
     open_mode = 'wb'
+    response = None
     req = Request(url, headers=fake_headers)
     if os.path.exists(name):
         filesize = os.path.getsize(name)
-        req.add_header('Range', 'bytes=%d-' % filesize)
-        response = urlopen(req, None)
-        if response.status == 206:
+        if filesize:
+            req.add_header('Range', 'bytes=%d-' % (filesize-1))  # get +1, avoid 416
+            response = urlopen(req, None)
+            assert response.status == 206, 'HTTP status %d' % response.status
             size = int(response.headers['Content-Range'].split('/')[-1])
             if filesize == size:
                 print('Skipped: file already downloaded')
@@ -59,7 +61,8 @@ def save_url(url, name, ext, status, part=None, reporthook=simple_hook):
                 if filesize:
                     blocknum = int(filesize / bs)
                 open_mode = 'ab'
-    else:
+                response.read(1) # read -1
+    if response is None:
         response = urlopen(req, None)
     if size < 0:
         size = int(response.headers.get('Content-Length', -1))

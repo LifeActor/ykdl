@@ -43,7 +43,7 @@ class AcBase(VideoExtractor):
         info.title, info.artist, sourceVid, m3u8Info = self.get_page_info(html)
 
         if isinstance(m3u8Info, str):
-            m3u8Info = json.loads(m3u8Info)['adaptationSet']['representation']
+            m3u8Info = json.loads(m3u8Info)['adaptationSet'][0]['representation']
             url = random.choice(['url', 'backupUrl'])
             for q in m3u8Info:
                 quality = int(match1(q['qualityType'], '(\d+)'))

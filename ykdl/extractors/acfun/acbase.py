@@ -12,9 +12,10 @@ import random
 
 class AcBase(VideoExtractor):
 
-    stream_ids = ['BD', 'TD', 'HD', 'SD', 'LD']
+    stream_ids = ['4k', 'BD', 'TD', 'HD', 'SD', 'LD']
     quality1_2_id = {
         # min resolution
+        2160: '4k',
         1080: 'BD',
         720: 'TD',
         540: 'HD',
@@ -23,6 +24,7 @@ class AcBase(VideoExtractor):
     }
     quality2_2_id = {
         # max resolution
+        3840: '4k',
         1920: 'BD',
         1280: 'TD',
         960: 'HD',
@@ -30,11 +32,12 @@ class AcBase(VideoExtractor):
         480: 'LD'
     }
     id_2_profile = {
+        '4k': u'2160P',
         'BD': u'1080P',
-        'TD': u'超清',
-        'HD': u'高清',
-        'SD': u'标清',
-        'LD': u'流畅'
+        'TD': u'720P',
+        'HD': u'540P',
+        'SD': u'360P',
+        'LD': u'270P'
     }
 
     def prepare(self):
@@ -52,7 +55,11 @@ class AcBase(VideoExtractor):
                 urls = q[url]
                 if not isinstance(urls, list):
                     urls = [urls]
-                info.stream_types.append(stream_type)
+                if stream_type not in info.streams:
+                    info.stream_types.append(stream_type)
+                elif stream_profile.endswith('P60'):
+                    # drop 60 FPS
+                    continue
                 info.streams[stream_type] = {
                     'container': 'm3u8',
                     'video_profile': stream_profile,
@@ -93,7 +100,8 @@ class AcBase(VideoExtractor):
                     else:
                         url = urljoin(m3u8api, line)
                     stream_profile = self.id_2_profile[stream_type]
-                    info.stream_types.append(stream_type)
+                    if stream_type not in info.streams:
+                        info.stream_types.append(stream_type)
                     info.streams[stream_type] = {
                         'container': 'm3u8',
                         'video_profile': stream_profile,

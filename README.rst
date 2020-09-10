@@ -20,7 +20,7 @@ this project is a fork of `you-get <https://github.com/soimort/you-get>`_ with b
 Consider install from source by:
 
 0. sudo apt-get install ffmpeg mpv python3-pip
-1. pip3 install git+git://github.com/zhangn1985/ykdl.git --upgrade --user
+1. pip3 install git+https://github.com/zhangn1985/ykdl.git --upgrade --user
 2. add `~/.local/bin` to your PATH
 
 Simple installation guide:
@@ -33,8 +33,8 @@ Linux/debian:
 
 Windows:
 
-0. install python3 from python.org
-1. pip install --upgrade ykdl
+0. install python3 from `python.org <https://www.python.org/>`_ git from `gitforwindows.org <https://gitforwindows.org/>`_
+1. pip install --upgrade git+https://github.com/zhangn1985/ykdl.git
 2. install deps: `FFMPEG <https://ffmpeg.zeranoe.com/builds/>`_ `MPV <https://mpv.srsfckn.biz/>`_ to system PATH
 
 Other Linux: please follow debian

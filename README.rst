@@ -35,7 +35,7 @@ Windows:
 
 0. install python3 from `python.org <https://www.python.org/>`_ git from `gitforwindows.org <https://gitforwindows.org/>`_
 1. pip install --upgrade git+https://github.com/zhangn1985/ykdl.git
-2. install deps: `FFMPEG <https://ffmpeg.zeranoe.com/builds/>`_ `MPV <https://mpv.io/>`_ to system PATH
+2. install deps: `FFMPEG <https://ffmpeg.org/download.html#build-windows>`_ `MPV <https://mpv.io/>`_ to system PATH
 
 Other Linux: please follow debian
 

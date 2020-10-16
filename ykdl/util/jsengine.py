@@ -171,7 +171,13 @@ else:
 
 # macOS: built-in JavaScriptCore
 if platform.system() == 'Darwin':
-    external_interpreter = '/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources/jsc'
+    # jsc lives on a new path since macOS Catalina
+    jsc_paths = ['/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Resources/jsc',
+                 '/System/Library/Frameworks/JavaScriptCore.framework/Versions/A/Helpers/jsc']
+    for interpreter in jsc_paths:
+        external_interpreter = which(interpreter)
+        if external_interpreter:
+            break
 
 # Windows: built-in Chakra, or Node.js，QuickJS if installed
 elif platform.system() == 'Windows':

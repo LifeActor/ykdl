@@ -12,15 +12,16 @@ class QQEGame(VideoExtractor):
     name = u'QQ EGAME (企鹅电竟)'
 
 
-    stream_ids = ['BD8M', 'BD6M', 'BD', 'TD', 'HD', 'SD']
+    stream_ids = ['BD10M', 'BD8M', 'BD6M', 'BD4M', 'BD', 'TD', 'HD', 'SD']
     
-    profile_2_id = {
-        u'蓝光8M': 'BD8M',
-        u'蓝光6M': 'BD6M',
-        u'蓝光': 'BD',
-        u'超清': 'TD',
-        u'高清': 'HD',
-        u'流畅': 'SD',
+    lv_2_id = {
+        10: 'BD10M',
+         8: 'BD8M',
+         6: 'BD6M',
+         4: 'BD4M',
+         3: 'TD',
+         2: 'HD',
+         1: 'SD',
     }
 
     def prepare(self):
@@ -35,19 +36,18 @@ class QQEGame(VideoExtractor):
         info.artist = artist = match1(html, 'nickName:"([^"]+)"')
         info.title = u'{} - {}'.format(title, artist)
 
-        playerInfo = match1(html, '_playerInfo = ({.+?});')
+        playerInfo = match1(html, 'playerInfo = ({.+?});')
         self.logger.debug("playerInfo => %s" % (playerInfo))
 
         assert playerInfo, 'error: live show is not on line!!'
         playerInfo = json.loads(playerInfo)
 
         for u in playerInfo['urlArray']:
-            video_profile = u['desc']
-            stream = self.profile_2_id[video_profile]
+            stream = self.lv_2_id[u['levelType']]
             info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': 'flv',
-                'video_profile': video_profile,
+                'video_profile': u['desc'],
                 'src': [u['playUrl']],
                 'size': float('inf')
             }

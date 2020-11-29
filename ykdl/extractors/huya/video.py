@@ -15,17 +15,11 @@ class HuyaVideo(VideoExtractor):
     name = u"huya video (虎牙视频)"
 
     supported_stream_types = ['BD', 'TD', 'HD', 'SD']
-    quality_2_id = {
-        1080: 'BD',
-        720: 'TD',
-        540: 'HD',
-        360: 'SD'
-    }
-    id_2_profile = {
-        'BD': u'原画',
-        'TD': u'超清',
-        'HD': u'高清',
-        'SD': u'流畅'
+    quality_2_id_profile = {
+        'yuanhua': ['BD', u'原画'],
+           '1300': ['TD', u'超清'],
+          #'TODO': ['HD', u'高清'],
+            '350': ['SD', u'流畅']
     }
 
     def prepare(self):
@@ -59,14 +53,13 @@ class HuyaVideo(VideoExtractor):
 
         for stream_date in data:
             ext = stream_date['format']
-            quality = min(int(q) for q in (stream_date['height'], stream_date['width']))
-            stream = self.quality_2_id[quality]
+            quality =stream_date['definition']
+            stream, video_profile = self.quality_2_id_profile[quality]
             if stream not in info.stream_types:
                 info.stream_types.append(stream)
             elif ext == 'm3u8':
                 # prefer mp4
                 continue
-            video_profile = self.id_2_profile[stream]
             url = stream_date['transcode']['urls'][0]
             info.streams[stream] = {
                 'container': ext,

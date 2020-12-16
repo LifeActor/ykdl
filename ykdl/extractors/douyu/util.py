@@ -40,6 +40,7 @@ def ub98484234(js_enc, extractor, params):
     names_dict = {
         'debugMessages': get_random_name(8),
         'decryptedCodes': get_random_name(8),
+        'patchCode': get_random_name(8),
         'resoult': get_random_name(8),
         '_ub98484234': get_random_name(8),
         'workflow': match1(js_enc, 'function ub98484234\(.+?\Weval\((\w+)\);'),
@@ -49,30 +50,31 @@ def ub98484234(js_enc, extractor, params):
     if (!this.window) {{window = {{}};}}
     if (!this.document) {{document = {{}};}}
     '''.format(**names_dict)
-    js_patch = '''
-    {debugMessages}.{decryptedCodes}.push({workflow});
-    var patchCode = function(workflow) {{
-        var testVari = /(\w+)=(\w+)\([\w\+]+\);.*?(\w+)="\w+";/.exec(workflow);
+    js_patch = ['''
+    function {patchCode}(workflow) {{
+        let testVari = /(\w+)=(\w+)\([\w\+]+\);.*?(\w+)="\w+";/.exec(workflow);
         if (testVari && testVari[1] == testVari[2]) {{
-            {workflow} += testVari[1] + "[" + testVari[3] + "] = function() {{return true;}};";
+            workflow += `${{testVari[1]}}[${{testVari[3]}}] = function() {{return true;}};`;
         }}
-    }};
-    patchCode({workflow});
-    var subWorkflow = /(?:\w+=)?eval\((\w+)\)/.exec({workflow});
-    if (subWorkflow) {{
-        var subPatch = `
-            {debugMessages}.{decryptedCodes}.push('sub workflow: ' + subWorkflow);
-            patchCode(subWorkflow);
-        `.replace(/subWorkflow/g, subWorkflow[1]) + subWorkflow[0];
-        {workflow} = {workflow}.replace(subWorkflow[0], subPatch);
+        let subWorkflow = /(?:\w+=)?eval\((\w+)\)/.exec(workflow);
+        if (subWorkflow) {{
+            let subPatch = `
+                {debugMessages}.{decryptedCodes}.push('sub workflow: ' + subWorkflow);
+                subWorkflow = {patchCode}(subWorkflow);
+            `.replace(/subWorkflow/g, subWorkflow[1]) + subWorkflow[0];
+            workflow = workflow.replace(subWorkflow[0], subPatch);
+        }}
+        return workflow;
     }}
-    eval({workflow});
-    '''.format(**names_dict)
+    '''.format(**names_dict), '''
+    {debugMessages}.{decryptedCodes}.push({workflow});
+    eval({patchCode}({workflow}));
+    '''.format(**names_dict)]
     js_debug = '''
     var {_ub98484234} = ub98484234;
     ub98484234 = function(p1, p2, p3) {{
         try {{
-            var resoult = {_ub98484234}(p1, p2, p3);
+            let resoult = {_ub98484234}(p1, p2, p3);
             {debugMessages}.{resoult} = resoult;
         }} catch(e) {{
             {debugMessages}.{resoult} = e.message;
@@ -80,19 +82,26 @@ def ub98484234(js_enc, extractor, params):
         return {debugMessages};
     }};
     '''.format(**names_dict)
-    js_enc = js_enc.replace('eval({workflow});'.format(**names_dict), js_patch)
 
     js_ctx = JSEngine()
     js_ctx.append(js_md5)
     js_ctx.append(js_dom)
-    js_ctx.append(js_enc)
+    if names_dict['workflow']:
+        js_ctx.append(js_patch[0])
+        js_ctx.append(js_enc.replace('eval({workflow});'.format(**names_dict), js_patch[1]))
+    else:
+        js_ctx.append(js_enc)
     js_ctx.append(js_debug)
 
     did = uuid.uuid4().hex
     tt = str(int(time.time()))
     ub98484234 = js_ctx.call('ub98484234', extractor.vid, did, tt)
+    ub98484234 = {
+        'decryptedCodes': ub98484234[names_dict['decryptedCodes']],
+        'resoult': ub98484234[names_dict['resoult']]
+    }
     extractor.logger.debug('ub98484234: %s', ub98484234)
-    ub98484234 = ub98484234[names_dict['resoult']]
+    ub98484234 = ub98484234['resoult']
     params.update({
         'v': match1(ub98484234, 'v=(\d+)'),
         'did': did,

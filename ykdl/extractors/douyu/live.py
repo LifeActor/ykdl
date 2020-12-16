@@ -85,7 +85,7 @@ class Douyutv(VideoExtractor):
                 return
             info.stream_types.append(stream)
             info.streams[stream] = {
-                'container': 'flv',
+                'container': match1(live_data['rtmp_live'], '\.(\w+)\?'),
                 'video_profile': video_profile,
                 'src' : [real_url],
                 'size': float('inf')

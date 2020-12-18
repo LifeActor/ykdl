@@ -39,15 +39,16 @@ def arg_parser():
     parser.add_argument('-J', '--json', action='store_true', default=False, help="Display info in json format.")
     parser.add_argument('-F', '--format',  help="Video format code, or resolution level 0, 1, ...")
     parser.add_argument('-o', '--output-dir', default='.', help="Set the output directory for downloaded videos.")
-    parser.add_argument('-O', '--output-name', default='', help="downloaded videos with the NAME you want")
+    parser.add_argument('-O', '--output-name', default='', help="Downloaded videos with the NAME you want")
     parser.add_argument('-p', '--player', help="Directly play the video with PLAYER like mpv")
     parser.add_argument('-k', '--insecure', action='store_true', default=False, help="Allow insecure server connections when using SSL.")
-    parser.add_argument('--proxy', type=str, default='system', help="set proxy HOST:PORT for http(s) transfer. default: use system proxy settings")
-    parser.add_argument('-t', '--timeout', type=int, default=60, help="set socket timeout seconds, default 60s")
-    parser.add_argument('--no-merge', action='store_true', default=False, help="do not merge video slides")
-    parser.add_argument('-s', '--start', type=int, default=0, help="start from INDEX to play/download playlist")
-    parser.add_argument('-j', '--jobs', type=int, default=8, help="number of jobs for multiprocess download")
-    parser.add_argument('--debug', default=False, action='store_true', help="print debug messages from ykdl")
+    parser.add_argument('--proxy', type=str, default='system', help="Set proxy HOST:PORT for http(s) transfer. default: use system proxy settings")
+    parser.add_argument('-t', '--timeout', type=int, default=60, help="Set socket timeout seconds, default 60s")
+    parser.add_argument('--no-fail-confirm', action='store_true', default=False, help="Do not wait confirm when downloading failed, for run as tasks")
+    parser.add_argument('--no-merge', action='store_true', default=False, help="Do not merge video slides")
+    parser.add_argument('-s', '--start', type=int, default=0, help="Start from INDEX to play/download playlist")
+    parser.add_argument('-j', '--jobs', type=int, default=8, help="Number of jobs for multiprocess download")
+    parser.add_argument('--debug', default=False, action='store_true', help="Print debug messages from ykdl")
     parser.add_argument('video_urls', type=str, nargs='+', help="video urls")
     global args
     args = parser.parse_args()
@@ -57,7 +58,7 @@ def clean_slices(name, ext, lenth):
         file_name = '%s_%d.%s' % (name, i, ext)
         os.remove(file_name)
 
-def download(urls, name, ext, live = False):
+def download(urls, name, ext, live=False):
     # ffmpeg can't handle local m3u8.
     # only use ffmpeg to hanle m3u8.
     global m3u8_internal
@@ -78,13 +79,13 @@ def download(urls, name, ext, live = False):
 
     # OK check m3u8_internal
     if not m3u8_internal:
-        launch_ffmpeg_download(urls[0], name + '.' + ext, live)
+        launch_ffmpeg_download(urls[0], name + '.' + ext)
     else:
-        if save_urls(urls, name, ext, jobs = args.jobs):
+        if save_urls(urls, name, ext, jobs=args.jobs, fail_confirm=not args.no_fail_confirm):
             lenth = len(urls)
             if lenth > 1 and not args.no_merge:
-                launch_ffmpeg(name, ext,lenth)
-                clean_slices(name, ext,lenth)
+                launch_ffmpeg(name, ext, lenth)
+                clean_slices(name, ext, lenth)
         else:
             logger.critical("{}> donwload failed".format(name))
 

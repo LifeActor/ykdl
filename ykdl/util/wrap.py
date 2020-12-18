@@ -170,10 +170,9 @@ def launch_ffmpeg(basename, ext, lenth):
             except:
                 pass
 
-def launch_ffmpeg_download(url, name, live):
+def launch_ffmpeg_download(url, name):
     print('Now downloading: %s' % name)
-    if live:
-        logger.warning('''
+    logger.warning('''
 =================================
   stop downloading by press 'q'
 =================================

@@ -183,8 +183,8 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True):
             else:
                 logger.error('download failed at parts: ' + 
                         ', '.join([str(no) for no, s in enumerate(status) if s == 0]))
-        if not tries or not fail_confirm or succeed or \
-                input('Do you want to continue downloading? [Y] ').upper() != 'Y':
+        if succeed or not tries and (not fail_confirm or
+                input('Do you want to continue downloading? [Y] ').upper() != 'Y'):
             break
         if not tries:
             tries += 1

@@ -15,7 +15,7 @@ this project is a fork of `you-get <https://github.com/soimort/you-get>`_ with b
 
 1. Structured source code
 2. focus on China mainland video sites
-3. support Python2
+3. dropped supports of Python 3.4 and below (see `#487 <https://github.com/zhangn1985/ykdl/issues/487>`_)
 
 Consider install from source by:
 

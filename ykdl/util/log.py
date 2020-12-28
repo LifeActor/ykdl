@@ -5,12 +5,12 @@ from .. import __name__ as library_name
 
 import os, sys
 
-IS_ANSI_TERMINAL = os.getenv('TERM') in (
+IS_ANSI_TERMINAL = os.getenv('TERM', '').startswith((
     'eterm-color',
     'linux',
     'screen',
     'vt100',
-    'xterm')
+    'xterm'))
 
 if os.name == 'nt':
     try:

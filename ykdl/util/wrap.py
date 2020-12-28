@@ -14,6 +14,7 @@ from ykdl.compact import compact_tempfile
 from .html import fake_headers
 
 posix = os.name == 'posix'
+nt = os.name == 'nt'
 
 # The maximum length of cmd string
 if posix:
@@ -65,9 +66,12 @@ class PlayerHandle(object):
 
 def launch_player(player, urls, ext, play=True, **args):
     if ' ' in player:
-        cmd = shlex.split(player, posix=posix)
-        if not posix:
-            cmd = [arg[1:-1] if arg[0] == arg[-1] == "'" else arg for arg in cmd]
+        lex = shlex.shlex(player, posix=nt or posix)
+        lex.whitespace_split = True
+        if nt:
+            lex.quotes = '"'
+            lex.escape = ''
+        cmd = list(lex)
     else:
         cmd = [player]
 

@@ -44,7 +44,8 @@ def arg_parser():
     parser.add_argument('-k', '--insecure', action='store_true', default=False, help="Allow insecure server connections when using SSL.")
     parser.add_argument('--proxy', type=str, default='system', help="Set proxy HOST:PORT for http(s) transfer. default: use system proxy settings")
     parser.add_argument('-t', '--timeout', type=int, default=60, help="Set socket timeout seconds, default 60s")
-    parser.add_argument('--no-fail-confirm', action='store_true', default=False, help="Do not wait confirm when downloading failed, for run as tasks")
+    parser.add_argument('--fail-retry-eta', type=int, default=3600, help="If the number is bigger than ETA, a fail downloading will be auto retry, default 3600s, set 0 to void it")
+    parser.add_argument('--no-fail-confirm', action='store_true', default=False, help="Do not wait confirm when downloading failed, for run as tasks (non-blocking)")
     parser.add_argument('--no-merge', action='store_true', default=False, help="Do not merge video slides")
     parser.add_argument('-s', '--start', type=int, default=0, help="Start from INDEX to play/download playlist")
     parser.add_argument('-j', '--jobs', type=int, default=8, help="Number of jobs for multiprocess download")
@@ -81,7 +82,9 @@ def download(urls, name, ext, live=False):
     if not m3u8_internal:
         launch_ffmpeg_download(urls[0], name + '.' + ext)
     else:
-        if save_urls(urls, name, ext, jobs=args.jobs, fail_confirm=not args.no_fail_confirm):
+        if save_urls(urls, name, ext, jobs=args.jobs,
+                     fail_confirm=not args.no_fail_confirm,
+                     fail_retry_eta=args.fail_retry_eta):
             lenth = len(urls)
             if lenth > 1 and not args.no_merge:
                 launch_ffmpeg(name, ext, lenth)

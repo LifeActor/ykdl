@@ -1,16 +1,35 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+'''Processes report hook arguments and report order:
+
+  reporthook(action, size=None, total=None, part=None)
+
+  1. download start      (['start', single, status])
+
+    2. part start        (['part'], part=part)
+
+      3. part processes  (['part'], filesize, totalsize, part)
+
+    4. part end          (['part end', status, downloaded], filesize, totalsize, part)
+
+  5. download end        (['end']) => (downloaded, filessize, totalsize, costtime)
+'''
+
 from __future__ import print_function
 import os
 import sys
 import time
+import queue
+import socket
+import select
 import threading
 from logging import getLogger
 from shutil import get_terminal_size
 from ykdl.compact import Request, urlopen
 from ykdl.util import log
 from .html import fake_headers
+from .log import IS_ANSI_TERMINAL
 
 logger = getLogger('downloader')
 
@@ -23,76 +42,214 @@ except:
     logger.warning('multithread download disabled!')
     logger.warning('please install concurrent.futures from https://github.com/agronholm/pythonfutures !')
 
-processes = {}
+
+timeout = max(socket.getdefaulttimeout() or 0, 60)
 print_lock = threading.Lock()
 _max_columns = get_terminal_size().columns - 1
 _clear_enter = '\r' + ' ' * _max_columns + '\r'
-_last_refresh = 0
+_processes_bar_len = _max_columns - 30
+if IS_ANSI_TERMINAL:
+    _processes_bar_fg = ' '
+    _processes_bar_bg = ' '
+    _processes_bar_fmt = ' \33[47m%s\33[100m%s\33[0m'
+else:
+    _processes_bar_fg = '#'
+    _processes_bar_bg = '|'
+    _processes_bar_fmt = ' %s%s'
 
-def print_processes(force_refresh=True):
-    if not force_refresh:
-        global _last_refresh
-        ct = time.monotonic()
-        if ct - _last_refresh > 0.1:
-            _last_refresh = ct
+def set_rcvbuf(response):
+    try:
+        response.fp.raw._sock.setsockopt(
+                socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)  # 64KB
+    except Exception as e:
+        print(e)
+
+def human_size(n):
+    if n < 0:
+        return 'N/A'
+    for unit in ('B', 'KB', 'MB', 'GB'):
+        if unit != 'GB' and n >= 1024:
+            n /= 1024.0
         else:
-            return
-    with print_lock:
-        sys.stdout.write(_clear_enter)
-        Processes = _Processes + ' '.join(['P%d-%s' % p for p in processes.items()])
-        if len(Processes) > _max_columns:
-            Processes = Processes[:_max_columns - 3] + '...'
-        sys.stdout.write(Processes)
-        sys.stdout.flush()
+            break
+    return ' '.join(['{:.3f}'.format(n).rstrip('0').rstrip('.'), unit])
 
-def simple_hook(size, total, part, action=['default']):
+def format_time(t):
+    if t < 0:
+        return 'N/A'
+    if t < 60:
+        pt = 0, t
+    else:
+        pt = t,
+        for _ in range(2):
+            if pt[0] >= 60:
+                pt = divmod(pt[0], 60) + pt[1:]
+    return ':'.join('%02d' % t for t in pt)
+
+def get_processes_bar(percent):
+    bar_fg = _processes_bar_fg * int(_processes_bar_len * percent / 100)
+    bar_bg = _processes_bar_bg * (_processes_bar_len - len(bar_fg))
+    return _processes_bar_fmt % (bar_fg, bar_bg)
+
+def multi_hook(action, size=None, total=None, part=None):
+    global _processing, _processes, _processes_single, _processes_bar
+    global _processes_start, _processes_last_refresh, _processes_downloaded
+
+    def print_processes(force_refresh=True):
+        global _processes_last_refresh
+        with print_lock:
+            if not force_refresh and ct - _processes_last_refresh < 0.1:
+                return
+            _processes_last_refresh = ct
+            sys.stdout.write(_clear_enter)
+            if _processes_single:
+                if '%' in _processes:
+                    Processes = _processes_bar + get_processes_suffix()
+                else:
+                    Processes = get_processes_suffix()
+            else:
+                Processes = get_processes_prefix()
+                Processes += ' '.join(['P%d-%s' % p for p in _processes.items()])
+                if len(Processes) > _max_columns:
+                    Processes = Processes[:_max_columns - 3] + '...'
+            sys.stdout.write(Processes)
+            sys.stdout.flush()
+
+    def processes_deamon():
+        nonlocal ct
+        while _processing:
+            print_processes(False)
+            time.sleep(0.8)
+            ct = time.monotonic()
+
+    def update_processes_suffix():
+        global _processes_suffix
+        status = action_args[0]
+        _processes_suffix = '  %%s [%d/%d] [%%s]' % (sum(status), len(status))
+
+    def get_processes_suffix():
+        return _processes_suffix % (_processes, format_time(ct - _processes_start))
+
+    def update_processes_prefix():
+        global _processes_prefix
+        status = action_args[0]
+        _processes_prefix = 'Processes[%d/%d][%%s]: ' % (sum(status), len(status))
+
+    def get_processes_prefix():
+        return _processes_prefix % format_time(ct - _processes_start)
+
+    ct = time.monotonic()
     action, *action_args = action
     force_refresh = True
-    if action == 'default':
-        if size is None:
-            processes[part] ='n/a'
-        elif total > 0:
-            percent = min(int(size * 100 / total), 100)
-            processes[part] = '%d%%' % percent
-            force_refresh = percent == 100
+
+    if action == 'part':
+        if _processes_single:
+            last_processes = _processes
+            if size is None:
+                _processes = 'N/A'
+                _processes_bar = get_processes_bar(0)
+            elif total > 0:
+                percent = min(int(size * 100 / total), 100)
+                _processes = '%d%%' % percent
+                _processes_bar = get_processes_bar(percent)
+            else:
+                _processes = human_size(size)
+            force_refresh = _processes != last_processes
         else:
-            processes[part] = '%sMB' % round(size / 1048576, 1)
-            force_refresh = False
+            if size is None:
+                _processes[part] = 'N/A'
+            elif total > 0:
+                percent = min(int(size * 100 / total), 100)
+                _processes[part] = '%d%%' % percent
+                force_refresh = percent == 100
+            else:
+                _processes[part] = human_size(size)
+                force_refresh = False
+
+    elif action == 'part end':
+        if _processes_single:
+            update_processes_suffix()
+        else:
+            update_processes_prefix()
+            _processes.pop(part, None)
+        downloaded = action_args[1]
+        try:
+            d, s, t = _processes_downloaded[part]
+            downloaded += d
+            if total < 0:
+                total = t
+        except KeyError:
+            pass
+        _processes_downloaded[part] = downloaded, size, total
+
     elif action == 'print':
         args, kwargs = action_args
         with print_lock:
             sys.stdout.write(_clear_enter)
             print(*args, **kwargs)
-    elif action == 'over':
-        global _Processes
-        status, = action_args
-        _Processes = 'Processes[%d/%d]: ' % (sum(status), len(status))
-        processes.pop(part, None)
+
+    elif action == 'start':
+        _processes_single, *action_args = action_args
+        if _processes_single:
+            _processes = 'N/A'
+            update_processes_suffix()
+        else:
+            _processes = {}
+            update_processes_prefix()
+        _processes_start = ct
+        _processes_last_refresh = 0
+        try:
+            _processes_downloaded
+        except NameError:
+            _processes_downloaded = {}
+        _processing = True
+        threading._start_new_thread(processes_deamon, ())
+
+    elif action == 'end':
+        _processing = False
+        downloaded, size, total = map(sum, zip(*_processes_downloaded.values()))
+        _processes_downloaded.update({k: (0, v[1], v[2])
+                                     for k, v in _processes_downloaded.items()})
+        cost = ct - _processes_start
+        return  downloaded, size, total, cost
+
     print_processes(force_refresh)
 
-def _save_url(url, name, ext, status, part=None, reporthook=simple_hook):
+def _save_url(url, name, ext, status, part=None, reporthook=multi_hook):
 
     def print(*args, **kwargs):
-        reporthook(None, None, None, ['print', args, kwargs])
+        reporthook(['print', args, kwargs])
+
+    def read_response(bs):
+        if size > 0:
+            # a independent timeout for read response
+            rd, _, ed = select.select([fd], [], [fd], timeout)
+            if ed:
+                raise socket.error(ed)
+            if not rd:
+                raise socket.timeout('The read operation timed out')
+        return response.read(bs)
 
     if part is None:
         name = name + '.' + ext
         part = 0
     else:
         name = '%s_%d.%s' % (name, part, ext)
-    bs = 1024 * 8
+    bs = 8192
     size = -1
     filesize = 0
+    downloaded = 0
     open_mode = 'wb'
     response = None
     req = Request(url, headers=fake_headers)
     try:
-        reporthook(None, None, part)
+        reporthook(['part'], part=part)
         if os.path.exists(name):
             filesize = os.path.getsize(name)
             if filesize:
                 req.add_header('Range', 'bytes=%d-' % (filesize-1))  # get +1, avoid 416
                 response = urlopen(req, None)
+                set_rcvbuf(response)
                 if response.status == 206:
                     size = int(response.headers['Content-Range'].split('/')[-1])
                     needless_size = 1
@@ -100,32 +257,40 @@ def _save_url(url, name, ext, status, part=None, reporthook=simple_hook):
                     size = int(response.headers.get('Content-Length', -1))
                     needless_size = filesize
                 if filesize == size:
-                    print('Skipped: file part %d has already been downloaded' % part)
+                    print('Skipped: file part %d has already been downloaded'
+                          % part)
                     status[part] = 1
                     return True
                 if filesize < size:
                     percent = int(filesize * 100 / size)
                     open_mode = 'ab'
-                    print('Restored: file part %d is incomplete at %d%%' % (part, percent))
-                    reporthook(filesize, size, part)
-                    while needless_size > bs:
-                        block = response.read(bs)
+                    print('Restored: file part %d is incomplete at %d%%'
+                          % (part, percent))
+                    reporthook(['part'], filesize, size, part)
+                    fd = response.fileno()
+                    while needless_size > 0:
+                        if needless_size > bs:
+                            block = read_response(bs)
+                        else:
+                            block = read_response(needless_size)
                         if not block:
                             return
                         needless_size -= len(block)
-                    response.read(needless_size)
         if response is None:
             response = urlopen(req, None)
+            set_rcvbuf(response)
+            fd = response.fileno()
         if size < 0:
             size = int(response.headers.get('Content-Length', -1))
         with open(name, open_mode) as tfp:
-            while True:
-                block = response.read(bs)
+            while size < 0 or filesize < size:
+                block = read_response(bs)
                 if not block:
                     break
-                filesize += len(block)
-                tfp.write(block)
-                reporthook(filesize, size, part)
+                n = tfp.write(block)
+                downloaded += n
+                filesize += n
+                reporthook(['part'], filesize, size, part)
         if os.path.exists(name):
             filesize = os.path.getsize(name)
             if filesize and (size < 0 or filesize == size):
@@ -133,7 +298,7 @@ def _save_url(url, name, ext, status, part=None, reporthook=simple_hook):
                 return True
     finally:
         time.sleep(1)
-        reporthook(None, None, part, ['over', status])
+        reporthook(['part end', status, downloaded], filesize, size, part)
 
 def save_url(*args, tries=3, **kwargs):
     '''There are two retries for every failed downloading'''
@@ -146,45 +311,88 @@ def save_url(*args, tries=3, **kwargs):
             if not tries or getattr(e, 'code', 0) >= 400:
                 raise e
 
-def save_urls(urls, name, ext, jobs=1, fail_confirm=True):
+def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
+              fail_retry_eta=3600, reporthook=multi_hook):
 
     def run(*args, **kwargs):
         fn, *args = args
+        futures = queue.deque()
         for no, url in enumerate(urls):
             if status[no] == 1:
                 continue
-            fn(*args, url, name, ext, status, part=no, **kwargs)
+            futures.appendleft(
+                fn(*args, url, name, ext, status,
+                   part=no, reporthook=reporthook, **kwargs))
             time.sleep(0.1)
 
-    global _Processes
     count = len(urls)
-    _Processes = 'Processes[0/%d]: ' % count
     status = [0] * count
+    cost = 0
     tries = 1
-    if count > 1 and jobs == 1 or not MultiThread:
-        tries = 3
+    multi = False
+    if count > 1:
+        if jobs > 1 and MultiThread:
+            multi = True
+        else:
+            tries = 3
     print('Start downloading: ' + name)
     while tries:
+        if count > 1 and os.path.exists(name + '.' + ext):
+            print('Skipped: files has already been downloaded')
+            return True
         tries -= 1
+        reporthook(['start', not multi, status])
         if count == 1:
-            save_url(urls[0], name, ext, status)
+            save_url(urls[0], name, ext, status, reporthook=reporthook)
         elif jobs > 1 and MultiThread:
-            if count >= jobs > 12:
+            if count - sum(status) >= jobs > 12:
                 logger.warning('number of active download processes is too big to works well!!')
-            with ThreadPoolExecutor(max_workers=jobs) as worker:
-                run(worker.submit, save_url)
+            worker = ThreadPoolExecutor(max_workers=jobs)
+            futures = run(worker.submit, save_url)
+            # does not call Thread.join(), catch KeyboardInterrupt in main thread
+            downloading = True
+            try:
+                while downloading:
+                    time.sleep(0.1)
+                    for future in futures:
+                        downloading = not future.done()
+                        if downloading:
+                            break
+            except KeyboardInterrupt:
+                import atexit
+                from concurrent.futures.thread import _python_exit
+                atexit.unregister(_python_exit)
+                raise
+            worker.shutdown()
         else:
             run(save_url, tries=1)
-        print()
+        downloaded, size, total, _cost = reporthook(['end'])
+        cost += _cost
+        print('\nCurrent downloaded %s, cost %s.'
+              '\nTotal downloaded %s of %s, cost %s'
+              % (human_size(downloaded), format_time(_cost),
+                 human_size(size), human_size(total), format_time(cost)))
         succeed = 0 not in status
         if not succeed:
             if count == 1:
                 logger.error('donwload failed')
             else:
                 logger.error('download failed at parts: ' + 
-                        ', '.join([str(no) for no, s in enumerate(status) if s == 0]))
-        if succeed or not tries and (not fail_confirm or
-                input('Do you want to continue downloading? [Y] ').upper() != 'Y'):
+                             ', '.join([str(no)
+                                        for no, s in enumerate(status)
+                                        if s == 0]))
+            if not tries:
+                # increase retry automatically, speed 16KBps and ETA 3600s
+                speed = downloaded / _cost or 1
+                eta = (total - size) / speed
+                if speed > 16384 and 0 < eta < fail_retry_eta:
+                    tries += 1
+        if succeed or not tries and (
+                not fail_confirm or
+                input('The estimated ETA is %s, '
+                      'do you want to continue downloading? [Y] '
+                      % format_time(eta)
+                ).upper() != 'Y'):
             break
         if not tries:
             tries += 1

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-'''Processes report hook arguments and report order:
+'''Processes/progress report hook arguments and report order:
 
   reporthook(action, size=None, total=None, part=None)
 
@@ -9,7 +9,7 @@
 
     2. part start        (['part'], part=part)
 
-      3. part processes  (['part'], filesize, totalsize, part)
+      3. part progress   (['part'], filesize, totalsize, part)
 
     4. part end          (['part end', status, downloaded], filesize, totalsize, part)
 
@@ -47,22 +47,22 @@ timeout = max(socket.getdefaulttimeout() or 0, 60)
 print_lock = threading.Lock()
 _max_columns = get_terminal_size().columns - 1
 _clear_enter = '\r' + ' ' * _max_columns + '\r'
-_processes_bar_len = _max_columns - 30
+_progress_bar_len = _max_columns - 30
 if IS_ANSI_TERMINAL:
-    _processes_bar_fg = ' '
-    _processes_bar_bg = ' '
-    _processes_bar_fmt = ' \33[47m%s\33[100m%s\33[0m'
+    _progress_bar_fg = ' '
+    _progress_bar_bg = ' '
+    _progress_bar_fmt = ' \33[47m%s\33[100m%s\33[0m'
 else:
-    _processes_bar_fg = '#'
-    _processes_bar_bg = '|'
-    _processes_bar_fmt = ' %s%s'
+    _progress_bar_fg = '#'
+    _progress_bar_bg = '|'
+    _progress_bar_fmt = ' %s%s'
 
 def set_rcvbuf(response):
     try:
         response.fp.raw._sock.setsockopt(
                 socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)  # 64KB
-    except Exception as e:
-        print(e)
+    except Exception:
+        pass
 
 def human_size(n):
     if n < 0:
@@ -86,13 +86,13 @@ def format_time(t):
                 pt = divmod(pt[0], 60) + pt[1:]
     return ':'.join('%02d' % t for t in pt)
 
-def get_processes_bar(percent):
-    bar_fg = _processes_bar_fg * int(_processes_bar_len * percent / 100)
-    bar_bg = _processes_bar_bg * (_processes_bar_len - len(bar_fg))
-    return _processes_bar_fmt % (bar_fg, bar_bg)
+def get_progress_bar(percent):
+    bar_fg = _progress_bar_fg * int(_progress_bar_len * percent / 100)
+    bar_bg = _progress_bar_bg * (_progress_bar_len - len(bar_fg))
+    return _progress_bar_fmt % (bar_fg, bar_bg)
 
 def multi_hook(action, size=None, total=None, part=None):
-    global _processing, _processes, _processes_single, _processes_bar
+    global _processing, _processes, _processes_single, _progress, _progress_bar
     global _processes_start, _processes_last_refresh, _processes_downloaded
 
     def print_processes(force_refresh=True):
@@ -103,8 +103,8 @@ def multi_hook(action, size=None, total=None, part=None):
             _processes_last_refresh = ct
             sys.stdout.write(_clear_enter)
             if _processes_single:
-                if '%' in _processes:
-                    Processes = _processes_bar + get_processes_suffix()
+                if '%' in _progress:
+                    Processes = _progress_bar + get_processes_suffix()
                 else:
                     Processes = get_processes_suffix()
             else:
@@ -128,7 +128,7 @@ def multi_hook(action, size=None, total=None, part=None):
         _processes_suffix = '  %%s [%d/%d] [%%s]' % (sum(status), len(status))
 
     def get_processes_suffix():
-        return _processes_suffix % (_processes, format_time(ct - _processes_start))
+        return _processes_suffix % (_progress, format_time(ct - _processes_start))
 
     def update_processes_prefix():
         global _processes_prefix
@@ -144,17 +144,17 @@ def multi_hook(action, size=None, total=None, part=None):
 
     if action == 'part':
         if _processes_single:
-            last_processes = _processes
+            last_progress = _progress
             if size is None:
-                _processes = 'N/A'
-                _processes_bar = get_processes_bar(0)
+                _progress = 'N/A'
+                _progress_bar = get_progress_bar(0)
             elif total > 0:
                 percent = min(int(size * 100 / total), 100)
-                _processes = '%d%%' % percent
-                _processes_bar = get_processes_bar(percent)
+                _progress = '%d%%' % percent
+                _progress_bar = get_progress_bar(percent)
             else:
-                _processes = human_size(size)
-            force_refresh = _processes != last_processes
+                _progress = human_size(size)
+            force_refresh = _progress != last_progress
         else:
             if size is None:
                 _processes[part] = 'N/A'
@@ -191,7 +191,7 @@ def multi_hook(action, size=None, total=None, part=None):
     elif action == 'start':
         _processes_single, *action_args = action_args
         if _processes_single:
-            _processes = 'N/A'
+            _progress = 'N/A'
             update_processes_suffix()
         else:
             _processes = {}
@@ -324,6 +324,7 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
                 fn(*args, url, name, ext, status,
                    part=no, reporthook=reporthook, **kwargs))
             time.sleep(0.1)
+        return futures
 
     count = len(urls)
     status = [0] * count

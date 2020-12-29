@@ -1,6 +1,8 @@
 YouKuDownLoader
 ===============
 
+.. image:: https://img.shields.io/github/v/release/zhangn1985/ykdl.svg
+   :target: https://pypi.python.org/pypi/ykdl/release
 .. image:: https://img.shields.io/pypi/v/ykdl.svg
    :target: https://pypi.python.org/pypi/ykdl
 .. image:: https://travis-ci.org/zhangn1985/ykdl.svg

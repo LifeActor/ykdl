@@ -35,9 +35,14 @@ fake_headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:38.0) Gecko/20100101 Firefox/38.0 Iceweasel/38.2.1'
 }
 
+fake_headers_without_ae = fake_headers.copy()
+del fake_headers_without_ae['Accept-Encoding']
+
 def add_header(key, value):
-    global fake_headers
+    global fake_headers, fake_headers_without_ae
     fake_headers[key] = value
+    if key != 'Accept-Encoding':
+        fake_headers_without_ae[key] = value
 
 def unicodize(text):
     return re.sub(r'\\u([0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])', lambda x: chr(int(x.group(0)[2:], 16)), text)

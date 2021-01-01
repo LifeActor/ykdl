@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from logging import getLogger
-from .html import fake_headers
+from .html import fake_headers_without_ae as fake_headers
 
 logger = getLogger("m3u8_wrap")
 

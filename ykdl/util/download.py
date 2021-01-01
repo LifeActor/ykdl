@@ -26,24 +26,15 @@ import select
 import threading
 from logging import getLogger
 from shutil import get_terminal_size
+from concurrent.futures import ThreadPoolExecutor
 from ykdl.compact import Request, urlopen
 from ykdl.util import log
-from .html import fake_headers
+from .html import fake_headers_without_ae as fake_headers
 from .log import IS_ANSI_TERMINAL
+
 
 logger = getLogger('downloader')
 
-try:
-    from concurrent.futures import ThreadPoolExecutor
-    MultiThread = True
-except:
-    MultiThread = False
-    logger.warning('failed to import ThreadPoolExecutor!')
-    logger.warning('multithread download disabled!')
-    logger.warning('please install concurrent.futures from https://github.com/agronholm/pythonfutures !')
-
-
-timeout = max(socket.getdefaulttimeout() or 0, 60)
 print_lock = threading.Lock()
 _max_columns = get_terminal_size().columns - 1
 _clear_enter = '\r' + ' ' * _max_columns + '\r'
@@ -241,6 +232,7 @@ def _save_url(url, name, ext, status, part=None, reporthook=multi_hook):
     downloaded = 0
     open_mode = 'wb'
     response = None
+    timeout = max(socket.getdefaulttimeout() or 0, 60)
     req = Request(url, headers=fake_headers)
     try:
         reporthook(['part'], part=part)
@@ -332,7 +324,7 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
     tries = 1
     multi = False
     if count > 1:
-        if jobs > 1 and MultiThread:
+        if jobs > 1:
             multi = True
         else:
             tries = 3
@@ -345,7 +337,7 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
         reporthook(['start', not multi, status])
         if count == 1:
             save_url(urls[0], name, ext, status, reporthook=reporthook)
-        elif jobs > 1 and MultiThread:
+        elif jobs > 1:
             if count - sum(status) >= jobs > 12:
                 logger.warning('number of active download processes is too big to works well!!')
             worker = ThreadPoolExecutor(max_workers=jobs)

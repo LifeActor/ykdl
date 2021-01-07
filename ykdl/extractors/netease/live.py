@@ -5,6 +5,8 @@ from ykdl.util.html import get_content
 from ykdl.util.match import match1
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
+
+import time
 import json
 
 class NeteaseLive(VideoExtractor):
@@ -12,19 +14,29 @@ class NeteaseLive(VideoExtractor):
 
     def prepare(self):
         info = VideoInfo(self.name, True)
-        if not self.vid:
-            html = get_content(self.url)
-            raw_data = match1(html, '<script id="__NEXT_DATA__".*?>(.*?)</script>')
-            data = json.loads(raw_data)
-            self.vid = data['props']['pageProps']['roomInfoInitData']['live']['ccid']
-            assert self.vid != 0, 'live video is offline'
-            info.title = data['props']['pageProps']['roomInfoInitData']['live']['title']
-            info.artist = data['props']['pageProps']['roomInfoInitData']['micfirst']['nickname']
 
-        data = json.loads(get_content("http://cgi.v.cc.163.com/video_play_url/{}".format(self.vid)))
+        if self.vid is None:
+            self.vid = match1(self.url, 'room/(\d+)')
 
-        info.stream_types.append("current")
-        info.streams["current"] = {'container': 'flv', 'video_profile': "current", 'src': [data["videourl"]], 'size': 0}
+        tt = int(time.time() * 1000)
+        url = 'https://data.live.126.net/liveAll/{}.json?{}'.format(self.vid, tt)
+        data = json.loads(get_content(url))
+        self.logger.debug('video_data: \n%s', data)
+        assert 'liveVideoUrl' in data, 'live video is offline'
+
+        info.title = data['roomName']
+        try:
+            info.artist = data['sourceinfo']['tname']
+        except KeyError:
+            pass
+
+        info.stream_types.append('current')
+        info.streams['current'] = {
+            'container': 'mp4',
+            'video_profile': 'current',
+            'src': [data['liveVideoUrl']],
+            'size': 0
+        }
         return info
 
 site = NeteaseLive()

@@ -23,12 +23,16 @@ douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
 class Douyutv(VideoExtractor):
     name = u'斗鱼直播 (DouyuTV)'
 
-    stream_ids = ['OG', 'BD4M', 'TD', 'HD']
+    stream_ids = ['OG', 'BD10M', 'BD8M', 'BD4M', 'BD', 'TD', 'HD', 'SD']
     profile_2_id = {
         u'原画': 'OG',
+        u'蓝光10M': 'BD10M',
+        u'蓝光8M': 'BD8M',
         u'蓝光4M': 'BD4M',
+        u'蓝光': 'BD',
         u'超清': 'TD',
-        u'高清': 'HD'
+        u'高清': 'HD',
+        u'流畅': 'SD'
      }
 
     def prepare(self):

@@ -38,9 +38,9 @@ class VideoInfo():
             print('      size:          %s MiB (%s bytes)' % (round(stream['size'] / 1048576, 1), stream['size']))
         print('    # download-with: %s' % log.sprint('ykdl --format=%s [URL]' % stream_id, log.UNDERLINE))
         if show_all:
-            print('      Real urls:')
+            print('Real urls:')
             for url in stream['src']:
-                print('      ' + url)
+                print(url)
 
     def print_subtitle_info(self, subtitle, show_all=False):
         print('    - language:      %s' % log.sprint(subtitle['lang'], log.NEGATIVE))
@@ -49,10 +49,10 @@ class VideoInfo():
         print('      format:        %s' % subtitle['format'])
         size = subtitle.get('size')
         if size and size != float('inf'):
-            print('      size:          %s MiB (%s bytes)' % (round(size / 1048576, 1), size))
+            print('      size:          %s KiB (%s bytes)' % (round(size / 1024, 1), size))
         if show_all:
-            print('      Real urls:')
-            print('      ' + subtitle['src'])
+            print('Real url:')
+            print(subtitle['src'])
 
     def jsonlize(self):
         json_dict = { 'site'   : self.site,

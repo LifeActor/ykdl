@@ -33,7 +33,7 @@ m3u8_internal = True
 args = None
 
 def arg_parser():
-    parser = ArgumentParser(description="YouKuDownLoader(ykdl {}), a video downloader. Forked form you-get 0.3.34@soimort".format(__version__))
+    parser = ArgumentParser(description="YouKuDownLoader(ykdl {}), a video downloader. Forked from you-get 0.3.34@soimort".format(__version__))
     parser.add_argument('-l', '--playlist', action='store_true', default=False, help="Download as a playlist.")
     parser.add_argument('-i', '--info', action='store_true', default=False, help="Display the information of videos without downloading.")
     parser.add_argument('-J', '--json', action='store_true', default=False, help="Display info in json format.")

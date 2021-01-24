@@ -16,7 +16,7 @@ class DouyutvVideo(VideoExtractor):
 
     stream_ids = ['OG', 'BD', 'TD', 'HD', 'SD', 'LD']
     profile_2_id = {
-        u'super': 'OG',
+        u'super': 'OG', # Need Login 需要登录
         u'high': 'TD',
         u'normal': 'HD'
     }

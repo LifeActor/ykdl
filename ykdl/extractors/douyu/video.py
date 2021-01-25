@@ -14,10 +14,11 @@ import json
 class DouyutvVideo(VideoExtractor):
     name = u'斗鱼视频 (DouyuTV)'
 
-    stream_ids = ['BD', 'TD', 'HD', 'SD', 'LD']
+    stream_ids = ['OG', 'BD', 'TD', 'HD', 'SD', 'LD']
     profile_2_id = {
+        u'super': 'OG', # Need Login 需要登录
         u'high': 'TD',
-        u'normal': 'HD',
+        u'normal': 'HD'
     }
 
     def prepare(self):

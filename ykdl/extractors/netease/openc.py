@@ -17,6 +17,10 @@ class OpenC(VideoExtractor):
         ['HD',  'Hd', '高清'], 
         ['SD',  'Sd', '标清']
     ]
+    name2lang = {
+        '中文': 'zh',
+        '英文': 'en'
+    }
 
     def list_only(self):
         self.vid = match1(self.url, 'mid=(\w+)')
@@ -26,8 +30,14 @@ class OpenC(VideoExtractor):
         html = get_content(self.url)
         js = match1(html, 'window\.__NUXT__=(.+);</script>')
         js_ctx = JSEngine()
-        self.data = js_ctx.eval(js)
-        self.logger.debug('video_data: \n%s', self.data)
+        data = js_ctx.eval(js)
+        self.logger.debug('video_data: \n%s', data)
+        try:
+            self.url = data['data'][0]['playUrl']
+        except KeyError:
+            self.data = data
+        else:
+            self.prepare_data()
 
     def prepare(self):
         info = VideoInfo(self.name)
@@ -35,25 +45,44 @@ class OpenC(VideoExtractor):
         if self.data is None:
             self.prepare_data()
         data = self.data
+        moiveList = data['state']['movie']['moiveList']
         if self.vid is None:
-            movie = data['state']['movie']['moiveList'][0]
+            movie = moiveList[0]
         else:
-            for movie in data['state']['movie']['moiveList']:
+            for movie in moiveList:
                 mid = movie['mid']
                 if mid == self.vid:
                     break
             assert mid == self.vid, 'can not found mid %r' % mid
 
         title = data['data'][0]['title']
-        mtitle = movie['title']
-        school = data['data'][0]['school']
-        director = data['data'][0]['director']
-        if mtitle.startswith(title):
-            title = mtitle
-        elif mtitle != title:
+        mtitle = movie['title'].rpartition(title)[-1]
+        if mtitle:
+            for sp in ['：', '】']:
+                t1, _, t2 = mtitle.partition(sp)
+                if title.startswith(t1):
+                    mtitle = t2
+                    break
+        if mtitle:
+            p = movie['pNumber']
+            pc = len(moiveList)
+            if pc > 1 and not mtitle[0].isdecimal() and str(p) not in mtitle:
+                pl = 0
+                while pc:
+                    pl += 1
+                    pc //= 10
+                mtitle = ('{:0>%dd} {}' % pl).format(p, mtitle)
             title = '{} - {}'.format(title, mtitle)
+        school_info = data['data'][0]
+        school = school_info['school']
+        director = school_info['director']
+        if director and director != 'null':
+            if director != school :
+                director = '[{}] {}'.format(school, director)
+        else:
+            director = school
         if school not in title:
-            title = '{} - {}'.format(title, school)
+            title = '[{}] {}'.format(school, title)
         info.title = title
         info.artist = director
 
@@ -70,20 +99,27 @@ class OpenC(VideoExtractor):
                     info.streams[stream] = {
                         'container': ext,
                         'video_profile': profile,
-                        'src' : [url],
+                        'src': [url],
                         'size': size
                     }
 
-        if movie['subList']:
-            url = movie['mp4ShareUrl']
-            if url:
-                info.stream_types.insert(0, 'subtitle')
-                info.streams['subtitle'] = {
-                    'container': 'mp4',
-                    'video_profile': '有字幕',
-                    'src' : [url],
-                    'size': 0
-                }
+        nlang = 0
+        for sub in movie['subList']:
+            name = sub['subName']
+            if not name:
+                if nlang:
+                    name = movie['subtitle']
+                else:
+                    name = '中文'
+                nlang += 1
+            lang = self.name2lang[name]
+            info.subtitles.append({
+                'lang': lang,
+                'name': name,
+                'format': 'srt',
+                'src': sub['subUrl'],
+                'size': sub['subSize']
+            })
 
         return info
 

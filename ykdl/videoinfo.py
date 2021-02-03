@@ -10,31 +10,49 @@ from ykdl.util.fs import legitimize
 from ykdl.util import log
 
 class VideoInfo():
-    def __init__(self, site, live = False):
+    def __init__(self, site, live=False):
         self.site = site
         self.title = None
         self.artist = None
         self.stream_types = []
         self.streams = {}
         self.live = live
-        self.extra = {"ua": "", "referer": "", "header": "", "proxy": "", "rangefetch": ""}
+        self.subtitles = []
+        self.extra = {k: '' for k in ['ua',
+                                      'referer',
+                                      'header',
+                                      'proxy',
+                                      'rangefetch'
+                                     ]}
 
-    def print_stream_info(self, stream_id, show_all = False):
+    def print_stream_info(self, stream_id, show_all=False):
         stream = self.streams[stream_id]
-        print("    - format:        %s" % log.sprint(stream_id, log.NEGATIVE))
+        print('    - format:        %s' % log.sprint(stream_id, log.NEGATIVE))
         if 'container' in stream:
-            print("      container:     %s" % stream['container'])
+            print('      container:     %s' % stream['container'])
         if 'video_profile' in stream:
-            print("      video-profile: %s" % stream['video_profile'])
+            print('      video-profile: %s' % stream['video_profile'])
         if 'quality' in stream:
-            print("      quality:       %s" % stream['quality'])
+            print('      quality:       %s' % stream['quality'])
         if 'size' in stream and stream['size'] != 0 and stream['size'] != float('inf'):
-            print("      size:          %s MiB (%s bytes)" % (round(stream['size'] / 1048576, 1), stream['size']))
-        print("    # download-with: %s" % log.sprint("ykdl --format=%s [URL]" % stream_id, log.UNDERLINE))
+            print('      size:          %s MiB (%s bytes)' % (round(stream['size'] / 1048576, 1), stream['size']))
+        print('    # download-with: %s' % log.sprint('ykdl --format=%s [URL]' % stream_id, log.UNDERLINE))
         if show_all:
-            print("Real urls:")
+            print('Real urls:')
             for url in stream['src']:
-                print("%s" % url)
+                print(url)
+
+    def print_subtitle_info(self, subtitle, show_all=False):
+        print('    - language:      %s' % log.sprint(subtitle['lang'], log.NEGATIVE))
+        if 'name' in subtitle:
+            print('      name:          %s' % subtitle['name'])
+        print('      format:        %s' % subtitle['format'])
+        size = subtitle.get('size')
+        if size and size != float('inf'):
+            print('      size:          %s KiB (%s bytes)' % (round(size / 1024, 1), size))
+        if show_all:
+            print('Real url:')
+            print(subtitle['src'])
 
     def jsonlize(self):
         json_dict = { 'site'   : self.site,
@@ -43,23 +61,28 @@ class VideoInfo():
                     }
         json_dict['streams'] = self.streams
         json_dict['stream_types'] = self.stream_types
+        json_dict['subtitles'] = self.subtitles
         json_dict['extra'] = self.extra
         for s in json_dict['streams']:
             if json_dict['streams'][s].get('size') == float('inf'):
                 json_dict['streams'][s].pop('size')
         return json_dict
 
-    def print_info(self, stream_id = None, show_all = False):
-        print("site:                %s" % self.site)
-        print("title:               %s" % self.title)
-        print("artist:              %s" % self.artist)
-        print("streams:")
+    def print_info(self, stream_id=None, show_all=False):
+        print('site:                %s' % self.site)
+        print('title:               %s' % self.title)
+        print('artist:              %s' % self.artist)
+        print('streams:')
         if not show_all:
             stream_id = stream_id or self.stream_types[0]
             self.print_stream_info(stream_id, show_all)
         else:
             for stream_id in self.stream_types:
                 self.print_stream_info(stream_id, show_all)
+        if self.subtitles:
+            print('subtitles:')
+            for subtitle in self.subtitles:
+                self.print_subtitle_info(subtitle, show_all)
 
     def build_file_name(self,stream_id):
         if not self.title:

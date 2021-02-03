@@ -47,6 +47,7 @@ def arg_parser():
     parser.add_argument('--fail-retry-eta', type=int, default=3600, help="If the number is bigger than ETA, a fail downloading will be auto retry, default 3600s, set 0 to void it")
     parser.add_argument('--no-fail-confirm', action='store_true', default=False, help="Do not wait confirm when downloading failed, for run as tasks (non-blocking)")
     parser.add_argument('--no-merge', action='store_true', default=False, help="Do not merge video slides")
+    parser.add_argument('--no-sub', action='store_true', default=False, help='Do not download subtitles')
     parser.add_argument('-s', '--start', type=int, default=0, help="Start from INDEX to play/download playlist")
     parser.add_argument('-j', '--jobs', type=int, default=8, help="Number of jobs for multiprocess download")
     parser.add_argument('--debug', default=False, action='store_true', help="Print debug messages from ykdl")
@@ -92,6 +93,14 @@ def download(urls, name, ext, live=False):
         else:
             logger.critical("{}> donwload failed".format(name))
 
+def download_subtitles(subtitles, name):
+    for sub in subtitles:
+        _name = name + '_' + sub['lang']
+        if not save_urls([sub['src']], _name, sub['format'],
+                         fail_confirm=not args.no_fail_confirm,
+                         fail_retry_eta=args.fail_retry_eta):
+            logger.critical('{}> donwload failed'.format(_name))
+
 def handle_videoinfo(info, index=0):
     i = args.format or '0'
     if i.isdigit():
@@ -121,18 +130,21 @@ def handle_videoinfo(info, index=0):
 
     ext = info.streams[stream_id]['container']
     live = info.live
-    if info.extra['rangefetch']:
-        info.extra['rangefetch']['down_rate'] = info.extra['rangefetch']['video_rate'][stream_id]
-    if args.proxy != 'none':
-        info.extra['proxy'] = args.proxy
-        if info.extra['rangefetch']:
-            info.extra['rangefetch']['proxy'] = args.proxy
-    player_args = info.extra
-    player_args['title'] = info.title
     if args.player:
+        player_args = info.extra
+        if player_args['rangefetch']:
+            player_args['rangefetch']['down_rate'] = player_args['rangefetch']['video_rate'][stream_id]
+        if args.proxy != 'none':
+            player_args['proxy'] = args.proxy
+            if player_args['rangefetch']:
+                player_args['rangefetch']['proxy'] = args.proxy
+        player_args['title'] = info.title
+        player_args['subs'] = args.no_sub or [sub['src'] for sub in info.subtitles]
         launch_player(args.player, urls, ext, **player_args)
     else:
         download(urls, name, ext, live)
+        if not args.no_sub:
+            download_subtitles(info.subtitles, name)
 
 def main():
     arg_parser()

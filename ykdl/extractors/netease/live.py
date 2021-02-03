@@ -30,11 +30,12 @@ class NeteaseLive(VideoExtractor):
         except KeyError:
             pass
 
+        url = data['liveVideoUrl']
         info.stream_types.append('current')
         info.streams['current'] = {
-            'container': 'mp4',
+            'container': url.split('.')[-1],
             'video_profile': 'current',
-            'src': [data['liveVideoUrl']],
+            'src': [url],
             'size': 0
         }
         return info

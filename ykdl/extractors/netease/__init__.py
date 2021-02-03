@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 def get_extractor(url):
+    if 'v.163.com/movie/' in url:
+        url = url.replace('v.163', 'open.163')
     if 'cc.163' in url:
         from . import livecc as s
     elif 'live.163' in url:

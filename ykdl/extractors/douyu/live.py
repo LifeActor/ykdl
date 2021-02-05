@@ -9,11 +9,7 @@ from ykdl.compact import urlencode
 
 from .util import get_h5enc, ub98484234
 
-import time
 import json
-import uuid
-import random
-import string
 
 
 douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
@@ -25,14 +21,14 @@ class Douyutv(VideoExtractor):
 
     stream_ids = ['OG', 'BD10M', 'BD8M', 'BD4M', 'BD', 'TD', 'HD', 'SD']
     profile_2_id = {
-        u'原画': 'OG',
-        u'蓝光10M': 'BD10M',
-        u'蓝光8M': 'BD8M',
-        u'蓝光4M': 'BD4M',
-        u'蓝光': 'BD',
-        u'超清': 'TD',
-        u'高清': 'HD',
-        u'流畅': 'SD'
+        '原画': 'OG',
+        '蓝光10M': 'BD10M',
+        '蓝光8M': 'BD8M',
+        '蓝光4M': 'BD4M',
+        '蓝光': 'BD',
+        '超清': 'TD',
+        '高清': 'HD',
+        '流畅': 'SD'
      }
 
     def prepare(self):
@@ -81,7 +77,10 @@ class Douyutv(VideoExtractor):
             real_url = '{}/{}'.format(live_data['rtmp_url'], live_data['rtmp_live'])
             rate_2_profile = dict((rate['rate'], rate['name']) for rate in live_data['multirates'])
             video_profile = rate_2_profile[live_data['rate']]
-            stream = self.profile_2_id[video_profile]
+            if '原画' in video_profile:
+                stream = 'OG'
+            else:
+                stream = self.profile_2_id[video_profile]
             if stream in info.streams:
                 return
             info.stream_types.append(stream)

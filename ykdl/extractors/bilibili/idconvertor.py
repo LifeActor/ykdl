@@ -30,7 +30,7 @@ def bv2av(bv):
 def av2bv(av):
     if isinstance(av, str):
         av = av.lstrip('av')
-    r = bvtl.copy()
+    r = list(bvtl)
     x = int(av) ^ xor
     for p, i in enumerate(bvco):
         x, m = divmod(x + add[p], 58)

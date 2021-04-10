@@ -102,7 +102,7 @@ class Iqiyi(VideoExtractor):
         '4k': [10, 19],
         'BD': [5, 18, 600],
         'TD': [4, 17, 500],
-        'HD': [2, 14, 21, 300],
+        'HD': [2, 14, 21, 75, 300],
         'SD': [1, 200],
         'LD': [96, 100]
     }.items()], []))
@@ -146,9 +146,7 @@ class Iqiyi(VideoExtractor):
                               '"tvId":\s*([^,]+)')
                 videoid = match1(html,
                                 'data-video-vid="([^"]+)',
-                                'vid:\s*"([^"]+)',
-                                '''\['vid'\]\s*=\s*"([^"]+)''',
-                                '"vid":\s*([^,]+)')
+                                'vid"?\'?\]?\s*(?:=|:)\s*"?\'?([^"\',]+)')
                 if not (tvid and videoid):
                     url = match1(html, '(www\.iqiyi\.com/v_\w+\.html)')
                     if url:
@@ -247,9 +245,10 @@ class Iqiyi(VideoExtractor):
                             container = stream['ff']
                             fs_array = stream['fs']
                             size = stream['vsize']
+                            push_stream_bid(_bid, container, fs_array, size)
                             break
-                    push_stream_bid(_bid, container, fs_array, size)
 
+        assert info.streams, 'can\'t play this video!!'
         info.stream_types = sorted(info.stream_types, key=self.ids.index)
         return info
 

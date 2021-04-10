@@ -67,7 +67,7 @@ class Hunantv(VideoExtractor):
 
         info = VideoInfo(self.name)
         if self.url and not self.vid:
-            self.vid = match1(self.url, 'https?://www.mgtv.com/b/\d+/(\d+).html')
+            self.vid = match1(self.url, 'https?://(?:www.)?mgtv.com/b/\d+/(\d+).html')
             if self.vid is None:
                 html = get_content(self.url)
                 self.vid = match1(html, 'vid=(\d+)', 'vid=\"(\d+)', 'vid: (\d+)')
@@ -77,6 +77,7 @@ class Hunantv(VideoExtractor):
 
         api_info_url = 'https://pcweb.api.mgtv.com/player/video?tk2={}&video_id={}&type=pch5'.format(tk2, self.vid)
         meta = json.loads(get_content(api_info_url))
+        self.logger.debug('meta >\n%s', meta)
 
         assert meta['code'] == 200, '[failed] code: {}, msg: {}'.format(meta['code'], meta['msg'])
         assert meta['data'], '[Failed] Video info not found.'

@@ -34,6 +34,11 @@ try:
     def load_m3u8(url):
         urls = []
         m =  m3u8.load(url, headers=fake_headers)
+        l = len(m.playlists)
+        if l == 1:
+            m =  m3u8.load(m.playlists[0].absolute_uri, headers=fake_headers)
+        elif l > 1:
+            raise ValueError("can't load m3u8 segments, there is more than one media in m3u8 playlist")
         for seg in m.segments:
             urls.append(seg.absolute_uri)
         return urls

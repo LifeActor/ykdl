@@ -97,9 +97,9 @@ def getvps(tvid, vid):
 class Iqiyi(VideoExtractor):
     name = u"爱奇艺 (Iqiyi)"
 
-    ids = ['4k','BD', 'TD', 'HD', 'SD', 'LD']
+    ids = ['4K','BD', 'TD', 'HD', 'SD', 'LD']
     vd_2_id = dict(sum([[(vd, id) for vd in vds] for id, vds in {
-        '4k': [10, 19],
+        '4K': [10, 19],
         'BD': [5, 18, 600],
         'TD': [4, 17, 500],
         'HD': [2, 14, 21, 75, 300],
@@ -107,7 +107,7 @@ class Iqiyi(VideoExtractor):
         'LD': [96, 100]
     }.items()], []))
     id_2_profile = {
-        '4k': '4k',
+        '4K': '4K',
         'BD': '1080p',
         'TD': '720p',
         'HD': '540p',

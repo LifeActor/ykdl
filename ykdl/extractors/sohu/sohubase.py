@@ -34,9 +34,9 @@ class SohuBase(VideoExtractor):
         'norVid'
     ]
     types_2_id = {
-        'h2654kVid': '4k',
-        'h2654mVid': '4k',
-        'h2644kVid': '4k',
+        'h2654kVid': '4K',
+        'h2654mVid': '4K',
+        'h2644kVid': '4K',
         'h265oriVid': 'BD',
         'h265superVid': 'TD',
         'h265highVid': 'HD',
@@ -47,7 +47,7 @@ class SohuBase(VideoExtractor):
         'norVid': 'SD'
     }
     id_2_profile = {
-        '4k': u'4K',
+        '4K': u'4K',
         'BD': u'原画',
         'TD': u'超清',
         'HD': u'高清',

@@ -12,10 +12,10 @@ import random
 
 class AcBase(VideoExtractor):
 
-    stream_ids = ['4k', 'BD', 'TD', 'HD', 'SD', 'LD']
+    stream_ids = ['4K', 'BD', 'TD', 'HD', 'SD', 'LD']
     quality1_2_id = {
         # min resolution
-        2160: '4k',
+        2160: '4K',
         1080: 'BD',
         720: 'TD',
         540: 'HD',
@@ -24,7 +24,7 @@ class AcBase(VideoExtractor):
     }
     quality2_2_id = {
         # max resolution
-        3840: '4k',
+        3840: '4K',
         1920: 'BD',
         1280: 'TD',
         960: 'HD',
@@ -32,7 +32,7 @@ class AcBase(VideoExtractor):
         480: 'LD'
     }
     id_2_profile = {
-        '4k': u'2160P',
+        '4K': u'2160P',
         'BD': u'1080P',
         'TD': u'720P',
         'HD': u'540P',

@@ -1,11 +1,30 @@
 Change Log for ykdl
 ===================
 
+1.7.1
+-------
+
+- add subtitle support #544
+- refactor Weibo
+- improved utils html and m3u8
+- update Bilibili, Douyu, iQIYI, MGTV, NetEase, PPTV, QQ
+
+
+1.7.0
+-------
+
+- dropped supports of Python 3.4 and below #487
+- a lot of improvements with utils #372 a8651a0 #485 d1a6e53 5dfc760 etc.
+- extractor class has been changed 641b739 c8c819c
+- fixed download name #496
+- update AcFun, Bilibili, CCTV/CNTV, Douyu, Huya, iQIYI, JustFun, LeTV, Mango,
+  Miaopai, NetEase, PPTV, Qixiu, QQ, Sohu, Weibo, Youku
+- remove Dilidili, Panda
+
 1.6.3
 -------
 
 - update Sohu, mgtv, sina, etc a lot by @SeaHOH
-
 
 1.6.2
 -------

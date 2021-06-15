@@ -48,15 +48,15 @@ def generate_tk2(did):
     return encode_tk2(s)
 
 class Hunantv(VideoExtractor):
-    name = u"芒果TV (HunanTV)"
+    name = '芒果TV (HunanTV)'
 
     supported_stream_types = [ 'BD', 'TD', 'HD', 'SD' ]
     profile_2_types = {
-        u'复刻版': 'BD',
-        u'蓝光': 'BD',
-        u'超清': 'TD',
-        u'高清': 'HD',
-        u'标清': 'SD'
+        '复刻版': 'BD',
+        '蓝光': 'BD',
+        '超清': 'TD',
+        '高清': 'HD',
+        '标清': 'SD'
     }
 
     def prepare(self):
@@ -67,7 +67,7 @@ class Hunantv(VideoExtractor):
 
         info = VideoInfo(self.name)
         if self.url and not self.vid:
-            self.vid = match1(self.url, 'https?://(?:www.)?mgtv.com/b/\d+/(\d+).html')
+            self.vid = match1(self.url, 'https?://(?:www.)?mgtv.com/[bl]/\d+/(\d+).html')
             if self.vid is None:
                 html = get_content(self.url)
                 self.vid = match1(html, 'vid=(\d+)', 'vid=\"(\d+)', 'vid: (\d+)')

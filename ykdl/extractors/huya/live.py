@@ -6,6 +6,7 @@ from ykdl.videoinfo import VideoInfo
 from ykdl.util.html import get_content
 from ykdl.util.match import match1
 
+import os
 import json
 import time
 import base64
@@ -13,7 +14,7 @@ import random
 import hashlib
 
 from html import unescape
-from urllib.parse import unquote
+from urllib.parse import unquote, urlencode
 
 
 def md5(s):
@@ -56,12 +57,11 @@ class HuyaLive(VideoExtractor):
         sAntiCode = unquote(unescape(stream_info['sFlvAntiCode']))
         sAntiCode = dict(p.split('=', 1) for p in sAntiCode.split('&') if p)
         
-        uid = '0'
-        t = '100'
-        ct = str(int(time.time() * 1e7))
-        ctype = sAntiCode['ctype']
-        wsTime = sAntiCode['wsTime']
-        cs = md5('|'.join([ct, ctype, t]))
+        sAntiCode['uid'] = uid = '0'
+        sAntiCode['seqid'] = seqid = str(int(os.urandom(5).hex(), 16))
+        sAntiCode['ver'] = '1'
+        sAntiCode['t'] = t = '100'
+        ss = md5('|'.join([seqid, sAntiCode['ctype'], t]))
         fm = base64.b64decode(sAntiCode['fm']).decode().split('_', 1)[0]
 
         def link_url(rate):
@@ -69,9 +69,8 @@ class HuyaLive(VideoExtractor):
                 streamname = '{}_{}'.format(sStreamName, rate)
             else:
                 streamname = sStreamName
-            wss = md5('_'.join([fm, uid, streamname, cs, wsTime]))
-            return '{}/{}.{}?wsSecret={}&wsTime={}&uid={}&seqid={}&ctype={}&ver=1&t={}'.format(
-                    sUrl, streamname, sUrlSuffix, wss, wsTime, uid, ct, ctype, t)
+            sAntiCode['wsSecret'] = md5('_'.join([fm, uid, streamname, ss, sAntiCode['wsTime']]))
+            return '{}/{}.{}?{}'.format(sUrl, streamname, sUrlSuffix, urlencode(sAntiCode))
 
         for si in data['vMultiStreamInfo']:
             video_profile = si['sDisplayName']

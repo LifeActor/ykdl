@@ -55,22 +55,25 @@ class HuyaLive(VideoExtractor):
         sStreamName = stream_info['sStreamName']
         sUrlSuffix = stream_info['sFlvUrlSuffix']
         sAntiCode = unquote(unescape(stream_info['sFlvAntiCode']))
-        sAntiCode = dict(p.split('=', 1) for p in sAntiCode.split('&') if p)
-        
-        sAntiCode['uid'] = uid = '0'
-        sAntiCode['seqid'] = seqid = str(int(os.urandom(5).hex(), 16))
-        sAntiCode['ver'] = '1'
-        sAntiCode['t'] = t = '100'
-        ss = md5('|'.join([seqid, sAntiCode['ctype'], t]))
-        fm = base64.b64decode(sAntiCode['fm']).decode().split('_', 1)[0]
+
+        params = dict(p.split('=', 1) for p in sAntiCode.split('&') if p)
+        params.update({
+             'ctype': 'huya_webh5',
+             'uid': '0',
+             'seqid': str(int(os.urandom(5).hex(), 16)),
+             'ver': '1',
+             't': '100'  # 102
+         })
+        fm = base64.b64decode(params['fm']).decode().split('_', 1)[0]
+        ss = md5('|'.join([params['seqid'], params['ctype'], params['t']]))
 
         def link_url(rate):
             if rate:
                 streamname = '{}_{}'.format(sStreamName, rate)
             else:
                 streamname = sStreamName
-            sAntiCode['wsSecret'] = md5('_'.join([fm, uid, streamname, ss, sAntiCode['wsTime']]))
-            return '{}/{}.{}?{}'.format(sUrl, streamname, sUrlSuffix, urlencode(sAntiCode))
+            params['wsSecret'] = md5('_'.join([fm, params['uid'], streamname, ss, params['wsTime']]))
+            return '{}/{}.{}?{}'.format(sUrl, streamname, sUrlSuffix, urlencode(params, safe='*'))
 
         for si in data['vMultiStreamInfo']:
             video_profile = si['sDisplayName']

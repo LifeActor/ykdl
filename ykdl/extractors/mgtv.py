@@ -13,25 +13,16 @@ import base64
 import uuid
 import time
 
-ua = 'AppleCoreMedia/1.0.0.16E227 (iPhone; U; CPU OS 12_2 like Mac OS X; zh_cn)'
 
-py3 = sys.version_info[0] == 3
-if py3:
-    maketrans = bytes.maketrans
-    bytearray2str = bytearray.decode
-else:
-    from string import maketrans 
-    bytearray2str = str
-
-encode_translation = maketrans(b'+/=', b'_~-')
-decode_translation = maketrans(b'_~-', b'+/=')
+encode_translation = bytes.maketrans(b'+/=', b'_~-')
+decode_translation = bytes.maketrans(b'_~-', b'+/=')
 
 def encode_tk2(s):
     if not isinstance(s, bytes):
         s = s.encode()
     s = bytearray(base64.b64encode(s).translate(encode_translation))
     s.reverse()
-    return bytearray2str(s)
+    return s.decode()
 
 def decode_tk2(s):
     if not isinstance(s, bytes):
@@ -39,9 +30,7 @@ def decode_tk2(s):
     s = bytearray(s)
     s.reverse()
     s = base64.b64decode(s.translate(decode_translation))
-    if not isinstance(s, str):
-        s = s.decode()
-    return s
+    return s.decode()
 
 def generate_tk2(did):
     s = 'did={}|pno=1030|ver=0.3.0301|clit={}'.format(did, int(time.time()))
@@ -63,14 +52,26 @@ class Hunantv(VideoExtractor):
         add_default_handler(HTTPCookieProcessor)
         install_default_handlers()
         add_header('Referer', self.url)
-        add_header('User-Agent', ua)
 
         info = VideoInfo(self.name)
         if self.url and not self.vid:
-            self.vid = match1(self.url, 'https?://(?:www.)?mgtv.com/[bl]/\d+/(\d+).html')
+            self.vid = match1(self.url, 'com/[bl]/\d+/(\d+).html')
+            if self.vid is None:
+                self.vid = match1(self.url, 'com/s/(\d+).html')
             if self.vid is None:
                 html = get_content(self.url)
-                self.vid = match1(html, 'vid=(\d+)', 'vid=\"(\d+)', 'vid: (\d+)')
+                if match1(self.url, 'com/h/(\d+).html'):
+                    from ykdl.util.jsengine import JSEngine
+                    assert JSEngine, 'No JS Interpreter found!!!'
+                    js_ctx = JSEngine()
+                    js = match1(html, '<script>window.__NUXT__=(.+);</script>')
+                    data = str(js_ctx.eval(js))
+                    self.vid = match1(data, "PartId': '(\d+)'")
+                else:
+                    self.vid = match1(html, 'window.location = "/b/\d+/(\d+).html"',
+                                           r'routePath:"\\u002Fl\\u002F\d+\\u002F(\d+).html"',
+                                            'vid=(\d+)', 'vid=\"(\d+)', 'vid: (\d+)')
+        assert self.vid, 'can not find video!!!'
 
         did = str(uuid.uuid4())
         tk2 = generate_tk2(did)
@@ -108,13 +109,6 @@ class Hunantv(VideoExtractor):
                 info.stream_types.append(stream)
         info.stream_types= sorted(info.stream_types, key = self.supported_stream_types.index)
         info.extra['referer'] = self.url
-        info.extra['ua'] = ua
         return info
-
-    def prepare_list(self):
-
-        html = get_content(self.url, headers={})
-
-        return matchall(html, ['"a-pic-play" href="([^"]+)"'])
 
 site = Hunantv()

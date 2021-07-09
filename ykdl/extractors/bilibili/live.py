@@ -20,6 +20,7 @@ class BiliLive(VideoExtractor):
     name = u'Bilibili live (哔哩哔哩 直播)'
 
     profile_type = [
+        (u'4K',   '4K'),
         (u'原画', 'OG'),
         (u'蓝光', 'BD'),
         (u'超清', 'TD'),

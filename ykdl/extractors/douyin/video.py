@@ -15,7 +15,7 @@ class TikTok(VideoExtractor):
 
     def prepare(self):
         info = VideoInfo(self.name)
-        vid = match1(self.url, '(?:video/|vid=)(\d+)',)
+        vid = match1(self.url, '(?:video/|vid=)(\d+)')
         data = get_content('https://www.douyin.com/web/api/v2/aweme/iteminfo/?item_ids=' + vid)
         data = json.loads(data)
 
@@ -30,7 +30,7 @@ class TikTok(VideoExtractor):
         info.streams['current'] = {
             'container': 'mp4',
             'video_profile': 'current',
-            'src' : [video_info['video']['play_addr']['url_list'][0]],
+            'src' : [video_info['video']['play_addr']['url_list'][0].replace('playwm', 'play')],
         }
         return info
 

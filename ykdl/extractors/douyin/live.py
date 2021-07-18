@@ -14,20 +14,20 @@ class TikTok(VideoExtractor):
     name = '抖音直播 (TikTok)'
 
     stream_ids = ['OG', 'BD', 'TD', 'HD', 'SD']
-    profile_2_id = {
-        '原画': 'OG',
-        '蓝光': 'BD',
-        '超清': 'TD',
-        '高清': 'HD',
-        '标清': 'SD'
+    quality_2_profile_id = {
+        'FULL_HD1': ['蓝光', 'BD'],
+        'HD1': ['超清', 'TD'],
+        'SD1': ['高清', 'HD'],
+        'SD2': ['标清', 'SD']
      }
 
     def prepare(self):
         info = VideoInfo(self.name)
 
         html = get_content(self.url)
-        data = match1(html, 'type="application/json">(.+?)</script>')
+        data = match1(html, 'id="RENDER_DATA" type="application/json">(.+?)</script>')
         data = json.loads(unquote(data))
+        self.logger.debug('data: \n%s', data)
 
         video_info = data['routeInitialProps']['roomInfo'].get('room')
         assert video_info, 'live is off!!!'
@@ -38,13 +38,10 @@ class TikTok(VideoExtractor):
         info.artist = nickName
 
         stream_info = video_info['stream_url']
-        stream_name = stream_info['resolution_name']
         stream_url = stream_info['flv_pull_url']
-        stream_url['ORIGION'] = stream_info['rtmp_pull_url']
         
         for ql, url in stream_url.items():
-            video_profile = stream_name[ql]
-            stream = self.profile_2_id[video_profile]
+            video_profile, stream = self.quality_2_profile_id[ql]
             info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': 'flv',

@@ -1,6 +1,13 @@
 Change Log for ykdl
 ===================
 
+1.7.2
+-------
+
+- support new sites: Douyin
+- update Huya, Youku, MGTV
+
+
 1.7.1
 -------
 
@@ -21,10 +28,12 @@ Change Log for ykdl
   Miaopai, NetEase, PPTV, Qixiu, QQ, Sohu, Weibo, Youku
 - remove Dilidili, Panda
 
+
 1.6.3
 -------
 
 - update Sohu, mgtv, sina, etc a lot by @SeaHOH
+
 
 1.6.2
 -------
@@ -32,10 +41,12 @@ Change Log for ykdl
 - update QQ, bilibili, panda a lot by @SeaHOH
 - misc updates
 
+
 1.6.1
 -------
 
 - fix youku/tudou, QQ, mgtv, 163, bilibili by @SeaHOH
+
 
 1.6.0
 -------
@@ -46,6 +57,7 @@ Change Log for ykdl
 - update HTTP redirection for t.cn
 - use cryptodome as default.
 
+
 1.5.5
 -------
 
@@ -54,6 +66,7 @@ Change Log for ykdl
 - update huya, new api
 - update acfun, 163 Dj and QQ
 - update mpv's default parameters.
+
 
 1.5.4
 -------
@@ -72,12 +85,14 @@ Change Log for ykdl
 - update bilibili, tudou, weibo, etc.
 - update mpv wrapper, thanks to @SeaHOH
 
+
 1.5.2
 -------
 
 - update youku, panda, le, zhanqi, longzhu, laifeng, huajiao, etc.
 - many updates for windows platform, thanks to @SeaHOH
 - README.rst updated.
+
 
 1.5.1
 -------
@@ -87,6 +102,7 @@ Change Log for ykdl
 - update player wrapper
 - -F/--format now accept int value as level of resolution.
 
+
 1.5.0
 -------
 
@@ -94,12 +110,14 @@ Change Log for ykdl
 - update douyu, bilibili, youku
 - cykdl support no proxy
 
+
 1.4.11
 -------
 
 - update 163 music, pptv, youku
 - update python2 support
 - update ffmpeg&mpv wrapper
+
 
 1.4.10
 -------
@@ -109,12 +127,14 @@ Change Log for ykdl
 - update bilibili, acfun, sohu, youku, tudou
 - update downloader
 
+
 1.4.9
 -------
 
 - support new sites: dilidili
 - update letv, youku
 - update downloader
+
 
 1.4.8
 -------
@@ -123,6 +143,7 @@ Change Log for ykdl
 - update QQ, acfun, weibo, ifeng
 - update youku, due to api changed
 - misc changes
+
 
 1.4.7
 -------
@@ -142,6 +163,7 @@ Change Log for ykdl
 - rename short opt for json out to capital J
 - add -j --jobs for multithread download jobs number, default is NR_CPUS
 
+
 1.4.5
 -------
 
@@ -159,11 +181,13 @@ Change Log for ykdl
 - fix douyu live
 - support multithread download, NOTE: this is not finished
 
+
 1.4.3
 -------
 
 - fix Acfun
 - fix letv
+
 
 1.4.2
 -------
@@ -180,12 +204,14 @@ Change Log for ykdl
 - support douyu video, kankannews, Quanmin Live
 - update common alias dict
 
+
 1.1.4
 -------
 
 - port PPTV, yizhibo from upstream/PL
 - update Bilibili.
 - partially support Taobao 
+
 
 1.1.3.6
 -------
@@ -202,6 +228,7 @@ Change Log for ykdl
 - update ACfun for match pattern, and playlist
 - update main script to fix bugs, add -O option
 - add warning in m3u8_wrapper
+
 
 1.1.3.4
 -------
@@ -222,6 +249,7 @@ Change Log for ykdl
 - update Acfun, huomao, youku
 - add gitter
 
+
 1.1.3.1
 -------
 
@@ -236,12 +264,14 @@ Change Log for ykdl
 - get proxy from system proxy settings
 - some other update
 
+
 1.1.2
 -------
 
 - refact code a lot
 - update iqiyi
 - update setup for windows platform
+
 
 1.1.1.2
 -------
@@ -257,6 +287,7 @@ Change Log for ykdl
 - update letv 
 - update stream profile code
 
+
 1.1.1
 -----
 
@@ -265,6 +296,7 @@ Change Log for ykdl
 - remove lots of dead sites, include youtube
 - many other updates
 
+
 1.1.0.4
 -------
 
@@ -272,6 +304,7 @@ Change Log for ykdl
 - support laifeng live
 - fix zhanqi
 - add travis-ci
+
 
 1.1.0.3
 -------
@@ -284,6 +317,7 @@ Change Log for ykdl
 
 - right way to add requirements
 
+
 1.1.0
 -----
 
@@ -293,17 +327,20 @@ Change Log for ykdl
 - live video authors are added when possible.
 - subtitle feature is planned but moved to danmu branch.
 
+
 1.0.9.2
 -------
 
 - bug fix for baomihua
 - add test for extractors status.
 
+
 1.0.9.1
 -------
 
 - fix unqoute issue in python2, since v1.0.9 is released
 - a draft binary release is done. feedback is welcome.
+
 
 1.0.9
 -----
@@ -318,6 +355,3 @@ Change Log for ykdl
     almost done
 
     big change
-
-python3 is first choice, if you don't have python3, python2 is fine.
-don't forget to file a bug when using python2

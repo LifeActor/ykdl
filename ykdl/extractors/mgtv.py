@@ -70,7 +70,7 @@ class Hunantv(VideoExtractor):
                 else:
                     self.vid = match1(html, 'window.location = "/b/\d+/(\d+).html"',
                                            r'routePath:"\\u002Fl\\u002F\d+\\u002F(\d+).html"',
-                                            'vid=(\d+)', 'vid=\"(\d+)', 'vid: (\d+)')
+                                            'vid[=:]\D?(\d+)')
         assert self.vid, 'can not find video!!!'
 
         did = str(uuid.uuid4())

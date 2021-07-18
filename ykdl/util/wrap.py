@@ -85,10 +85,13 @@ def launch_player(player, urls, ext, play=True, **args):
         if args['title']:
             cmd += ['--force-media-title=' + args['title']]
         if args['header']:
-            cmd += ['--http-header-fields=' + args['header']]
+            header = args['header']
+            if not isinstance(header, str):
+                header = ','.join("'{}: {}'".format(k, v) for k, v in header.items())
+            cmd += ['--http-header-fields=' + header]
         if args['subs']:
             for sub in args['subs']:
-                cmd += ['--sub-file', sub]
+                cmd += ['--sub-file=' + sub]
 
     if args['rangefetch']:
         urls = ['http://127.0.0.1:8806/' + url for url in urls]

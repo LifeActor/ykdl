@@ -66,8 +66,7 @@ def undeflate(data):
 
 def get_head_response(url, headers=fake_headers):
     try:
-        req = Request(url, headers=headers)
-        req.get_method = lambda: 'HEAD'
+        req = Request(url, headers=headers, method='HEAD')
         response = urlopen(req)
     except IOError as e:
         # if HEAD method is not supported

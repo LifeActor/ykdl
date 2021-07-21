@@ -338,13 +338,13 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
         if count == 1:
             save_url(urls[0], name, ext, status, reporthook=reporthook)
         elif jobs > 1:
-            if count - sum(status) >= jobs > 12:
+            if min(count - sum(status), jobs) > 12:
                 logger.warning('number of active download processes is too big to works well!!')
             worker = ThreadPoolExecutor(max_workers=jobs)
-            futures = run(worker.submit, save_url)
             # does not call Thread.join(), catch KeyboardInterrupt in main thread
-            downloading = True
             try:
+                futures = run(worker.submit, save_url)
+                downloading = True
                 while downloading:
                     time.sleep(0.1)
                     for future in futures:
@@ -352,11 +352,11 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
                         if downloading:
                             break
             except KeyboardInterrupt:
-                import atexit
-                from concurrent.futures.thread import _python_exit
-                atexit.unregister(_python_exit)
+                from concurrent.futures.thread import _threads_queues
+                from threading import _shutdown_locks
+                _threads_queues.clear()
+                _shutdown_locks.clear()
                 raise
-            worker.shutdown()
         else:
             run(save_url, tries=1)
         downloaded, size, total, _cost = reporthook(['end'])

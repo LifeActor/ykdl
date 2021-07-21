@@ -9,7 +9,28 @@ try:
     import m3u8
     import time
     import signal
+
+    try:
+        from m3u8.httpclient import DefaultHTTPClient
+        import urllib.request
+    except ImportError:
+        pass
+    else:
+        # hack verify ssl of m3u8, use cykdl's settings
+        def _download(self, uri, timeout=None, headers={}, *args):
+            resource = urllib.request.urlopen(
+                urllib.request.Request(uri, headers=headers),
+                timeout=timeout)
+            base_uri = m3u8.httpclient._parsed_url(resource.geturl())
+            content = resource.read().decode(
+                resource.headers.get_content_charset(failobj='utf-8')
+            )
+            return content, base_uri
+
+        DefaultHTTPClient.download = _download
+
     stop = False
+
     def m3u8_live_stopper():
         default_INT_handle = None
         def handle(sig, x):

@@ -17,12 +17,13 @@ import socket
 import ssl
 import json
 import types
+from urllib.request import ProxyHandler, HTTPSHandler, getproxies
+from urllib.parse import urlparse
 
 import logging
 logger = logging.getLogger("YKDL")
 
 from ykdl.common import url_to_module
-from ykdl.compact import ProxyHandler, compact_str, urlparse, getproxies
 from ykdl.util.html import add_default_handler, install_default_handlers
 from ykdl.util.wrap import launch_player, launch_ffmpeg, launch_ffmpeg_download
 from ykdl.util.m3u8_wrap import load_m3u8
@@ -34,14 +35,15 @@ args = None
 
 def arg_parser():
     parser = ArgumentParser(description="YouKuDownLoader(ykdl {}), a video downloader. Forked from you-get 0.3.34@soimort".format(__version__))
-    parser.add_argument('-l', '--playlist', action='store_true', default=False, help="Download as a playlist.")
-    parser.add_argument('-i', '--info', action='store_true', default=False, help="Display the information of videos without downloading.")
-    parser.add_argument('-J', '--json', action='store_true', default=False, help="Display info in json format.")
+    parser.add_argument('-l', '--playlist', action='store_true', default=False, help="Download as a playlist")
+    parser.add_argument('-i', '--info', action='store_true', default=False, help="Display the information of videos without downloading")
+    parser.add_argument('-J', '--json', action='store_true', default=False, help="Display info in json format")
     parser.add_argument('-F', '--format',  help="Video format code, or resolution level 0, 1, ...")
-    parser.add_argument('-o', '--output-dir', default='.', help="Set the output directory for downloaded videos.")
+    parser.add_argument('-o', '--output-dir', default='.', help="Set the output directory for downloaded videos")
     parser.add_argument('-O', '--output-name', default='', help="Downloaded videos with the NAME you want")
     parser.add_argument('-p', '--player', help="Directly play the video with PLAYER like mpv")
-    parser.add_argument('-k', '--insecure', action='store_true', default=False, help="Allow insecure server connections when using SSL.")
+    parser.add_argument('-k', '--insecure', action='store_true', default=False, help="Allow insecure server connections when using SSL")
+    parser.add_argument('-c', '--append-certs', type=str, nargs='+', help="Append additional certs, used to verify SSL handshak, note that video urls can't follow this argument")
     parser.add_argument('--proxy', type=str, default='system', help="Set proxy HOST:PORT for http(s) transfer. default: use system proxy settings")
     parser.add_argument('-t', '--timeout', type=int, default=60, help="Set socket timeout seconds, default 60s")
     parser.add_argument('--fail-retry-eta', type=int, default=3600, help="If the number is bigger than ETA, a fail downloading will be auto retry, default 3600s, set 0 to void it")
@@ -158,6 +160,21 @@ def main():
 
     if args.insecure:
         ssl._create_default_https_context = ssl._create_unverified_context
+    else:
+        certs = args.append_certs or []
+        try:
+            import certifi
+        except ImportError:
+            pass
+        else:
+            certs.append(certifi.where())
+        if certs:
+            context = ssl._create_default_https_context()
+            for cert in certs:
+                if os.path.exists(cert):
+                    context.load_verify_locations(cert)
+            https_handler = HTTPSHandler(context=context)
+            add_default_handler(https_handler)
 
     proxies = None
     if args.proxy == 'system':
@@ -197,8 +214,8 @@ def main():
     if os.path.exists(args.output_dir):
         os.chdir(args.output_dir)
 
+    exit = 0
     try:
-        exit = 0
         for url in args.video_urls:
             try:
                 m, u = url_to_module(url)
@@ -218,14 +235,21 @@ def main():
                 else:
                     handle_videoinfo(info)
             except AssertionError as e:
-                logger.critical(compact_str(e))
+                logger.critical(str(e))
                 exit = 1
             except (RuntimeError, NotImplementedError, SyntaxError) as e:
-                logger.error(compact_str(e))
+                logger.error(str(e))
                 exit = 1
-        sys.exit(exit)
     except KeyboardInterrupt:
         logger.info('Interrupted by Ctrl-C')
+    except Exception as e:
+        errmsg = str(e)
+        logger.debug(errmsg, exc_info=True)
+        if 'local issuer' in errmsg:
+            logger.warning('Please install or update Certifi, and try again:\n'
+                           'pip3 install certifi --upgrade')
+        exit = 1
+    sys.exit(exit)
 
 if __name__ == '__main__':
     main()

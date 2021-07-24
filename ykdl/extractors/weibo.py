@@ -15,7 +15,7 @@ add_header('User-Agent', 'Baiduspider')
 class Weibo(VideoExtractor):
     name = "微博 (Weibo)"
 
-    ids = ['4K', '2K', 'BD', 'TD', 'HD', 'SD']
+    ids = ['4K', '2K', 'BD', 'TD', 'HD', 'SD', 'current']
     quality_2_id = {
            '4': '4K',
            '2': '2K',
@@ -39,7 +39,7 @@ class Weibo(VideoExtractor):
                 'src' : [url]
             }
 
-        self.vid = match1(self.url, '\D(\d{4}:\d+)')
+        self.vid = match1(self.url, '\D(\d{4}:(?:\d{16}|\w{32}))(?:\W|$)')
 
         if self.vid is None:
             page = match1(self.url, 'https?://[^/]+(/\d+/\w+)')
@@ -51,11 +51,6 @@ class Weibo(VideoExtractor):
             html = get_content('https://weibo.com' + page)
             streams = match1(html, 'quality_label_list=([^"]+)').split('&')[0]
             if streams:
-                info.title = match1(html, '<meta content="([^"]+)" name="description"').split('\n')[0]
-                info.artist = match1(html, '<meta content="([^"]+)" name="keywords"').split(',')[0]
-                i = info.title.find('】') + 1
-                if i:
-                    info.title = info.title[:i]
                 streams = json.loads(unquote(streams))
                 for stream in streams:
                     video_quality = stream['quality_label'].upper()
@@ -63,7 +58,22 @@ class Weibo(VideoExtractor):
                     video_quality = match1(video_quality, '(\d+)')
                     append_stream(video_profile, video_quality, stream['url'])
             else:
-                self.vid = match1(html, 'objectid=(\d{4}:\d+)')
+                url = match1(html, 'action-data="[^"]+?&video_src=([^"&]+)')
+                if url:
+                    info.stream_types.append('current')
+                    info.streams['current'] = {
+                        'video_profile': 'current',
+                        'container': 'mp4',
+                        'src' : [unquote(url)]
+                    }
+            if info.streams:
+                info.title = match1(html, '<meta content="([^"]+)" name="description"').split('\n')[0]
+                info.artist = match1(html, '<meta content="([^"]+)" name="keywords"').split(',')[0]
+                i = info.title.find('】') + 1
+                if i:
+                    info.title = info.title[:i]
+            else:
+                self.vid = match1(html, 'objectid=(\d{4}:(?:\d{16}|\w{32}))\W')
                 assert self.vid, 'can not find any video!!!'
 
         if self.vid:

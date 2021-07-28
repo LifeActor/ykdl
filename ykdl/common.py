@@ -26,15 +26,15 @@ def url_to_module(url):
         logger.warning("> assume http connection!")
         url = "http://" + url
     video_host = url.split('/')[2]
+    logger.debug('video_host> ' + video_host)
     host_list = video_host.split('.')
     if host_list[-2] in exclude_list:
         short_name = host_list[-3]
     else:
         short_name = host_list[-2]
-    logger.debug('video_host> ' + video_host)
-    logger.debug('short_name> ' + short_name)
     if short_name in alias.keys():
         short_name = alias[short_name]
+    logger.debug('short_name> ' + short_name)
     try:
         m = import_module('.'.join(['ykdl','extractors', short_name]))
         if hasattr(m, "get_extractor"):
@@ -56,7 +56,9 @@ def url_to_module(url):
                 return import_module('ykdl.extractors.generalembed').site, url
             else:
                 logger.debug('> Try SingleMultimedia')
-                return import_module('ykdl.extractors.singlemultimedia').site, url
+                site = import_module('ykdl.extractors.singlemultimedia').site
+                site.resheader = resheader
+                return site, url
         else:
             logger.debug('> new url ' + new_url)
             return url_to_module(new_url)

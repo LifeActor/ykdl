@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_location_and_header
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
+from ykdl.util.match import match1
+
+from urllib.parse import unquote
 
 import json
 
@@ -77,15 +79,25 @@ class Multimedia(VideoExtractor):
         # Get file type
         ext = self.url.split('?')[0].split('.')[-1]
         if ext not in extNames:
-            location, header = get_location_and_header(self.url)
-            ctype = header['Content-Type'].lower()
+            ctype = self.resheader['Content-Type'].lower()
             if ctype.startswith('image/'):
                 ext = ctype[6:]
             else:
                 ext = contentTypes[ctype]
 
         # Get title
-        title = self.url.split('?')[0].split('/')[-1]
+        title = self.resheader.get('Content-Disposition')
+        if title:
+            title = match1(title, 'attachment;.+?filename\*=([^;]+)')
+            if title:
+                encoding, _, title = title.strip('"').split("'")
+                unquote(title, encoding=encoding)
+            else:
+                title = match1(title, 'attachment;.+?filename=([^;]+)')
+                if title:
+                    title = unquote(title.strip('"'))
+        if title is None:
+            title = self.url.split('?')[0].split('/')[-1]
         if title.endswith('.' + ext):
             title = title[0 : -len(ext) - 1]
 
@@ -96,7 +108,7 @@ class Multimedia(VideoExtractor):
             'container': ext,
             'video_profile': 'default',
             'src': [self.url],
-            'size': int(header.get('Content-Length', 0))
+            'size': int(self.resheader.get('Content-Length', 0))
         }
         return info
 

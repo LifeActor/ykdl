@@ -101,6 +101,6 @@ class Miaopai(VideoExtractor):
     def prepare_list(self):
         html = get_content(self.url)
         video_list = match1(html, 'video_list=\[([^\]]+)')
-        return matchall(video_list, ['\"([^\",]+)'])
+        return matchall(video_list, '\"([^\",]+)')
 
 site = Miaopai()

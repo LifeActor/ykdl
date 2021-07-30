@@ -34,8 +34,8 @@ class OpenC(VideoExtractor):
         xml = video_info_xml(self.vid)
 
         info.title = match1(xml, '<vname><!\[CDATA\[([^\]]+)')
-        urls = matchall(xml, ['<url><!\[CDATA\[([^\]]+)'])
-        sizes = matchall(xml, ['<filesize>([^<]+)'])
+        urls = matchall(xml, '<url><!\[CDATA\[([^\]]+)')
+        sizes = matchall(xml, '<filesize>([^<]+)')
         size = 0
         for s in sizes:
             size += int(s)

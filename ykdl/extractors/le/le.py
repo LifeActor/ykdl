@@ -90,6 +90,6 @@ class Letv(VideoExtractor):
 
         html = get_content(self.url)
 
-        return matchall(html, ['vid="(\d+)"'])
+        return matchall(html, 'vid="(\d+)"')
 
 site = Letv()

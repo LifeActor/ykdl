@@ -21,7 +21,7 @@ class IfengOpenC(VideoExtractor):
         xml = get_content('http://vxml.ifengimg.com/video_info_new/{}/{}/{}.xml'.format(self.vid[-2], self.vid[-2:], self.vid))
 
         info.title = match1(xml, 'SE_Title="([^"]+)')
-        urls = matchall(xml, ['playurl="([^"]+)'])
+        urls = matchall(xml, 'playurl="([^"]+)')
         urls = ['http://ips.ifeng.com/' + u[7:] for u in urls ]
         info.stream_types.append('current')
         info.streams['current'] = {'container': 'mp4', 'video_profile': 'current', 'src' : urls, 'size': 0}

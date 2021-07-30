@@ -119,7 +119,7 @@ class Iqiyi(VideoExtractor):
         info = VideoInfo(self.name)
 
         if self.url and not self.vid:
-            vid = matchall(self.url, ['curid=([^_]+)_([\w]+)'])
+            vid = matchall(self.url, 'curid=([^_]+)_([\w]+)')
             if vid:
                 self.vid = vid[0]
                 info_u = 'http://pcw-api.iqiyi.com/video/video/playervideoinfo?tvid=' + self.vid[0]
@@ -255,6 +255,6 @@ class Iqiyi(VideoExtractor):
     def prepare_list(self):
         html = get_content(self.url)
 
-        return matchall(html, ['data-tvid=\"([^\"]+)\" data-vid=\"([^\"]+)\"'])
+        return matchall(html, 'data-tvid=\"([^\"]+)\" data-vid=\"([^\"]+)\"')
 
 site = Iqiyi()

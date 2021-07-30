@@ -69,7 +69,7 @@ class LeLive(VideoExtractor):
 
     def prepare_list(self):
         html = get_content(self.url)
-        vids = matchall(html, ['vid="(\d+)"'])
+        vids = matchall(html, 'vid="(\d+)"')
         # fake urls
         return ['http://live.le.com/izt/vid={}'.format(vid) for vid in vids]
 

@@ -55,6 +55,7 @@ Step:
 
     .. code-block:: console
 
+        pip3 install git+https://github.com/SeaHOH/ykdl.git --force-reinstall --no-deps
         pip3 install git+https://github.com/SeaHOH/ykdl.git --upgrade
 
  #. Make sure those folders are in your **PATH**, if they are not, add them.

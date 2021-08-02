@@ -24,36 +24,47 @@ def fetch_mozecname(vid):
     if len(mozecname) == 4:
         return
 
-    digits = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    digits = list('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
 
-    def encrypt(text):
-        '''fake, only for existed texts'''
+    def i2b(d):
+        if base == 10:
+            return str(d)
         b = []
-        d = keys_dict[text]
         while d:
             d, m = divmod(d, base)
             b.append(digits[m])
-        return ''.join(b[::-1])
+        return ''.join(b[::-1]) or '0'
+
+    def b2i(text):
+        try:
+            i = int(text, base)
+        except ValueError:
+            i = p = 0
+            for d in text[::-1]:
+                i += digits.index(d) * base ** p
+                p += 1
+        return i
+
+    def encrypt(text):
+        '''fake, only for existed texts'''
+        return i2b(keys_dict[text])
 
     def decrypt(text):
-        i = p = 0
-        for d in text[::-1]:
-            i += digits.index(d) * base ** p
-            p += 1
-        return keys_list[i] or text
+        return keys_list[b2i(text)] or text
 
     html = get_content('https://m.fun.tv/vplay/?vid=' + vid)
     for path in matchall(html[:html.find('</head>')],
                          'src="(/static/js/v12/pkg/m\w{4}_v12_\w{9}.js)"'):
         js = get_content('https://m.fun.tv' + path).strip()
-        crypt, base, _, keys = re.search(
-                r"}\('(.+?)[^\\]',(\d+),(\d+),'(.+?)'\.split", js).groups()
+        crypt, base, _, keys, sep = re.search(
+                r"}\('(.+?)[^\\]',(\d+),(\d+),'(.+?)'\.split\('(.)'", js).groups()
         base = int(base)
-        keys_list = keys.split('|')
-        keys_dict = {b: a for a, b in enumerate(keys_list)}
-        pattern = '\\.'.join(encrypt(text) \
+        keys_list = keys.split(sep)
+        keys_dict = {k: i for i, k in enumerate(keys_list)}
+        pattern = '\\.'.join(encrypt(text)
                   for text in ['document', 'mozEcName', 'push']) + '\("(\w+)'
         mozecname += [decrypt(text) for text in matchall(crypt, pattern)]
+    site.logger.debug('mozEcName: %s', mozecname)
     mozecname = {int(m[-1]): int(m[:-1], 16) for m in mozecname}
 
 def decrypt(obj):
@@ -71,7 +82,7 @@ def decrypt(obj):
     def o(t):
         e = (n(t[i], t[i + 1]) for i in range(0, len(t) - 1, 2))
         e = sum(e, ()) + (t[-1], )
-        return ''.join(chr(i) for i in e)
+        return bytes(e).decode('latin_1')
 
     def n(t, e):
         return ((t * mozecname[0] + e * mozecname[2]) & 0xFF,

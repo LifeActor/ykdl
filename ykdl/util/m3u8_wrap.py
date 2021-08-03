@@ -17,7 +17,7 @@ try:
         pass
     else:
         # hack verify ssl of m3u8, use cykdl's settings
-        def _download(self, uri, timeout=None, headers={}, *args):
+        def _download(self, uri, timeout=None, headers={}, *args, **kwargs):
             resource = urllib.request.urlopen(
                 urllib.request.Request(uri, headers=headers),
                 timeout=timeout)

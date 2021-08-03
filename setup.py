@@ -22,14 +22,25 @@ def find_packages(*tops):
     return packages
 
 from ykdl.version import __version__
+try:
+    from ykdl.util.jsengine import JSEngine
+except ImportError:
+    JSEngine = None
 
-REQ = ['m3u8', 'pycryptodome', 'urllib3']
+REQ = ['m3u8']  # remove pycryptodome, it is not being used now
 EXT = {
-  'ext-proxy': ['ExtProxy'],
-  'js-engine': ['PyChakra>=2.2.0']
+  'proxy': ['ExtProxy'],
+  'rangefetch': ['urllib3'],
+  'js': JSEngine and [] or ['PyChakra>=2.2.0'],
+  'color': os.name != 'nt' and [] or ['colorama']
 }
-if os.name == 'nt':
-    EXT['ansi-escape'] = ['colorama']
+EXT['all'] = sum((rs for rs in EXT.values()), [])
+EXT['all-js'] = EXT['all'].copy()
+try:
+    EXT['all-js'].remove(EXT['js'][0])
+except IndexError:
+    pass
+EXT['net'] = EXT['proxy'] + EXT['rangefetch']
 
 
 setup(

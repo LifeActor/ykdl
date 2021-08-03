@@ -17,6 +17,7 @@ import socket
 import ssl
 import json
 import types
+import ast
 from urllib.request import ProxyHandler, HTTPSHandler, getproxies
 from urllib.parse import urlparse
 
@@ -122,11 +123,12 @@ def handle_videoinfo(info, index=0):
     if args.info or args.json:
         return
     urls = info.streams[stream_id]['src']
-    if args.output_name:
+    name = args.output_name
+    if name:
+        if '\\u' in name:
+            name = ast.literal_eval('"{}"'.format(name))
         if args.playlist:
-            name = args.output_name + '_' + str(index)
-        else:
-            name = args.output_name
+            name = name + '_' + str(index)
     else:
         name = info.build_file_name(stream_id)
 

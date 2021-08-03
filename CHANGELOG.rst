@@ -1,15 +1,27 @@
 Change Log for ykdl
 ===================
 
+1.8.0 alpha 1
+-------------
+
+- :warning: <break> update setup interrelated deefef9 10303eb #573
+- :warning: <break> change matchall arguments to same as match1 c5229b6
+- add new extractor: generalsimple, singlemultimedia e793453
+- resolve SSL issues in old OS and package m3u8 1ccfa6b
+- fixed dull Ctrl+C fec3a16
+- support new sites: Funshion, Heibai #278 #552 thx @airdge
+- update Weibo
+- remove Xiami
+
 1.7.2
--------
+-----
 
 - support new sites: Douyin
 - update Huya, Youku, MGTV
 
 
 1.7.1
--------
+-----
 
 - add subtitle support #544
 - refactor Weibo
@@ -18,7 +30,7 @@ Change Log for ykdl
 
 
 1.7.0
--------
+-----
 
 - dropped supports of Python 3.4 and below #487
 - a lot of improvements with utils #372 a8651a0 #485 d1a6e53 5dfc760 etc.
@@ -30,26 +42,26 @@ Change Log for ykdl
 
 
 1.6.3
--------
+-----
 
 - update Sohu, mgtv, sina, etc a lot by @SeaHOH
 
 
 1.6.2
--------
+-----
 
 - update QQ, bilibili, panda a lot by @SeaHOH
 - misc updates
 
 
 1.6.1
--------
+-----
 
 - fix youku/tudou, QQ, mgtv, 163, bilibili by @SeaHOH
 
 
 1.6.0
--------
+-----
 
 - new internal proxy for slow video playback. by @SeaHOH
 - update youku, many bug fixed.
@@ -59,7 +71,7 @@ Change Log for ykdl
 
 
 1.5.5
--------
+-----
 
 - update bilibili bangumi a lot, better
 - update youku, support check audio_lang
@@ -69,7 +81,7 @@ Change Log for ykdl
 
 
 1.5.4
--------
+-----
 
 - support bilibili bangumi by new extractor
 - support new sites: Zhangyu, Chushou
@@ -80,14 +92,14 @@ Change Log for ykdl
 
 
 1.5.3
--------
+-----
 
 - update bilibili, tudou, weibo, etc.
 - update mpv wrapper, thanks to @SeaHOH
 
 
 1.5.2
--------
+-----
 
 - update youku, panda, le, zhanqi, longzhu, laifeng, huajiao, etc.
 - many updates for windows platform, thanks to @SeaHOH
@@ -95,7 +107,7 @@ Change Log for ykdl
 
 
 1.5.1
--------
+-----
 
 - update bilibili, youku, quanmin live, 163, douyu, etc.
 - support egame.qq.com, finance.le.com
@@ -104,7 +116,7 @@ Change Log for ykdl
 
 
 1.5.0
--------
+-----
 
 - update videoinfo, add ua/referrer.
 - update douyu, bilibili, youku
@@ -112,7 +124,7 @@ Change Log for ykdl
 
 
 1.4.11
--------
+------
 
 - update 163 music, pptv, youku
 - update python2 support
@@ -120,7 +132,7 @@ Change Log for ykdl
 
 
 1.4.10
--------
+------
 
 - support new sites: sina open course
 - delete: isuntv, instagram, dailymotion, alive, ted
@@ -129,7 +141,7 @@ Change Log for ykdl
 
 
 1.4.9
--------
+-----
 
 - support new sites: dilidili
 - update letv, youku
@@ -137,7 +149,7 @@ Change Log for ykdl
 
 
 1.4.8
--------
+-----
 
 - support new sites: ifeng/163 open course
 - update QQ, acfun, weibo, ifeng
@@ -146,7 +158,7 @@ Change Log for ykdl
 
 
 1.4.7
--------
+-----
 
 - fix bug when len(urls) == 1
 - update mgtv, huomao, bilibili
@@ -155,7 +167,7 @@ Change Log for ykdl
 
 
 1.4.6
--------
+-----
 
 - acfun: add missing sign
 - python2 fix
@@ -165,7 +177,7 @@ Change Log for ykdl
 
 
 1.4.5
--------
+-----
 
 - fix iqiyi with code clean
 - update bilibili Episode title
@@ -175,7 +187,7 @@ Change Log for ykdl
 
 
 1.4.4
--------
+-----
 
 - fix Acfun again
 - fix douyu live
@@ -183,14 +195,14 @@ Change Log for ykdl
 
 
 1.4.3
--------
+-----
 
 - fix Acfun
 - fix letv
 
 
 1.4.2
--------
+-----
 
 - change version string to 3 digital
 - fix qq, douyu, mgtv, QQ. etc.
@@ -206,7 +218,7 @@ Change Log for ykdl
 
 
 1.1.4
--------
+-----
 
 - port PPTV, yizhibo from upstream/PL
 - update Bilibili.
@@ -257,7 +269,7 @@ Change Log for ykdl
 
 
 1.1.3
--------
+-----
 
 - update iqiyi
 - merge option removed
@@ -266,7 +278,7 @@ Change Log for ykdl
 
 
 1.1.2
--------
+-----
 
 - refact code a lot
 - update iqiyi

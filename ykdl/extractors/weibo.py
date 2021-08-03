@@ -1,59 +1,99 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ..simpleextractor import SimpleExtractor
-from ykdl.util.html import add_header, get_content, get_location
+from ykdl.extractor import VideoExtractor
+from ykdl.videoinfo import VideoInfo
+from ykdl.util.html import fake_headers, add_header, get_content
 from ykdl.util.match import match1
-from ykdl.compact import compact_unquote, urlsplit, parse_qs
+from urllib.parse import urlencode, unquote
 
+import json
 
-class Weibo(SimpleExtractor):
-    name = u"微博秒拍 (Weibo)"
+API = 'https://weibo.com/tv/api/component'
+add_header('User-Agent', 'Baiduspider')
 
-    def __init__(self):
-        SimpleExtractor.__init__(self)
-        add_header('User-Agent', 'Baiduspider')
+class Weibo(VideoExtractor):
+    name = "微博 (Weibo)"
 
-    def get_title(self):
-        if self.title_patterns:
-            self.info.title = match1(self.html, *self.title_patterns)
-        # JSON string escaping in safe
-        exec('self.info.title = """%s"""' % self.info.title.replace('"""', ''))
+    ids = ['4K', '2K', 'BD', 'TD', 'HD', 'SD', 'current']
+    quality_2_id = {
+           '4': '4K',
+           '2': '2K',
+        '1080': 'BD',
+         '720': 'TD',
+         '480': 'HD',
+         '360': 'SD'
+    }
 
-    def get_url(self):
-        if self.url_patterns:
-            v_url = match1(self.html, *self.url_patterns)
-            if v_url.startswith('http%3A'):
-                v_url = compact_unquote(v_url)
-            self.v_url = [v_url]
+    def prepare(self):
+        info = VideoInfo(self.name)
 
-    def l_assert(self):
-        if self.url.startswith('http://'):
-            self.url = self.url.replace('http://', 'https://', 1)
-        self.url = get_location(self.url)
+        def append_stream(video_profile, video_quality, url):
+            stream_id = self.quality_2_id[video_quality]
+            if stream_id in info.stream_types:
+                return
+            info.stream_types.append(stream_id)
+            info.streams[stream_id] = {
+                'video_profile': video_profile,
+                'container': 'mp4',
+                'src' : [url]
+            }
 
-        if 'passport.weibo.com' in self.url:
-            query = urlsplit(self.url).query
-            self.url = parse_qs(query)['url'][0]
-            return self.l_assert()
+        self.vid = match1(self.url, '\D(\d{4}:(?:\d{16}|\w{32}))(?:\W|$)')
 
-        # Mobile ver.
-        if 'm.weibo.cn' in self.url:
-            self.title_patterns = '"content2": "(.+?)",', '"status_title": "(.+?)",'
-            self.url_patterns = '"stream_url_hd": "([^"]+)', '"stream_url": "([^"]+)'
-            return
+        if self.vid is None:
+            page = match1(self.url, 'https?://[^/]+(/\d+/\w+)')
+            if page is None or match1(page, '/(\d+)$'):
+                html = get_content(self.url.replace('//weibo.', '//hk.weibo.')
+                                           .replace('/user/', '/'))
+                page = match1(html, '"og:url".+weibo.com(/\d+/\w+)')
+            assert page, 'can not find any video!!!'
+            html = get_content('https://weibo.com' + page)
+            streams = match1(html, 'quality_label_list=([^"]+)').split('&')[0]
+            if streams:
+                streams = json.loads(unquote(streams))
+                for stream in streams:
+                    video_quality = stream['quality_label'].upper()
+                    video_profile = stream['quality_desc'] + ' ' + video_quality
+                    video_quality = match1(video_quality, '(\d+)')
+                    append_stream(video_profile, video_quality, stream['url'])
+            else:
+                url = match1(html, 'action-data="[^"]+?&video_src=([^"&]+)')
+                if url:
+                    info.stream_types.append('current')
+                    info.streams['current'] = {
+                        'video_profile': 'current',
+                        'container': 'mp4',
+                        'src' : [unquote(url)]
+                    }
+            if info.streams:
+                info.title = match1(html, '<meta content="([^"]+)" name="description"').split('\n')[0]
+                info.artist = match1(html, '<meta content="([^"]+)" name="keywords"').split(',')[0]
+                i = info.title.find('】') + 1
+                if i:
+                    info.title = info.title[:i]
+            else:
+                self.vid = match1(html, 'objectid=(\d{4}:(?:\d{16}|\w{32}))\W')
+                assert self.vid, 'can not find any video!!!'
 
-        if '/tv/v/' in self.url or 'fid=' not in self.url:
-            self.title_patterns = 'class="info_txt \w+">([^<]+)</', 'class="WB_text \w+"[^>]+>\s*(?:<a[^<]+</a>)?\s*([^<]+)'
-            self.url_patterns = 'video-sources\s*=\s*".+?(?:&\d+=http.+?)*&\d+=(http.+?[^=])(?:&\d+=)*&qType=\w+"',
-            return
+        if self.vid:
+            headers = {'Referer': 'https://weibo.com/tv/show/' + self.vid}
+            headers.update(fake_headers)
+            data = urlencode({
+                'data': json.dumps({
+                    'Component_Play_Playinfo': {'oid': self.vid}
+                })
+            }).encode()
+            vdata = get_content(API, headers=headers, data=data)
+            vdata = json.loads(vdata)['data']['Component_Play_Playinfo']
+            info.title = vdata['title']
+            info.artist = vdata['author']
+            for video_profile, url in vdata['urls'].items():
+                if url:
+                    video_quality = match1(video_profile, '(\d+)')
+                    append_stream(video_profile, video_quality, 'https:' + url)
 
-        self.title_patterns = '<title>([^<]+)</',
-        self.url_patterns = r'(?:data-url|controls src)\s*=\s*[\"\']([^\"\']+)',
-        html = get_content(self.url)
-        url = match1(html, '"page_url": "([^"]+)')
-        assert url, 'No url match'
-        self.url = url
-        self.l_assert()
+        info.stream_types = sorted(info.stream_types, key=self.ids.index)
+        return info
 
 site = Weibo()

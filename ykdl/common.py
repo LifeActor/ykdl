@@ -4,7 +4,7 @@
 from importlib import import_module
 
 from .util.match import match1
-from .util.html import get_location
+from .util.html import get_location_and_header
 import logging
 
 logger = logging.getLogger("common")
@@ -26,15 +26,15 @@ def url_to_module(url):
         logger.warning("> assume http connection!")
         url = "http://" + url
     video_host = url.split('/')[2]
+    logger.debug('video_host> ' + video_host)
     host_list = video_host.split('.')
     if host_list[-2] in exclude_list:
         short_name = host_list[-3]
     else:
         short_name = host_list[-2]
-    logger.debug('video_host> ' + video_host)
-    logger.debug('short_name> ' + short_name)
     if short_name in alias.keys():
         short_name = alias[short_name]
+    logger.debug('short_name> ' + short_name)
     try:
         m = import_module('.'.join(['ykdl','extractors', short_name]))
         if hasattr(m, "get_extractor"):
@@ -44,11 +44,21 @@ def url_to_module(url):
         return site, url
     except(ImportError):
         logger.debug('> Try HTTP Redirection!')
-        new_url = get_location(url, headers = {})
+        new_url, resheader = get_location_and_header(url)
         if new_url == url:
             logger.debug('> NO HTTP Redirection')
-            logger.debug('> Go Generalembed')
-            return import_module('ykdl.extractors.generalembed').site, url
+            if resheader['Content-Type'].startswith('text/'):
+                logger.debug('> Try GeneralSimple')
+                site = import_module('ykdl.extractors.generalsimple').site
+                if site.parser(url):
+                    return site, url
+                logger.debug('> Try GeneralEmbed')
+                return import_module('ykdl.extractors.generalembed').site, url
+            else:
+                logger.debug('> Try SingleMultimedia')
+                site = import_module('ykdl.extractors.singlemultimedia').site
+                site.resheader = resheader
+                return site, url
         else:
             logger.debug('> new url ' + new_url)
             return url_to_module(new_url)

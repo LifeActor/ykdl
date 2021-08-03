@@ -106,65 +106,65 @@ class GeneralEmbed(EmbedExtractor):
 
         content = get_content(self.url)
 
-        vids = matchall(content, youku_embed_patterns)
+        vids = matchall(content, *youku_embed_patterns)
         for vid in vids:
             append_video_info('youku',vid)
 
-        vids = matchall(content, qq_embed_patterns)
+        vids = matchall(content, *qq_embed_patterns)
         for vid in vids:
             append_video_info('qq.video',vid)
 
-        vids = matchall(content, sohu_embed_patterns)
+        vids = matchall(content, *sohu_embed_patterns)
         for vid in vids:
             append_video_info('sohu.my',vid)
 
-        urls = matchall(content, ku6_embed_url)
+        urls = matchall(content, *ku6_embed_url)
         for url in urls:
             html = get_content(url)
-            flashvars = matchall(html, ['vid=([^&]+)', 'style=([^&]+)', 'sn=([^&]+)'])
+            flashvars = matchall(html, 'vid=([^&]+)', 'style=([^&]+)', 'sn=([^&]+)')
             data = json.loads(get_content('http://v.ku6vms.com/phpvms/player/forplayer/vid/{}/style/{}/sn/{}'.format(flashvars[0], flashvars[1],flashvars[2])))
             vid = data['ku6vid']
             append_video_info('ku6',vid)
 
-        vids = matchall(content, ku6_embed_patterns)
+        vids = matchall(content, *ku6_embed_patterns)
         for v in vids:
             append_video_info('ku6', v)
 
-        vids = matchall(content, netease_embed_patterns)
+        vids = matchall(content, *netease_embed_patterns)
         for v in vids:
             append_video_info('netease.video', v)
 
-        vids = matchall(content, iqiyi_embed_patterns)
+        vids = matchall(content, *iqiyi_embed_patterns)
         for v in vids:
             videoid, tvid = v
             append_video_info('iqiyi', (tvid, videoid))
 
-        vids = matchall(content, lecloud_embed_patterns)
+        vids = matchall(content, *lecloud_embed_patterns)
         for v in vids:
             uu, vu = v
             append_video_info('le.letvcloud', (vu, uu))
 
-        vids = matchall(content, ifeng_embed_patterns)
+        vids = matchall(content, *ifeng_embed_patterns)
         for v in vids:
             v  = v.split('&')[0]
             append_video_info('ifeng.news', v)
 
-        vids = matchall(content, weibo_embed_patterns)
+        vids = matchall(content, *weibo_embed_patterns)
         for v in vids:
             append_video_info('weibo', 'http://weibo.com/p/' + v)
 
-        vids = matchall(content, sina_embed_patterns)
+        vids = matchall(content, *sina_embed_patterns)
         for v in vids:
             v  = v.split('&')[0]
             append_video_info('sina.video', v)
 
-        vids = matchall(content, bilibili_embed_patterns)
+        vids = matchall(content, *bilibili_embed_patterns)
         for v in vids:
             v = "https://www.bilibili.com/video/av{}".format(v)
             append_video_info('bilibili.video', v)
 
 
-        vids = matchall(content, dilidili_embed_patterns)
+        vids = matchall(content, *dilidili_embed_patterns)
         for v in vids:
             v,site  = v
             if site == 'bilibili':

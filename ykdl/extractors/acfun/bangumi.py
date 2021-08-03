@@ -36,7 +36,7 @@ class AcBan(AcBase):
 
     def get_path_list(self):
         html = get_content(self.url)
-        videos = matchall(html, ['href=[\'"](/bangumi/aa\d+_\d+_\d+)[\'"] data-title=[\'"]'])
+        videos = matchall(html, 'href=[\'"](/bangumi/aa\d+_\d+_\d+)[\'"] data-title=[\'"]')
         return videos
 
 site = AcBan()

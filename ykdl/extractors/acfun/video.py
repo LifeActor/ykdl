@@ -36,7 +36,7 @@ class AcVideo(AcBase):
 
     def get_path_list(self):
         html = get_content(self.url)
-        videos = matchall(html, ['href=[\'"](/v/[a-zA-Z0-9_]+)[\'"] title=[\'"]'])
+        videos = matchall(html, 'href=[\'"](/v/[a-zA-Z0-9_]+)[\'"] title=[\'"]')
         return videos
 
 site = AcVideo()

@@ -43,26 +43,26 @@ def fetch_cna():
     url = 'https://gm.mmstat.com/yt/ykcomment.play.commentInit?cna='
     req = urlopen(url)
     cookies = req.info()['Set-Cookie']
-    cna = match1(cookies, "cna=([^;]+)")
-    return cna if cna else "oqikEO1b7CECAbfBdNNf1PM1"
+    cna = match1(cookies, 'cna=([^;]+)')
+    return cna if cna else 'oqikEO1b7CECAbfBdNNf1PM1'
 
 class Youku(VideoExtractor):
-    name = u"优酷 (Youku)"
+    name = '优酷 (Youku)'
     ref_youku = 'https://v.youku.com'
     ref_tudou = 'https://video.tudou.com'
-    ckey_default = "DIl58SLFxFNndSV1GFNnMQVYkx1PP5tKe1siZu/86PR1u/Wh1Ptd+WOZsHHWxysSfAOhNJpdVWsdVJNsfJ8Sxd8WKVvNfAS8aS8fAOzYARzPyPc3JvtnPHjTdKfESTdnuTW6ZPvk2pNDh4uFzotgdMEFkzQ5wZVXl2Pf1/Y6hLK0OnCNxBj3+nb0v72gZ6b0td+WOZsHHWxysSo/0y9D2K42SaB8Y/+aD2K42SaB8Y/+ahU+WOZsHcrxysooUeND"
-    ckey_mobile = "7B19C0AB12633B22E7FE81271162026020570708D6CC189E4924503C49D243A0DE6CD84A766832C2C99898FC5ED31F3709BB3CDD82C96492E721BDD381735026"
+    ckey_default = 'DIl58SLFxFNndSV1GFNnMQVYkx1PP5tKe1siZu/86PR1u/Wh1Ptd+WOZsHHWxysSfAOhNJpdVWsdVJNsfJ8Sxd8WKVvNfAS8aS8fAOzYARzPyPc3JvtnPHjTdKfESTdnuTW6ZPvk2pNDh4uFzotgdMEFkzQ5wZVXl2Pf1/Y6hLK0OnCNxBj3+nb0v72gZ6b0td+WOZsHHWxysSo/0y9D2K42SaB8Y/+aD2K42SaB8Y/+ahU+WOZsHcrxysooUeND'
+    ckey_mobile = '7B19C0AB12633B22E7FE81271162026020570708D6CC189E4924503C49D243A0DE6CD84A766832C2C99898FC5ED31F3709BB3CDD82C96492E721BDD381735026'
 
     def __init__(self):
         VideoExtractor.__init__(self)
         self.params = (
-            ('0503', self.ref_youku, self.ckey_default),
+            ('0532', self.ref_youku, self.ckey_default),
             ('0590', self.ref_youku, self.ckey_default),
             ('0505', self.ref_tudou, self.ckey_default),
             )
 
     def prepare(self):
-        add_header("Cookie", '__ysuid=%d' % time.time())
+        add_header('Cookie', '__ysuid=%d' % time.time())
 
         info = VideoInfo(self.name)
 
@@ -83,11 +83,11 @@ class Youku(VideoExtractor):
             if not isinstance(vid, str):
                 vid = vid.decode()
             self.vid = 'X' + vid
-        self.logger.debug("VID: " + self.vid)
+        self.logger.debug('VID: ' + self.vid)
 
         utid = fetch_cna()
         for ccode, ref, ckey in self.params:
-            add_header("Referer", ref)
+            add_header('Referer', ref)
             if len(ccode) > 4:
                _utid = generateUtdid()
             else:
@@ -104,8 +104,9 @@ class Youku(VideoExtractor):
             while data is None:
                 e1 = 0
                 e2 = 0
-                data = json.loads(get_content('https://ups.youku.com/ups/get.json?' + urlencode(params)))
-                self.logger.debug("data: " + str(data))
+                data = get_content('https://ups.youku.com/ups/get.json?' + urlencode(params))
+                self.logger.debug('data: ' + str(data))
+                data = json.loads(data)
                 e1 = data['e']['code']
                 e2 = data['data'].get('error')
                 if e2:
@@ -136,7 +137,7 @@ class Youku(VideoExtractor):
 
         audio_lang = 'default'
         if 'dvd' in data and 'audiolang' in data['dvd']:
-            for l in data['dvd']["audiolang"]:
+            for l in data['dvd']['audiolang']:
                 if l['vid'].startswith(self.vid):
                     audio_lang = l['langcode']
                     break
@@ -145,16 +146,16 @@ class Youku(VideoExtractor):
         for s in streams:
             if not audio_lang == s['audio_lang']:
                 continue
-            self.logger.debug("stream> " + str(s))
+            self.logger.debug('stream> ' + str(s))
             t = stream_code_to_id[s['stream_type']]
             urls = []
             for u in s['segs']:
-                self.logger.debug("seg> " + str(u))
+                self.logger.debug('seg> ' + str(u))
                 if u['key'] != -1:
                     if 'cdn_url' in u:
                         urls.append(u['cdn_url'])
                 else:
-                    self.logger.warning("VIP video, ignore unavailable seg: {}".format(s['segs'].index(u)))
+                    self.logger.warning('VIP video, ignore unavailable seg: {}'.format(s['segs'].index(u)))
             if len(urls) == 0:
                 urls = [s['m3u8_url']]
                 c = 'm3u8'

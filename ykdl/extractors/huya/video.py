@@ -5,21 +5,23 @@ from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 from ykdl.util.html import get_content
 from ykdl.util.match import match1
-from ykdl.compact import compact_str, urlencode
 
 import json
 import time
 import random
 
+from urllib.parse import urlencode
+
+
 class HuyaVideo(VideoExtractor):
-    name = u"huya video (虎牙视频)"
+    name = 'huya video (虎牙视频)'
 
     supported_stream_types = ['BD', 'TD', 'HD', 'SD']
     quality_2_id_profile = {
-        'yuanhua': ['BD', u'原画'],
-           '1300': ['TD', u'超清'],
-          #'TODO': ['HD', u'高清'],
-            '350': ['SD', u'流畅']
+        'yuanhua': ['BD', '原画'],
+           '1300': ['TD', '超清'],
+          #'TODO': ['HD', '高清'],
+            '350': ['SD', '流畅']
     }
 
     def prepare(self):

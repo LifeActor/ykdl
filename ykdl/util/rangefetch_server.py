@@ -221,7 +221,7 @@ class RangeFetch():
         self.adjust_threads(self.threads)
 
         has_peek = hasattr(self.data_queue, 'peek')
-        peek_timeout = 30
+        peek_timeout = 15
         self._expect_begin = start
 
         speedtest = {'prev_begin': 0,

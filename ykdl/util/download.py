@@ -20,14 +20,13 @@ from __future__ import print_function
 import os
 import sys
 import time
-import queue
 import socket
-import select
 import threading
 from logging import getLogger
 from shutil import get_terminal_size
 from concurrent.futures import ThreadPoolExecutor
-from ykdl.compact import Request, urlopen
+from urllib.request import Request, urlopen
+from http.client import IncompleteRead
 from ykdl.util import log
 from .html import fake_headers_without_ae as fake_headers
 from .log import IS_ANSI_TERMINAL
@@ -52,8 +51,8 @@ def set_rcvbuf(response):
     try:
         response.fp.raw._sock.setsockopt(
                 socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)  # 64KB
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug('error occurred during set_rcvbuf: %s', e)
 
 def human_size(n):
     if n < 0:
@@ -211,15 +210,13 @@ def _save_url(url, name, ext, status, part=None, reporthook=multi_hook):
     def print(*args, **kwargs):
         reporthook(['print', args, kwargs])
 
-    def read_response(bs):
-        if size > 0:
-            # a independent timeout for read response
-            rd, _, ed = select.select([fd], [], [fd], timeout)
-            if ed:
-                raise socket.error(ed)
-            if not rd:
-                raise socket.timeout('The read operation timed out')
-        return response.read(bs)
+    def get_response(req):
+        response = urlopen(req, timeout=timeout_q)
+        try:
+            response.fp.raw._sock.settimeout(timeout_r)
+        except Exception as e:
+            logger.debug('error occurred during settimeout: %s', e)
+        return response
 
     if part is None:
         name = name + '.' + ext
@@ -232,7 +229,8 @@ def _save_url(url, name, ext, status, part=None, reporthook=multi_hook):
     downloaded = 0
     open_mode = 'wb'
     response = None
-    timeout = max(socket.getdefaulttimeout() or 0, 60)
+    timeout_q = min(socket.getdefaulttimeout() or 30, 30)
+    timeout_r = max(socket.getdefaulttimeout() or 0, 60)
     req = Request(url, headers=fake_headers)
     try:
         reporthook(['part'], part=part)
@@ -240,7 +238,7 @@ def _save_url(url, name, ext, status, part=None, reporthook=multi_hook):
             filesize = os.path.getsize(name)
             if filesize:
                 req.add_header('Range', 'bytes=%d-' % (filesize-1))  # get +1, avoid 416
-                response = urlopen(req, None)
+                response = get_response(req)
                 set_rcvbuf(response)
                 if response.status == 206:
                     size = int(response.headers['Content-Range'].split('/')[-1])
@@ -262,21 +260,21 @@ def _save_url(url, name, ext, status, part=None, reporthook=multi_hook):
                     fd = response.fileno()
                     while needless_size > 0:
                         if needless_size > bs:
-                            block = read_response(bs)
+                            block = response.read(bs)
                         else:
-                            block = read_response(needless_size)
+                            block = response.read(needless_size)
                         if not block:
                             return
                         needless_size -= len(block)
         if response is None:
-            response = urlopen(req, None)
+            response = get_response(req)
             set_rcvbuf(response)
             fd = response.fileno()
         if size < 0:
             size = int(response.headers.get('Content-Length', -1))
         with open(name, open_mode) as tfp:
             while size < 0 or filesize < size:
-                block = read_response(bs)
+                block = response.read(bs)
                 if not block:
                     break
                 n = tfp.write(block)
@@ -302,20 +300,26 @@ def save_url(*args, tries=3, **kwargs):
         except IOError as e:
             if not tries or getattr(e, 'code', 0) >= 400:
                 raise e
+        except IncompleteRead:
+            pass
+        except KeyboardInterrupt:
+            print()
+            raise
 
 def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
               fail_retry_eta=3600, reporthook=multi_hook):
 
     def run(*args, **kwargs):
         fn, *args = args
-        futures = queue.deque()
+        futures = []
         for no, url in enumerate(urls):
             if status[no] == 1:
                 continue
-            futures.appendleft(
+            futures.append(
                 fn(*args, url, name, ext, status,
                    part=no, reporthook=reporthook, **kwargs))
             time.sleep(0.1)
+        futures.reverse()
         return futures
 
     count = len(urls)
@@ -338,13 +342,13 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
         if count == 1:
             save_url(urls[0], name, ext, status, reporthook=reporthook)
         elif jobs > 1:
-            if count - sum(status) >= jobs > 12:
+            if min(count - sum(status), jobs) > 12:
                 logger.warning('number of active download processes is too big to works well!!')
             worker = ThreadPoolExecutor(max_workers=jobs)
-            futures = run(worker.submit, save_url)
             # does not call Thread.join(), catch KeyboardInterrupt in main thread
-            downloading = True
             try:
+                futures = run(worker.submit, save_url)
+                downloading = True
                 while downloading:
                     time.sleep(0.1)
                     for future in futures:
@@ -352,11 +356,12 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
                         if downloading:
                             break
             except KeyboardInterrupt:
-                import atexit
-                from concurrent.futures.thread import _python_exit
-                atexit.unregister(_python_exit)
+                from concurrent.futures.thread import _threads_queues
+                from threading import _shutdown_locks
+                _threads_queues.clear()
+                _shutdown_locks.clear()
+                print()
                 raise
-            worker.shutdown()
         else:
             run(save_url, tries=1)
         downloaded, size, total, _cost = reporthook(['end'])

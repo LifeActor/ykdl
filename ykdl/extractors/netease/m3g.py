@@ -16,7 +16,7 @@ class m3g(SimpleExtractor):
     def get_url(self):
         if self.url_patterns:
             v_url = []
-            for url in matchall(self.html, self.url_patterns):
+            for url in matchall(self.html, *self.url_patterns):
                 if url[:2] == '//':
                     url = 'http:' + url
                 if url not in v_url:

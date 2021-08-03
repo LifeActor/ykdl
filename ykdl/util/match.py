@@ -25,7 +25,7 @@ def match1(text, *patterns):
     return None
 
 
-def matchall(text, patterns):
+def matchall(text, *patterns):
     """Scans through a string for substrings matched some patterns.
 
     Args:

@@ -115,12 +115,12 @@ def parse_pptv_xml(dom):
     for item in item_list:
         rid = get_attr(item, 'rid')
         file_type = get_attr(item, 'ft')
-        size = get_attr(item, 'filesize')
+        size = get_attr(item, 'filesize') or 0
         width = get_attr(item, 'width')
         height = get_attr(item, 'height')
         bitrate = get_attr(item, 'bitrate')
         res = '{}x{}@{}kbps'.format(width, height, bitrate)
-        item_meta = (file_type, rid, size, res)
+        item_meta = (file_type, rid, int(size), res)
         item_mlist.append(item_meta)
 
     dt_list = get_elem(dom, 'dt')
@@ -145,9 +145,9 @@ def parse_pptv_xml(dom):
         segs_size = []
         for seg in seg_list:
             rid = get_attr(seg, 'rid')
-            size = get_attr(seg, 'fs')
+            size = get_attr(seg, 'fs') or 0
             segs.append(rid)
-            segs_size.append(size)
+            segs_size.append(int(size))
         segs_meta = (file_type, segs, segs_size)
         segs_mlist.append(segs_meta)
     return title, item_mlist, stream_mlist, segs_mlist
@@ -160,9 +160,7 @@ def merge_meta(item_mlist, stream_mlist, segs_mlist):
     for item in item_mlist:
         stream = streams[item[0]]
         stream['rid'] = item[1]
-        # 无size情况,如无需求,指定默认值
-        # stream['size'] = item[2]
-        stream['size'] = item[2] or 12653713
+        stream['size'] = item[2]
         stream['res'] = item[3]
 
     for s in stream_mlist:
@@ -175,6 +173,8 @@ def merge_meta(item_mlist, stream_mlist, segs_mlist):
         stream = streams[seg[0]]
         stream['segs'] = seg[1]
         stream['segs_size'] = seg[2]
+        if stream['size'] == 0:
+            stream['size'] = sum(seg[2])
     return streams
 
 
@@ -193,7 +193,7 @@ def make_url(stream):
         src.append(url)
     return src
 
-class Pptv(VideoExtractor):
+class PPTV(VideoExtractor):
     name = u'PPTV (PP聚力)'
 
     supported_stream_types = ['LD', 'SD', 'HD', 'TD', 'BD']
@@ -216,9 +216,14 @@ class Pptv(VideoExtractor):
             src = make_url(stream_data)
             s = self.supported_stream_types[int(stream_id)]
             info.stream_types.append(s)
-            info.streams[s] = { 'container': 'mp4', 'video_profile': stream_data['res'], 'size': int(stream_data['size']), 'src': src}
+            info.streams[s] = {
+                'container': 'mp4',
+                'video_profile': stream_data['res'],
+                'size': stream_data['size'],
+                'src': src
+            }
         info.stream_types = sorted(info.stream_types, key = self.supported_stream_types.index)
         info.stream_types.reverse()
         return info
 
-site=Pptv()
+site = PPTV()

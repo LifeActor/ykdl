@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_location, get_content
+from ykdl.util.html import get_content
 from ykdl.util.match import match1, matchall
 from ykdl.compact import urlencode
 
@@ -23,10 +23,13 @@ class BiliBan(BiliBase):
     def get_page_info(self):
         html = get_content(self.url)
         date = json.loads(match1(html, '__INITIAL_STATE__=({.+?});'))
-        title = date.get('h1Title') or match1(html, '<title>(.+?)_番剧_bilibili_哔哩哔哩<')
         vid = date['epInfo']['cid']
         mediaInfo = date['mediaInfo']
-        self.seasonType = mediaInfo.get('season_type') or mediaInfo.get('ssType')
+        self.seasonType = mediaInfo.get('ssType')
+        if self.seasonType == 1:
+            title = date.get('h1Title')
+        else:
+            title = match1(html, '<title>(.+?)_\w+_bilibili_哔哩哔哩<')
         upInfo = mediaInfo.get('upInfo')
         artist = upInfo and upInfo.get('name')
 
@@ -46,9 +49,9 @@ class BiliBan(BiliBase):
 
     def prepare_list(self):
         html = get_content(self.url)
-        eplist = matchall(html, ['"epList":(\[.*?\])'])
+        eplist = matchall(html, '"epList":(\[.*?\])')
         if eplist:
-            eplist = sum(map(matchall, eplist, [['"(?:ep_)?id":(\d+),']] * len(eplist)), [])
+            eplist = sum(map(matchall, eplist, ['"(?:ep_)?id":(\d+),'] * len(eplist)), [])
             return ['https://www.bilibili.com/bangumi/play/ep{}'.format(eid) for eid in eplist]
 
 site = BiliBan()

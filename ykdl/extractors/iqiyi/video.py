@@ -97,17 +97,17 @@ def getvps(tvid, vid):
 class Iqiyi(VideoExtractor):
     name = u"爱奇艺 (Iqiyi)"
 
-    ids = ['4k','BD', 'TD', 'HD', 'SD', 'LD']
+    ids = ['4K','BD', 'TD', 'HD', 'SD', 'LD']
     vd_2_id = dict(sum([[(vd, id) for vd in vds] for id, vds in {
-        '4k': [10, 19],
+        '4K': [10, 19],
         'BD': [5, 18, 600],
         'TD': [4, 17, 500],
-        'HD': [2, 14, 21, 300],
+        'HD': [2, 14, 21, 75, 300],
         'SD': [1, 200],
         'LD': [96, 100]
     }.items()], []))
     id_2_profile = {
-        '4k': '4k',
+        '4K': '4K',
         'BD': '1080p',
         'TD': '720p',
         'HD': '540p',
@@ -119,7 +119,7 @@ class Iqiyi(VideoExtractor):
         info = VideoInfo(self.name)
 
         if self.url and not self.vid:
-            vid = matchall(self.url, ['curid=([^_]+)_([\w]+)'])
+            vid = matchall(self.url, 'curid=([^_]+)_([\w]+)')
             if vid:
                 self.vid = vid[0]
                 info_u = 'http://pcw-api.iqiyi.com/video/video/playervideoinfo?tvid=' + self.vid[0]
@@ -146,9 +146,7 @@ class Iqiyi(VideoExtractor):
                               '"tvId":\s*([^,]+)')
                 videoid = match1(html,
                                 'data-video-vid="([^"]+)',
-                                'vid:\s*"([^"]+)',
-                                '''\['vid'\]\s*=\s*"([^"]+)''',
-                                '"vid":\s*([^,]+)')
+                                'vid"?\'?\]?\s*(?:=|:)\s*"?\'?([^"\',]+)')
                 if not (tvid and videoid):
                     url = match1(html, '(www\.iqiyi\.com/v_\w+\.html)')
                     if url:
@@ -247,15 +245,16 @@ class Iqiyi(VideoExtractor):
                             container = stream['ff']
                             fs_array = stream['fs']
                             size = stream['vsize']
+                            push_stream_bid(_bid, container, fs_array, size)
                             break
-                    push_stream_bid(_bid, container, fs_array, size)
 
+        assert info.streams, 'can\'t play this video!!'
         info.stream_types = sorted(info.stream_types, key=self.ids.index)
         return info
 
     def prepare_list(self):
         html = get_content(self.url)
 
-        return matchall(html, ['data-tvid=\"([^\"]+)\" data-vid=\"([^\"]+)\"'])
+        return matchall(html, 'data-tvid=\"([^\"]+)\" data-vid=\"([^\"]+)\"')
 
 site = Iqiyi()

@@ -14,7 +14,7 @@ def get_realurl(url):
         return location
     else:
        html = get_content(url)
-       return matchall(html, ['CDATA\[([^\]]+)'])[1]
+       return matchall(html, 'CDATA\[([^\]]+)')[1]
 
 class Sina(VideoExtractor):
     name = u"新浪视频 (sina)"
@@ -50,6 +50,6 @@ class Sina(VideoExtractor):
 
     def prepare_list(self):
         html = get_content(self.url)
-        return matchall(html, ['video_id: ([^,]+)'])
+        return matchall(html, 'video_id: ([^,]+)')
 
 site = Sina()

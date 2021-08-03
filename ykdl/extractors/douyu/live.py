@@ -110,6 +110,6 @@ class Douyutv(VideoExtractor):
     def prepare_list(self):
 
         html = get_content(self.url)
-        return matchall(html, douyu_match_pattern)
+        return matchall(html, *douyu_match_pattern)
 
 site = Douyutv()

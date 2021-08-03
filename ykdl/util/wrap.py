@@ -85,24 +85,32 @@ def launch_player(player, urls, ext, play=True, **args):
         if args['title']:
             cmd += ['--force-media-title=' + args['title']]
         if args['header']:
-            cmd += ['--http-header-fields=' + args['header']]
+            header = args['header']
+            if not isinstance(header, str):
+                header = ','.join("'{}: {}'".format(k, v) for k, v in header.items())
+            cmd += ['--http-header-fields=' + header]
         if args['subs']:
             for sub in args['subs']:
-                cmd += ['--sub-file', sub]
+                cmd += ['--sub-file=' + sub]
 
+    start_new_server = None
     if args['rangefetch']:
-        urls = ['http://127.0.0.1:8806/' + url for url in urls]
-        cmds = split_cmd_urls(cmd, urls)
-        env = os.environ.copy()
-        env.pop('HTTP_PROXY', None)
-        env.pop('HTTPS_PROXY', None)
-        from ykdl.util.rangefetch_server import start_new_server
-        cleanup = start_new_server(**args['rangefetch']).server_close
-        phandle = PlayerHandle(cmds, env, cleanup=cleanup)
-    else:
+        try:
+            from ykdl.util.rangefetch_server import start_new_server
+        except ImportError:
+            logger.warning('start rangefetch failed, please install urllib3 to use it')
+        else:
+            urls = ['http://127.0.0.1:8806/' + url for url in urls]
+            cmds = split_cmd_urls(cmd, urls)
+            env = os.environ.copy()
+            env.pop('HTTP_PROXY', None)
+            env.pop('HTTPS_PROXY', None)
+            cleanup = start_new_server(**args['rangefetch']).server_close
+            phandle = PlayerHandle(cmds, env, cleanup=cleanup)
+    if start_new_server is None:
         urls = list(urls)
         cmds = split_cmd_urls(cmd, urls)
-        if args['proxy'].lower().startswith('http'):
+        if args['proxy'].lower().startswith('http:'):
             env = os.environ.copy()
             env['HTTP_PROXY'] = args['proxy']
             env['HTTPS_PROXY'] = args['proxy']

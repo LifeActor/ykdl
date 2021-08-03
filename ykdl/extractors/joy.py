@@ -21,7 +21,7 @@ class Joy(VideoExtractor):
 
         info.title = match1(html, '<meta content=\"([^\"]+)')
 
-        url = matchall(html, ['<source src=\"([^\"]+)'])[3]
+        url = matchall(html, '<source src=\"([^\"]+)')[3]
 
         _, ext, size = url_info(url)
 

@@ -54,7 +54,7 @@ class BiliVideo(BiliBase):
         if vid[:2] == 'av':
             vid = av2bv(vid)
         html = get_content(self.url)
-        video_list = matchall(html, ['"page":(\d+),'])
+        video_list = matchall(html, '"page":(\d+),')
         if video_list:
             return ['https://www.bilibili.com/video/{}?p={}'.format(vid, p) for p in video_list]
 

@@ -43,9 +43,9 @@ def getlive(vid):
 class IqiyiLive(VideoExtractor):
     name = u"爱奇艺直播 (IqiyiLive)"
 
-    ids = ['4k','BD', 'TD', 'HD', 'SD', 'LD']
+    ids = ['4K','BD', 'TD', 'HD', 'SD', 'LD']
     type_2_id = {
-        #'': '4k',
+        #'': '4K',
         'RESOLUTION_1080P': 'BD',
         'RESOLUTION_720P': 'TD',
         'HIGH_DEFINITION': 'HD',

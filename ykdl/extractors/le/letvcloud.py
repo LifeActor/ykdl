@@ -47,7 +47,7 @@ class Letvcloud(VideoExtractor):
 
         if self.url and not self.vid:
             #maybe error!!
-            self.vid = (vu, uu) = matchall(self.url, ["vu=([^&]+)","uu=([^&]+)"])
+            self.vid = (vu, uu) = matchall(self.url, "vu=([^&]+)","uu=([^&]+)")
         return self.letvcloud_download_by_vu()
 
 site = Letvcloud()

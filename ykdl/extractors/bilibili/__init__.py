@@ -37,15 +37,17 @@ def get_extractor(url):
     else:
         bv_id = match1(url, '((?:BV|bv)[0-9A-Za-z]{10})')
 
-    try:
-        data = json.loads(get_content(API_view + bv_id))
-        assert data['code'] == 0, "can't play this video!!"
-        url = data['data']['redirect_url']
-    except AssertionError:
-        raise
-    except:
-        url = 'https://www.bilibili.com/video/' + bv_id
-        #url = get_location(url)
+    if bv_id:
+        try:
+            data = json.loads(get_content(API_view + bv_id))
+            assert data['code'] == 0, "can't play this video!!"
+            url = data['data']['redirect_url']
+        except AssertionError:
+            raise
+        except:
+            url = 'https://www.bilibili.com/video/' + bv_id
+    else:
+        url = get_location(url)
 
     if '/bangumi/' in url:
         from . import bangumi as s

@@ -21,7 +21,22 @@ class GeneralSimple(VideoExtractor):
         info.title = match1(html, '<meta property="og:title" content="([^"]+)',
                                   '<title>(.+?)</title>')
 
-        url = match1(html, '["\'](https?://[^"\']+?\.(?:m3u8|mp4|flv|webm|ts)(?:\?[^"\']+)?)["\']')
+        url = match1(html, '''(?x)
+            ["'](
+                (?:https?:)?//[^"']+?\.
+                    (?:
+                        m3u8                        | # !H5 list/HLS
+                        mp4|webm                    | # video/audio
+                        f4v|flv|ts                  | # !H5 video
+                        mov|qt|m4[pv]|og[mv]        | # video
+                        ogg|3gp|mpe?g               | # video/audio
+                        mp3|flac|wave?|oga|aac|weba   # audio
+                    )
+                    (?:\?[^"']+)?
+            )["']
+        ''')
+        if not url.startswith('http'):
+            url = self.url[:self.url.find(':') + 1] + url
 
         if url:
             info.stream_types.append('current')

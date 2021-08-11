@@ -1,19 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
 import json
 import sys
 import datetime
 import random
+from html import unescape
+from urllib.parse import unquote
 from ykdl.util.fs import legitimize
 from ykdl.util import log
 
 class VideoInfo():
     def __init__(self, site, live=False):
         self.site = site
-        self.title = None
-        self.artist = None
+        self._title = None
+        self._artist = None
         self.stream_types = []
         self.streams = {}
         self.live = live
@@ -24,6 +25,32 @@ class VideoInfo():
                                       'proxy',
                                       'rangefetch'
                                      ]}
+
+    @property
+    def title(self):
+        if self._title is None:
+            return
+        title = unquote(unescape(self._title))
+        if title != self._title:
+            self._title = title
+        return title
+
+    @title.setter
+    def title(self, value):
+        self._title = value
+
+    @property
+    def artist(self):
+        if self._artist is None:
+            return
+        artist = unquote(unescape(self._artist))
+        if artist != self._artist:
+            self._artist = artist
+        return artist
+
+    @artist.setter
+    def artist(self, value):
+        self._artist = value
 
     def print_stream_info(self, stream_id, show_all=False):
         stream = self.streams[stream_id]
@@ -84,7 +111,7 @@ class VideoInfo():
             for subtitle in self.subtitles:
                 self.print_subtitle_info(subtitle, show_all)
 
-    def build_file_name(self,stream_id):
+    def build_file_name(self, stream_id):
         if not self.title:
             self.title = self.site + str(random.randint(1, 9999))
         unique_suffixes = []

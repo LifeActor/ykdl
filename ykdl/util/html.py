@@ -65,12 +65,14 @@ def undeflate(data):
     return decompressobj.decompress(data)+decompressobj.flush()
 
 def get_head_response(url, headers=fake_headers):
+    logger.debug("get_head_response> URL: " + url)
     try:
         req = Request(url, headers=headers, method='HEAD')
         response = urlopen(req)
     except IOError as e:
         # if HEAD method is not supported
-        if 'HTTP Error 405' in str(e):
+        if match1(str(e), 'HTTP Error (40[345])'):
+            logger.debug("get_head_response> HEAD failed, try GET")
             req = Request(url, headers=headers)
             response = urlopen(req)
             response.close()

@@ -44,7 +44,7 @@ def arg_parser():
     parser.add_argument('-O', '--output-name', default='', help="Downloaded videos with the NAME you want")
     parser.add_argument('-p', '--player', help="Directly play the video with PLAYER like mpv")
     parser.add_argument('-k', '--insecure', action='store_true', default=False, help="Allow insecure server connections when using SSL")
-    parser.add_argument('-c', '--append-certs', type=str, nargs='+', default=certs, metavar='CERTS', help="Append additional certs, used to verify SSL handshak, note that video urls can't follow this argument")
+    parser.add_argument('-c', '--append-certs', type=str, nargs='+', metavar='CERTS', help="Append additional certs, used to verify SSL handshak, note that video urls can't follow this argument")
     parser.add_argument('--proxy', type=str, default='system', metavar='[SCHEME://]HOST:PORT | system | none', help="Set proxy for http(s) transfer. default: use system proxy settings")
     parser.add_argument('-t', '--timeout', type=int, default=60, metavar='SECONDS', help="Set socket timeout, default 60s")
     parser.add_argument('--fail-retry-eta', type=int, default=3600, metavar='SECONDS', help="If the number is bigger than ETA, a fail downloading will be auto retry, default 3600s, set 0 to void it")

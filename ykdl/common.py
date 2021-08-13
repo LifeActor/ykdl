@@ -44,14 +44,14 @@ def url_to_module(url):
             site = m.site
         return site, url
     except(ImportError):
-        logger.debug('> Try HTTP Redirection!')
-        new_url, resheader = get_location_and_header(url)
-
         if ext in singlemultimedia.extNames:
             logger.debug('> the extension name %r match multimedia types', ext)
             logger.debug('> Go SingleMultimedia')
             singlemultimedia.site.resheader = get_location_and_header(url)[1]
             return singlemultimedia.site, url
+
+        logger.debug('> Try HTTP Redirection!')
+        new_url, resheader = get_location_and_header(url)
         if new_url == url:
             logger.debug('> NO HTTP Redirection')
             if resheader['Content-Type'].startswith('text/'):

@@ -1,6 +1,14 @@
 Change Log for ykdl
 ===================
 
+1.8.0 alpha 2
+-------------
+
+- bugfix of alpha 1
+- update Douyin, Sina, GeneralSimple
+- many improves
+
+
 1.8.0 alpha 1
 -------------
 
@@ -12,6 +20,7 @@ Change Log for ykdl
 - support new sites: Funshion, Heibai #278 #552 thx @airdge
 - update Weibo
 - remove Xiami
+
 
 1.7.2
 -----

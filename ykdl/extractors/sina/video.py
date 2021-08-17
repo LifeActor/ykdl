@@ -24,9 +24,7 @@ class Sina(VideoExtractor):
         self.vid = match1(self.url, 'video_id=(\d+)', '#(\d{5,})', '(\d{5,})\.swf')
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html,
-                              'video_id:\'([^\']+)',
-                              'SINA_TEXT_PAGE_INFO[\s\S]+?video_id: ?(\d+)')
+            self.vid = match1(html, 'video_id[\'"]?\s*[:=]\s*[\'"]?(\d+)')
 
         assert self.vid, "can't get vid"
 

@@ -16,6 +16,7 @@ class TikTok(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name)
         vid = match1(self.url, '(?:video/|vid=)(\d+)')
+        self.logger.debug('URL: ' + self.url)
         data = get_content('https://www.douyin.com/web/api/v2/aweme/iteminfo/?item_ids=' + vid)
         data = json.loads(data)
 

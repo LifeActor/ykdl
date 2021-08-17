@@ -17,6 +17,7 @@ alias = {
         'cntv'   : 'cctv',
         'douyutv': 'douyu',
         'iask'   : 'sina',
+        'iesdouyin' : 'douyin',
         'letv'   : 'le',
         'wetv'   : 'qq'
 }

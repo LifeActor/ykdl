@@ -100,13 +100,13 @@ def launch_player(player, urls, ext, play=True, **args):
         except ImportError:
             logger.warning('start rangefetch failed, please install urllib3 to use it')
         else:
-            urls = ['http://127.0.0.1:8806/' + url for url in urls]
+            new_server = start_new_server(**args['rangefetch'])
+            urls = [new_server.url_prefix + url for url in urls]
             cmds = split_cmd_urls(cmd, urls)
             env = os.environ.copy()
             env.pop('HTTP_PROXY', None)
             env.pop('HTTPS_PROXY', None)
-            cleanup = start_new_server(**args['rangefetch']).server_close
-            phandle = PlayerHandle(cmds, env, cleanup=cleanup)
+            phandle = PlayerHandle(cmds, env, cleanup=new_server.server_close)
     if start_new_server is None:
         urls = list(urls)
         cmds = split_cmd_urls(cmd, urls)

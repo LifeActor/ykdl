@@ -137,7 +137,7 @@ def handle_videoinfo(info, index=0):
     if args.player:
         player_args = info.extra
         if player_args['rangefetch']:
-            player_args['rangefetch']['down_rate'] = player_args['rangefetch']['video_rate'][stream_id]
+            player_args['rangefetch']['down_rate'] = player_args['rangefetch']['video_rate'].get(stream_id)
         if args.proxy != 'none':
             player_args['proxy'] = args.proxy
             if player_args['rangefetch']:

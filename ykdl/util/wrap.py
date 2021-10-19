@@ -100,6 +100,15 @@ def launch_player(player, urls, ext, play=True, **args):
         except ImportError:
             logger.warning('start rangefetch failed, please install urllib3 to use it')
         else:
+            args['rangefetch']['header'] = header = args['header'] or {}
+            if isinstance(header, str):
+                header = {k.strip(): v.strip() for k, v in
+                            [kv.split(':', 1) for kv in
+                                header.strip("'").split("','")]}
+            if args['ua']:
+                header['User-Agent'] = args['ua']
+            if args['referer']:
+                header['Referrer'] = header['Referer'] = args['referer']
             new_server = start_new_server(**args['rangefetch'])
             urls = [new_server.url_prefix + url for url in urls]
             cmds = split_cmd_urls(cmd, urls)

@@ -1,5 +1,4 @@
-'''
-Multithreading range fetch via proxy server.
+'''Multithreading range fetch via proxy server.
 Use urllib3 to reusing connections.
 Auto-adjust number of threads.
 '''
@@ -57,6 +56,10 @@ class RangeFetchHandler(http.server.BaseHTTPRequestHandler):
 
     protocol_version = 'HTTP/1.1'
 
+    def __init__(self, *args, **kwargs):
+        self.rangefetch = kwargs.pop('rangefetch')
+        super().__init__(*args, **kwargs)
+
     def do_GET(self):
         self.url = get_path(self.path)[1:]
         self.url_parts = url_parts = urlsplit(self.url)
@@ -80,12 +83,13 @@ class RangeFetchHandler(http.server.BaseHTTPRequestHandler):
         else:
             range_start = range_end = 0
 
-        RangeFetch(self, range_start, range_end).fetch()
+        self.rangefetch(self, range_start, range_end).fetch()
 
 class RangeFetch():
 
     _expect_begin = 0
     _started_order = -1
+    ca_certs = None
     proxy = None
     http = None
     timeout = urllib3.Timeout(connect=1, read=2)
@@ -107,8 +111,8 @@ class RangeFetch():
         self.scheme = handler.url_parts.scheme
         self.netloc = handler.url_parts.netloc
         self.headers = dict((k.title(), v) for k, v in handler.headers.items())
+        self.headers.update(self._headers)
         self.headers['Host'] = self.netloc
-        self.headers.update(fake_headers)
 
         self.range_start = range_start
         self.range_end = range_end
@@ -120,7 +124,8 @@ class RangeFetch():
             connection_pool_kw = {
                 'block': True,
                 'timeout': self.timeout,
-                'maxsize': self.pool_size
+                'maxsize': self.pool_size,
+                'ca_certs': self.ca_certs[-1]  # only allow one path
             }
             if self.proxy:
                 if self.proxy.lower().startswith('socks'):
@@ -382,28 +387,38 @@ def get_path(url):
 
 
 def start_new_server(bind='', port=8806, first_size=None, max_size=None,
-                     threads=None, down_rate=None, proxy=None, headers=None, **kwargs):
+                     threads=None, down_rate=None, proxy=None, headers=None,
+                     ca_certs=None, **kwargs):
+    class rangefetch(RangeFetch): pass
     if first_size:
-        RangeFetch.first_size = first_size
+        rangefetch.first_size = first_size
     if max_size:
-        RangeFetch.max_size = max_size
+        rangefetch.max_size = max_size
     if threads:
-        RangeFetch.threads = threads
+        rangefetch.threads = threads
     if down_rate:
-        RangeFetch.down_rate_min = int(down_rate * 2)
-        RangeFetch.down_rate_max = RangeFetch.down_rate_min + min(max(down_rate, 1024 * 100), 1024 * 200)
+        rangefetch.down_rate_min = int(down_rate * 2)
+        rangefetch.down_rate_max = rangefetch.down_rate_min + min(max(down_rate, 1024 * 100), 1024 * 200)
     if proxy:
-        RangeFetch.proxy = proxy
+        rangefetch.proxy = proxy
+    rangefetch._headers = fake_headers.copy()
     if headers:
-        RangeFetch.headers.update(headers)
+        rangefetch._headers = _headers.update(headers)
+    if ca_certs:
+        rangefetch.ca_certs = ca_certs
+
+    def rangefetchhandler(*args, **kwargs):
+        kwargs['rangefetch'] = rangefetch
+        RangeFetchHandler(*args, **kwargs)
+
     for i in range(9):
         try:
-            new_server = LocalTCPServer((bind, port), RangeFetchHandler)
+            new_server = LocalTCPServer((bind, port), rangefetchhandler)
             break
         except socket.error:
             if i == 8:
                 raise
             port = random.randint(8807, 8899)
-    RangeFetch.bufsize = RangeFetchHandler.bufsize
+    rangefetch.bufsize = rangefetchhandler.bufsize
     start_new_thread(new_server.serve_forever, ())
     return new_server

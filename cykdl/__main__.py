@@ -160,6 +160,7 @@ def handle_videoinfo(info, index=0):
         player_args = info.extra
         if player_args['rangefetch']:
             player_args['rangefetch']['down_rate'] = player_args['rangefetch']['video_rate'].get(stream_id)
+            player_args['rangefetch']['ca_certs'] = args.certs
         if args.proxy != 'none':
             player_args['proxy'] = args.proxy
             if player_args['rangefetch']:
@@ -184,6 +185,7 @@ def main():
 
     if args.insecure:
         ssl._create_default_https_context = ssl._create_unverified_context
+        args.certs = None
     else:
         certs = args.append_certs or []
         try:
@@ -199,6 +201,7 @@ def main():
                     context.load_verify_locations(cert)
             https_handler = HTTPSHandler(context=context)
             add_default_handler(https_handler)
+            args.certs = certs
 
     proxies = None
     if args.proxy == 'system':

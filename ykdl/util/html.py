@@ -64,17 +64,24 @@ def undeflate(data):
     decompressobj = zlib.decompressobj(-zlib.MAX_WBITS)
     return decompressobj.decompress(data)+decompressobj.flush()
 
+def get_response(url, headers=fake_headers, data=None):
+    req = Request(url, headers=headers, data=None)
+    #if cookies_txt:
+    #    cookies_txt.add_cookie_header(req)
+    #    req.headers.update(req.unredirected_hdrs)
+    response = urlopen(req)
+    return response
+
 def get_head_response(url, headers=fake_headers):
-    logger.debug("get_head_response> URL: " + url)
+    logger.debug('get_head_response> URL: ' + url)
     try:
         req = Request(url, headers=headers, method='HEAD')
         response = urlopen(req)
     except IOError as e:
         # if HEAD method is not supported
         if match1(str(e), 'HTTP Error (40[345])'):
-            logger.debug("get_head_response> HEAD failed, try GET")
-            req = Request(url, headers=headers)
-            response = urlopen(req)
+            logger.debug('get_head_response> HEAD failed, try GET')
+            response = get_response(url, headers=headers)
             response.close()
         else:
             raise
@@ -90,24 +97,22 @@ def get_location_and_header(url, headers=fake_headers):
     response = get_head_response(url, headers=headers)
     return response.geturl(), response.info()
 
-def get_content(url, headers=fake_headers, data=None, charset=None):
+def get_content_and_location(url, headers=fake_headers, data=None, charset=None):
     """Gets the content of a URL via sending a HTTP GET request.
 
     Args:
         url: A URL.
         headers: Request headers used by the client.
-        decoded: Whether decode the response body using UTF-8 or the charset specified in Content-Type.
 
     Returns:
         The content as a string.
     """
-    logger.debug("get_content> URL: " + url)
-    req = Request(url, headers=headers, data=data)
-    #if cookies_txt:
-    #    cookies_txt.add_cookie_header(req)
-    #    req.headers.update(req.unredirected_hdrs)
-    response = urlopen(req)
+    logger.debug('get_content> URL: ' + url)
+    response = get_response(url, headers=headers, data=data)
     data = response.read()
+    rurl = response.geturl()
+    if rurl != url:
+        logger.debug('get_content> redirect to URL: ' + rurl)
 
     # Handle HTTP compression for gzip and deflate (zlib)
     resheader = response.info()
@@ -116,7 +121,7 @@ def get_content(url, headers=fake_headers, data=None, charset=None):
     elif hasattr(resheader, 'get_payload'):
         payload = resheader.get_payload()
         if isinstance(payload, str):
-            content_encoding =  match1(payload, r'Content-Encoding:\s*([\w-]+)')
+            content_encoding =  match1(payload, 'Content-Encoding:\s*([\w-]+)')
         else:
             content_encoding = None
     else:
@@ -127,19 +132,20 @@ def get_content(url, headers=fake_headers, data=None, charset=None):
         data = undeflate(data)
 
     if charset == 'ignore':
-        return data
+        return data, rurl
 
     # Decode the response body
-    if charset is None:
-        if 'Content-Type' in resheader:
-            charset = match1(resheader['Content-Type'], r'charset=([\w-]+)')
-        charset = charset or match1(str(data), r'charset=\"([\w-]+)', 'charset=([\w-]+)') or 'utf-8'
-    logger.debug("get_content> Charset: " + charset)
+    charset = charset or resheader.get_content_charset() or \
+                match1(str(data), 'charset="?([\w-]+)') or 'utf-8'
+    logger.debug('get_content> Charset: ' + charset)
     try:
         data = data.decode(charset, errors='replace')
     except:
-        logger.warning("wrong charset for {}".format(url))
-    return data
+        logger.warning('wrong charset for {}'.format(url))
+    return data, rurl
+
+def get_content(url, headers=fake_headers, data=None, charset=None):
+    return get_content_and_location(url, headers=fake_headers, data=None, charset=None)[0]
 
 #DEPRECATED below, return None or 0
 def url_size(url, faker=False):
@@ -156,5 +162,5 @@ def url_info(url, faker=False):
     if '.' in f:
         ext = f.split('.')[-1]
     else:
-        ext = ""
+        ext = ''
     return '', ext, 0

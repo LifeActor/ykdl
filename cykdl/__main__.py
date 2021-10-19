@@ -27,7 +27,7 @@ logger = logging.getLogger("YKDL")
 from ykdl.common import url_to_module
 from ykdl.util.html import add_default_handler, install_default_handlers
 from ykdl.util.wrap import launch_player, launch_ffmpeg, launch_ffmpeg_download
-from ykdl.util.m3u8_wrap import load_m3u8
+from ykdl.util.m3u8_wrap import live_m3u8, load_m3u8
 from ykdl.util.download import save_urls
 from ykdl.version import __version__
 
@@ -68,17 +68,22 @@ def download(urls, name, ext, live=False):
     # only use ffmpeg to hanle m3u8.
     global m3u8_internal
     # for live video, always use ffmpeg to rebuild timeline.
+    if ext == 'm3u8' and not live:
+        live = live_m3u8(urls[0])
     if live:
         m3u8_internal = False
     # rebuild m3u8 urls when use internal downloader,
     # change the ext to segment's ext, default is "ts",
-    # otherwise change the ext to "mp4".
+    # otherwise change the ext to "flv" or "mp4".
+    audio = subtitle = None
     if ext == 'm3u8':
         if m3u8_internal:
-            urls = load_m3u8(urls[0])
+            urls, audio, subtitle = load_m3u8(urls[0])
             ext = urlparse(urls[0])[2].split('.')[-1]
-            if ext not in ['ts', 'm4s', 'mp4']:
+            if ext not in ['ts', 'm4s', 'mp4', 'm4a']:
                 ext = 'ts'
+        elif live:
+            ext = 'flv'
         else:
             ext = 'mp4'
 
@@ -94,7 +99,24 @@ def download(urls, name, ext, live=False):
                 launch_ffmpeg(name, ext, lenth)
                 clean_slices(name, ext, lenth)
         else:
-            logger.critical("{}> donwload failed".format(name))
+            logger.critical('{}> donwload failed'.format(name))
+        if audio:
+            ext = 'm4a'
+            lenth = len(audio)
+            if save_urls(audio, name, ext, jobs=args.jobs,
+                         fail_confirm=not args.no_fail_confirm,
+                         fail_retry_eta=args.fail_retry_eta):
+                if lenth > 1 and not args.no_merge:
+                    launch_ffmpeg(name, ext, lenth)
+                    clean_slices(name, ext, lenth)
+            else:
+                logger.critical('{}> HLS audio donwload failed'.format(name))
+        if subtitle:
+            ext = 'srt'
+            if not save_urls(subtitle[:1], name, ext, jobs=args.jobs,
+                         fail_confirm=not args.no_fail_confirm,
+                         fail_retry_eta=args.fail_retry_eta):
+                logger.critical('{}> HLS subtitle donwload failed'.format(name))
 
 def download_subtitles(subtitles, name):
     for sub in subtitles:

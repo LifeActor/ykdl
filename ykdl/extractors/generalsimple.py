@@ -5,6 +5,7 @@ from ykdl.videoinfo import VideoInfo
 from ykdl.extractor import VideoExtractor
 from ykdl.util.match import match1
 from ykdl.util.html import get_content, url_info
+from ykdl.util.m3u8_wrap import load_m3u8_playlist
 
 import json
 from html import unescape
@@ -15,7 +16,7 @@ pattern = r'''(?x)
 ["'](
     (https?:)?\\?/\\?/[^"']+?\.
     (?:
-        m3u8                        | # !H5 list/HLS
+        m3u8?                       | # !H5 list/HLS
         mp4|webm                    | # video/audio
         f4v|flv|ts                  | # !H5 video
         mov|qt|m4[pv]|og[mv]        | # video
@@ -44,15 +45,20 @@ class GeneralSimple(VideoExtractor):
 
         if url:
             url = json.loads('"{url}"'.format(**vars()))
+            url = match1(url, '.+(https?://.+)') or url  # redirect clear
             if url[0] == '/':
                 url = self.url[:self.url.find('/')] + url
-            info.stream_types.append('current')
-            info.streams['current'] = {
-                'container': url_info(url)[1],
-                'video_profile': 'current',
-                'src': [url],
-                'size': 0
-            }
+            ext = url_info(url)[1]
+            if ext[:3] == 'm3u':
+                info.stream_types, info.streams = load_m3u8_playlist(url)
+            else:
+                info.stream_types.append('current')
+                info.streams['current'] = {
+                    'container': ext,
+                    'video_profile': 'current',
+                    'src': [url],
+                    'size': 0
+                }
             self.info = info
             self.parser = self.pparser
             return info

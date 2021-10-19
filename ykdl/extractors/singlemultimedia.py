@@ -4,6 +4,7 @@
 from ykdl.extractor import VideoExtractor
 from ykdl.videoinfo import VideoInfo
 from ykdl.util.match import match1
+from ykdl.util.m3u8_wrap import load_m3u8_playlist
 
 from urllib.parse import unquote
 
@@ -103,13 +104,16 @@ class Multimedia(VideoExtractor):
 
         info = VideoInfo(self.name)  # ignore judge live status
         info.title = title
-        info.stream_types = ['default']
-        info.streams['default'] = {
-            'container': ext,
-            'video_profile': 'default',
-            'src': [self.url],
-            'size': int(self.resheader.get('Content-Length', 0))
-        }
+        if ext == 'm3u8':
+            info.stream_types, info.streams = load_m3u8_playlist(self.url)
+        else:
+            info.stream_types = ['current']
+            info.streams['current'] = {
+                'container': ext,
+                'video_profile': 'current',
+                'src': [self.url],
+                'size': int(self.resheader.get('Content-Length', 0))
+            }
         return info
 
 site = Multimedia()

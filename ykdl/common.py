@@ -28,7 +28,7 @@ def url_to_module(url):
         logger.warning('> assume http connection!')
         url = 'http://' + url
     url_infos = re.match(
-            'https?://([.\-\w]*?(?:([\-\w]+)\.)?([\-\w]+)\.[\-\w]+)/.+?(?:\.([^?]+))?(?:\?|$)', url)
+            'https?://([.\-\w]*?(?:([\-\w]+)\.)?([\-\w]+)\.[\-\w]+)(?::\d+)?/.+?(?:\.([^?]+))?(?:\?|$)', url)
     assert url_infos, 'wrong URL string!'
     host, dm3, dm2, ext = url_infos.groups()
     logger.debug('host> ' + host)

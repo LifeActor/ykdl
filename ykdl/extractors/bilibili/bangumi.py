@@ -26,10 +26,8 @@ class BiliBan(BiliBase):
         vid = date['epInfo']['cid']
         mediaInfo = date['mediaInfo']
         self.seasonType = mediaInfo.get('ssType')
-        if self.seasonType == 1:
-            title = date.get('h1Title')
-        else:
-            title = match1(html, '<title>(.+?)_\w+_bilibili_哔哩哔哩<')
+        title = date.get('h1Title') or \
+                match1(html, '<title>(.+?)[_-]\w+[_-]bilibili[_-]哔哩哔哩<')
         upInfo = mediaInfo.get('upInfo')
         artist = upInfo and upInfo.get('name')
 

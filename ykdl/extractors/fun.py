@@ -74,8 +74,8 @@ def decrypt(obj):
     '''
 
     def i(t):
-        if len(t) == 28 and t[-1] == '0':
-            a = o(base64.b64decode(t[:27] + '='))
+        if match1(t, '^(\w{27}0)$'):
+            a = o(base64.b64decode(t[:-1] + '='))
             return binascii.hexlify(a.encode()).upper()
         return o(base64.b64decode(t[2:]))
 
@@ -89,9 +89,8 @@ def decrypt(obj):
                 (t * mozecname[1] + e * mozecname[3]) & 0xFF)
 
     def c(e):
-        if match1(e, '^(\w{41})$') is None:
-            return
-        return sum(int(e[r], 16) for r in range(40)) & 15 == int(e[-1], 16)
+        return match1(e, '^(\w{41})$') and \
+               sum(int(e[r], 16) for r in range(40)) & 15 == int(e[-1], 16)
 
     for p in ['_prev', '']:
         e = i(obj['infohash' + p])

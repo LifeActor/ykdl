@@ -28,3 +28,5 @@ README.html
 *.DS_Store
 *.swp
 *~
+*.sh
+*.cmd

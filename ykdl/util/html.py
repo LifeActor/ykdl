@@ -65,12 +65,11 @@ def undeflate(data):
     return decompressobj.decompress(data)+decompressobj.flush()
 
 def get_response(url, headers=fake_headers, data=None):
-    req = Request(url, headers=headers, data=None)
+    req = Request(url, headers=headers, data=data)
     #if cookies_txt:
     #    cookies_txt.add_cookie_header(req)
     #    req.headers.update(req.unredirected_hdrs)
-    response = urlopen(req)
-    return response
+    return urlopen(req)
 
 def get_head_response(url, headers=fake_headers):
     logger.debug('get_head_response> URL: ' + url)
@@ -145,7 +144,7 @@ def get_content_and_location(url, headers=fake_headers, data=None, charset=None)
     return data, rurl
 
 def get_content(url, headers=fake_headers, data=None, charset=None):
-    return get_content_and_location(url, headers=fake_headers, data=None, charset=None)[0]
+    return get_content_and_location(url, headers=headers, data=data, charset=charset)[0]
 
 #DEPRECATED below, return None or 0
 def url_size(url, faker=False):

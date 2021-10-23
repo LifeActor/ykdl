@@ -6,7 +6,9 @@ Auto-adjust number of threads.
 from ykdl.util.html import fake_headers as _fake_headers
 
 import urllib3
+from urllib3.util.ssl_ import create_urllib3_context
 import logging
+import os
 import re
 import socket
 import random
@@ -89,7 +91,7 @@ class RangeFetch():
 
     _expect_begin = 0
     _started_order = -1
-    ca_certs = None
+    ssl_context = None
     proxy = None
     http = None
     timeout = urllib3.Timeout(connect=1, read=2)
@@ -125,7 +127,7 @@ class RangeFetch():
                 'block': True,
                 'timeout': self.timeout,
                 'maxsize': self.pool_size,
-                'ca_certs': self.ca_certs[-1]  # only allow one path
+                'ssl_context': self.ssl_context
             }
             if self.proxy:
                 if self.proxy.lower().startswith('socks'):
@@ -404,8 +406,17 @@ def start_new_server(bind='', port=8806, first_size=None, max_size=None,
     rangefetch._headers = fake_headers.copy()
     if headers:
         rangefetch._headers = _headers.update(headers)
-    if ca_certs:
-        rangefetch.ca_certs = ca_certs
+    if ca_certs is not None:
+        if isinstance(ca_certs, list):
+            context = create_urllib3_context()
+            for cert in ca_certs:
+                if os.path.isfile(cert):
+                    context.load_verify_locations(cert)
+                elif os.path.isdir(cert):
+                    context.load_verify_locations(capath=cert)
+        else:
+            context = create_urllib3_context(cert_reqs=ca_certs)
+        rangefetch.ssl_context = context
 
     def rangefetchhandler(*args, **kwargs):
         kwargs['rangefetch'] = rangefetch

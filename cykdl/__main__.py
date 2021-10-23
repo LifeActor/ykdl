@@ -185,7 +185,7 @@ def main():
 
     if args.insecure:
         ssl._create_default_https_context = ssl._create_unverified_context
-        args.certs = None
+        args.certs = ssl.CERT_NONE
     else:
         certs = args.append_certs or []
         try:
@@ -197,11 +197,15 @@ def main():
         if certs:
             context = ssl._create_default_https_context()
             for cert in certs:
-                if os.path.exists(cert):
+                if os.path.isfile(cert):
                     context.load_verify_locations(cert)
+                elif os.path.isdir(cert):
+                    context.load_verify_locations(capath=cert)
             https_handler = HTTPSHandler(context=context)
             add_default_handler(https_handler)
             args.certs = certs
+        else:
+            args.certs = None
 
     proxies = None
     if args.proxy == 'system':

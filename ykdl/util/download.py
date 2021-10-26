@@ -1,22 +1,20 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 '''Processes/progress report hook arguments and report order:
 
   reporthook(action, size=None, total=None, part=None)
 
-  1. download start      (['start', single, status])
+    0. download init         (['init'])
 
-    2. part start        (['part'], part=part)
+      1. download start      (['start', single, status])
 
-      3. part progress   (['part'], filesize, totalsize, part)
+        2. part start        (['part'], part=part)
 
-    4. part end          (['part end', status, downloaded], filesize, totalsize, part)
+          3. part progress   (['part'], filesize, totalsize, part)
 
-  5. download end        (['end']) => (downloaded, filessize, totalsize, costtime)
+        4. part end          (['part end', status, downloaded], filesize, totalsize, part)
+
+      5. download end        (['end']) => (downloaded, filessize, totalsize, costtime)
 '''
 
-from __future__ import print_function
 import os
 import sys
 import time
@@ -28,7 +26,7 @@ from concurrent.futures import ThreadPoolExecutor
 from urllib.request import Request, urlopen
 from http.client import IncompleteRead
 from ykdl.util import log
-from .html import fake_headers_without_ae as fake_headers
+from .html import fake_headers
 from .log import IS_ANSI_TERMINAL
 
 
@@ -67,13 +65,10 @@ def human_size(n):
 def format_time(t):
     if t < 0:
         return 'N/A'
-    if t < 60:
-        pt = 0, t
-    else:
-        pt = t,
-        for _ in range(2):
-            if pt[0] >= 60:
-                pt = divmod(pt[0], 60) + pt[1:]
+    pt = t,
+    for _ in range(2):
+        if pt[0]:
+            pt = divmod(pt[0], 60) + pt[1:]
     return ':'.join('%02d' % t for t in pt)
 
 def get_progress_bar(percent):
@@ -103,6 +98,7 @@ def multi_hook(action, size=None, total=None, part=None):
                 if len(Processes) > _max_columns:
                     Processes = Processes[:_max_columns - 3] + '...'
             sys.stdout.write(Processes)
+            sys.stdout.write('\r')
             sys.stdout.flush()
 
     def processes_deamon():
@@ -178,6 +174,10 @@ def multi_hook(action, size=None, total=None, part=None):
             sys.stdout.write(_clear_enter)
             print(*args, **kwargs)
 
+    elif action == 'init':
+        _processes_downloaded = {}
+        return
+
     elif action == 'start':
         _processes_single, *action_args = action_args
         if _processes_single:
@@ -188,10 +188,6 @@ def multi_hook(action, size=None, total=None, part=None):
             update_processes_prefix()
         _processes_start = ct
         _processes_last_refresh = 0
-        try:
-            _processes_downloaded
-        except NameError:
-            _processes_downloaded = {}
         _processing = True
         threading._start_new_thread(processes_deamon, ())
 
@@ -201,7 +197,7 @@ def multi_hook(action, size=None, total=None, part=None):
         _processes_downloaded.update({k: (0, v[1], v[2])
                                      for k, v in _processes_downloaded.items()})
         cost = ct - _processes_start
-        return  downloaded, size, total, cost
+        return downloaded, size, total, cost
 
     print_processes(force_refresh)
 
@@ -232,6 +228,7 @@ def _save_url(url, name, ext, status, part=None, reporthook=multi_hook):
     timeout_q = min(socket.getdefaulttimeout() or 30, 30)
     timeout_r = max(socket.getdefaulttimeout() or 0, 60)
     req = Request(url, headers=fake_headers)
+    req.remove_header('Accept-encoding')
     try:
         reporthook(['part'], part=part)
         if os.path.exists(name):
@@ -333,6 +330,7 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
         else:
             tries = 3
     print('Start downloading: ' + name)
+    reporthook(['init'])
     while tries:
         if count > 1 and os.path.exists(name + '.' + ext):
             print('Skipped: files has already been downloaded')

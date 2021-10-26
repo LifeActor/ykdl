@@ -1,14 +1,88 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import re
 from logging import getLogger
-from ykdl.compact import Request, urlopen, install_opener, build_opener
+from collections import defaultdict
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen, install_opener, build_opener, \
+                           AbstractHTTPHandler, URLError
+try:
+    from queue import SimpleQueue as Queue, Empty  # py37 and above
+except ImportError:
+    from queue import Queue, Empty
 
 from .match import match1
 
 
 logger = getLogger("html")
+
+_http_conn_cache = defaultdict(Queue)
+_headers_template = {k: '' for k in ('Host', 'User-Agent', 'Accept')}
+
+def _do_open(self, http_class, req, **http_conn_args):
+    """Return an HTTPResponse object for the request, using http_class.
+
+    http_class must implement the HTTPConnection API from http.client.
+    
+    there has codes to handle persistent connections
+    """
+    host = req.host
+    if not host:
+        raise URLError('no host given')
+
+    conn_key = req._full_url[:req._full_url.find('/', 9)]
+    queue = _http_conn_cache[conn_key]
+
+    try:
+        h = queue.get_nowait()
+    except Empty:
+        h = http_class(host, timeout=req.timeout, **http_conn_args)
+    h.set_debuglevel(self._debuglevel)
+
+    # keep the sequence in template
+    headers = _headers_template.copy()
+    headers.update(req.headers)
+    headers.update(req.unredirected_hdrs)
+    headers = {k.title(): v for k, v in headers.items()}
+
+    for hdr in ('Connection', 'Proxy-Connection'):  # always do, ignore input
+        headers.pop(hdr, None)
+
+    # urllib.request only use header Proxy-Authorization
+    # move all tunnel headers which user input, that has be needed
+    tunnel_headers = {k: v for k, v in headers.items() if k.startswith('Proxy-')}
+    for hdr in tunnel_headers:
+        headers.pop(hdr)
+    if req._tunnel_host:
+        if h.sock is None:  # add reuse check to bypass
+            h.set_tunnel(req._tunnel_host, headers=tunnel_headers)
+
+    req_args = {}
+    if hasattr(http_class, '_is_textIO'):  # py35 and below are False
+                                           # uncommonly use in our modules
+        req_args['encode_chunked'] = req.has_header('Transfer-encoding')
+    try:
+        try:
+            h.request(req.get_method(), req.selector, req.data, headers,
+                      **req_args)
+        except OSError as err:  # timeout error
+            raise URLError(err)
+        r = h.getresponse()
+    except:
+        h.close()
+        queue.put(h)  # errors happen on socket
+        raise         # but connect instances are still OK of reuse
+
+    def _close_conn():
+        fp, r.fp = r.fp, None
+        fp.close()
+        queue.put(h)  # last request is over, ready for reuse
+
+    r._close_conn = _close_conn
+
+    r.url = req.get_full_url()
+    r.msg = r.reason
+    return r
+
+AbstractHTTPHandler.do_open = _do_open  # monkey patch
 
 default_handlers = []
 
@@ -17,7 +91,8 @@ def add_default_handler(handler):
         handler = handler()
     remove = []
     for default_handler in default_handlers:
-        if isinstance(handler, type(default_handler)) or isinstance(default_handler, type(handler)):
+        if isinstance(handler, type(default_handler)) or \
+                isinstance(default_handler, type(handler)):
             remove.append(default_handler)
     for _handler in remove:
         default_handlers.remove(_handler)
@@ -35,14 +110,9 @@ fake_headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:60.1) Gecko/20100101 Firefox/60.1'
 }
 
-fake_headers_without_ae = fake_headers.copy()
-del fake_headers_without_ae['Accept-Encoding']
-
 def add_header(key, value):
-    global fake_headers, fake_headers_without_ae
+    global fake_headers
     fake_headers[key] = value
-    if key != 'Accept-Encoding':
-        fake_headers_without_ae[key] = value
 
 def unicodize(text):
     return re.sub(r'\\u([0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f])', lambda x: chr(int(x.group(0)[2:], 16)), text)
@@ -81,9 +151,9 @@ def get_head_response(url, headers=fake_headers):
         if match1(str(e), 'HTTP Error (40[345])'):
             logger.debug('get_head_response> HEAD failed, try GET')
             response = get_response(url, headers=headers)
-            response.close()
         else:
             raise
+    response.close()
     # urllib will follow redirections and it's too much code to tell urllib
     # not to do that
     return response

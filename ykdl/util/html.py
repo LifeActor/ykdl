@@ -1,5 +1,4 @@
 import re
-import select
 from logging import getLogger
 from collections import defaultdict
 from urllib.parse import urlencode
@@ -17,17 +16,6 @@ logger = getLogger("html")
 
 _http_conn_cache = defaultdict(Queue)
 _headers_template = {k: '' for k in ('Host', 'User-Agent', 'Accept')}
-
-def is_disconnection(sock):
-    dead = True
-    try:
-        fd = sock.fileno()
-        if fd >= 0:
-            rd, _, ed = select.select([fd], [], [fd], 0)
-            dead = bool(rd or ed)
-    except OSError:
-        pass
-    return dead
 
 def _do_open(self, http_class, req, **http_conn_args):
     """Return an HTTPResponse object for the request, using http_class.
@@ -48,8 +36,13 @@ def _do_open(self, http_class, req, **http_conn_args):
     except Empty:
         h = http_class(host, timeout=req.timeout, **http_conn_args)
     else:
-        if is_disconnection(h.sock):
-            h.close()
+        h.sock.setblocking(False)
+        try:
+            h.sock.recv(1)
+            h.close()  # drop legacy and disconnection
+        except:
+            h.sock.settimeout(req.timeout)
+        
     h.set_debuglevel(self._debuglevel)
 
     # keep the sequence in template

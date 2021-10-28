@@ -1,4 +1,5 @@
 import re
+import socket
 from logging import getLogger
 from collections import defaultdict
 from urllib.parse import urlencode
@@ -28,21 +29,24 @@ def _do_open(self, http_class, req, **http_conn_args):
     if not host:
         raise URLError('no host given')
 
+    timeout = req.timeout
     conn_key = req._full_url[:req._full_url.find('/', 9)]
     queue = _http_conn_cache[conn_key]
 
     try:
         h = queue.get_nowait()
     except Empty:
-        h = http_class(host, timeout=req.timeout, **http_conn_args)
+        h = http_class(host, timeout=timeout, **http_conn_args)
     else:
         h.sock.setblocking(False)
         try:
             h.sock.recv(1)
             h.close()  # drop legacy and disconnection
         except:
-            h.sock.settimeout(req.timeout)
-        
+            if timeout is socket._GLOBAL_DEFAULT_TIMEOUT:
+                timeout = socket.getdefaulttimeout()
+            h.sock.settimeout(timeout)
+
     h.set_debuglevel(self._debuglevel)
 
     # keep the sequence in template

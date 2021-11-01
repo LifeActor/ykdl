@@ -31,8 +31,8 @@ REQ = ['m3u8']  # remove pycryptodome, it is not being used now
 EXT = {
   'proxy': ['ExtProxy'],
   'rangefetch': ['urllib3'],
-  'js': JSEngine and [] or ['PyChakra>=2.2.0'],
-  'color': os.name != 'nt' and [] or ['colorama']
+  'js': JSEngine is None and ['PyChakra>=2.2.0'] or [],
+  'color': os.name == 'nt' and ['colorama'] or []
 }
 EXT['all'] = sum((rs for rs in EXT.values()), [])
 EXT['all-js'] = EXT['all'].copy()

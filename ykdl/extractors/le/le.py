@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import json
@@ -75,7 +74,7 @@ class Letv(VideoExtractor):
             # hold on ! more things to do
             # to decode m3u8 (encoded)
             suffix = '&r=' + str(int(time.time() * 1000)) + '&appid=500'
-            m3u8 = get_content(data2["location"]+suffix, charset = 'ignore')
+            m3u8 = get_content(data2["location"]+suffix, encoding='ignore')
             m3u8_list = decode(m3u8)
             stream_id = self.stream_2_id[stream]
             info.streams[stream_id] = {'container': 'm3u8', 'video_profile': self.stream_2_profile[stream], 'size' : 0}

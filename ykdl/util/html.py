@@ -114,7 +114,7 @@ _HTTPResponse._close_conn = _close_conn  # monkey patch, but secure
 class HTTPRedirectHandler(_HTTPRedirectHandler):
     '''Log all responses during redirect, support specify max redirections
     
-    MUST call from get_response(), or fallback to origine HTTPRedirectHandler
+    MUST call from get_response(), or fallback to origin HTTPRedirectHandler
     '''
     max_repeats = 2
     max_redirections = 5
@@ -128,7 +128,7 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
             setattr(self, 'http_error_%d' % code, self.http_error_code)
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        # If does not request from this module, go to origine method
+        # If does not request from this module, go to origin method
         if not hasattr(req, 'locations'):
             if code == 308 and not hasattr(_HTTPRedirectHandler, 'http_error_308'):
                 return
@@ -153,9 +153,9 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
         # Useless in our modules, memo for somebody may needs
         #newurl = newurl.replace(' ', '%20')
 
-        newreq = Request(newurl, data=data, headers=newheaders,
-                         origin_req_host=req.origin_req_host,
-                         unverifiable=True, method=method)
+        req.newreq = newreq = Request(newurl, data=data, headers=newheaders,
+                                      origin_req_host=req.origin_req_host,
+                                      unverifiable=True, method=method)
 
         # Important attributes MUST be passed to new request
         newreq.headget = req.headget
@@ -164,7 +164,7 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
         return newreq
 
     def http_error_code(self, req, fp, code, msg, headers):
-        # If does not request from this module, go to origine method
+        # If does not request from this module, go to origin method
         if not hasattr(req, 'locations'):
             if code == 308 and not hasattr(_HTTPRedirectHandler, 'http_error_308'):
                 return
@@ -172,7 +172,9 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
 
         if req.max_redirections is not None:
             self.max_redirections = req.max_redirections
-        req.responses.append(HTTPResponse(req, fp))
+        if not req.locations:
+            # origin request / first response
+            req.responses.append(HTTPResponse(req, fp))
         try:
             newres = super().http_error_302(req, fp, code, msg, headers)
         except HTTPError:
@@ -180,16 +182,30 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
                 fp.url = req.locations[-1]  # fake response, reuse last one
                 return fp
             raise
+        else:
+            req.responses.append(HTTPResponse(req.newreq, newres))
+        finally:
+            try:
+                del req.newreq  # clear circular reference
+            except AttributeError:
+                pass
         return newres
 
 
 # Custom HTTP response
 
 class HTTPResponse:
-    def __init__(self, request, response, encoding=None):
+    def __init__(self, request, response, encoding=None, *, finish=False):
         '''Wrap urllib.request.Request and http.client.HTTPResponse.
 
-        param `encoding` is used to decode responsed content.
+        Params: `encoding` is used to decode responsed content.
+
+                `finish`, only has effect on redirections.
+
+                    `False` is used by sub-responses (default),
+                    `True` is used by main response (explicit).
+
+                `request` and `response` referred to see get_response() codes.
         '''
         self.request = request
         self.method = response._method
@@ -198,6 +214,13 @@ class HTTPResponse:
         self.status = response.status
         self.reason = response.reason
         self.headers = self.msg = headers = response.headers
+        self._encoding = encoding
+        if finish and self.locations:
+            # Redirected response has been closed, copy from last one
+            response = request.responses[-1]
+            self.raw = response.raw
+            self.content = response.content
+            return
         self.raw = data = not request.headget and response.read() or b''
         response.close()
         if data:
@@ -216,7 +239,6 @@ class HTTPResponse:
             elif ce == 'deflate':
                 data = undeflate(data)
         self.content = data
-        self._encoding = encoding
 
     def __repr__(self):
         return '<%s object at %s>' % (type(self).__name__, hex(id(self)))
@@ -227,11 +249,6 @@ class HTTPResponse:
     def close(self):
         '''HTTP response always has been closed in init, do nothing here.'''
         pass
-
-    @property
-    def responses(self):
-        '''All responses include redirected origine URL'''
-        return self._responses + [self]  # avoid circular reference
 
     @property
     def encoding(self):
@@ -347,7 +364,7 @@ def get_response(url, headers=fake_headers, data=None, method='GET',
     '''Fetch the response of giving URL.
 
     Return: response, If redirections > max_redirections > 0,
-             this is fake except its attribute `url`.
+            this is fake except its attribute `url`.
     '''
     global _opener
     headget = method == 'HEADGET'  # if True the response will be closed
@@ -380,11 +397,11 @@ def get_response(url, headers=fake_headers, data=None, method='GET',
     if _opener is None:
         install_default_handlers()
     try:
-        response = HTTPResponse(req, _opener.open(req), encoding)
+        response = HTTPResponse(req, _opener.open(req), encoding, finish=True)
     finally:
         for r in responses:
             del r.request.responses  # clear circular reference
-    response._responses = responses
+    response.responses = responses
     return response
 
 def get_head_response(url, headers=fake_headers, max_redirections=0):

@@ -2,9 +2,9 @@
 
 - [ ] 你确实可以在浏览器或移动端中观看视频，但不能使用`ykdl`下载。
 - [ ] 您的`ykdl`为最新版。
-- [ ] 您已经阅读并按 <https://github.com/zhangn1985/ykdl/wiki> 中的指引进行了操作。
-- [ ] 您的问题没有在 <https://github.com/zhangn1985/ykdl/issues> 报告，否则请在原有 issue 下报告。
-- [ ] 本问题确实关于`ykdl`，而不是其他项目。
+- [ ] 您已经阅读并按 <https://github.com/SeaHOH/ykdl/wiki> 中的指引进行了操作。
+- [ ] 您的问题没有在 <https://github.com/SeaHOH/ykdl/issues> 报告，否则请在原有 issue 下报告。
+- [ ] 本问题确实关于`ykdl`或其依赖，而不是其他项目。
 
 请将错误输出粘贴在下面:
 

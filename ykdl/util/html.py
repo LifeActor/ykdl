@@ -21,24 +21,42 @@ from .match import match1
 logger = getLogger('html')
 
 
-# Add persistent connections feature into urllib.request
+# Add HTTP persistent connections feature into urllib.request
 
+_http_prefixes = 'https://', 'http://'
 _http_conn_cache = defaultdict(Queue)
 _headers_template = {k: '' for k in ('Host', 'User-Agent', 'Accept')}
+
+def _split_conn_key(url):
+    '''"scheme://host/path" --> "scheme://host"'''
+    pp = url.find('/', 9)
+    if pp > 0:
+        return url[:pp]
+    return url
+
+def hit_conn_cache(url):
+    '''Wethere the giving URL does match a item exist in HTTP connection cache'''
+    if not url.startswith(_http_prefixes):
+        raise ValueError('input should be a URL')
+    return _split_conn_key(url) in _http_conn_cache
+
+def clear_conn_cache():
+    '''Clear the HTTP connection cache which used by persistent connections.'''
+    _http_conn_cache.clear()
 
 def _do_open(self, http_class, req, **http_conn_args):
     '''Return an HTTPResponse object for the request, using http_class.
 
     http_class must implement the HTTPConnection API from http.client.
     
-    There has some codes to handle persistent connections
+    There has some codes to handle persistent connections.
     '''
     host = req.host
     if not host:
         raise URLError('no host given')
 
     timeout = req.timeout
-    conn_key = req._full_url[:req._full_url.find('/', 9)]
+    conn_key = _split_conn_key(req._full_url)
     queue = _http_conn_cache[conn_key]
 
     try:
@@ -66,13 +84,15 @@ def _do_open(self, http_class, req, **http_conn_args):
     for hdr in ('Connection', 'Proxy-Connection'):  # always do, ignore input
         headers.pop(hdr, None)
 
-    # urllib.request only use header Proxy-Authorization
-    # Move all tunnel headers which user input, that has be needed
-    tunnel_headers = {k: v for k, v in headers.items() if k.startswith('Proxy-')}
-    for hdr in tunnel_headers:
-        headers.pop(hdr)
-    if req._tunnel_host and h.sock is None:  # add reuse check to bypass
-        h.set_tunnel(req._tunnel_host, headers=tunnel_headers)
+    if req._tunnel_host:
+        # urllib.request only use header Proxy-Authorization
+        # Move all tunnel headers which user input, that has be needed
+        tunnel_headers = {k: v for k, v in headers.items()
+                          if k.startswith('Proxy-')}
+        for hdr in tunnel_headers:
+            headers.pop(hdr)
+        if h.sock is None:  # add reuse check to bypass reset error
+            h.set_tunnel(req._tunnel_host, headers=tunnel_headers)
 
     req_args = {}
     if hasattr(http_class, '_is_textIO'):  # py35 and below are False

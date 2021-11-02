@@ -40,7 +40,7 @@ class HuomaoTv(VideoExtractor):
                    'from': tag_from,
                    'token': token
                 }
-        content = get_content(self.live_base, data=compact_bytes(urlencode(params), 'utf-8'), charset='utf-8')
+        content = get_content(self.live_base, data=compact_bytes(urlencode(params), 'utf-8'))
         stream_data = json.loads(content)
 
         assert stream_data["roomStatus"] == "1", "The live stream is not online! "

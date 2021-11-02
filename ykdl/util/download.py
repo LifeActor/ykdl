@@ -26,7 +26,7 @@ from concurrent.futures import ThreadPoolExecutor
 from urllib.request import Request, urlopen
 from http.client import IncompleteRead
 from ykdl.util import log
-from .html import fake_headers
+from .html import hit_conn_cache, clear_conn_cache, fake_headers
 from .log import IS_ANSI_TERMINAL
 
 
@@ -305,6 +305,9 @@ def save_url(*args, tries=3, **kwargs):
 
 def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
               fail_retry_eta=3600, reporthook=multi_hook):
+
+    if not hit_conn_cache(urls[0]):
+        clear_conn_cache()  # clear useless caches
 
     def run(*args, **kwargs):
         fn, *args = args

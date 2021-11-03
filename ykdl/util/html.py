@@ -35,13 +35,13 @@ def _split_conn_key(url):
     return url
 
 def hit_conn_cache(url):
-    '''Wethere the giving URL does match a item exist in HTTP connection cache'''
+    '''Whether the giving URL does match a item exist in HTTP connection cache'''
     if not url.startswith(_http_prefixes):
         raise ValueError('input should be a URL')
     return _split_conn_key(url) in _http_conn_cache
 
 def clear_conn_cache():
-    '''Clear the HTTP connection cache which used by persistent connections.'''
+    '''Clear the HTTP connection cache which is used by persistent connections.'''
     _http_conn_cache.clear()
 
 def _do_open(self, http_class, req, **http_conn_args):
@@ -161,7 +161,7 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
         if method not in self.rmethod:
             raise HTTPError(req.full_url, code, msg, headers, fp)
 
-        data = req.data  # used by fixedly method redirection
+        data = req.data  # is used by fixedly method redirections
         newheaders = {k.lower(): v for k, v in req.headers.items()}
         if code in self.rmethod:
             for header in ('content-length', 'content-type', 'transfer-encoding'):
@@ -173,9 +173,9 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
         # Useless in our modules, memo for somebody may needs
         #newurl = newurl.replace(' ', '%20')
 
-        req.newreq = newreq = Request(newurl, data=data, headers=newheaders,
-                                      origin_req_host=req.origin_req_host,
-                                      unverifiable=True, method=method)
+        newreq = Request(newurl, data=data, headers=newheaders,
+                         origin_req_host=req.origin_req_host,
+                         unverifiable=True, method=method)
 
         # Important attributes MUST be passed to new request
         newreq.headget = req.headget
@@ -190,11 +190,10 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
                 return
             return super().http_error_302(req, fp, code, msg, headers)
 
-        if req.max_redirections is not None:
-            self.max_redirections = req.max_redirections
-        if not req.locations:
-            # origin request / first response
-            req.responses.append(HTTPResponse(req, fp))
+        max_redirections = getattr(req, 'max_redirections', None)
+        if max_redirections is not None:
+            self.max_redirections = max_redirections
+        req.responses.append(HTTPResponse(req, fp, finish=False))
         try:
             newres = super().http_error_302(req, fp, code, msg, headers)
         except HTTPError:
@@ -202,30 +201,26 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
                 fp.url = req.locations[-1]  # fake response, reuse last one
                 return fp
             raise
-        else:
-            req.responses.append(HTTPResponse(req.newreq, newres))
-        finally:
-            try:
-                del req.newreq  # clear circular reference
-            except AttributeError:
-                pass
         return newres
 
 
 # Custom HTTP response
 
 class HTTPResponse:
-    def __init__(self, request, response, encoding=None, *, finish=False):
+    def __init__(self, request, response, encoding=None, *, finish=True):
         '''Wrap urllib.request.Request and http.client.HTTPResponse.
 
-        Params: `encoding` is used to decode responsed content.
+        Params:
+            `encoding` is used by decode responsed content.
 
-                `finish`, only has effect on redirections.
+            `finish`, only has effect on redirections.
 
-                    `False` is used by sub-responses (default),
-                    `True` is used by main response (explicit).
+                `True` (default)
+                    is used by last response which return from opener.
+                `False` (explicit)
+                    is used by redirections which call from our handler.
 
-                `request` and `response` referred to see get_response() codes.
+            `request` and `response` referred to see get_response() codes.
         '''
         self.request = request
         self.method = response._method
@@ -234,13 +229,6 @@ class HTTPResponse:
         self.status = response.status
         self.reason = response.reason
         self.headers = self.msg = headers = response.headers
-        self._encoding = encoding
-        if finish and self.locations:
-            # Redirected response has been closed, copy from last one
-            response = request.responses[-1]
-            self.raw = response.raw
-            self.content = response.content
-            return
         self.raw = data = not request.headget and response.read() or b''
         response.close()
         if data:
@@ -259,6 +247,11 @@ class HTTPResponse:
             elif ce == 'deflate':
                 data = undeflate(data)
         self.content = data
+        self._encoding = encoding
+        if finish and self.locations:
+            self._responses = request.responses
+        else:
+            self._responses = []
 
     def __repr__(self):
         return '<%s object at %s>' % (type(self).__name__, hex(id(self)))
@@ -269,6 +262,13 @@ class HTTPResponse:
     def close(self):
         '''HTTP response always has been closed in init, do nothing here.'''
         pass
+
+    @property
+    def responses(self):
+        '''Return a list include all redirect responses, but redirect responses
+        can only return itself.
+        '''
+        return self._responses + [self]  # avoid circular reference
 
     @property
     def encoding(self):
@@ -379,49 +379,80 @@ def undeflate(data):
     decompressobj = zlib.decompressobj(-zlib.MAX_WBITS)
     return decompressobj.decompress(data) + decompressobj.flush()
 
-def get_response(url, headers=fake_headers, data=None, method='GET',
+def get_response(url, headers=fake_headers, data=None, params=None, method='GET',
                       max_redirections=None, encoding=None):
     '''Fetch the response of giving URL.
 
-    Return: response, If redirections > max_redirections > 0,
-            this is fake except its attribute `url`.
+    Params: both `params` and `data` always use "UTF-8" as encoding.
+
+    Return: response, If redirections > max_redirections > 0 (stop at max limit),
+            this is a fake response except its attribute `url`.
+
     '''
     global _opener
+    url = url.split('#', 1)[0]  # remove fragment if exist, it's useless
+    if params: 
+        url, _, query = url.partition('?')
+        if hasattr(params, 'decode'):
+            params = params.decode()
+        if query:
+            # first both to dict
+            if not isinstance(params, (str, dict)):
+                params = urlencode(params, doseq=True)
+            query = parse_qs(query, keep_blank_values=True, strict_parsing=True)
+            params = parse_qs(params, keep_blank_values=True)
+            # then update/overlay
+            query.update(params)
+        else:
+            query = params
+        if not isinstance(query, str):
+            query = urlencode(query, doseq=True)
+        url = '{url}?{query}'.format(**vars())
     headget = method == 'HEADGET'  # if True the response will be closed
     if headget:                    # without read content
         method = 'GET'
     elif method != 'HEAD':
         logger.debug('get_response> URL: ' + url)
     if data:
+        headers = {k.capitalize(): v for k, v in headers.items()}
+        ctype = headers.get('Content-type')
+        form = False
         if isinstance(data, str):
             data = data.encode()
-        elif not hasattr(data, 'read'):
+        if not hasattr(data, 'read'):
             try:
-                memoryview(data)
+                mv = memoryview(data)
             except TypeError:
                 try:
-                    data = urlencode(data).encode()
+                    data = urlencode(data, doseq=True).encode()
+                    form = True
                 except TypeError:
                     pass
+            else:
+                if len(mv) < 1024:  # ISSUE: whether that limit is too small?
+                    bs = mv.tobytes()
+                    eq = bs.count(b'=')
+                    sp = bs.count(b'&')
+                    form = eq and eq == sp + 1
+        if not (ctype or form):
+            raise ValueError(
+                'Inputed data is not type of "application/x-www-form-urlencoded"'
+                ', you MUST give the "Content-Type" header.')
     req = Request(url, headers=headers, data=data, method=method)
     req.headget = headget
     req.max_redirections = max_redirections
     req.redirect_dict = {}  # init here allow disable redirect
     req.locations = []
     req.responses = responses = []
-    #if cookies_txt:
-    #    cookies_txt.add_cookie_header(req)
-    #    req.headers.update(req.unredirected_hdrs)
     if encoding == 'ignore':
         encoding = None
     if _opener is None:
         install_default_handlers()
     try:
-        response = HTTPResponse(req, _opener.open(req), encoding, finish=True)
+        response = HTTPResponse(req, _opener.open(req), encoding)
     finally:
         for r in responses:
             del r.request.responses  # clear circular reference
-    response.responses = responses
     return response
 
 def get_head_response(url, headers=fake_headers, max_redirections=0):

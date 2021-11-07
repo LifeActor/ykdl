@@ -1,14 +1,13 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-import json
 import sys
-import datetime
+import json
 import random
+import datetime
 from html import unescape
 from urllib.parse import unquote
-from ykdl.util.fs import legitimize
-from ykdl.util import log
+
+from .util.fs import legitimize
+from .util import log
+
 
 class VideoInfo():
     def __init__(self, site, live=False):

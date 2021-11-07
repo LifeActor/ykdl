@@ -1,7 +1,42 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import re
+
+
+__all__ = ['match', 'match1', 'matchall']
+
+def _format_str(pattern, text):
+    strtype = type(pattern)
+    if not isinstance(text, strtype):
+        try:
+            text = strtype(text, 'utf-8')
+        except TypeError:
+            if hasattr(text, 'decode'):
+                if strtype is str:
+                    text = text.decode()
+            else:
+                text = str(text)
+            if strtype is bytes and hasattr(text, 'encode'):
+                text = text.encode()
+    return text
+
+def match(text, *patterns):
+    """Scans through a string for substrings matched some patterns (first groups only).
+
+    Args:
+        text: A string to be scanned.
+        patterns: Arbitrary number of regex patterns.
+
+    Returns:
+        When matches, returns first match groups.
+        When no matches, return None
+    """
+
+    for pattern in patterns:
+        text = _format_str(pattern, text)
+        match = re.search(pattern, text)
+        groups = match and match.groups()
+        if groups:
+            return groups
+    return None
 
 def match1(text, *patterns):
     """Scans through a string for substrings matched some patterns (first-subgroups only).
@@ -15,14 +50,8 @@ def match1(text, *patterns):
         When no matches, return None
     """
 
-    for pattern in patterns:
-        try:
-            match = re.search(pattern, text)
-        except(TypeError):
-            match = re.search(pattern, str(text))
-        if match:
-            return match.group(1)
-    return None
+    groups = match(text, *patterns)
+    return groups and groups[0]
 
 
 def matchall(text, *patterns):
@@ -38,10 +67,8 @@ def matchall(text, *patterns):
 
     ret = []
     for pattern in patterns:
-        try:
-            match = re.findall(pattern, text)
-        except(TypeError):
-            match = re.findall(pattern, str(text))
+        text = _format_str(pattern, text)
+        match = re.findall(pattern, text)
         ret += match
 
     return ret

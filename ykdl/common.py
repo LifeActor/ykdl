@@ -1,14 +1,11 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from importlib import import_module
-
-from .util.html import get_location_and_header
-from .extractors import singlemultimedia
 import re
 import logging
+from importlib import import_module
+
+from .util.http import get_location_and_header
 
 logger = logging.getLogger('common')
+
 
 alias = {
         '163'    : 'netease',
@@ -28,7 +25,8 @@ def url_to_module(url):
         logger.warning('> assume http connection!')
         url = 'http://' + url
     url_infos = re.match(
-            'https?://([.\-\w]*?(?:([\-\w]+)\.)?([\-\w]+)\.[\-\w]+)(?::\d+)?/.+?(?:\.([^?]+))?(?:\?|$)', url)
+            'https?://([.\-\w]*?(?:([\-\w]+)\.)?([\-\w]+)\.[\-\w]+)(?::\d+)?'
+            '(?:/.+?(?:\.([^?\s]+))?(?:\?|$))?', url)
     assert url_infos, 'wrong URL string!'
     host, dm3, dm2, ext = url_infos.groups()
     logger.debug('host> ' + host)
@@ -44,7 +42,8 @@ def url_to_module(url):
         else:
             site = m.site
         return site, url
-    except(ImportError):
+    except ImportError:
+        from .extractors import singlemultimedia
         if ext in singlemultimedia.extNames:
             logger.debug('> the extension name %r match multimedia types', ext)
             logger.debug('> Go SingleMultimedia')
@@ -67,5 +66,5 @@ def url_to_module(url):
                 singlemultimedia.site.resheader = resheader
                 return singlemultimedia.site, url
         else:
-            logger.debug('> new url ' + new_url)
+            logger.info('> New url: ' + new_url)
             return url_to_module(new_url)

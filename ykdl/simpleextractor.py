@@ -1,14 +1,12 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+from .extractor import VideoExtractor
+from .videoinfo import VideoInfo
+from .util.http import get_content, fake_headers, url_info
+from .util.match import match1
 
-from ykdl.util.html import get_content, fake_headers, url_info
-from ykdl.util.match import match1
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
 
 class SimpleExtractor(VideoExtractor):
 
-    name = "SimpleExtractor"
+    name = 'SimpleExtractor'
 
     def __init__(self):
         VideoExtractor.__init__(self)
@@ -57,5 +55,9 @@ class SimpleExtractor(VideoExtractor):
         self.get_url()
         ext, size = self.get_info()
         self.info.stream_types.append('current')
-        self.info.streams['current'] = {'container': ext, 'src': self.v_url, 'size' : size}
+        self.info.streams['current'] = {
+            'container': ext,
+            'src': self.v_url,
+            'size' : size
+        }
         return self.info

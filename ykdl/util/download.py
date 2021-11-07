@@ -25,8 +25,8 @@ from shutil import get_terminal_size
 from concurrent.futures import ThreadPoolExecutor
 from urllib.request import Request, urlopen
 from http.client import IncompleteRead
-from ykdl.util import log
-from .html import hit_conn_cache, clear_conn_cache, fake_headers
+
+from .http import hit_conn_cache, clear_conn_cache, fake_headers
 from .log import IS_ANSI_TERMINAL
 
 

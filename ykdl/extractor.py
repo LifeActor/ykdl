@@ -1,9 +1,5 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 from logging import getLogger
 
-from ykdl.compact import compact_isstr
 
 class VideoExtractor():
     def __init__(self):
@@ -13,7 +9,7 @@ class VideoExtractor():
 
     def parser(self, url):
         self.__init__()
-        if compact_isstr(url) and url.startswith('http'):
+        if isinstance(url, str) and url.startswith('http'):
             self.url = url
             if self.list_only():
                 return self.parser_list(url)
@@ -27,7 +23,9 @@ class VideoExtractor():
         self.url = url
         video_list = self.prepare_list()
         if not video_list:
-            raise NotImplementedError(u'playlist not support for {} with url: {}'.format(self.name, self.url))
+            raise NotImplementedError(
+                    'playlist not support for {self.name} with url: {self.url}'
+                    .format(**vars()))
         for video in video_list:
             yield self.parser(video)
 
@@ -41,9 +39,9 @@ class VideoExtractor():
         pass
 
     def list_only(self):
-        """
+        '''
         this API is to check if only the list informations is included
         if true, go to parser list mode
         MUST override!!
-        """
+        '''
         pass

@@ -1,9 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from importlib import import_module
 from logging import getLogger
+from importlib import import_module
+
 from .common import alias, url_to_module
+
 
 class EmbedExtractor():
     """
@@ -99,7 +98,7 @@ class EmbedExtractor():
 
         info = self._parser(self.video_info)
         if self.name != info.site:
-            info.site = u'{} / {}'.format(self.name, info.site)
+            info.site = '{self.name} / {info.site}'.format(**vars())
         return info
 
     def parser_list(self, url):
@@ -108,7 +107,9 @@ class EmbedExtractor():
         self.prepare_playlist()
 
         if not self.video_info_list:
-            raise NotImplementedError('Playlist is not supported for ' + self.name + 'with url: ' + self.url)
+            raise NotImplementedError(
+                'Playlist is not supported for {self.name} with url: {self.url}'
+                .format(**vars()))
 
         for v in self.video_info_list:
             yield self._parser(v)

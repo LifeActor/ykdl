@@ -17,7 +17,6 @@ except ImportError:
 
 from .match import match1
 
-
 logger = getLogger('html')
 
 
@@ -326,10 +325,20 @@ for _ in ('getheader', 'getheaders', 'info', 'geturl', 'getcode'):
 
 # utils
 
+__all__ = ['add_default_handler', 'install_default_handlers', 'fake_headers',
+           'reset_headers', 'add_header', 'get_response', 'get_head_response',
+           'get_location', 'get_location_and_header', 'get_content_and_location',
+           'get_content', 'url_info']
+
 _opener = None
 _default_handlers = []
 
 def add_default_handler(handler):
+    '''Added handlers will be used via install_default_handlers().
+
+    Notice: this is use to setting GLOBAL (urllib) HTTP proxy and HTTPS verify,
+            use it carefully.
+    '''
     if isinstance(handler, type):
         handler = handler()
     if isinstance(handler, _HTTPRedirectHandler):
@@ -347,8 +356,9 @@ def add_default_handler(handler):
     logger.debug('Add %s to default handlers', handler)
 
 def install_default_handlers():
-    # Always use our custom HTTPRedirectHandler
+    '''Install the default handlers to urllib.request as its opener.'''
     global _opener
+    # Always use our custom HTTPRedirectHandler
     _opener = build_opener(HTTPRedirectHandler, *_default_handlers)
     install_opener(_opener)
 
@@ -361,12 +371,12 @@ _default_fake_headers = {
 fake_headers = _default_fake_headers.copy()
 
 def reset_headers():
-    '''Reset the fake_headers to default keys and values'''
+    '''Reset the fake_headers to default keys and values.'''
     fake_headers.clear()
     fake_headers.update(_default_fake_headers)
 
 def add_header(key, value):
-    '''Set the fake_headers[key] to value'''
+    '''Set the fake_headers[key] to value.'''
     global fake_headers
     fake_headers[key] = value
 
@@ -385,9 +395,8 @@ def get_response(url, headers=fake_headers, data=None, params=None, method='GET'
 
     Params: both `params` and `data` always use "UTF-8" as encoding.
 
-    Return: response, If redirections > max_redirections > 0 (stop at max limit),
+    Return: response, If redirections > max_redirections > 0 (stop on limit),
             this is a fake response except its attribute `url`.
-
     '''
     global _opener
     url = url.split('#', 1)[0]  # remove fragment if exist, it's useless
@@ -400,7 +409,8 @@ def get_response(url, headers=fake_headers, data=None, params=None, method='GET'
             if not isinstance(params, (str, dict)):
                 params = urlencode(params, doseq=True)
             query = parse_qs(query, keep_blank_values=True, strict_parsing=True)
-            params = parse_qs(params, keep_blank_values=True)
+            if not isinstance(params, dict):
+                params = parse_qs(params, keep_blank_values=True)
             # then update/overlay
             query.update(params)
         else:
@@ -437,7 +447,7 @@ def get_response(url, headers=fake_headers, data=None, params=None, method='GET'
         if not (ctype or form):
             raise ValueError(
                 'Inputed data is not type of "application/x-www-form-urlencoded"'
-                ', you MUST give the "Content-Type" header.')
+                ', the "Content-Type" header MUST be gave.')
     req = Request(url, headers=headers, data=data, method=method)
     req.headget = headget
     req.max_redirections = max_redirections

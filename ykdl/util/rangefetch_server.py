@@ -3,24 +3,25 @@ Use urllib3 to reusing connections.
 Auto-adjust number of threads.
 '''
 
-from ykdl.util.html import fake_headers as _fake_headers
-
-import urllib3
-from urllib3.util.ssl_ import create_urllib3_context
-import logging
 import os
 import re
 import socket
 import random
 import queue
+import logging
 import socketserver
 import http.server
 from urllib.parse import urlsplit
 from time import time, sleep
 from _thread import start_new_thread
 
+import urllib3
+from urllib3.util.ssl_ import create_urllib3_context
+
+from .util.html import fake_headers as _fake_headers
 
 logger = logging.getLogger('RangeFetch')
+
 
 fake_headers = _fake_headers.copy()
 # Set 'keep-alive'

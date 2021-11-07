@@ -1,8 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from .. import __name__ as library_name
-
 import os, sys
 
 IS_ANSI_TERMINAL = os.getenv('TERM', '').startswith((
@@ -77,7 +72,7 @@ _LOG_COLOR_MAP_ = {
     logging.CRITICAL : "31;1",
     logging.ERROR    : RED,
     logging.WARNING  : YELLOW,
-    logging.INFO     : BLUE,
+    logging.INFO     : LIGHT_GRAY,
     logging.DEBUG    : GREEN,
     logging.NOTSET   : DEFAULT }
 

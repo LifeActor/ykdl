@@ -1,18 +1,20 @@
-#!/usr/bin/env python
-
 from logging import getLogger
-from .html import get_content_and_location
 
-logger = getLogger("m3u8_wrap")
+from .http import get_content_and_location
 
+logger = getLogger('m3u8')
+
+
+__all__ = ['live_m3u8', 'load_m3u8_playlist', 'load_m3u8']
 
 def no_m3u8_warning():
     logger.warning('No python-m3u8 found, use stub m3u8!!! '
-                   'please install it by pip install m3u8')
+                   'Please install it by `pip install m3u8`')
 
 def live_error():
-    raise NotImplementedError('Internal live m3u8 parser and downloader '
-                              'had not be implementated!')
+    raise NotImplementedError(
+            'Internal live m3u8 parser and downloader had not '
+            'be implementated! Please use FFmpeg instead.')
 
 def load_live_m3u8(url):
     live_error()
@@ -24,6 +26,7 @@ try:
     import m3u8
 
 except:
+    raise
     def live_m3u8(url):
         no_m3u8_warning()
         return None
@@ -70,10 +73,8 @@ else:
     def _download(uri, headers):
         # live is disabled, results can be cached safely
         kwargs = {}
-        headers = dict(headers)
-        headers.pop('Accept-Encoding', None)
         if headers:
-            kwargs['headers'] = headers
+            kwargs['headers'] = dict(headers)
         content, uri = get_content_and_location(uri, **kwargs)
         base_uri = _parsed_url(uri)
         return content, base_uri

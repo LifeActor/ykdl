@@ -18,7 +18,7 @@ from _thread import start_new_thread
 import urllib3
 from urllib3.util.ssl_ import create_urllib3_context
 
-from .util.html import fake_headers as _fake_headers
+from .http import fake_headers as _fake_headers
 
 logger = logging.getLogger('RangeFetch')
 

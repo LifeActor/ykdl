@@ -1,22 +1,20 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.simpleextractor import SimpleExtractor
-from ykdl.util.match import match1
+from ._common import *
 
-import re
-import json
 
 class Iqilu(SimpleExtractor):
-    name = u"齐鲁网 (iqilu)"
+    name = '齐鲁网 (iqilu)'
 
-    def __init__(self):
-        SimpleExtractor.__init__(self)
-        self.title_pattern = '<meta name="description" content="(.*?)\"\W'
-        self.url_pattern = 'id=\'playerId\' url=\'(.*)\''
+    def init(self):
+        self.title_pattern = '<meta name="description" content="(.+?)"\W'
+        self.artist_pattern = '<title>.+?_([^_]+?频道)_山东网络台_齐鲁网</title>'
+        self.url_pattern = '"mp4-wrapper"[^"]+"(http[^"]+)"'
 
     def l_assert(self):
-        assert re.match(r'http://v.iqilu.com/\w+', self.url)
+        assert match(self.url, '(https?://v\.iqilu\.com/\w+)')
 
+    def reprocess(self):
+        self.info.title = '[{self.info.artist}] {self.info.title}'.format(**vars())
 
 site = Iqilu()

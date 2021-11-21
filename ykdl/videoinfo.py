@@ -5,8 +5,9 @@ import datetime
 from html import unescape
 from urllib.parse import unquote
 
-from .util.fs import legitimize
 from .util import log
+from .util.fs import legitimize
+from .util.human import index_stream
 
 
 class VideoInfo():
@@ -15,7 +16,7 @@ class VideoInfo():
         self._title = None
         self._artist = None
         self.stream_types = []
-        self.streams = {}
+        self.streams = {}  # TODO: more streams
         self.live = live
         self.subtitles = []
         self.extra = {k: '' for k in ['ua',
@@ -123,3 +124,6 @@ class VideoInfo():
             return '_'.join([legitimize(self.title, trim= 81 - len(unique_suffix)), unique_suffix])
         else:
             return legitimize(self.title)
+
+    def sort(self):
+        self.stream_types.sort(key=index_stream)

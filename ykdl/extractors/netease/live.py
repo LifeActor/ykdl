@@ -1,16 +1,10 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
-from ykdl.util.match import match1
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
+from .._common import *
 
-import time
-import json
 
 class NeteaseLive(VideoExtractor):
-    name = u"网易直播 (163)"
+    name = '网易直播 (163)'
 
     def prepare(self):
         info = VideoInfo(self.name, True)
@@ -19,9 +13,8 @@ class NeteaseLive(VideoExtractor):
             self.vid = match1(self.url, 'room/(\d+)')
 
         tt = int(time.time() * 1000)
-        url = 'https://data.live.126.net/liveAll/{}.json?{}'.format(self.vid, tt)
-        data = json.loads(get_content(url))
-        self.logger.debug('video_data: \n%s', data)
+        url = 'https://data.live.126.net/liveAll/{self.vid}.json?{tt}'.format(**vars())
+        data = get_response(url).json()
         assert 'liveVideoUrl' in data, 'live video is offline'
 
         info.title = data['roomName']

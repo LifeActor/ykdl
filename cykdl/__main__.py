@@ -21,7 +21,7 @@ from urllib.request import ProxyHandler, HTTPSHandler, getproxies
 from urllib.parse import urlparse
 
 import logging
-logger = logging.getLogger("YKDL")
+logger = logging.getLogger('YKDL')
 
 from ykdl.common import url_to_module
 from ykdl.util.html import add_default_handler, install_default_handlers
@@ -34,26 +34,26 @@ m3u8_internal = True
 args = None
 
 def arg_parser():
-    parser = ArgumentParser(description="YouKuDownLoader(ykdl {}), a video downloader. Forked from you-get 0.3.34@soimort".format(__version__))
-    parser.add_argument('-l', '--playlist', action='store_true', default=False, help="Download as a playlist")
-    parser.add_argument('-i', '--info', action='store_true', default=False, help="Display the information of videos without downloading")
-    parser.add_argument('-J', '--json', action='store_true', default=False, help="Display info in json format")
-    parser.add_argument('-F', '--format',  help="Video format code, or resolution level 0, 1, ...")
-    parser.add_argument('-o', '--output-dir', default='.', help="Set the output directory for downloaded videos")
-    parser.add_argument('-O', '--output-name', default='', help="Downloaded videos with the NAME you want")
-    parser.add_argument('-p', '--player', help="Directly play the video with PLAYER like mpv")
-    parser.add_argument('-k', '--insecure', action='store_true', default=False, help="Allow insecure server connections when using SSL")
+    parser = ArgumentParser(description='YouKuDownLoader(ykdl {}), a video downloader. Forked from you-get 0.3.34@soimort'.format(__version__))
+    parser.add_argument('-l', '--playlist', action='store_true', default=False, help='Download as a playlist')
+    parser.add_argument('-i', '--info', action='store_true', default=False, help='Display the information of videos without downloading')
+    parser.add_argument('-J', '--json', action='store_true', default=False, help='Display info in json format')
+    parser.add_argument('-F', '--format',  help='Video format code, or resolution level 0, 1, ...')
+    parser.add_argument('-o', '--output-dir', default='.', help='Set the output directory for downloaded videos')
+    parser.add_argument('-O', '--output-name', default='', help='Downloaded videos with the NAME you want')
+    parser.add_argument('-p', '--player', help='Directly play the video with PLAYER like mpv')
+    parser.add_argument('-k', '--insecure', action='store_true', default=False, help='Allow insecure server connections when using SSL')
     parser.add_argument('-c', '--append-certs', type=str, nargs='+', metavar='CERTS', help="Append additional certs, used to verify SSL handshak, note that video urls can't follow this argument")
-    parser.add_argument('--proxy', type=str, default='system', metavar='[SCHEME://]HOST:PORT | system | none', help="Set proxy for http(s) transfer. default: use system proxy settings")
-    parser.add_argument('-t', '--timeout', type=int, default=60, metavar='SECONDS', help="Set socket timeout, default 60s")
-    parser.add_argument('--fail-retry-eta', type=int, default=3600, metavar='SECONDS', help="If the number is bigger than ETA, a fail downloading will be auto retry, default 3600s, set 0 to void it")
-    parser.add_argument('--no-fail-confirm', action='store_true', default=False, help="Do not wait confirm when downloading failed, for run as tasks (non-blocking)")
-    parser.add_argument('--no-merge', action='store_true', default=False, help="Do not merge video slides")
+    parser.add_argument('--proxy', type=str, default='system', metavar='[SCHEME://]HOST:PORT | system | none', help='Set proxy for http(s) transfer. default: use system proxy settings')
+    parser.add_argument('-t', '--timeout', type=int, default=60, metavar='SECONDS', help='Set socket timeout, default 60s')
+    parser.add_argument('--fail-retry-eta', type=int, default=3600, metavar='SECONDS', help='If the number is bigger than ETA, a fail downloading will be auto retry, default 3600s, set 0 to void it')
+    parser.add_argument('--no-fail-confirm', action='store_true', default=False, help='Do not wait confirm when downloading failed, for run as tasks (non-blocking)')
+    parser.add_argument('--no-merge', action='store_true', default=False, help='Do not merge video slides')
     parser.add_argument('--no-sub', action='store_true', default=False, help='Do not download subtitles')
-    parser.add_argument('-s', '--start', type=int, default=0, metavar='INDEX_NUM', help="Start from INDEX to play/download playlist")
-    parser.add_argument('-j', '--jobs', type=int, default=8, metavar='NUM', help="Number of jobs for multiprocess download")
-    parser.add_argument('--debug', default=False, action='store_true', help="Print debug messages from ykdl")
-    parser.add_argument('video_urls', type=str, nargs='+', help="video urls")
+    parser.add_argument('-s', '--start', type=int, default=0, metavar='INDEX_NUM', help='Start from INDEX to play/download playlist')
+    parser.add_argument('-j', '--jobs', type=int, default=8, metavar='NUM', help='Number of jobs for multiprocess download')
+    parser.add_argument('--debug', default=False, action='store_true', help='Print debug messages from ykdl')
+    parser.add_argument('video_urls', type=str, nargs='+', help='video urls')
     global args
     args = parser.parse_args()
 
@@ -72,8 +72,8 @@ def download(urls, name, ext, live=False):
     if live:
         m3u8_internal = False
     # rebuild m3u8 urls when use internal downloader,
-    # change the ext to segment's ext, default is "ts",
-    # otherwise change the ext to "flv" or "mp4".
+    # change the ext to segment's ext, default is 'ts',
+    # otherwise change the ext to 'flv' or 'mp4'.
     audio = subtitle = None
     if ext == 'm3u8':
         if m3u8_internal:
@@ -238,8 +238,8 @@ def main():
             if not os.path.exists(args.output_dir):
                 os.makedirs(args.output_dir)
         except:
-            logger.warning("No permission or Not found " + args.output_dir)
-            logger.warning("use current folder")
+            logger.warning('No permission or Not found ' + args.output_dir)
+            logger.warning('use current folder')
             args.output_dir = '.'
     if os.path.exists(args.output_dir):
         os.chdir(args.output_dir)

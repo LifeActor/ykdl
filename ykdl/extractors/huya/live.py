@@ -1,37 +1,20 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-from ykdl.util.html import get_content
-from ykdl.util.match import match1
+from .._common import *
 
-import os
-import json
-import time
-import base64
-import random
-import hashlib
-
-from html import unescape
-from urllib.parse import unquote, urlencode
-
-
-def md5(s):
-    return hashlib.md5(s.encode()).hexdigest()
 
 class HuyaLive(VideoExtractor):
     name = 'Huya Live (虎牙直播)'
 
-    def profile_2_id_rate(self, profile):
+    def profile_2_id(self, profile):
         if profile[-1] == 'M':
-            return profile.replace('蓝光', 'BD'), int(profile[2:-1]) * 1000
+            return profile.replace('蓝光', 'BD')
         else:
             return {
-                '蓝光': ('BD', 3000),
-                '超清': ('TD', 2000),
-                '高清': ('HD', 0),
-                '流畅': ('SD', 0)
+                '蓝光': 'BD',
+                '超清': 'TD',
+                '高清': 'HD',
+                '流畅': 'SD'
             }[profile]
 
     def prepare(self):
@@ -49,43 +32,71 @@ class HuyaLive(VideoExtractor):
         info.title = '{}「{} - {}」'.format(
             room_info['roomName'], room_info['nick'], room_info['introduction'])
         info.artist = room_info['nick']
+        screenType = room_info['screenType']
+        liveSourceType = room_info['liveSourceType']
 
-        stream_info = random.choice(data['data'][0]['gameStreamInfoList'])
-        sUrl = stream_info['sFlvUrl']
+        stream_info_list = data['data'][0]['gameStreamInfoList']
+        random.shuffle(stream_info_list)
+        random.shuffle(stream_info_list)
+        while stream_info_list:
+            stream_info = stream_info_list.pop()
+            sUrl = stream_info['sFlvUrl']
+            if sUrl:
+                break
         sStreamName = stream_info['sStreamName']
         sUrlSuffix = stream_info['sFlvUrlSuffix']
-        sAntiCode = unquote(unescape(stream_info['sFlvAntiCode']))
+        _url = '{sUrl}/{sStreamName}.{sUrlSuffix}?'.format(**vars())
 
-        params = dict(p.split('=', 1) for p in sAntiCode.split('&') if p)
-        params.update({
-             'ctype': 'huya_webh5',
-             'uid': '0',
-             'seqid': str(int(os.urandom(5).hex(), 16)),
-             'ver': '1',
-             't': '100'  # 102
-         })
-        fm = base64.b64decode(params['fm']).decode().split('_', 1)[0]
-        ss = md5('|'.join([params['seqid'], params['ctype'], params['t']]))
-
-        def link_url(rate):
-            if rate:
-                streamname = '{}_{}'.format(sStreamName, rate)
+        reSecret = not screenType and liveSourceType in (8, 13)
+        params = dict(parse_qsl(unescape(stream_info['sFlvAntiCode'])))
+        if reSecret:
+            params.setdefault('t', '100')  # 102
+            ct = int(params['wsTime'], 16) + random.random()
+            lPresenterUid = stream_info['lPresenterUid']
+            if not sStreamName.startswith(str(lPresenterUid)):
+                uid = lPresenterUid
             else:
-                streamname = sStreamName
-            params['wsSecret'] = md5('_'.join([fm, params['uid'], streamname, ss, params['wsTime']]))
-            return '{}/{}.{}?{}'.format(sUrl, streamname, sUrlSuffix, urlencode(params, safe='*'))
+                uid = int(ct % 1e7 * 1e6 % 0xffffffff)
+            u1 = uid & 0xffffffff00000000
+            u2 = uid & 0xffffffff
+            u3 = uid & 0xffffff
+            u = u1 | u2 >> 24 | u3 << 8
+            params.update({
+                 'u': str(u),
+                 'seqid': str(int(ct * 1000) + uid),
+                 'ver': '1',
+             })
+            fm = base64.b64decode(params['fm']).decode().split('_', 1)[0]
+            ss = hash.md5('|'.join([params['seqid'], params['ctype'], params['t']]))
 
         for si in data['vMultiStreamInfo']:
             video_profile = si['sDisplayName']
-            stream, _rate = self.profile_2_id_rate(video_profile)
-            rate = si['iBitRate'] or _rate
+            stream = self.profile_2_id(video_profile)
+            rate = si['iBitRate']
+            if rate:
+                params['ratio'] = rate
+            else:
+                params.pop('ratio', None)
+            if reSecret:
+                params['wsSecret'] = hash.md5('_'.join(
+                            [fm, params['u'], sStreamName, ss, params['wsTime']]))
+            url = _url + urlencode(params, safe='*')
             info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': 'flv',
                 'video_profile': video_profile,
-                'src': [link_url(rate)],
+                'src': [url],
                 'size' : float('inf')
             }
+        fake_headers.update({
+            'Accept': '*/*',
+            'Origin': 'https://www.huya.com',
+            'Referer': 'https://www.huya.com/',
+            'Sec-Fetch-Dest': 'empty',
+            'Sec-Fetch-Mode': 'cors',
+            'Sec-Fetch-Site': 'same-site',
+        })
+        info.extra['header'] = fake_headers
         return info
 
 site = HuyaLive()

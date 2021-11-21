@@ -1,33 +1,46 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-from ykdl.util.html import get_content
-from ykdl.util.match import match1, matchall
+from ._common import *
+
+
+# TODO: Live & TV
 
 class KankanNews(VideoExtractor):
-    name = u'看看新闻 (kankannews)'
+    name = '看看新闻 (kankannews)'
 
     def prepare(self):
         info = VideoInfo(self.name)
-        id1 = match1(self.url, 'a/([^\.]+)\.')
-        api1 = 'http://www.kankanews.com/vxml/{}.xml'.format(id1)
-        video_data1 = get_content(api1)
-        self.vid = match1(video_data1, '<omsid>([^<]+)<')
-        if self.vid == '0' or not self.vid:
-            html = get_content(self.url)
-            id1 = match1(html, 'xmlid=([^\"]+)') or match1(html, 'embed/([^\"]+)').replace('_', '/')
-            api1 = 'http://www.kankanews.com/vxml/{}.xml'.format(id1)
-            video_data1 = get_content(api1)
-            self.vid = match1(video_data1, '<omsid>([^<]+)<')
-        assert self.vid != '0' and self.vid, self.url + ': Not a video news link!'
-        api2 = 'http://vapi.kankanews.com/index.php?app=api&mod=public&act=getvideo&id={}'.format(self.vid)
-        video_data2 = get_content(api2)
-        urls = matchall(video_data2, '<videourl><!\[CDATA\[([^\]]+)')
-        info.title = match1(video_data2, '<otitle><!\[CDATA\[([^\]]+)')
+
+        html = get_content(self.url)
+        vid = match1(html, 'omsid="(\d+)"')
+        assert vid, 'No omsid has been found!!'
+
+        info.artist = match1(html, 'keyboard:"(.+?)"')
+        info.title = info.artist + \
+                     match1(html, '<title>视频(.+?)_[^_]+_看看新闻</title>')
+
+        params = [
+            ('nonce', get_random_str(8).lower()),
+            ('omsid', vid),
+            ('platform', 'pc'),
+            ('timestamp', int(time.time())),
+            ('version', '1.0')
+        ]
+        sign = hash.md5(hash.md5(urlencode(params) +
+                                 '&28c8edde3d61a0411511d3b1866f0636'))
+        params.append(('sign', sign))
+        data = get_response('https://api-app.kankanews.com/kankan/pc/getvideo',
+                            params=params).json()
+        assert data['code'] == '10000', data['error']['message']
+        data = data['result']['video']
+
         info.stream_types.append('current')
-        info.streams['current'] = {'container': 'mp4', 'video_profile': 'current', 'src' : urls, 'size': 0}
+        info.streams['current'] = {
+            'container': 'mp4',
+            'video_profile': 'current',
+            'src' : [data['videourl']],
+            'size': int(data['filesize'])
+        }
         return info
 
 site = KankanNews()

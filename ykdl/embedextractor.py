@@ -2,10 +2,11 @@ from logging import getLogger
 from importlib import import_module
 
 from .common import alias, url_to_module
+from .extractor import VideoExtractor
 
 
-class EmbedExtractor():
-    """
+class EmbedExtractor(VideoExtractor):
+    '''
     this class is to help video embed site to handle
     video from other site.
     we just need to know the source URL, or source site name, and video ID
@@ -24,40 +25,16 @@ class EmbedExtractor():
         embedextractor.video_info['info'] = info
 
     because embed site don't have video info, so they don't need stream_info.
-    """
+    '''
 
     def __init__(self):
+        super().__init__()
         self.video_info = None
         self.video_info_list = None
-        self.logger = getLogger(self.name)
 
     @staticmethod
     def new_video_info():
         return {'extra': {}}
-
-    def prepare(self):
-        """
-        this API is to do real job to get source URL, or site and VID
-        sometimes title
-        MUST override!!
-        """
-        pass
-
-    def prepare_playlist(self):
-        """
-        this API is to do real job to get source URL, or site and VID
-        sometimes title
-        MUST override!!
-        """
-        pass
-
-    def list_only(self):
-        """
-        this API is to check if only the list informations is included
-        if true, go to parser list mode
-        MUST override!!
-        """
-        pass
 
     def _parser(self, video_info):
         if 'info' in video_info:
@@ -87,7 +64,7 @@ class EmbedExtractor():
 
     def parser(self, url):
         self.url = url
-        if self.list_only():
+        if self.is_list:
             return self.parser_list(url)
 
         self.video_info = self.new_video_info()
@@ -99,6 +76,7 @@ class EmbedExtractor():
         info = self._parser(self.video_info)
         if self.name != info.site:
             info.site = '{self.name} / {info.site}'.format(**vars())
+        info.sort()
         return info
 
     def parser_list(self, url):
@@ -111,8 +89,11 @@ class EmbedExtractor():
                 'Playlist is not supported for {self.name} with url: {self.url}'
                 .format(**vars()))
 
-        for v in self.video_info_list:
-            yield self._parser(v)
-
-    def __getattr__(self, attr):
-        return None
+        for video in self.video_info_list:
+            if isinstance(video, VideoInfo):
+                info = video
+            else:
+                info = self._parser(video)
+            if info:
+                info.sort()
+                yield info

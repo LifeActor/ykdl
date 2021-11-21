@@ -1,22 +1,10 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content, add_header
-from ykdl.util.match import match1, matchall
-from ykdl.util import log
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-from ykdl.compact import urlopen, urlencode
-from .youkujs import supported_stream_code, ids, stream_code_to_id, stream_code_to_profiles, id_to_container
+from ._common import *
+from .youkujs import stream_code_to_id, stream_code_to_profiles, id_to_container
 
-
-import time
-import json
-import ssl
 import struct
 import hmac
-import base64
-import random
 import hashlib
 from ctypes import c_int
 
@@ -38,13 +26,6 @@ def generateUtdid():
     data = hmac.new(key, msg, hashlib.sha1).digest()
     msg += struct.pack('!i', hashCode(base64.standard_b64encode(data)))
     return base64.standard_b64encode(msg)
-
-def fetch_cna():
-    url = 'https://gm.mmstat.com/yt/ykcomment.play.commentInit?cna='
-    req = urlopen(url)
-    cookies = req.info()['Set-Cookie']
-    cna = match1(cookies, 'cna=([^;]+)')
-    return cna if cna else 'oqikEO1b7CECAbfBdNNf1PM1'
 
 class Youku(VideoExtractor):
     name = '优酷 (Youku)'
@@ -75,17 +56,20 @@ class Youku(VideoExtractor):
 
         if not self.vid:
             html = get_content(self.url)
-            self.vid = match1(html, r'videoIds?[\"\']?\s*[:=]\s*[\"\']?([a-zA-Z0-9=]+)')
+            self.vid = match1(html, '''videoIds?["']?\s*[:=]\s*["']?([a-zA-Z0-9=]+)''')
 
         if self.vid.isdigit():
-            import base64
             vid = base64.b64encode(b'%d' % (int(self.vid) * 4))
             if not isinstance(vid, str):
                 vid = vid.decode()
             self.vid = 'X' + vid
         self.logger.debug('VID: ' + self.vid)
 
-        utid = fetch_cna()
+        self.install_cookie()
+        get_response('https://gm.mmstat.com/yt/ykcomment.play.commentInit?cna=')
+        utid = self.get_cookie('.mmstat.com', '/', 'cna')
+        self.uninstall_cookie()
+
         for ccode, ref, ckey in self.params:
             add_header('Referer', ref)
             if len(ccode) > 4:
@@ -155,7 +139,8 @@ class Youku(VideoExtractor):
                     if 'cdn_url' in u:
                         urls.append(u['cdn_url'])
                 else:
-                    self.logger.warning('VIP video, ignore unavailable seg: {}'.format(s['segs'].index(u)))
+                    self.logger.warning('VIP video, ignore unavailable seg: {}'
+                                        .format(s['segs'].index(u)))
             if len(urls) == 0:
                 urls = [s['m3u8_url']]
                 c = 'm3u8'
@@ -170,7 +155,6 @@ class Youku(VideoExtractor):
                     'src' : urls
                 }
 
-        info.stream_types = sorted(info.stream_types, key = ids.index)
         tmp = []
         for t in info.stream_types:
             if not t in tmp:

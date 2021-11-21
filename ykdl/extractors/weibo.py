@@ -1,21 +1,11 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-from ykdl.util.html import fake_headers, add_header, get_content
-from ykdl.util.match import match1
-from urllib.parse import urlencode, unquote
+from ._common import *
 
-import json
-
-API = 'https://weibo.com/tv/api/component'
-add_header('User-Agent', 'Baiduspider')
 
 class Weibo(VideoExtractor):
-    name = "微博 (Weibo)"
+    name = '微博 (Weibo)'
 
-    ids = ['4K', '2K', 'BD', 'TD', 'HD', 'SD', 'current']
     quality_2_id = {
            '4': '4K',
            '2': '2K',
@@ -28,6 +18,10 @@ class Weibo(VideoExtractor):
     def prepare(self):
         info = VideoInfo(self.name)
 
+        add_header('User-Agent', 'Baiduspider')
+
+        self.vid = match1(self.url, '\D(\d{4}:(?:\d{16}|\w{32}))(?:\W|$)')
+
         def append_stream(video_profile, video_quality, url):
             stream_id = self.quality_2_id[video_quality]
             if stream_id in info.stream_types:
@@ -38,8 +32,6 @@ class Weibo(VideoExtractor):
                 'container': 'mp4',
                 'src' : [url]
             }
-
-        self.vid = match1(self.url, '\D(\d{4}:(?:\d{16}|\w{32}))(?:\W|$)')
 
         if self.vid is None:
             page = match1(self.url, 'https?://[^/]+(/\d+/\w+)')
@@ -77,15 +69,16 @@ class Weibo(VideoExtractor):
                 assert self.vid, 'can not find any video!!!'
 
         if self.vid:
-            headers = {'Referer': 'https://weibo.com/tv/show/' + self.vid}
-            headers.update(fake_headers)
-            data = urlencode({
-                'data': json.dumps({
-                    'Component_Play_Playinfo': {'oid': self.vid}
-                })
-            }).encode()
-            vdata = get_content(API, headers=headers, data=data)
-            vdata = json.loads(vdata)['data']['Component_Play_Playinfo']
+            vdata = get_response('https://weibo.com/tv/api/component',
+                        headers={
+                            'Referer': 'https://weibo.com/tv/show/' + self.vid
+                        },
+                        data={
+                            'data': json.dumps({
+                                'Component_Play_Playinfo': {'oid': self.vid}
+                            })
+                        }).json()['data']['Component_Play_Playinfo']
+
             info.title = vdata['title']
             info.artist = vdata['author']
             for video_profile, url in vdata['urls'].items():
@@ -93,7 +86,6 @@ class Weibo(VideoExtractor):
                     video_quality = match1(video_profile, '(\d+)')
                     append_stream(video_profile, video_quality, 'https:' + url)
 
-        info.stream_types = sorted(info.stream_types, key=self.ids.index)
         return info
 
 site = Weibo()

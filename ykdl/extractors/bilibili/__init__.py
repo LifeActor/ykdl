@@ -1,18 +1,10 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import (get_content, get_location, add_header,
-                            add_default_handler, install_default_handlers)
-from ykdl.util.match import match1, matchall
-from ykdl.compact import HTTPCookieProcessor
-
+from .._common import *
 from .idconvertor import av2bv
-
-import json
 
 
 API_view = 'https://api.bilibili.com/x/web-interface/view?bvid='
-
 
 add_default_handler(HTTPCookieProcessor)
 install_default_handlers()
@@ -53,7 +45,7 @@ def get_extractor(url):
         from . import bangumi as s
     else:
         if page_index > '1':
-            url = '{}?p={}'.format(url, page_index)
+            url = '{url}?p={page_index}'.format(**vars())
         from . import video as s
 
     return s.site, url

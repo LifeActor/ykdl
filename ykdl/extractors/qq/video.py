@@ -1,19 +1,7 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
-from ykdl.util.match import match1, matchall
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-import xml.etree.ElementTree as ET
+from .._common import *
 
-from ykdl.compact import urlencode, compact_bytes
-
-import random
-import base64
-import struct
-import uuid
-import json
 
 PLAYER_PLATFORMS = [11, 2, 1]
 PLAYER_VERSION = '3.2.19.333'
@@ -29,12 +17,10 @@ def qq_get_final_url(url, vid, fmt_id, filename, fvkey, platform):
         'format': fmt_id,
     }
 
-    content = get_content('http://vv.video.qq.com/getkey?' + urlencode(params))
-    data = json.loads(match1(content, r'QZOutputJson=(.+);$'))
-
+    data = get_response('https://vv.video.qq.com/getkey', params=params).json()
     vkey = data.get('key', fvkey)
     if vkey:
-        url = '{}{}?vkey={}'.format(url, filename, vkey)
+        url = '{url}{filename}?vkey={vkey}'.format(**vars())
     else:
         url = None
     vip = data.get('msg') == 'not pay'
@@ -43,19 +29,18 @@ def qq_get_final_url(url, vid, fmt_id, filename, fvkey, platform):
 
 class QQ(VideoExtractor):
 
-    name = u"腾讯视频 (QQ)"
+    name = '腾讯视频 (QQ)'
     vip = None
 
     stream_2_id = {
         'fhd': 'BD',
         'shd': 'TD',
-        'hd': 'HD',
-        'mp4':'HD',
+         'hd': 'HD',
+        'mp4': 'HD',
         'flv': 'HD',
-        'sd': 'SD',
-        'msd':'LD'
+         'sd': 'SD',
+        'msd': 'LD'
     }
-    stream_ids = ['BD', 'TD', 'HD', 'SD', 'LD']
 
 
     def get_streams_info(self, profile='shd'):
@@ -69,12 +54,12 @@ class QQ(VideoExtractor):
                 'defn': profile,
             }
 
-            content = get_content('http://vv.video.qq.com/getinfo?' + urlencode(params))
-            data = json.loads(match1(content, r'QZOutputJson=(.+);$'))
-            self.logger.debug('data: ' + str(data))
+            data = get_resonse('https://vv.video.qq.com/getinfo',
+                               params=params).json()
 
             if 'msg' in data:
-                assert data['msg'] not in ('vid is wrong', 'vid status wrong'), 'wrong vid'
+                assert data['msg'] not in ('vid is wrong', 'vid status wrong'), \
+                       'wrong vid'
                 PLAYER_PLATFORMS.remove(PLAYER_PLATFORM)
                 continue
 
@@ -178,17 +163,19 @@ class QQ(VideoExtractor):
 
             if num_clips == 0:
                 filename = '.'.join(fns)
-                url, vip = qq_get_final_url(cdn_url, self.vid, fmt_id, filename, fvkey, PLAYER_PLATFORM)
+                url, vip = qq_get_final_url(cdn_url, self.vid, fmt_id,
+                                            filename, fvkey, PLAYER_PLATFORM)
                 if vip:
                     self.vip = vip
                 elif url:
                     urls.append(url)
             else:
                 fns.insert(-1, '1')
-                for idx in range(1, num_clips+1):
+                for idx in range(1, num_clips + 1):
                     fns[-2] = str(idx)
                     filename = '.'.join(fns)
-                    url, vip = qq_get_final_url(cdn_url, self.vid, fmt_id, filename, fvkey, PLAYER_PLATFORM)
+                    url, vip = qq_get_final_url(cdn_url, self.vid, fmt_id,
+                                            filename, fvkey, PLAYER_PLATFORM)
                     if vip:
                         self.vip = vip
                         break
@@ -223,7 +210,8 @@ class QQ(VideoExtractor):
         video_rate = {}
         for _ in range(2):
             try:
-                for title, fmt_name, stream_profile, type_name, urls, size, rate in self.get_streams_info():
+                for (title, fmt_name, stream_profile, type_name,
+                            urls, size, rate) in self.get_streams_info():
                     stream_id = self.stream_2_id[fmt_name]
                     if urls and stream_id not in info.stream_types:
                         info.stream_types.append(stream_id)
@@ -251,7 +239,6 @@ class QQ(VideoExtractor):
             #self.limit = False
 
         assert len(info.stream_types), "can't play this video!!"
-        info.stream_types = sorted(info.stream_types, key = self.stream_ids.index)
         info.title = title
 
         #if self.limit:

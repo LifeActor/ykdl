@@ -1,15 +1,10 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
-from ykdl.util.match import match1
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
+from .._common import *
 
-import json
 
 class NeteaseLive(VideoExtractor):
-    name = u"网易CC直播 (163)"
+    name = '网易CC直播 (163)'
 
     def prepare(self):
         info = VideoInfo(self.name, True)
@@ -17,14 +12,15 @@ class NeteaseLive(VideoExtractor):
             html = get_content(self.url)
             raw_data = match1(html, '<script id="__NEXT_DATA__".*?>(.*?)</script>')
             data = json.loads(raw_data)
-            self.logger.debug('video_data: \n%s', data)
+            self.logger.debug('video_data:\n%s', data)
             data = data['props']['pageProps']['roomInfoInitData']
             self.vid = data['live']['ccid']
             assert self.vid != 0, 'live video is offline'
             info.title = data['live']['title']
             info.artist = data['micfirst']['nickname']
 
-        data = json.loads(get_content('http://cgi.v.cc.163.com/video_play_url/{}'.format(self.vid)))
+        data = get_content(
+                'http://cgi.v.cc.163.com/video_play_url/' + self.vid).json()
 
         info.stream_types.append('current')
         info.streams['current'] = {

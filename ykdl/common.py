@@ -7,6 +7,8 @@ from .util.http import get_location_and_header
 logger = logging.getLogger('common')
 
 
+# TODO: add support to find module via mid@site[.type]
+
 alias = {
         '163'    : 'netease',
         'aixifan': 'acfun',
@@ -35,6 +37,7 @@ def url_to_module(url):
     if short_name in alias.keys():
         short_name = alias[short_name]
     logger.debug('short_name> ' + short_name)
+
     try:
         m = import_module('.'.join(['ykdl','extractors', short_name]))
         if hasattr(m, 'get_extractor'):
@@ -42,8 +45,12 @@ def url_to_module(url):
         else:
             site = m.site
         return site, url
-    except ImportError:
+
+    except ImportError as e:
+        logger.debug('Import Error: %s', e)
+
         from .extractors import singlemultimedia
+
         if ext in singlemultimedia.extNames:
             logger.debug('> the extension name %r match multimedia types', ext)
             logger.debug('> Go SingleMultimedia')
@@ -52,6 +59,7 @@ def url_to_module(url):
 
         logger.debug('> Try HTTP Redirection!')
         new_url, resheader = get_location_and_header(url)
+
         if new_url == url:
             logger.debug('> NO HTTP Redirection')
             if resheader['Content-Type'].startswith('text/'):

@@ -1,14 +1,10 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
-from ykdl.util.match import match1
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-import json
+from .._common import *
+
 
 class QQLive(VideoExtractor):
-    name = u'QQ Live (企鹅直播)'
+    name = 'QQ Live (企鹅直播)'
 
     def prepare(self):
         info = VideoInfo(self.name, True)
@@ -19,10 +15,7 @@ class QQLive(VideoExtractor):
             self.vid = match1(html, '"room_id":(\d+)')
 
         #from upstream!!
-        api_url = 'http://www.qie.tv/api/v1/room/{}'.format(self.vid)
-
-        data = json.loads(get_content(api_url))
-        self.logger.debug('data:\n%s', data)
+        data = get_response('http://www.qie.tv/api/v1/room/' + self.vid).json()
         assert data['error'] == 0, 'error {}: {}'.format(data['error'], data['data'])
 
         livedata = data['data']

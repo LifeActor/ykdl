@@ -1,56 +1,29 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.compact import compact_bytes
+from .._common import *
 
-import hashlib
-import random
 
-macids = {}
 js_ctx = None
 
 def init_jsengine():
     global js_ctx
     if js_ctx is None:
-        from ykdl.util.jsengine import JSEngine
         assert JSEngine, "No JS Interpreter found, can't use cmd5x!"
         js_ctx = JSEngine(init_global=True)
 
-        from pkgutil import get_data
-        # code from https://zsaim.github.io/2019/08/23/Iqiyi-cmd5x-Analysis/
-        try:
-            # try load local .js file first
-            js = get_data(__name__, 'cmd5x.js')
-        except IOError:
-            # origin https://raw.githubusercontent.com/ZSAIm/ZSAIm.github.io/master/misc/2019-08-23/iqiyi_cmd5x.js
-            js = get_content('https://raw.githubusercontent.com/zhangn1985/ykdl/master/ykdl/extractors/iqiyi/cmd5x.js')
+        # REF: https://zsaim.github.io/2019/08/23/Iqiyi-cmd5x-Analysis/
+        #      https://raw.githubusercontent.com/ZSAIm/ZSAIm.github.io/master/misc/2019-08-23/iqiyi_cmd5x.js
+        js = get_pkgdata_str(__name__, 'cmd5x.js',
+                    'https://raw.githubusercontent.com/zhangn1985/ykdl/master/ykdl/extractors/iqiyi/cmd5x.js')
         js_ctx.append(js)
 
-        # code from https://github.com/lldy/js
-        try:
-            # try load local .js file first
-            js = get_data(__name__, 'cmd5x_iqiyi3.js')
-        except IOError:
-            js = get_content('https://raw.githubusercontent.com/zhangn1985/ykdl/master/ykdl/extractors/iqiyi/cmd5x_iqiyi3.js')
+        # REF: https://github.com/lldy/js
+        js = get_pkgdata_str(__name__, 'cmd5x_iqiyi3.js',
+                    'https://raw.githubusercontent.com/zhangn1985/ykdl/master/ykdl/extractors/iqiyi/cmd5x_iqiyi3.js')
         js_ctx.append(js)
-
-def get_random_str(l):
-    string = []
-    chars = list('abcdefghijklnmopqrstuvwxyz0123456789')
-    size = len(chars)
-    for i in range(l):
-        string.append(random.choice(chars))
-    return ''.join(string)
-
-def get_macid(l=32):
-    try:
-        macid = macids[l]
-    except KeyError:
-        macids[l] = macid = get_random_str(l)
-    return macid
 
 def md5(s):
-    return hashlib.md5(compact_bytes(s, 'utf8')).hexdigest()
+    return hash.md5(s)
 
 def md5x(s):
     #sufix = ''

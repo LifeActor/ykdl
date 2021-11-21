@@ -3,72 +3,79 @@ import re
 
 __all__ = ['match', 'match1', 'matchall']
 
-def _format_str(pattern, text):
+def _format_str(pattern, string):
+    '''Format the target which will be scanned, makes the worker happy.'''
     strtype = type(pattern)
-    if not isinstance(text, strtype):
+    if not isinstance(string, strtype):
         try:
-            text = strtype(text, 'utf-8')
+            string = strtype(string, 'utf-8')
         except TypeError:
-            if hasattr(text, 'decode'):
-                if strtype is str:
-                    text = text.decode()
+            if isinstance(string, bytearray):
+                string = bytes(string)
             else:
-                text = str(text)
-            if strtype is bytes and hasattr(text, 'encode'):
-                text = text.encode()
-    return text
+                for n in ('getvalue', 'tobytes', 'read', 'encode', 'decode'):
+                    f = getattr(string, n, None)
+                    if f:
+                        try:
+                            string = f()
+                            break
+                        except:
+                            pass
+                if not isinstance(string, (str, bytes)):
+                    try:
+                        if isinstance(string, int):  # defense memory burst
+                            raise
+                        string = strtype(string)
+                    except:
+                        string = str(string)
+            if not isinstance(string, strtype):
+                string = strtype(string, 'utf-8')
+    return string
 
-def match(text, *patterns):
-    """Scans through a string for substrings matched some patterns (first groups only).
+def match(obj, *patterns):
+    '''Scans a object for matched some patterns with catch mode (matches first).
 
-    Args:
-        text: A string to be scanned.
-        patterns: Arbitrary number of regex patterns.
+    Params:
+        `obj`, any object which contains string data.
+        `patterns`, arbitrary number of regex patterns.
 
-    Returns:
-        When matches, returns first match groups.
-        When no matches, return None
-    """
+    Returns all the catched substring of first match, or None.
+    '''
 
     for pattern in patterns:
-        text = _format_str(pattern, text)
-        match = re.search(pattern, text)
+        string = _format_str(pattern, obj)
+        match = re.search(pattern, string)
         groups = match and match.groups()
         if groups:
             return groups
     return None
 
-def match1(text, *patterns):
-    """Scans through a string for substrings matched some patterns (first-subgroups only).
+def match1(obj, *patterns):
+    '''Scans a object for matched some patterns with catch mode (catches first).
 
-    Args:
-        text: A string to be scanned.
-        patterns: Arbitrary number of regex patterns.
+    Params: same as match()
 
-    Returns:
-        When matches, returns first-subgroups from first match.
-        When no matches, return None
-    """
+    Returns the first catched substring, or None.
+    '''
 
-    groups = match(text, *patterns)
+    groups = match(obj, *patterns)
     return groups and groups[0]
 
 
-def matchall(text, *patterns):
-    """Scans through a string for substrings matched some patterns.
+def matchall(obj, *patterns):
+    '''Scans a object for matched some patterns with catch mode (matches all).
 
-    Args:
-        text: A string to be scanned.
-        patterns: a list of regex pattern.
+    Params: same as match()
 
-    Returns:
-        a list if matched. empty if not.
-    """
+    Returns a list of all the catched substring of matches, or a empty list.
+    If a conformity form of catches in the list has be excepted, all the regex
+    patterns MUST include a similar catch mode.
+    '''
 
     ret = []
     for pattern in patterns:
-        text = _format_str(pattern, text)
-        match = re.findall(pattern, text)
+        string = _format_str(pattern, obj)
+        match = re.findall(pattern, string)
         ret += match
 
     return ret

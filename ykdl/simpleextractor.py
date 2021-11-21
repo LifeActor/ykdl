@@ -10,18 +10,16 @@ class SimpleExtractor(VideoExtractor):
 
     def __init__(self):
         VideoExtractor.__init__(self)
-
         self.html = ''
-
         self.title_pattern = ''
-
         self.url_pattern = ''
-
         self.artist_pattern = ''
-
         self.live = False
-
         self.headers = fake_headers
+        self.init()
+
+    def init(self):
+        pass
 
     def get_title(self):
         if self.title_pattern:
@@ -46,6 +44,9 @@ class SimpleExtractor(VideoExtractor):
     def l_assert(self):
         pass
 
+    def reprocess(self):
+        pass
+
     def prepare(self):
         self.info = VideoInfo(self.name, self.live)
         self.l_assert()
@@ -53,6 +54,7 @@ class SimpleExtractor(VideoExtractor):
         self.get_title()
         self.get_artist()
         self.get_url()
+        self.reprocess()
         ext, size = self.get_info()
         self.info.stream_types.append('current')
         self.info.streams['current'] = {

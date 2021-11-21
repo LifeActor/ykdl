@@ -1,13 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import base64
-import json
-
-from ykdl.videoinfo import VideoInfo
-from ykdl.extractor import VideoExtractor
-from ykdl.util.match import match1
-from ykdl.util.html import get_content
+from ._common import *
 
 
 def decodeencoded(encodestr):
@@ -41,7 +34,7 @@ def decodeencoded(encodestr):
     return retstr
 
 class JustFunLive(VideoExtractor):
-    name = u"抓饭直播 (JustFun Live)"
+    name = '抓饭直播 (JustFun Live)'
 
     def prepare(self):
         info = VideoInfo(self.name, True)
@@ -49,9 +42,9 @@ class JustFunLive(VideoExtractor):
         if self.url and not self.vid:
             html = get_content(self.url)
 
-            title = match1(html, '<div class=\"play-title-inner\">([^<]+)</div>')
-            info.artist = artist =match1(html, 'data-director=\"([^\"]+)\"')
-            info.title = u'{} - {}'.format(title, artist)
+            title = match1(html, '<div class="play-title-inner">([^<]+)</div>')
+            info.artist = artist =match1(html, 'data-director="([^"]+)"')
+            info.title = '{title} - {artist}'.format(**vars())
 
             PL = match1(html, 'var PL = {([\s\S]+?)}')
             data = dict((k.strip(), json.loads(v)) for k, v in 

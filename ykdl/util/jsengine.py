@@ -365,7 +365,7 @@ class AbstractJSEngine:
         chunks = json_encoder.iterencode(args, _one_shot=True)
         chunks = [to_unicode(chunk) for chunk in chunks]
         args = u''.join(chunks)[1:-1]
-        code = u'{identifier}({args});'.format(identifier=identifier, args=args)
+        code = u'{identifier}({args});'.format(**vars())
         return self._eval(code)
 
 class InternalJSEngine(AbstractJSEngine):

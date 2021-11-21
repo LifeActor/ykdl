@@ -18,6 +18,9 @@ from ..util.m3u8 import *
 from ..util.match import *
 from ..util.wrap import *
 
+import os
+import sys
+import re
 import json
 import time
 import base64

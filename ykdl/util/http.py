@@ -1,12 +1,15 @@
+import os
+import sys
 import gzip
 import zlib
+import json
 import socket
 import functools
 from io import BytesIO
 from logging import getLogger
 from collections import defaultdict
 from http.client import HTTPResponse as _HTTPResponse
-from urllib.parse import urlencode
+from urllib.parse import parse_qs, urlencode
 from urllib.request import Request, install_opener, build_opener, \
                            HTTPRedirectHandler as _HTTPRedirectHandler, \
                            AbstractHTTPHandler, URLError, HTTPError
@@ -16,6 +19,7 @@ except ImportError:
     from queue import Queue, Empty
 
 from .match import match1
+from .wrap import etree2dict
 
 logger = getLogger('html')
 
@@ -24,7 +28,11 @@ logger = getLogger('html')
 
 _http_prefixes = 'https://', 'http://'
 _http_conn_cache = defaultdict(Queue)
-_headers_template = {k: '' for k in ('Host', 'User-Agent', 'Accept')}
+_headers_template = {
+    'Host': '',
+    'User-Agent': '',
+    'Accept': '*/*'
+}
 
 def _split_conn_key(url):
     '''"scheme://host/path" --> "scheme://host"'''
@@ -34,7 +42,7 @@ def _split_conn_key(url):
     return url
 
 def hit_conn_cache(url):
-    '''Whether the giving URL does match a item exist in HTTP connection cache'''
+    '''Whether the giving URL does match a item exist in HTTP connection cache.'''
     if not url.startswith(_http_prefixes):
         raise ValueError('input should be a URL')
     return _split_conn_key(url) in _http_conn_cache
@@ -133,7 +141,7 @@ _HTTPResponse._close_conn = _close_conn  # monkey patch, but secure
 class HTTPRedirectHandler(_HTTPRedirectHandler):
     '''Log all responses during redirect, support specify max redirections
     
-    MUST call from get_response(), or fallback to origin HTTPRedirectHandler
+    MUST call from get_response(), or fallback to original HTTPRedirectHandler
     '''
     max_repeats = 2
     max_redirections = 5
@@ -147,7 +155,7 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
             setattr(self, 'http_error_%d' % code, self.http_error_code)
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
-        # If does not request from this module, go to origin method
+        # If does not request from this module, go to original method
         if not hasattr(req, 'locations'):
             if code == 308 and not hasattr(_HTTPRedirectHandler, 'http_error_308'):
                 return
@@ -183,7 +191,7 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
         return newreq
 
     def http_error_code(self, req, fp, code, msg, headers):
-        # If does not request from this module, go to origin method
+        # If does not request from this module, go to original method
         if not hasattr(req, 'locations'):
             if code == 308 and not hasattr(_HTTPRedirectHandler, 'http_error_308'):
                 return
@@ -311,13 +319,25 @@ class HTTPResponse:
         return self._text
 
     def json(self):
-        '''Return a object which deserialize from JSON text.'''
-        return json.loads(self.text)
+        '''Return a object which deserialize from JSON document.'''
+        logger.debug('parse JSON from %r:\n%s', self.url, self.text)
+        try:
+            return json.loads(self.text)
+        except json.decoder.JSONDecodeError:
+            # try remove callback
+            text = match1(self.text, '^(?!\d)\w+\((.+?)\);?$')
+            if text is None:
+                raise
+            return json.loads(text)
 
-    def xml(self):
-        '''Return a DOM (simple implementation) which parse from XML text.'''
-        from xml.dom.minidom import parseString
-        return parseString(self.text)
+    def xml(self, todict=True):
+        '''Return a Element/dict object which parse from XML document.'''
+        import xml.etree.ElementTree as ET
+        logger.debug('parse XML from %r:\n%s', self.url, self.text)
+        tree = ET.fromstring(self.text)
+        if todict:
+            return etree2dict(tree)
+        return tree
 
 for _ in ('getheader', 'getheaders', 'info', 'geturl', 'getcode'):
     setattr(HTTPResponse, _, getattr(_HTTPResponse, _))
@@ -336,24 +356,27 @@ _default_handlers = []
 def add_default_handler(handler):
     '''Added handlers will be used via install_default_handlers().
 
-    Notice: this is use to setting GLOBAL (urllib) HTTP proxy and HTTPS verify,
-            use it carefully.
+    Notice:
+        this is use to setting GLOBAL (urllib) HTTP proxy and HTTPS verify,
+        use it carefully.
     '''
     if isinstance(handler, type):
         handler = handler()
     if isinstance(handler, _HTTPRedirectHandler):
         logger.warning('HTTPRedirectHandler is not custom!')
         return
-    remove = []
-    for default_handler in _default_handlers:
-        if isinstance(handler, type(default_handler)) or \
-                isinstance(default_handler, type(handler)):
-            remove.append(default_handler)
-    for _handler in remove:
-        _default_handlers.remove(_handler)
-        logger.debug('Remove %s from default handlers', _handler)
+    remove_default_handler(handler)
     _default_handlers.append(handler)
     logger.debug('Add %s to default handlers', handler)
+
+def remove_default_handler(handler):
+    if not isinstance(handler, type):
+        handler = type(handler)
+    for default_handler in _default_handlers:
+        if isinstance(default_handler, handler):
+            _default_handlers.remove(default_handler)
+            logger.debug('Remove %s from default handlers', default_handler)
+            break
 
 def install_default_handlers():
     '''Install the default handlers to urllib.request as its opener.'''
@@ -389,14 +412,15 @@ def undeflate(data):
     decompressobj = zlib.decompressobj(-zlib.MAX_WBITS)
     return decompressobj.decompress(data) + decompressobj.flush()
 
-def get_response(url, headers=fake_headers, data=None, params=None, method='GET',
-                      max_redirections=None, encoding=None):
+def get_response(url, headers={}, data=None, params=None, method='GET',
+                      max_redirections=None, encoding=None,
+                      default_headers=fake_headers):
     '''Fetch the response of giving URL.
 
     Params: both `params` and `data` always use "UTF-8" as encoding.
 
-    Return: response, If redirections > max_redirections > 0 (stop on limit),
-            this is a fake response except its attribute `url`.
+    Returns response, If redirections > max_redirections > 0 (stop on limit),
+    this is a fake response except its attribute `url`.
     '''
     global _opener
     url = url.split('#', 1)[0]  # remove fragment if exist, it's useless
@@ -423,6 +447,10 @@ def get_response(url, headers=fake_headers, data=None, params=None, method='GET'
         method = 'GET'
     elif method != 'HEAD':
         logger.debug('get_response> URL: ' + url)
+    if default_headers:
+        _headers = default_headers.copy()
+        _headers.update(headers)
+        headers = _headers
     if data:
         headers = {k.capitalize(): v for k, v in headers.items()}
         ctype = headers.get('Content-type')
@@ -448,6 +476,8 @@ def get_response(url, headers=fake_headers, data=None, params=None, method='GET'
             raise ValueError(
                 'Inputed data is not type of "application/x-www-form-urlencoded"'
                 ', the "Content-Type" header MUST be gave.')
+        if data and method == 'GET':
+            method = 'POST'
     req = Request(url, headers=headers, data=data, method=method)
     req.headget = headget
     req.max_redirections = max_redirections
@@ -468,8 +498,8 @@ def get_response(url, headers=fake_headers, data=None, params=None, method='GET'
 def get_head_response(url, headers=fake_headers, max_redirections=0):
     '''Fetch the response of giving URL in HEAD mode.
 
-    Return: response, If redirections > max_redirections > 0,
-            this is fake except its attribute `url`.
+    Returns response, If redirections > max_redirections > 0 (stop on limit),
+    this is fake except its attribute `url`.
     '''
     logger.debug('get_head_response> URL: ' + url)
     try:
@@ -490,28 +520,30 @@ def get_location(*args, **kwargs):
 
     Params: same as get_head_response().
 
-    Return: URL.
+    Returns URL.
     '''
     response = get_head_response(*args, **kwargs)
     return response.url
 
 def get_location_and_header(*args, **kwargs):
-    '''Try fetch the redirected location and the headers of giving URL.
+    '''**DEPRECATED**
+    Try fetch the redirected location and the headers of giving URL.
 
     Params: same as get_head_response().
             If redirections > max_redirections > 0, returned headers is fake.
 
-    Return: URL and headers.
+    Returns URL and headers.
     '''
     response = get_head_response(*args, **kwargs)
     return response.url, response.headers
 
 def get_content_and_location(*args, **kwargs):
-    '''Try fetch the content and the redirected location of giving URL.
+    '''**DEPRECATED**
+    Try fetch the content and the redirected location of giving URL.
 
     Params: same as get_response().
 
-    Return: content (encoding=='ignore') or decoded content, and URL.
+    Returns content (encoding=='ignore') or decoded content, and URL.
     '''
     response = get_response(*args, **kwargs)
     if kwargs.get('encoding') == 'ignore':
@@ -523,7 +555,7 @@ def get_content(*args, **kwargs):
 
     Params: same as get_response().
 
-    Return: content (encoding=='ignore') or decoded content.
+    Returns content (encoding=='ignore') or decoded content.
     '''
     return get_content_and_location(*args, **kwargs)[0]
 

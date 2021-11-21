@@ -1,16 +1,12 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-from ykdl.util.match import match1
-from ykdl.util.html import get_content
-from ykdl.util.jsengine import JSEngine
+from .._common import *
 
-assert JSEngine, "No JS Interpreter found, can't parse douyu live/video!"
+
+assert JSEngine, "No JS Interpreter found, can't extract netease openCourse!"
 
 class OpenC(VideoExtractor):
-    name = "网易公开课 (163 openCourse)"
+    name = '网易公开课 (163 openCourse)'
 
     sopported_stream_types = [
         ['TD', 'Shd', '超清'], 
@@ -53,7 +49,7 @@ class OpenC(VideoExtractor):
                 mid = movie['mid']
                 if mid == self.vid:
                     break
-            assert mid == self.vid, 'can not found mid %r' % mid
+            assert mid == self.vid, "can't found mid %r" % mid
 
         title = data['data'][0]['title']
         mtitle = movie['title'].rpartition(title)[-1]
@@ -72,17 +68,17 @@ class OpenC(VideoExtractor):
                     pl += 1
                     pc //= 10
                 mtitle = ('{:0>%dd} {}' % pl).format(p, mtitle)
-            title = '{} - {}'.format(title, mtitle)
+            title = '{title} - {mtitle}'.format(**vars())
         school_info = data['data'][0]
         school = school_info['school']
         director = school_info['director']
         if director and director != 'null':
             if director != school :
-                director = '[{}] {}'.format(school, director)
+                director = '[{school}] {director}'.format(**vars())
         else:
             director = school
         if school not in title:
-            title = '[{}] {}'.format(school, title)
+            title = '[{school}] {title}'.format(**vars())
         info.title = title
         info.artist = director
 
@@ -91,10 +87,10 @@ class OpenC(VideoExtractor):
                 for orig in ['', 'Orign']:
                     if stream in info.streams:
                         continue
-                    url = movie['{}{}Url{}'.format(ext, tp, orig)]
+                    url = movie['{ext}{tp}Url{orig}'.format(**vars())]
                     if not url:
                         continue
-                    size = movie['{}{}Size{}'.format(ext, tp, orig)]
+                    size = movie['{ext}{tp}Size{orig}'.format(**vars())]
                     info.stream_types.append(stream)
                     info.streams[stream] = {
                         'container': ext,

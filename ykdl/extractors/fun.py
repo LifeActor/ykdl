@@ -1,18 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
-from ykdl.util.match import match1, matchall
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
+from ._common import *
 
-import re
-import json
-import time
-import base64
-import random
 import binascii
-from urllib.parse import urlencode
 
 
 mozecname = []
@@ -85,8 +75,8 @@ def decrypt(obj):
         return bytes(e).decode('latin_1')
 
     def n(t, e):
-        return ((t * mozecname[0] + e * mozecname[2]) & 0xFF,
-                (t * mozecname[1] + e * mozecname[3]) & 0xFF)
+        return ((t * mozecname[0] + e * mozecname[2]) & 0xff,
+                (t * mozecname[1] + e * mozecname[3]) & 0xff)
 
     def c(e):
         return match1(e, '^(\w{41})$') and \
@@ -118,30 +108,32 @@ class Funshion(VideoExtractor):
 
         html = get_content(self.url)
         MID = html.find('"mediaid":') > 0
-        title = MID and match1(html, 'class="pl-tit fix">\s+<a class="tit"[^>]+>([^<]+)')
+        title = MID and match1(html,
+                            'class="pl-tit fix">\s+<a class="tit"[^>]+>([^<]+)')
         ctitle = match1(html, 'class="cru-tit" title="([^"]+)')
         if title and ctitle and title not in ctitle:
             ctitle = ' '.join([title, ctitle])
         info.title = ctitle
         vid = match1(self.url, '[/\.]v-(\d+)') or \
-              match1(html, 'class="download_pc tool_cli_link"[\s\S]+?data-vid="(\d+)')
+              match1(html,
+                     'class="download_pc tool_cli_link"[\s\S]+?data-vid="(\d+)')
 
         ct = int(time.time())
-        data = json.loads(get_content((MID and
-            'https://pm.funshion.com/v7/media/play/?' or
-            'https://pv.funshion.com/v7/video/play/?') +
-            urlencode({
-                'id': vid,
-                'ves': 1,
-                'cl': 'web',
-                'uc': 111,
-                'fudid': '{}{:x}'.format(ct - 5, random.randint(1 << 16, (1 << 20) - 1)),
-                'token': '',
-                'code': 'play-vipbanner',
-                'ctime': ct,
-                'app_code': 'web',
-            })))
-        self.logger.debug('data:\n%s', data)
+        fudid = '{}{:x}'.format(ct - 5, random.randint(1 << 16, (1 << 20) - 1))
+        data = get_response(MID and
+                            'https://pm.funshion.com/v7/media/play/?' or
+                            'https://pv.funshion.com/v7/video/play/?',
+                            params={
+                                'id': vid,
+                                'ves': 1,
+                                'cl': 'web',
+                                'uc': 111,
+                                'fudid': fudid,
+                                'token': '',
+                                'code': 'play-vipbanner',
+                                'ctime': ct,
+                                'app_code': 'web'
+                            }).json()
         assert data['retcode'] == '200', data['retmsg']
 
         fetch_mozecname(vid)

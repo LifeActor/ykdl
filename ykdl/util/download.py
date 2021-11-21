@@ -27,6 +27,7 @@ from urllib.request import Request, urlopen
 from http.client import IncompleteRead
 
 from .http import hit_conn_cache, clear_conn_cache, fake_headers
+from .human import *
 from .log import IS_ANSI_TERMINAL
 
 
@@ -51,25 +52,6 @@ def set_rcvbuf(response):
                 socket.SOL_SOCKET, socket.SO_RCVBUF, 65536)  # 64KB
     except Exception as e:
         logger.debug('error occurred during set_rcvbuf: %s', e)
-
-def human_size(n):
-    if n < 0:
-        return 'N/A'
-    for unit in ('B', 'KB', 'MB', 'GB'):
-        if unit != 'GB' and n >= 1024:
-            n /= 1024.0
-        else:
-            break
-    return ' '.join(['{:.3f}'.format(n).rstrip('0').rstrip('.'), unit])
-
-def format_time(t):
-    if t < 0:
-        return 'N/A'
-    pt = t,
-    for _ in range(2):
-        if pt[0]:
-            pt = divmod(pt[0], 60) + pt[1:]
-    return ':'.join('%02d' % t for t in pt)
 
 def get_progress_bar(percent):
     bar_fg = _progress_bar_fg * int(_progress_bar_len * percent / 100)
@@ -114,7 +96,7 @@ def multi_hook(action, size=None, total=None, part=None):
         _processes_suffix = '  %%s [%d/%d] [%%s]' % (sum(status), len(status))
 
     def get_processes_suffix():
-        return _processes_suffix % (_progress, format_time(ct - _processes_start))
+        return _processes_suffix % (_progress, human_time(ct - _processes_start))
 
     def update_processes_prefix():
         global _processes_prefix
@@ -122,7 +104,7 @@ def multi_hook(action, size=None, total=None, part=None):
         _processes_prefix = 'Processes[%d/%d][%%s]: ' % (sum(status), len(status))
 
     def get_processes_prefix():
-        return _processes_prefix % format_time(ct - _processes_start)
+        return _processes_prefix % human_time(ct - _processes_start)
 
     ct = time.monotonic()
     action, *action_args = action
@@ -369,8 +351,8 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
         cost += _cost
         print('\nCurrent downloaded %s, cost %s.'
               '\nTotal downloaded %s of %s, cost %s'
-              % (human_size(downloaded), format_time(_cost),
-                 human_size(size), human_size(total), format_time(cost)))
+              % (human_size(downloaded), human_time(_cost),
+                 human_size(size), human_size(total), human_time(cost)))
         succeed = 0 not in status
         if not succeed:
             if count == 1:
@@ -390,7 +372,7 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
                 not fail_confirm or
                 input('The estimated ETA is %s, '
                       'do you want to continue downloading? [Y] '
-                      % format_time(eta)
+                      % human_time(eta)
                 ).upper() != 'Y'):
             break
         if not tries:

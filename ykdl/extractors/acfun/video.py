@@ -1,20 +1,15 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
-from ykdl.util.match import match1, matchall
-
-import json
-
+from .._common import *
 from .acbase import AcBase
 
 
 class AcVideo(AcBase):
 
-    name = u'AcFun 弹幕视频网'
+    name = 'AcFun 弹幕视频网'
 
     def get_page_info(self, html):
-        pageInfo = json.loads(match1(html, u'(?:pageInfo|videoInfo) = ({.+?});'))
+        pageInfo = json.loads(match1(html, '(?:pageInfo|videoInfo) = ({.+?});'))
         videoList = pageInfo['videoList']
         videoInfo = pageInfo.get('currentVideoInfo')
         assert videoInfo, bgmInfo.get('playErrorMessage') or "can't play this video!!"
@@ -23,7 +18,7 @@ class AcVideo(AcBase):
         sub_title = videoInfo['title']
         artist = pageInfo['user']['name']
         if sub_title not in ('noTitle', 'Part1', title) or len(videoList) > 1:
-            title = u'{} - {}'.format(title, sub_title)
+            title = '{title} - {sub_title}'.format(**vars())
         sourceVid = videoInfo['id']
 
         m3u8Info = videoInfo.get('playInfos')

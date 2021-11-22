@@ -4,7 +4,7 @@ from ._common import *
 
 
 class Baomihua(VideoExtractor):
-
+    # https://www.baomihua.com/
     name = '爆米花（Baomihua)'
 
     def prepare(self):
@@ -13,8 +13,8 @@ class Baomihua(VideoExtractor):
         if self.url:
             self.vid = match1(self.url, '_(\d+)', 'm/(\d+)', 'v/(\d+)')
 
-        add_header('Referer', 'http://m.video.baomihua.com/')
-        data = get_response('http://play.baomihua.com/getvideourl.aspx',
+        add_header('Referer', 'https://m.video.baomihua.com/')
+        data = get_response('https://play.baomihua.com/getvideourl.aspx',
                             params={
                                 'flvid': self.vid,
                                 'datatype': 'json',

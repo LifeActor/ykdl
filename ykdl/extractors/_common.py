@@ -13,6 +13,7 @@ from ..simpleextractor import SimpleExtractor
 from ..videoinfo import VideoInfo
 
 from ..util.http import *
+from ..util.human import *
 from ..util.jsengine import JSEngine
 from ..util.m3u8 import *
 from ..util.match import *

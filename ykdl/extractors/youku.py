@@ -67,7 +67,7 @@ class Youku(VideoExtractor):
 
         self.install_cookie()
         get_response('https://gm.mmstat.com/yt/ykcomment.play.commentInit?cna=')
-        utid = self.get_cookie('.mmstat.com', '/', 'cna')
+        utid = self.get_cookie('.mmstat.com', '/', 'cna').value
         self.uninstall_cookie()
 
         for ccode, ref, ckey in self.params:

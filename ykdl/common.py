@@ -20,15 +20,30 @@ alias = {
         'letv'   : 'le',
         'wetv'   : 'qq'
 }
-exclude_list = ['com', 'net', 'org']
+exclude_list = {'com', 'net', 'org'}
+
 def url_to_module(url):
     if not url.startswith('http'):
         logger.warning('> url not starts with http(s) ' + url)
         logger.warning('> assume http connection!')
         url = 'http://' + url
-    url_infos = re.match(
-            'https?://([.\-\w]*?(?:([\-\w]+)\.)?([\-\w]+)\.[\-\w]+)(?::\d+)?'
-            '(?:/.+?(?:\.([^?\s]+))?(?:\?|$))?', url)
+    url_infos = re.match('''(?x)
+            https?://
+            (                       # catch host
+                    [\-\w\.]*?      # ignore
+                (?:([\-\w]+)\.)?    # try catch 3rd domain
+                   ([\-\w]+)\.      # catch 2nd domain
+                    [\-\w]+         # top domain
+            )
+            (?::\d+)?               # allow port
+            (?=/|$)                 # allow empty path
+            (?:
+                /                   # path start
+                .+?                 # path & main name
+                (?:\.(\w+))?        # try catch extension name
+                (?:\?|\#|&|$)       # path end, '&' is used to ignore wrong query
+            )?
+            ''', url)
     assert url_infos, 'wrong URL string!'
     host, dm3, dm2, ext = url_infos.groups()
     logger.debug('host> ' + host)

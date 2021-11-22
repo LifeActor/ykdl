@@ -119,24 +119,24 @@ def format_vps(*wh):
     max_ps, min_ps = max(wh), min(wh)
     ps = abs(max_ps / min_ps * 3 - 4) < 0.5 and max_ps * 4 / 3 or max_ps
     if ps <= 480:
-        stype = 'LD'
+        id = 'LD'
     elif ps <= 640:
-        stype = 'SD'
+        id = 'SD'
     elif ps <= 960:
-        stype = 'HD'
+        id = 'HD'
     elif ps <= 1280:
-        stype = 'TD'
+        id = 'TD'
     elif ps <= 1920:
-        stype = 'BD'
+        id = 'BD'
     elif ps <= 2560:
-        stype = '2K'
+        id = '2K'
     else:
-        stype = '{:.1f}'.format(ps/1000).rstrip('0').rstrip('.') + 'K'
-    return stype, str(min_ps) + 'P'
+        id = '{:.1f}'.format(ps/1000).rstrip('0').rstrip('.') + 'K'
+    return id, str(min_ps) + 'P'
 
 _stream_index = 'OG', '*K', 'BD', 'TD', 'HD', 'SD', 'LD'
 
-def index_stream(id):
+def stream_index(id):
     '''Used by videoinfo.VideoInfo.sort().'''
     if id.isdecimal():
         return -int(id)  # m3u8 bandwidth
@@ -148,4 +148,7 @@ def index_stream(id):
     elif len(id) > 2 and id.startswith('BD'):  # BD4M
         i += float(id[2:-1]) * 0.01
         id = 'BD'
-    return _stream_index.index(id) - i
+    try:
+        return _stream_index.index(id) - i
+    except ValueError:
+        return id

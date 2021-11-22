@@ -7,7 +7,7 @@ from urllib.parse import unquote
 
 from .util import log
 from .util.fs import legitimize
-from .util.human import index_stream
+from .util.human import stream_index
 
 
 class VideoInfo():
@@ -126,4 +126,5 @@ class VideoInfo():
             return legitimize(self.title)
 
     def sort(self):
-        self.stream_types.sort(key=index_stream)
+        if len(self.stream_types) > 1:
+            self.stream_types.sort(key=stream_index)

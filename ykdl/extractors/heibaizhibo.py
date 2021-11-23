@@ -11,8 +11,6 @@ js_m = get_pkgdata_str(__name__, 'heibaizhibo.m.js',
 class Heibai(VideoExtractor):
     name = '黑白直播'
 
-    stream_ids = ['HD', 'SD']
-
     def prepare(self):
         info = VideoInfo(self.name, True)
 
@@ -80,7 +78,6 @@ class Heibai(VideoExtractor):
             }
             break  # seems the same quality?
 
-        info.stream_types = sorted(info.stream_types, key=self.stream_ids.index)
         return info
 
 site = Heibai()

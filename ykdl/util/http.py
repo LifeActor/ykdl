@@ -19,7 +19,7 @@ except ImportError:
     from queue import Queue, Empty
 
 from .match import match1
-from .wrap import etree2dict
+from .xml2dict import xml2dict
 
 logger = getLogger('html')
 
@@ -330,14 +330,10 @@ class HTTPResponse:
                 raise
             return json.loads(text)
 
-    def xml(self, todict=True):
-        '''Return a Element/dict object which parse from XML document.'''
-        import xml.etree.ElementTree as ET
+    def xml(self):
+        '''Return a dict object which parse from XML document.'''
         logger.debug('parse XML from %r:\n%s', self.url, self.text)
-        tree = ET.fromstring(self.text)
-        if todict:
-            return etree2dict(tree)
-        return tree
+        return xml2dict(self.text)
 
 for _ in ('getheader', 'getheaders', 'info', 'geturl', 'getcode'):
     setattr(HTTPResponse, _, getattr(_HTTPResponse, _))

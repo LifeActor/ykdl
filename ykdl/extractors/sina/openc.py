@@ -28,7 +28,7 @@ class OpenC(VideoExtractor):
                                'ran': rand,
                                'p': 'i',
                                'k': get_k(self.vid, rand),
-                            }).xml()['video']
+                            }).xml()['root']
 
         info.title = data['vname']
         urls = []

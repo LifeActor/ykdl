@@ -31,16 +31,10 @@ def getlive(uid, rate='source'):
 class PPS(VideoExtractor):
     name = '奇秀（Qixiu)'
 
-    ids = ['TD', 'HD', 'SD']
-    rate_2_id = {
-        'source': 'TD',
-          'high': 'HD',
-        'smooth': 'SD'
-    }
-    rate_2_profile = {
-        'source': '超清',
-          'high': '高清',
-        'smooth': '标清'
+    rate_2_id_profile = {
+        'source': ['TD', '超清'],
+          'high': ['HD', '高清'],
+        'smooth': ['SD', '标清']
     }
 
     def prepare(self):
@@ -64,8 +58,7 @@ class PPS(VideoExtractor):
                 ran = random.randrange(1e4)
                 sep = '?' in url and '&' or '?'
                 url = '{url}{sep}ran={ran}'.format(**vars())
-                stream_profile = self.rate_2_profile[rate]
-                stream_id = self.rate_2_id[rate]
+                stream_id, stream_profile = self.rate_2_id_profile[rate]
                 info.stream_types.append(stream_id)
                 info.streams[stream_id] = {
                     'video_profile': stream_profile,
@@ -90,7 +83,6 @@ class PPS(VideoExtractor):
         if error_msg:
             self.logger.debug('error_msg:\n' + error_msg)
         assert len(info.stream_types), error_msg or "can't play this live video!!"
-        info.stream_types = sorted(info.stream_types, key=self.ids.index)
 
         return info
 

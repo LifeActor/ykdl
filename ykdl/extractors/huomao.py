@@ -8,8 +8,6 @@ SECRETKEY = '6FE26D855E1AEAE090E243EB1AF73685'
 class HuomaoTv(VideoExtractor):
     name = '火猫 (Huomao)'
 
-    supported_stream_types = ['BD', 'TD', 'HD', 'SD' ]
-
     stream_2_profile = {
         'BD': '原画',
         'TD': '超清',
@@ -50,7 +48,6 @@ class HuomaoTv(VideoExtractor):
                 'size': float('inf')
             }
 
-        info.stream_types = sorted(info.stream_types, key=self.supported_stream_types.index)
         return info
 
 site = HuomaoTv()

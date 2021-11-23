@@ -9,8 +9,7 @@ import collections
 
 __all__ = ['get_pkgdata_str', 'get_pkgdata_bytes', 'hash',
            'get_random_hex', 'get_random_str', 'get_random_name',
-           'get_random_id', 'get_random_uuid', 'get_random_uuid_hex',
-           'NaN', 'PosInf', 'NegInf', 'etree2dict','xml2dict']
+           'get_random_id', 'get_random_uuid', 'get_random_uuid_hex']
 
 def get_pkgdata_str(package, resource, url=None, encoding=None):
     '''Fetch the resource data from package, or from a fallback URL if give.
@@ -153,68 +152,3 @@ def get_random_uuid_hex(name=None):
     if name is None:
         return uuid.uuid4().hex
     return get_random_uuid(name).replace('-', '')
-
-NaN = float('nan')
-PosInf = float('inf')
-NegInf = float('-inf')
-
-def etree2dict(tree):
-    '''Convert giving XML Element tree to a dict object.'''
-    cdict = {  # special objects
-         'true': True,
-        'false': False,
-          'NaN': NaN,
-          'INF': PosInf,
-         '-INF': NegInf
-    }
-    def convert(text):
-        if text in cdict:
-            return cdict[text]
-        if text.count('e') == 1 or text.count('.') == 1:
-            try:
-                f = float(text)
-            except ValueError:
-                pass
-            else:
-                if text.count('e') and not f % 1:
-                    return int(f)  # e.g. 2.2e2 => 220
-                return f
-        try:
-            return int(text)
-        except ValueError:
-            pass
-        return text
-    def get1(l):
-        if len(l) == 1:
-            o = l[0]
-            if not isinstance(o, dict):  # contribute to compatibility
-                return o
-        return l
-    def parse(t):
-        dd = collections.defaultdict(list)
-        for k, v in t.attrib.items():
-            if k.endswith('}nil') and v in ('true', '1'):  # xsi:nil
-                return {t.tag: None}
-            dd['@' + k] = v
-        texts =list(t.itertext())  # t.text is only the first one, need more
-        for ct in t:
-            for text in ct.itertext():
-                texts.remove(text)
-            for k, v in parse(ct).items():
-                dd[k].append(v)
-        d = {t.tag: {k: get1(v) for k, v in dd.items()}}
-        texts = [text for text in (text.strip() for text in texts) if text]
-        if texts:
-            if dd:
-                d[t.tag]['#text'] = '\n'.join(texts)
-            else:
-                d[t.tag] = convert(texts[0])
-        elif not dd:
-            d[t.tag] = ''  # placeholder use to keep the structure
-        return d
-    return parse(tree)
-
-def xml2dict(xml):
-    '''Convert giving XML document to a dict object.'''
-    import xml.etree.ElementTree as ET
-    return etree2dict(ET.fromstring(xml))

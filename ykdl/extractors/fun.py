@@ -94,7 +94,6 @@ def decrypt(obj):
 class Funshion(VideoExtractor):
     name = '风行网'
 
-    stream_ids = ['BD', 'TD', 'HD', 'SD', 'LD']
     quality_2_id = {
          'shd': 'BD',  # vip, not used
         'sdvd': 'TD',
@@ -162,7 +161,6 @@ class Funshion(VideoExtractor):
                     'size': int(vinfo['filesize'])
                 }
 
-        info.stream_types = sorted(info.stream_types, key=self.stream_ids.index)
         return info
 
 site = Funshion()

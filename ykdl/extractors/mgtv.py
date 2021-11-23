@@ -26,7 +26,6 @@ def generate_tk2(did):
 class Hunantv(VideoExtractor):
     name = '芒果TV (HunanTV)'
 
-    supported_stream_types = [ 'BD', 'TD', 'HD', 'SD' ]
     profile_2_types = {
         '复刻版': 'BD',
         '蓝光': 'BD',
@@ -97,8 +96,7 @@ class Hunantv(VideoExtractor):
                     'src' : [url]
                 }
                 info.stream_types.append(stream)
-        info.stream_types= sorted(info.stream_types,
-                                  key=self.supported_stream_types.index)
+
         info.extra['referer'] = self.url
         return info
 

@@ -45,7 +45,7 @@ class PPTV(VideoExtractor):
         for item, dt, drag in zip(data['channel'][0]['file'][0]['item'],
                                   data['dt'],
                                   data.get('dragdata') or data['drag']):
-            host = random.choice((dt['sh'], dt['bh']))
+            host = dt['sh']
             rid = dt['@rid']
             params = urlencode({
                 #'key': key,  # it is now useless

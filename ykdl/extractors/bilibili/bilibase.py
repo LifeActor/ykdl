@@ -35,7 +35,7 @@ class BiliBase(VideoExtractor):
                 return
 
             api_url = self.get_api_url(qn)
-            data = get_response(api_url).xml()['video']
+            data = get_response(api_url).xml()['root']
             assert data['result'] == 'suee', '{}: {}, {}'.format(
                                   data['result'], data['code'], data['message'])
 
@@ -61,11 +61,10 @@ class BiliBase(VideoExtractor):
                 }
 
             if qn == 0:
-                # temporary mitigation measures, xml2dict() need be rewrote
-                aqlts = list(map(int, str(data['accept_quality']).split(',')))
+                aqlts = data['accept_quality'].split(',')
                 aqlts.remove(data['quality'])
                 for aqlt in aqlts:
-                    get_video_info(aqlt)
+                    get_video_info(int(aqlt))
 
         get_video_info()
 

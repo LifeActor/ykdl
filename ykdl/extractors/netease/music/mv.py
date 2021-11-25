@@ -1,34 +1,45 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import json
+from ..._common import *
 
-from ykdl.util.html import get_content, add_header
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-from ykdl.util.match import match1
 
 class NeteaseMv(VideoExtractor):
-    name = u'Netease Mv (网易音乐Mv)'
+    name = 'Netease Mv (网易音乐Mv)'
 
-    supported_stream_code = ['1080', '720', '480', '240']
-    code_2_id = {'1080': 'BD', '720': 'TD', '480':'HD', '240':'SD'}
-    code_2_profile = {'1080': '1080p', '720': u'超清', '480': u'高清', '240': u'标清'}
+    profile_type = [
+        ['1080', ['1080P', 'BD']],
+        [ '720', [ '超清', 'TD']],
+        [ '480', [ '高清', 'HD']],
+        [ '240', [ '标清', 'SD']]
+    ]
+    profile_2_id_profile = dict(profile_type)
+    stream_ids = [id for _, id in profile_type]
+
     def prepare(self):
-        add_header("Referer", "http://music.163.com/")
+        add_header('Referer', 'http://music.163.com/')
         video = VideoInfo(self.name)
         if not self.vid:
             self.vid =  match1(self.url, '\?id=(.*)', 'mv/(\d+)')
 
-        api_url = "http://music.163.com/api/mv/detail/?id={}&ids=[{}]&csrf_token=".format(self.vid, self.vid)
-        mv = json.loads(get_content(api_url))['data']
+        mv = get_response('http://music.163.com/api/mv/detail/',
+                          params={
+                              'id': self.vid,
+                              'ids': self.vid,
+                              'csrf_token': ''
+                          }).json()['data']
+
         video.title = mv['name']
         video.artist = mv['artistName']
-        for code in self.supported_stream_code:
-            if code in mv['brs']:
-                stream_id = self.code_2_id[code]
-                stream_profile = self.code_2_profile[code]
+        for id in self.stream_ids:
+            if id in mv['brs']:
+                stream_id, stream_profile = self.profile_2_id_profile[id]
                 video.stream_types.append(stream_id)
-                video.streams[stream_id] = {'container': 'mp4', 'video_profile': stream_profile, 'src' : [mv['brs'][code]], 'size': 0}
+                video.streams[stream_id] = {
+                    'container': 'mp4',
+                    'video_profile': stream_profile,
+                    'src' : [mv['brs'][id]],
+                    'size': 0
+                }
         return video
+
 site = NeteaseMv()

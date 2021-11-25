@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-
-
-"""
-This is a Python binding to Microsoft Chakra Javascript engine.
+"""This is a Python binding to Microsoft Chakra Javascript engine.
 Modified from PyChakra (https://github.com/zhengrenzhe/PyChakra) to
 support Win10's built-in Chakra.
 """
@@ -49,8 +45,7 @@ class ChakraHandle():
         self.__chakra.JsDisposeRuntime(self.__runtime)
 
     def eval(self, script, raw=False):
-        """\
-        Eval javascript string
+        """Eval javascript string
 
         Examples:
             .eval("(()=>2)()") // (True, 2)

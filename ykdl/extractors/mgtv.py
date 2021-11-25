@@ -1,26 +1,13 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import add_default_handler, install_default_handlers, get_content, add_header
-from ykdl.util.match import match1, matchall
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-from ykdl.compact import HTTPCookieProcessor
-
-import json
-import sys
-import base64
-import uuid
-import time
+from ._common import *
 
 
 encode_translation = bytes.maketrans(b'+/=', b'_~-')
 decode_translation = bytes.maketrans(b'_~-', b'+/=')
 
 def encode_tk2(s):
-    if not isinstance(s, bytes):
-        s = s.encode()
-    s = bytearray(base64.b64encode(s).translate(encode_translation))
+    s = bytearray(base64.b64encode(s.encode()).translate(encode_translation))
     s.reverse()
     return s.decode()
 
@@ -39,7 +26,6 @@ def generate_tk2(did):
 class Hunantv(VideoExtractor):
     name = '芒果TV (HunanTV)'
 
-    supported_stream_types = [ 'BD', 'TD', 'HD', 'SD' ]
     profile_2_types = {
         '复刻版': 'BD',
         '蓝光': 'BD',
@@ -49,11 +35,10 @@ class Hunantv(VideoExtractor):
     }
 
     def prepare(self):
-        add_default_handler(HTTPCookieProcessor)
-        install_default_handlers()
+        info = VideoInfo(self.name)
+        self.install_cookie()
         add_header('Referer', self.url)
 
-        info = VideoInfo(self.name)
         if self.url and not self.vid:
             self.vid = match1(self.url, 'com/[bl]/\d+/(\d+).html')
             if self.vid is None:
@@ -73,32 +58,36 @@ class Hunantv(VideoExtractor):
                                             'vid[=:]\D?(\d+)')
         assert self.vid, 'can not find video!!!'
 
-        did = str(uuid.uuid4())
+        did = get_random_uuid()
         tk2 = generate_tk2(did)
+        params = {
+            'tk2': tk2,
+            'video_id': self.vid,
+            'type': 'pch5'
+        }
+        data = get_response('https://pcweb.api.mgtv.com/player/video',
+                            params=params).json()
+        assert data['code'] == 200, ('[failed] code: {}, msg: {}'
+                                     .format(data['code'], data['msg']))
+        assert data['data'], '[Failed] Video info not found.'
+        data = data['data']
 
-        api_info_url = 'https://pcweb.api.mgtv.com/player/video?tk2={}&video_id={}&type=pch5'.format(tk2, self.vid)
-        meta = json.loads(get_content(api_info_url))
-        self.logger.debug('meta >\n%s', meta)
+        info.title = data['info']['title'] + ' ' + data['info']['desc']
 
-        assert meta['code'] == 200, '[failed] code: {}, msg: {}'.format(meta['code'], meta['msg'])
-        assert meta['data'], '[Failed] Video info not found.'
+        params['pm2'] = data['atc']['pm2']
+        data = get_response('https://pcweb.api.mgtv.com/player/getSource',
+                            params=params).json()
+        assert data['code'] == 200, ('[failed] code: {}, msg: {}'
+                                     .format(data['code'], data['msg']))
+        assert data['data'], '[Failed] Video source not found.'
+        data = data['data']
 
-        pm2 = meta['data']['atc']['pm2']
-        info.title = meta['data']['info']['title'] + ' ' + meta['data']['info']['desc']
-
-        api_source_url = 'https://pcweb.api.mgtv.com/player/getSource?pm2={}&tk2={}&video_id={}&type=pch5'.format(pm2, tk2, self.vid)
-        meta = json.loads(get_content(api_source_url))
-
-        assert meta['code'] == 200, '[failed] code: {}, msg: {}'.format(meta['code'], meta['msg'])
-        assert meta['data'], '[Failed] Video source not found.'
-
-        data = meta['data']
         domain = data['stream_domain'][0]
         for lstream in data['stream']:
             lurl = lstream['url']
             if lurl:
-                lurl = '{}{}&did={}'.format(domain, lurl, did)
-                url = json.loads(get_content(lurl))['info']
+                url = get_response(domain + lurl,
+                                   params={'did': did}).json()['info']
                 video_profile = lstream['name']
                 stream = self.profile_2_types[video_profile]
                 info.streams[stream] = {
@@ -107,7 +96,7 @@ class Hunantv(VideoExtractor):
                     'src' : [url]
                 }
                 info.stream_types.append(stream)
-        info.stream_types= sorted(info.stream_types, key = self.supported_stream_types.index)
+
         info.extra['referer'] = self.url
         return info
 

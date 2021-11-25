@@ -1,11 +1,10 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 from threading import Thread
 from time import sleep
 import json
 
-from ykdl.util.wrap import launch_player
+from ykdl.util.external import launch_player
 
 
 class Mpvplayer(Thread):

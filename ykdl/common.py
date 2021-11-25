@@ -1,14 +1,13 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from importlib import import_module
-
-from .util.html import get_location_and_header
-from .extractors import singlemultimedia
 import re
 import logging
+from importlib import import_module
 
-logger = logging.getLogger('common')
+from .util.http import get_location_and_header
+
+logger = logging.getLogger(__name__)
+
+
+# TODO: add support to find module via mid@site[.type]
 
 alias = {
         '163'    : 'netease',
@@ -21,14 +20,30 @@ alias = {
         'letv'   : 'le',
         'wetv'   : 'qq'
 }
-exclude_list = ['com', 'net', 'org']
+exclude_list = {'com', 'net', 'org'}
+
 def url_to_module(url):
     if not url.startswith('http'):
         logger.warning('> url not starts with http(s) ' + url)
         logger.warning('> assume http connection!')
         url = 'http://' + url
-    url_infos = re.match(
-            'https?://([.\-\w]*?(?:([\-\w]+)\.)?([\-\w]+)\.[\-\w]+)(?::\d+)?/.+?(?:\.([^?]+))?(?:\?|$)', url)
+    url_infos = re.match('''(?x)
+            https?://
+            (                       # catch host
+                    [\-\w\.]*?      # ignore
+                (?:([\-\w]+)\.)?    # try catch 3rd domain
+                   ([\-\w]+)\.      # catch 2nd domain
+                    [\-\w]+         # top domain
+            )
+            (?::\d+)?               # allow port
+            (?=/|$)                 # allow empty path
+            (?:
+                /                   # path start
+                .+?                 # path & main name
+                (?:\.(\w+))?        # try catch extension name
+                (?:\?|\#|&|$)       # path end, '&' is used to ignore wrong query
+            )?
+            ''', url)
     assert url_infos, 'wrong URL string!'
     host, dm3, dm2, ext = url_infos.groups()
     logger.debug('host> ' + host)
@@ -37,6 +52,7 @@ def url_to_module(url):
     if short_name in alias.keys():
         short_name = alias[short_name]
     logger.debug('short_name> ' + short_name)
+
     try:
         m = import_module('.'.join(['ykdl','extractors', short_name]))
         if hasattr(m, 'get_extractor'):
@@ -44,7 +60,12 @@ def url_to_module(url):
         else:
             site = m.site
         return site, url
-    except(ImportError):
+
+    except ImportError as e:
+        logger.debug('Import Error: %s', e)
+
+        from .extractors import singlemultimedia
+
         if ext in singlemultimedia.extNames:
             logger.debug('> the extension name %r match multimedia types', ext)
             logger.debug('> Go SingleMultimedia')
@@ -53,6 +74,7 @@ def url_to_module(url):
 
         logger.debug('> Try HTTP Redirection!')
         new_url, resheader = get_location_and_header(url)
+
         if new_url == url:
             logger.debug('> NO HTTP Redirection')
             if resheader['Content-Type'].startswith('text/'):
@@ -67,5 +89,5 @@ def url_to_module(url):
                 singlemultimedia.site.resheader = resheader
                 return singlemultimedia.site, url
         else:
-            logger.debug('> new url ' + new_url)
+            logger.info('> New url: ' + new_url)
             return url_to_module(new_url)

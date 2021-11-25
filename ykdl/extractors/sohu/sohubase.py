@@ -1,21 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
-from ykdl.util.match import match1
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-from ykdl.compact import urlparse, urlencode
-
-import json
-import time
-from random import random
-
-'''
-Changelog:
-    1. http://tv.sohu.com/upload/swf/20150604/Main.swf
-        new api
-'''
+from .._common import *
 
 
 class SohuBase(VideoExtractor):
@@ -47,11 +32,11 @@ class SohuBase(VideoExtractor):
         'norVid': 'SD'
     }
     id_2_profile = {
-        '4K': u'4K',
-        'BD': u'原画',
-        'TD': u'超清',
-        'HD': u'高清',
-        'SD': u'标清'
+        '4K': '4K',
+        'BD': '原画',
+        'TD': '超清',
+        'HD': '高清',
+        'SD': '标清'
     }
 
     def parser_info(self, video, info, stream, lvid, uid):
@@ -65,19 +50,19 @@ class SohuBase(VideoExtractor):
         urls = []
         assert len(data['clipsURL']) == len(data['clipsBytes']) == len(data['su'])
         for new, ck, in zip(data['su'], data['ck']):
-            params = {
-                'ch': data['ch'],
-                'num': data['num'],
-                'new': new,
-                'key': ck,
-                'uid': uid,
-                'prod': 'h5n',
-                'pt': 1,
-                'pg': 2,
-            }
             if urlparse(new).netloc == '':
-                cdnurl = 'https://{}/ip?{}'.format(host, urlencode(params))
-                url = json.loads(get_content(cdnurl))['servers'][0]['url']
+                cdnurl = 'https://{}/ip?{}', urlencode(params))
+                url = get_response('https://{host}/ip'.format(**vars()),
+                                   params={
+                                       'ch': data['ch'],
+                                       'num': data['num'],
+                                       'new': new,
+                                       'key': ck,
+                                       'uid': uid,
+                                       'prod': 'h5n',
+                                       'pt': 1,
+                                       'pg': 2,
+                                   }).json()['servers'][0]['url']
             else:
                 url = new
             urls.append(url)
@@ -89,47 +74,53 @@ class SohuBase(VideoExtractor):
         }
         video.stream_types.append(stream_id)
 
+    def fetch_info(self, vid):
+        self.apiparams['vid'] = self.vid
+        return get_response(self.apiurl, params=self.apiparams).json()
+
     def prepare(self):
         if self.url and not self.vid:
-            self.vid = match1(self.url, '\Wvid=(\d+)', '\Wid=(\d+)', '\Wbid=(\d+)', 'share_play.html#(\d+)_')
+            self.vid = match1(self.url, '\W[b|v]?id=(\d+)',
+                                        'share_play.html#(\d+)_')
             if not self.vid:
                 html = get_content(self.url)
-                self.vid = match1(html, '/(\d+)/v\.swf', 'vid="(\d+)"', '\&id=(\d+)')
-        self.logger.debug("VID> {}".format(self.vid))
+                self.vid = match1(html, '/(\d+)/v\.swf',
+                                        'vid="(\d+)"',
+                                        '&id=(\d+)')
 
-        info = json.loads(get_content(self.apiurl % self.vid))
-        self.logger.debug("info> {}".format(info))
+        info = self.fetch_info(self.vid)
         if info['status'] == 6:
-            self.name = u'搜狐自媒体 (MySohu)'
-            self.apiurl = 'http://my.tv.sohu.com/play/videonew.do?vid=%s&referer=http://my.tv.sohu.com'
-            info = json.loads(get_content(self.apiurl % self.vid))
-            self.logger.debug("info> {}".format(info))
+            from .my import site
+            self.name = site.name
+            self.apiurl = site.apiurl
+            self.apiparams = site.apiparams
+            info = self.fetch_info(self.vid)
 
         video = VideoInfo(self.name)
         # this is needless now, uid well be registered in the the following code
-        #video.extra["header"] = "Range: "
+        #video.extra['header'] = 'Range: '
         if info['status'] == 1:
             now = time.time()
             uid = int(now * 1000)
-            params = {
-                'vid': self.vid,
-                'url': self.url,
-                'refer': self.url,
-                't': int(now),
-                'uid': uid,
-                #'nid': nid,
-                #'pid': pid,
-                #'screen': '1366x768',
-                #'channeled': channeled,
-                #'MTV_SRC': MTV_SRC,
-                #'position': 'page_adbanner',
-                #'op': 'click',
-                #'details': '{}',
-                #'os': 'linux',
-                #'platform': 'linux',
-                #'passport': '',
-            }
-            get_content('http://z.m.tv.sohu.com/h5_cc.gif?' + urlencode(params))
+            get_response('http://z.m.tv.sohu.com/h5_cc.gif',
+                         params={
+                             'vid': self.vid,
+                             'url': self.url,
+                             'refer': self.url,
+                             't': int(now),
+                             'uid': uid,
+                             #'nid': nid,
+                             #'pid': pid,
+                             #'screen': '1366x768',
+                             #'channeled': channeled,
+                             #'MTV_SRC': MTV_SRC,
+                             #'position': 'page_adbanner',
+                             #'op': 'click',
+                             #'details': '{}',
+                             #'os': 'linux',
+                             #'platform': 'linux',
+                             #'passport': '',
+                         })
 
             data = info['data']
             video.title = data['tvName']
@@ -138,8 +129,7 @@ class SohuBase(VideoExtractor):
                 if lvid == 0 or not lvid:
                     continue
                 if lvid != self.vid:
-                    _info = json.loads(get_content(self.apiurl % lvid))
-                    self.logger.debug("info> {}".format(_info))
+                    _info = self.fetch_info(lvid)
                 else:
                     _info = info
 

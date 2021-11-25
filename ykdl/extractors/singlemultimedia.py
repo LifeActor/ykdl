@@ -1,16 +1,17 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-from ykdl.util.match import match1
-from ykdl.util.m3u8_wrap import load_m3u8_playlist
+from ._common import *
 
-from urllib.parse import unquote
 
-import json
+# TODO: add more supported types and move to ykdl.util
+# REF: https://www.iana.org/assignments/media-types/media-types.xhtml
 
 contentTypes = {
+    'audio/basic': 'au',
+    'audio/mpeg': 'mp3',
+    'audio/x-aiff': 'aif',
+    'audio/x-pn-realaudio': 'ra',
+    'audio/x-wav': 'wav',
     'video/3gpp': '3gp',
     'video/3gpp2': '3p2',
     'video/avi': 'avi',
@@ -70,6 +71,8 @@ extNames = {
     # picture
     'jpeg', 'jpe', 'jpg', 'jpc', 'jp2', 'j2k',
     'tiff', 'bmp', 'png', 'gif', 'jbg', 'webp',
+    # HLS
+    'm3u',
     *contentTypes.values()
 }
 
@@ -87,16 +90,7 @@ class Multimedia(VideoExtractor):
                 ext = contentTypes[ctype]
 
         # Get title
-        title = self.resheader.get('Content-Disposition')
-        if title:
-            title = match1(title, 'attachment;.+?filename\*=([^;]+)')
-            if title:
-                encoding, _, title = title.strip('"').split("'")
-                unquote(title, encoding=encoding)
-            else:
-                title = match1(title, 'attachment;.+?filename=([^;]+)')
-                if title:
-                    title = unquote(title.strip('"'))
+        title = self.resheader.get_filename()
         if title is None:
             title = self.url.split('?')[0].split('/')[-1]
         if title.endswith('.' + ext):
@@ -104,7 +98,7 @@ class Multimedia(VideoExtractor):
 
         info = VideoInfo(self.name)  # ignore judge live status
         info.title = title
-        if ext == 'm3u8':
+        if ext[:3] == 'm3u':
             info.stream_types, info.streams = load_m3u8_playlist(self.url)
         else:
             info.stream_types = ['current']

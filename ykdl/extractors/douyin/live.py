@@ -1,19 +1,11 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content, add_header
-from ykdl.util.match import match1
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-
-import json
-from urllib.parse import unquote
+from .._common import *
 
 
 class TikTok(VideoExtractor):
     name = '抖音直播 (TikTok)'
 
-    stream_ids = ['OG', 'BD', 'TD', 'HD', 'SD']
     quality_2_profile_id = {
         'ORIGION': ['原画', 'OG'],
         'FULL_HD1': ['蓝光', 'BD'],
@@ -26,8 +18,9 @@ class TikTok(VideoExtractor):
         info = VideoInfo(self.name)
 
         html = get_content(self.url)
-        data = match1(html, 'id="RENDER_DATA" type="application/json">(.+?)</script>',
-                            '__INIT_PROPS__ = (.+?)</script>')
+        data = match1(html,
+                     'id="RENDER_DATA" type="application/json">(.+?)</script>',
+                     '__INIT_PROPS__ = (.+?)</script>')
         data = json.loads(unquote(data))
         self.logger.debug('data: \n%s', data)
 
@@ -57,7 +50,6 @@ class TikTok(VideoExtractor):
                 'src' : [url],
             }
 
-        info.stream_types = sorted(info.stream_types, key=self.stream_ids.index)
         return info
 
 site = TikTok()

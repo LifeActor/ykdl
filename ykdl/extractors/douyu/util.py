@@ -1,31 +1,13 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
-from ykdl.util.match import match1
-from ykdl.util.jsengine import JSEngine
+from .._common import *
 
-assert JSEngine, "No JS Interpreter found, can't parse douyu live/video!"
+assert JSEngine, "No JS Interpreter found, can't extract douyu live/video!"
 
-import random
-import json
-import uuid
-import time
-import string
-import pkgutil
 
-try:
-    # try load local .js file first
-    # from https://cdnjs.com/libraries/crypto-js
-    js_md5 = pkgutil.get_data(__name__, 'crypto-js-md5.min.js')
-    if not isinstance(js_md5, str):
-        js_md5 = js_md5.decode()
-except IOError:
-    js_md5 = get_content('https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js')
-
-def get_random_name(l):
-    return random.choice(string.ascii_lowercase) + \
-           ''.join(random.sample(string.ascii_letters + string.digits, l - 1))
+# REF: https://cdnjs.com/libraries/crypto-js
+js_md5 = get_pkgdata_str(__name__, 'crypto-js-md5.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js')
 
 def get_h5enc(html, vid):
     js_enc = match1(html, '(var vdwdae325w_64we =[\s\S]+?)\s*</script>')
@@ -93,7 +75,7 @@ def ub98484234(js_enc, extractor, params):
         js_ctx.append(js_enc)
     js_ctx.append(js_debug)
 
-    did = uuid.uuid4().hex
+    did = get_random_uuid_hex()
     tt = str(int(time.time()))
     ub98484234 = js_ctx.call('ub98484234', extractor.vid, did, tt)
     ub98484234 = {

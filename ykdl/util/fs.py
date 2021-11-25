@@ -1,15 +1,18 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
 import platform
 
 
-system = platform.system()
+if sys.platform.startswith(('msys', 'cygwin')):
+    system = 'Windows'
+else:
+    system = platform.system()
+
 translate_table = None
 
 def legitimize(text, compress='. -_', strip='. -_', trim=82):
-    """Converts a string to a valid filename.
-    """
+    '''Converts a string to a valid filename.'''
 
     global translate_table
 

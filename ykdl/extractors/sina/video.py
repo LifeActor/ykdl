@@ -1,36 +1,32 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.extractor import VideoExtractor
-from ykdl.util.match import match1, matchall
-from ykdl.util.html import get_content, get_location
-from ykdl.videoinfo import VideoInfo
+from .._common import *
 
-import json
 
-def get_realurl(url):
-    location = get_location(url)
-    if location != url:
-        return location
+def get_realurl(url, vid):
+    resp = get_response(url, params={'vid': vid})
+    if resp.locations:
+        return resp.url
     else:
-       html = get_content(url)
-       return matchall(html, 'CDATA\[([^\]]+)')[1]
+       return matchall(resp, 'CDATA\[([^\]]+)')[1]
 
 class Sina(VideoExtractor):
-    name = "新浪视频 (sina)"
+    name = '新浪视频 (sina)'
 
     def prepare(self):
         info = VideoInfo(self.name)
-        self.vid = match1(self.url, 'video_id=(\d+)', '#(\d{5,})', '(\d{5,})\.swf')
         if not self.vid:
-            html = get_content(self.url)
-            self.vid = match1(html, 'video_id[\'"]?\s*[:=]\s*[\'"]?(\d+)')
+            self.vid = match1(self.url, 'video_id=(\d+)',
+                                        '#(\d{5,})',
+                                        '(\d{5,})\.swf')
+            if not self.vid:
+                html = get_content(self.url)
+                self.vid = match1(html, 'video_id[\'"]?\s*[:=]\s*[\'"]?(\d+)')
 
         assert self.vid, "can't get vid"
 
-        api_url = 'http://s.video.sina.com.cn/video/h5play?video_id={}'.format(self.vid)
-        data = json.loads(get_content(api_url))
-        self.logger.debug('data:\n%s', data)
+        data = get_response('http://s.video.sina.com.cn/video/h5play',
+                            params={'video_id': self.vid}).json()
         data = data['data']
         info.title = data['title']
         for t in ['mp4', '3gp', 'flv']:
@@ -41,12 +37,10 @@ class Sina(VideoExtractor):
         for profile in video_info:
             if not profile in info.stream_types:
                 v = video_info[profile]
-                tp = v['type']
-                url = v['file_api']+'?vid='+v['file_id']
-                r_url = get_realurl(url)
+                r_url = get_realurl(v['file_api'], v['file_id'])
                 info.stream_types.append(profile)
                 info.streams[profile] = {
-                    'container': tp,
+                    'container': v['type'],
                     'video_profile': profile,
                     'src': [r_url],
                     'size' : 0

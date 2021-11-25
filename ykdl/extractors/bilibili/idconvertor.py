@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 '''Bilibili VID convertor, AV <=> BV.
 
 Origin by mcft:

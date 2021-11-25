@@ -1,59 +1,55 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.match import match1
-from ykdl.util.html import get_content
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-from ykdl.compact import urlencode, compact_bytes
+from .._common import *
 
-import json
 
 class DoubanMusic(VideoExtractor):
-    name = u'Douban Music (豆瓣音乐)'
-
-    song_info = {}
+    name = 'Douban Music (豆瓣音乐)'
 
     def prepare(self):
         info = VideoInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url, 'sid=(\d+)')
+        assert self.vid, 'No sid has been found!'
 
-        params = {
-            "source" : "",
-            "sids" : self.vid,
-            "ck" : ""
-        }
-        form = urlencode(params)
-        data = json.loads(get_content('https://music.douban.com/j/artist/playlist', data = compact_bytes(form, 'utf-8')))
-        self.song_info = data['songs'][0]
-        self.extract_song(info)
+        data = get_response(
+                'https://music.douban.com/j/artist/playlist',
+                data={
+                    'source' : '',
+                    'sids' : self.vid,
+                    'ck' : ''
+                }).json()
+        self.extract_song(info, data['songs'][0])
         return info
 
-    def extract_song(self, info):
-        song = self.song_info
+    def extract_song(self, info, song):
         info.title = song['title']
         info.artist = song['artist_name']
         info.stream_types.append('current')
-        info.streams['current'] = {'container': 'mp3', 'video_profile': 'current', 'src' : [song['url']], 'size': 0}
+        info.streams['current'] = {
+            'container': 'mp3',
+            'video_profile': 'current',
+            'src' : [song['url']],
+            'size': 0
+        }
 
     def parser_list(self, url):
 
         sids = match1(url, 'sid=([0-9,]+)')
+        assert sids, 'No sid has been found!'
 
-        params = {
-            "source" : "",
-            "sids" : sids,
-            "ck" : ""
-        }
-        form = urlencode(params)
-        data = json.loads(get_content('https://music.douban.com/j/artist/playlist', data = compact_bytes(form, 'utf-8')))
+        data = get_response(
+                'https://music.douban.com/j/artist/playlist',
+                data={
+                    'source' : '',
+                    'sids' : sids,
+                    'ck' : ''
+                }).json()
 
         info_list = []
         for s in data['songs']:
             info = VideoInfo(self.name)
-            self.song_info = s
-            self.extract_song(info)
+            self.extract_song(info, s)
             info_list.append(info)
         return info_list
 

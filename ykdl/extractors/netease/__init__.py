@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
 
 def get_extractor(url):
     if 'v.163.com/movie/' in url:

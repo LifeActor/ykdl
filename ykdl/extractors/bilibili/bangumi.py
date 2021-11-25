@@ -1,12 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
-from ykdl.util.match import match1, matchall
-from ykdl.compact import urlencode
-
-import json
-
+from .._common import *
 from .bilibase import BiliBase, sign_api_url
 
 
@@ -15,7 +9,7 @@ SECRETKEY = '94aba54af9065f71de72f5508f1cd42e'
 api_url = 'https://bangumi.bilibili.com/player/web_api/v2/playurl'
 
 class BiliBan(BiliBase):
-    name = u'哔哩哔哩 番剧 (Bilibili Bangumi)'
+    name = '哔哩哔哩 番剧 (Bilibili Bangumi)'
 
     def list_only(self):
         return '/play/ss' in self.url
@@ -49,7 +43,8 @@ class BiliBan(BiliBase):
         html = get_content(self.url)
         eplist = matchall(html, '"epList":(\[.*?\])')
         if eplist:
-            eplist = sum(map(matchall, eplist, ['"(?:ep_)?id":(\d+),'] * len(eplist)), [])
-            return ['https://www.bilibili.com/bangumi/play/ep{}'.format(eid) for eid in eplist]
+            eplist = [match1(ep, '"(?:ep_)?id":(\d+),') for ep in eplist]
+            return ['https://www.bilibili.com/bangumi/play/ep' + eid
+                    for eid in eplist if eid]
 
 site = BiliBan()

@@ -1,104 +1,111 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
+import os
 import sys
-import platform
-import struct
-
-if sys.version_info[0] == 3:
-    from urllib.request import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler, getproxies
-    from urllib.parse import urlencode, urlparse, urlsplit, urljoin, parse_qs
-    from http.client import HTTPConnection
-    from http.server import BaseHTTPRequestHandler
-    import socketserver as SocketServer
-    import queue as Queue
-    import _thread as thread
-    from html import unescape
-    compact_str = str
-    compact_bytes = bytes
-    from urllib.parse import unquote as compact_unquote
-    from urllib.parse import quote
-    from tempfile import NamedTemporaryFile
-    def compact_tempfile(mode='w+b', encoding=None, suffix='', prefix='tmp', dir=None):
-        if platform.system() == 'Windows':
-            _del_  = False
-        else:
-            _del_  = True
-        return NamedTemporaryFile(mode=mode, encoding=encoding, suffix=suffix, prefix=prefix, dir=dir, delete=_del_)
-    def compact_isstr(s):
-        return isinstance(s, str)
-else:
-    from urllib2 import Request, urlopen, HTTPSHandler, build_opener, HTTPCookieProcessor, install_opener, ProxyHandler
-    from urllib import urlencode, getproxies
-    from urlparse import urlparse, urlsplit, urljoin, parse_qs
-    from httplib import HTTPConnection
-    from BaseHTTPServer import BaseHTTPRequestHandler
-    import SocketServer
-    import Queue
-    import thread
-    import types
-    compact_str = unicode
-    def compact_bytes(string, encode):
-        return string.encode(encode)
-    from urllib import quote
-    def compact_unquote(string, encoding = 'utf-8'):
-        from urllib import unquote
-        return unquote(str(string)).decode(encoding)
-
-    from tempfile import NamedTemporaryFile
-    __tmp__ = []
-    import codecs
-    def compact_tempfile(mode='w+b', encoding=None, suffix='', prefix='tmp', dir=None):
-        if platform.system() == 'Windows':
-            _del_  = False
-        else:
-            _del_  = True
-        tmp = NamedTemporaryFile(mode=mode, suffix=suffix, prefix=prefix, dir=dir, delete=_del_)
-        __tmp__.append(tmp)
-        return codecs.open(tmp.name, mode, encoding)
-    def compact_isstr(s):
-        return isinstance(s, types.UnicodeType) or isinstance(s, str)
-    import HTMLParser
-    def unescape(s):
-        html_parser = HTMLParser.HTMLParser()
-        return html_parser.unescape(s)
-
-# Return addrlist sequence at random, it can help create_connection function
+import io
 import socket
 import random
+import inspect
+import logging
+import tempfile
 
-def getaddrinfo(*args, **kwargs):
-    addrlist = _getaddrinfo(*args, **kwargs)
+from .util.log import ColorHandler
+
+
+logging.basicConfig(handlers=[ColorHandler()])
+
+
+def bound_monkey_patch(orig, new):
+    '''Monkey patch the original function with new, and bind the original
+    function as its first argument, at end clear the new function from the
+    module which it defined with.
+    '''
+    if hasattr(orig, 'orig'):
+        raise ValueError(
+                'Monkey patched function can not be patched twice, please use '
+                'the attribute `orig` to get original function and patch it.')
+    f = sys._getframe()
+    module = f.f_globals['__name__']
+    co_name = f.f_code.co_name
+    argspec = str(inspect.signature(orig))
+    marks = '*' * 76
+    doc = new.__doc__ or ''
+    doc += '''
+    {marks}
+    {orig.__name__}.orig{argspec}
+
+    This is a bound monkey patched function via use '{module}.{co_name}',
+    {orig.__name__}.orig is the original.
+    '''
+    if orig.__doc__:
+        doc += '''{marks}
+
+    {orig.__doc__}
+    '''
+    new.__doc__ = doc.format(**vars())
+    new.orig = orig
+    new = new.__get__(orig, type(new))  # bind original as the first argument
+    orig.__globals__[orig.__name__] = new
+    del new.__globals__[new.__name__]
+
+
+if os.name == 'nt':
+
+    # Re-encoding Windows cmd shell output, py35 and below
+
+    if sys.version_info < (3, 6):
+        sys.stdout = io.TextIOWrapper(sys.stdout.detach(),
+                                      encoding=sys.stdout.encoding,
+                                      errors='ignore',
+                                      line_buffering=True)
+
+
+    # Implements as general method instead of Windows primitive delete-on-close
+    # which would lock the temporary files
+
+    class _TemporaryFileCloser:
+        # codes were copied from tempfile._TemporaryFileCloser
+        def close(self, unlink=os.unlink):
+            if not self.close_called and self.file is not None:
+                self.close_called = True
+                try:
+                    self.file.close()
+                finally:
+                    if self.delete:
+                        unlink(self.name)
+        def __del__(self):
+            self.close()
+
+    def NamedTemporaryFile(orig,
+                           mode='w+b', buffering=-1, encoding=None, newline=None,
+                           suffix=None, prefix='tmp', dir=None, delete=True,
+                           *, errors=None):
+        '''Windows delete-on-close flag will not be used, a closer is use to
+        close the temporary file, so it can be opened as shared.
+        '''
+        kwargs = vars()
+        del kwargs['orig']
+        kwargs['delete'] = False  # skip setting os.O_TEMPORARY in the flags
+        if sys.version_info < (3, 8):
+            del kwargs['errors']
+        tempfile = orig(**kwargs)
+        # at here setting whether is deleted on close
+        tempfile._closer.delete = tempfile.delete = delete
+        return tempfile
+
+    tempfile._TemporaryFileCloser.close = _TemporaryFileCloser.close
+    tempfile._TemporaryFileCloser.__del__ = _TemporaryFileCloser.__del__
+    del _TemporaryFileCloser
+    bound_monkey_patch(tempfile.NamedTemporaryFile, NamedTemporaryFile)
+
+
+# Shuffles getaddrinfo() result, that helps multi-connect to servers
+
+def getaddrinfo(orig, *args, **kwargs):
+    '''Shuffles the orig result.'''
+    addrlist = orig(*args, **kwargs)
     random.shuffle(addrlist)
     return addrlist
 
-_getaddrinfo = socket.getaddrinfo
-socket.getaddrinfo = getaddrinfo
+bound_monkey_patch(socket.getaddrinfo, getaddrinfo)
 
-try:
-    struct.pack('!I', 0)
-except TypeError:
-    # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
-    # See https://bugs.python.org/issue19099
-    def compat_struct_pack(spec, *args):
-        if isinstance(spec, compat_str):
-            spec = spec.encode('ascii')
-        return struct.pack(spec, *args)
 
-    def compat_struct_unpack(spec, *args):
-        if isinstance(spec, compat_str):
-            spec = spec.encode('ascii')
-        return struct.unpack(spec, *args)
-else:
-    compat_struct_pack = struct.pack
-    compat_struct_unpack = struct.unpack
-
-def tmp_null():
-    if platform.system() == 'Windows':
-        null = 'nul'
-    else:
-        null = '/dev/null'
-    return open(null, 'w')
-
-compact_dev_null = tmp_null()
-del tmp_null
+#compact_dev_null = open(os.devnull, 'w')

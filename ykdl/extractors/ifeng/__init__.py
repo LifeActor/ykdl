@@ -1,7 +1,5 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re
 
 def get_extractor(url):
     if 'video' in url:

@@ -1,18 +1,21 @@
-#!/usr/bin/env python
-
 from logging import getLogger
-from .html import get_content_and_location
 
-logger = getLogger("m3u8_wrap")
+from .http import get_response
+from .human import format_vps
 
+logger = getLogger(__name__)
+
+
+__all__ = ['live_m3u8', 'load_m3u8_playlist', 'load_m3u8']
 
 def no_m3u8_warning():
     logger.warning('No python-m3u8 found, use stub m3u8!!! '
-                   'please install it by pip install m3u8')
+                   'Please install it by `pip install m3u8`')
 
 def live_error():
-    raise NotImplementedError('Internal live m3u8 parser and downloader '
-                              'had not be implementated!')
+    raise NotImplementedError(
+            'Internal live m3u8 parser and downloader had not '
+            'be implementated! Please use FFmpeg instead.')
 
 def load_live_m3u8(url):
     live_error()
@@ -24,6 +27,7 @@ try:
     import m3u8
 
 except:
+    raise
     def live_m3u8(url):
         no_m3u8_warning()
         return None
@@ -45,7 +49,7 @@ except:
 
 else:
     import urllib.parse
-    from functools import cache
+    from functools import lru_cache
 
     # patch urljoin to allow '//'
     def urljoin(base, url, *args, **kwargs):
@@ -66,17 +70,14 @@ else:
     m3u8._parsed_url = _parsed_url
 
     # hack into HTTP request of m3u8, let it use cykdl's settings
-    @cache
+    @lru_cache(maxsize=None)
     def _download(uri, headers):
         # live is disabled, results can be cached safely
         kwargs = {}
-        headers = dict(headers)
-        headers.pop('Accept-Encoding', None)
         if headers:
-            kwargs['headers'] = headers
-        content, uri = get_content_and_location(uri, **kwargs)
-        base_uri = _parsed_url(uri)
-        return content, base_uri
+            kwargs['headers'] = dict(headers)
+        response = get_response(uri, **kwargs)
+        return response.text, _parsed_url(response.url)
 
     try:
         import m3u8.httpclient
@@ -114,11 +115,11 @@ else:
 
     def load_m3u8_playlist(url):
 
-        def append_stream(stype, urls):
+        def append_stream(stype, profile, urls):
             stream_types.append(stype)
             streams[stype] = {
                 'container': 'm3u8',
-                'video_profile': stype,
+                'video_profile': profile,
                 'src' : urls,
                 'size': 0
             }
@@ -129,11 +130,14 @@ else:
         ll = m.playlists or m.iframe_playlists
         if ll:
             for l in ll:
-                bandwidth = str(_get_stream_info(l, 'bandwidth'))
-                append_stream(bandwidth, [l.absolute_uri])
-            stream_types.sort(key=lambda i: int(i), reverse=True)
+                resolution = _get_stream_info(l, 'resolution')
+                if resolution:
+                    append_stream(*format_vps(*resolution), [l.absolute_uri])
+                else:
+                    bandwidth = str(_get_stream_info(l, 'bandwidth'))
+                    append_stream(bandwidth, bandwidth, [l.absolute_uri])
         else:
-            append_stream('current', [url])
+            append_stream('current','current', [url])
         return stream_types, streams
 
     def load_m3u8(url):

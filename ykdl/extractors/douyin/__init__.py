@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_location, add_header
+from .._common import *
 
 
 def get_extractor(url):

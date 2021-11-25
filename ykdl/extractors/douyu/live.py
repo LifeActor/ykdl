@@ -1,39 +1,31 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content, add_header
-from ykdl.util.match import match1, matchall
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-from ykdl.compact import urlencode
-
+from .._common import *
 from .util import get_h5enc, ub98484234
 
-import json
 
-
-douyu_match_pattern = [ 'class="hroom_id" value="([^"]+)',
-                        'data-room_id="([^"]+)'
-                      ]
+douyu_match_pattern = [
+    'class="hroom_id" value="([^"]+)',
+    'data-room_id="([^"]+)'
+]
 
 class Douyutv(VideoExtractor):
-    name = u'斗鱼直播 (DouyuTV)'
+    name = '斗鱼直播 (DouyuTV)'
 
-    stream_ids = ['OG', 'BD10M', 'BD8M', 'BD4M', 'BD', 'TD', 'HD', 'SD']
     profile_2_id = {
-        '原画': 'OG',
+        '原画':    'OG',
         '蓝光10M': 'BD10M',
-        '蓝光8M': 'BD8M',
-        '蓝光4M': 'BD4M',
-        '蓝光': 'BD',
-        '超清': 'TD',
-        '高清': 'HD',
-        '流畅': 'SD'
+        '蓝光8M':  'BD8M',
+        '蓝光4M':  'BD4M',
+        '蓝光':    'BD',
+        '超清':    'TD',
+        '高清':    'HD',
+        '流畅':    'SD'
      }
 
     def prepare(self):
         info = VideoInfo(self.name, True)
-        add_header("Referer", 'https://www.douyu.com')
+        add_header('Referer', 'https://www.douyu.com')
 
         html = get_content(self.url)
         self.vid = match1(html, '\$ROOM\.room_id\s*=\s*(\d+)',
@@ -44,38 +36,37 @@ class Douyutv(VideoExtractor):
         title = match1(html, 'Title-head\w*">([^<]+)<')
         artist = match1(html, 'Title-anchorName\w*" title="([^"]+)"')
         if not title or not artist:
-            room_data = json.loads(get_content('https://open.douyucdn.cn/api/RoomApi/room/' + self.vid))
+            room_data = get_response(
+                    'https://open.douyucdn.cn/api/RoomApi/room/' + self.vid
+                    ).json()
             if room_data['error'] == 0:
                 room_data = room_data['data']
                 title = room_data['room_name']
                 artist = room_data['owner_name']
 
-        info.title = u'{} - {}'.format(title, artist)
+        info.title = '{title} - {artist}'.format(**vars())
         info.artist = artist
 
         js_enc = get_h5enc(html, self.vid)
         params = {
             'cdn': '',
             'iar': 0,
-            'ive': 0
+            'ive': 0,
         }
         ub98484234(js_enc, self, params)
 
         def get_live_info(rate=0):
             params['rate'] = rate
-            data = urlencode(params)
-            if not isinstance(data, bytes):
-                data = data.encode()
-            html_content = get_content('https://www.douyu.com/lapi/live/getH5Play/{}'.format(self.vid), data=data)
-            self.logger.debug(html_content)
-
-            live_data = json.loads(html_content)
+            live_data = get_response(
+                        'https://www.douyu.com/lapi/live/getH5Play/' + self.vid,
+                        data=params).json()
             if live_data['error']:
                 return live_data['msg']
 
-            live_data = live_data["data"]
-            real_url = '{}/{}'.format(live_data['rtmp_url'], live_data['rtmp_live'])
-            rate_2_profile = dict((rate['rate'], rate['name']) for rate in live_data['multirates'])
+            live_data = live_data['data']
+            real_url = '/'.join([live_data['rtmp_url'], live_data['rtmp_live']])
+            rate_2_profile = {rate['rate']: rate['name']
+                              for rate in live_data['multirates']}
             video_profile = rate_2_profile[live_data['rate']]
             if '原画' in video_profile:
                 stream = 'OG'
@@ -104,11 +95,9 @@ class Douyutv(VideoExtractor):
 
         error_msg = get_live_info()
         assert len(info.stream_types), error_msg
-        info.stream_types = sorted(info.stream_types, key=self.stream_ids.index)
         return info
 
     def prepare_list(self):
-
         html = get_content(self.url)
         return matchall(html, *douyu_match_pattern)
 

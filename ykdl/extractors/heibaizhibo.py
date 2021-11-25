@@ -1,29 +1,15 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
-from ykdl.util.match import match1
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
-from ykdl.util.jsengine import JSEngine
-
-assert JSEngine, "No JS Interpreter found, can't parse heibaizhibo!"
-
-import json
-import pkgutil
-from urllib.parse import urlencode
+from ._common import *
 
 
-try:
-    # try load local .js file first
-    js_m = pkgutil.get_data(__name__, 'heibaizhibo.m.js')
-except IOError:
-    js_m = get_content('https://pichb2.huoxinglaike.com/nuxt/static/m.js')
+assert JSEngine, "No JS Interpreter found, can't extract heibaizhibo!"
+
+js_m = get_pkgdata_str(__name__, 'heibaizhibo.m.js',
+                       'https://pichb2.huoxinglaike.com/nuxt/static/m.js')
 
 class Heibai(VideoExtractor):
     name = '黑白直播'
-
-    stream_ids = ['HD', 'SD']
 
     def prepare(self):
         info = VideoInfo(self.name, True)
@@ -40,9 +26,8 @@ class Heibai(VideoExtractor):
             data = data['data'][0]
             data = data.get('videoInfo', data)
         else:
-            data = get_content('https://www.heibaizhibo.com/api/index/live?id=' + vid)
-            self.logger.debug('data:\n%s', data)
-            data = json.loads(data)
+            data = get_response('https://www.heibaizhibo.com/api/index/live',
+                                params={'id': vid}).json()
             msg = data['message']
             assert '成功' in msg, msg
             data = data['data']['detail']
@@ -56,12 +41,12 @@ class Heibai(VideoExtractor):
             artist = data['anchorInfo']['nickname']
         else:
             title = '[{}] {}({})'.format(
-                data['eventName'], data['homeName'], data['awayName'])
+                    data['eventName'], data['homeName'], data['awayName'])
             assert data['playCode'], 'live video is offline!'
             data = data['playCode'][0]
             artist = data['gtvDesc'] or data['name']
 
-        info.title = '{} - {}'.format(title, artist)
+        info.title = '{title} - {artist}'.format(**vars())
         info.artist = artist
         params = {
             'gtvId': data.get('gtvId'),
@@ -75,10 +60,9 @@ class Heibai(VideoExtractor):
 
         for ql in qllist:
             params['defi'] = ql['defi']
-            data_live = json.loads(get_content(
-                'https://sig.heibaizhibo.com/signal-front/live/matchLiveInfo?' +
-                urlencode(params)))
-            self.logger.debug('data_live:\n%s', data_live)
+            data_live = get_response(
+                'https://sig.heibaizhibo.com/signal-front/live/matchLiveInfo?',
+                params=params).json()
             msg = data_live['msg']
             assert '成功' in msg, msg
             data_live = data_live['data'][0]
@@ -94,7 +78,6 @@ class Heibai(VideoExtractor):
             }
             break  # seems the same quality?
 
-        info.stream_types = sorted(info.stream_types, key=self.stream_ids.index)
         return info
 
 site = Heibai()

@@ -1,47 +1,81 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import re
 
-def match1(text, *patterns):
-    """Scans through a string for substrings matched some patterns (first-subgroups only).
 
-    Args:
-        text: A string to be scanned.
-        patterns: Arbitrary number of regex patterns.
+__all__ = ['match', 'match1', 'matchall']
 
-    Returns:
-        When matches, returns first-subgroups from first match.
-        When no matches, return None
-    """
+def _format_str(pattern, string):
+    '''Format the target which will be scanned, makes the worker happy.'''
+    strtype = type(pattern)
+    if not isinstance(string, strtype):
+        try:
+            string = strtype(string, 'utf-8')
+        except TypeError:
+            if isinstance(string, bytearray):
+                string = bytes(string)
+            else:
+                for n in ('getvalue', 'tobytes', 'read', 'encode', 'decode'):
+                    f = getattr(string, n, None)
+                    if f:
+                        try:
+                            string = f()
+                            break
+                        except:
+                            pass
+                if not isinstance(string, (str, bytes)):
+                    try:
+                        if isinstance(string, int):  # defense memory burst
+                            raise
+                        string = strtype(string)
+                    except:
+                        string = str(string)
+            if not isinstance(string, strtype):
+                string = strtype(string, 'utf-8')
+    return string
+
+def match(obj, *patterns):
+    '''Scans a object for matched some patterns with catch mode (matches first).
+
+    Params:
+        `obj`, any object which contains string data.
+        `patterns`, arbitrary number of regex patterns.
+
+    Returns all the catched substring of first match, or None.
+    '''
 
     for pattern in patterns:
-        try:
-            match = re.search(pattern, text)
-        except(TypeError):
-            match = re.search(pattern, str(text))
-        if match:
-            return match.group(1)
+        string = _format_str(pattern, obj)
+        match = re.search(pattern, string)
+        groups = match and match.groups()
+        if groups:
+            return groups
     return None
 
+def match1(obj, *patterns):
+    '''Scans a object for matched some patterns with catch mode (catches first).
 
-def matchall(text, *patterns):
-    """Scans through a string for substrings matched some patterns.
+    Params: same as match()
 
-    Args:
-        text: A string to be scanned.
-        patterns: a list of regex pattern.
+    Returns the first catched substring, or None.
+    '''
 
-    Returns:
-        a list if matched. empty if not.
-    """
+    groups = match(obj, *patterns)
+    return groups and groups[0]
+
+
+def matchall(obj, *patterns):
+    '''Scans a object for matched some patterns with catch mode (matches all).
+
+    Params: same as match()
+
+    Returns a list of all the catched substring of matches, or a empty list.
+    If a conformity form of catches in the list has be excepted, all the regex
+    patterns MUST include a similar catch mode.
+    '''
 
     ret = []
     for pattern in patterns:
-        try:
-            match = re.findall(pattern, text)
-        except(TypeError):
-            match = re.findall(pattern, str(text))
+        string = _format_str(pattern, obj)
+        match = re.findall(pattern, string)
         ret += match
 
     return ret

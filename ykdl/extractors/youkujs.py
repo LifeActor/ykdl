@@ -1,9 +1,7 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #default stream defines
 supported_stream_code = [ 'mp4hd3', 'hd3', 'mp4hd2', 'hd2', 'mp4hd', 'mp4', 'flvhd', 'flv', '3gphd' ]
-ids = ['BD', 'TD', 'HD', 'SD', 'LD']
 stream_code_to_id = {
     'mp5hd3': 'BD',
     'mp4hd3': 'BD',

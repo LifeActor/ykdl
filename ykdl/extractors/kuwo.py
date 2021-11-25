@@ -1,27 +1,66 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.match import match1
-from ykdl.util.html import get_content
-from ykdl.extractor import VideoExtractor
-from ykdl.videoinfo import VideoInfo
+from ._common import *
+
 
 class Kuwo(VideoExtractor):
-    name = u'KuWo (酷我音乐)'
-    supported_stream_types = ['aac', 'mp3']
+    name = 'KuWo (酷我音乐)'
+
     def prepare(self):
         info = VideoInfo(self.name)
+        self.install_cookie()
+
         if not self.vid:
-            self.vid = match1(self.url, 'yinyue/(\d+)')
+            self.vid = match1(self.url, '/play_detail/(\d+)')
 
-        html = get_content("http://player.kuwo.cn/webmusic/st/getNewMuiseByRid?rid=MUSIC_{}".format(self.vid))
-        info.title = match1(html, "<name>(.*)</name>")
-        info.artist = match1(html, "<artist>(.*)</artist>")
-        for t in self.supported_stream_types:
-            url=get_content("http://antiserver.kuwo.cn/anti.s?format={}&rid=MUSIC_{}&type=convert_url&response=url".format(t, self.vid))
+        if not self.is_list:
+            resp = get_response('https://www.kuwo.cn/favicon.ico?v=1')
+        kw_token = self.get_cookie('www.kuwo.cn', '/', 'kw_token').value
+        params = {
+            'mid': self.vid,
+            'httpsStatus': 1,
+            'reqId': get_random_uuid()
+        }
+        data = get_response('https://www.kuwo.cn/api/www/music/musicInfo',
+                            headers={'csrf': kw_token},
+                            params=params).json()
+        assert data.get('code') == 200, data['message']
+        data = data['data']
 
-            info.stream_types.append(t)
-            info.streams[t] = {'container': t, 'video_profile': 'current', 'src' : [url], 'size': 0}
+        pay = data['isListenFee']
+        if pay:
+            if self.is_list:  # just skip pay when extract from list
+                self.logger.warning('Skip pay song: %s', self.vid)
+                return
+            raise AssertionError('Pay song: %s' % self.vid)
+
+        albumpic = data['albumpic']
+        album = data['album']
+        title = data['name']
+        info.title = album in title and title or '{title} - {album}'.format(**vars())
+        info.artist = data['artist']
+
+        params['type'] = 'music'
+        data = get_response('https://www.kuwo.cn/api/v1/www/music/playUrl',
+                            params=params).json()
+        assert data.get('code') == 200, data['message']
+
+        url = data['data']['url']
+        info.stream_types.append('current')
+        info.streams['current'] = {
+            'container': 'mp3',
+            'video_profile': 'current',
+            'src' : [url],
+            'size': 0
+        }
         return info
+
+    def list_only(self):
+        return 'playlist_detail' in self.url
+
+    def prepare_list(self):
+        self.install_cookie()
+        html = get_content(self.url)
+        return matchall(html, 'href="/play_detail/(\d+)"')
 
 site = Kuwo()

@@ -1,14 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from ykdl.util.html import get_content
-from ykdl.util.match import match1, matchall
-from ykdl.compact import urlencode
-
+from .._common import *
 from .bilibase import BiliBase, sign_api_url
 from .idconvertor import av2bv
-
-import json
 
 
 APPKEY = 'iVGUTjsxvpLeuDCf'
@@ -16,7 +10,7 @@ SECRETKEY = 'aHRmhWMLkdeMuILqORnYZocwMBpMEOdt'
 api_url = 'https://interface.bilibili.com/v2/playurl'
 
 class BiliVideo(BiliBase):
-    name = u'哔哩哔哩 (Bilibili)'
+    name = '哔哩哔哩 (Bilibili)'
 
     def get_page_info(self):
         page_index = match1(self.url, '\?p=(\d+)', 'index_(\d+)\.') or '1'
@@ -31,9 +25,9 @@ class BiliVideo(BiliBase):
            if index == page_index:
                vid = page['cid']
                if len(pages) > 1:
-                   title = u'{} - {} - {}'.format(title, index, subtitle)
+                   title = '{title} - {index} - {subtitle}'.format(**vars())
                elif subtitle and subtitle != title:
-                   title = u'{} - {}'.format(title, subtitle)
+                   title = '{title} - {subtitle}'.format(**vars())
                break
 
         return vid, title, artist

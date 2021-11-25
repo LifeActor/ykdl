@@ -7,7 +7,7 @@ from tempfile import NamedTemporaryFile
 
 from .http import fake_headers
 
-logger = getLogger('external')
+logger = getLogger(__name__)
 
 
 posix = os.name == 'posix'
@@ -69,10 +69,13 @@ def launch_player(player, urls, ext, play=True, **args):
             lex.quotes = '"'
             lex.escape = ''
         cmd = list(lex)
+        player = cmd[0]
     else:
         cmd = [player]
+    if nt and not os.path.splitext(player)[1]:
+        cmd[0] += '.exe'
 
-    if 'mpv' in cmd[0]:
+    if 'mpv' in os.path.split(player)[1]:
         if ext == 'm3u8' and any(os.path.isfile(url) for url in urls):
             cmd += ['--demuxer-lavf-o=protocol_whitelist=[file,http,https,tls,rtp,tcp,udp,crypto,httpproxy]']
         if args['ua']:

@@ -7,9 +7,9 @@ def _format_str(s):
     if isinstance(s, bytes):
         s = s.decode()
     s = s.lower()
-    n = match1(s, '^((?:0x)?[0-9a-f])$')
-    if n and match(n, '([a-fx])'):
-        return s.replace(n, str(int(n, 16)))
+    n = match1(s, '^((?:0x)?[0-9a-f])$')  #
+    if n and match(n, '([a-fx])'):        # only convert which is unambiguous
+        return str(int(n, 16))
     return s
 
 _size_units = {
@@ -66,9 +66,8 @@ def human_size(n, unit=None):
         return 'N/A'
     n = float(n)
     unit = unit and match1(unit.lower(), '([kmgt])i?b')
-    u = _size_units.get(unit)
-    if u:
-        n /= u
+    if unit:
+        n /= _size_units[unit]
         unit = unit.upper() + 'iB'
     else:
         for unit in ('Bytes', 'KiB', 'MiB', 'GiB', 'TiB'):
@@ -78,6 +77,33 @@ def human_size(n, unit=None):
                 break
     return ' '.join(['{:.3f}'.format(n).rstrip('0').rstrip('.'), unit])
 
+def _format_time(s):
+    s = match1(s, '''(?x)
+                  (?:^|[^:\.\d])
+                  (
+                      (?:
+                          (?:\d{1,3}:)?  # on limits 1K
+                          [0-5]?\d:
+                          |
+                          60:
+                      )
+                      [0-5]?\d
+                      |
+                      60
+                  )
+                  (?:\.\d+)?        # ignore float
+                  (?:$|[^:\.\d])
+                  ''')
+    if s:
+        t = 0
+        for i, n in enumerate(reversed(s.split(':'))):
+            t += int(n) * 60 ** i
+        return t
+    try:
+        return int(_format_str(s))
+    except ValueError:
+        return -1
+
 def human_time(t, days=False):
     '''Convert giving number to a hunman read timestamp.
 
@@ -85,7 +111,7 @@ def human_time(t, days=False):
         `days`, wethere to show days or not.
     '''
     if isinstance(t, (str, bytes)):
-        t = _format_str(t)
+        t = _format_time(t)
     if not isinstance(t, int):
         t = int(t)
     if t < 0:

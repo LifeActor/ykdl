@@ -12,6 +12,8 @@ class VideoExtractor:
 
     def __init__(self):
         self.logger = getLogger(self.name)
+        self.url = None
+        self.vid = None
 
     def parser(self, url):
         self.url = None
@@ -31,9 +33,7 @@ class VideoExtractor:
         self.url = url
         self._is_list = True
         video_list = self.prepare_list()
-        #print(video_list)
         if not video_list:
-            print(video_list)
             raise NotImplementedError(
                     'playlist not support for {self.name} with url: {self.url}'
                     .format(**vars()))

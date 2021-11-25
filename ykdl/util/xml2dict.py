@@ -13,7 +13,7 @@ _cdict = {  # special objects
       'INF': float('inf'),
      '-INF': float('-inf')
 }
-_stypes = dict, type(None)
+xml_schema_instance = 'http://www.w3.org/2001/XMLSchema-instance'
 
 def _convert(text):
     if text in _cdict:
@@ -32,21 +32,23 @@ def _convert(text):
     return text
 
 def _get1(l):
-    if len(l) == 1:
+    # unpack standalone element from list
+    if isinstance(l, list) and len(l) == 1:
         o = l[0]
-        if not isinstance(o, _stypes):  # contribute to compatibility
-            return o or ''  # placeholder use to keep the structure
+        if not isinstance(o, dict):  # contribute to compatibility
+            return o
     return l
 
-def xml2dict(xmlstring):
+def xml2dict(source):
     '''Convert giving XML document to a dict object.'''
     from xml.parsers import expat
-    parser = expat.ParserCreate(namespace_separator=None)  # don't expand
+    # don't expand namespace, handle them ourself
+    parser = expat.ParserCreate(namespace_separator=None)
     parser.buffer_text = True
     root = {'#text': []}
-    xml = {
+    xml = {  # default properties
         'version': '1.0',
-        'encoding': 'utf-8',
+        'encoding': 'UTF-8',
         'standalone': -1,
         'rootname': 'root',
         'root': root,
@@ -63,6 +65,13 @@ def xml2dict(xmlstring):
         xml['encoding'] = encoding
         xml['standalone'] = standalone
 
+    def getNSPrefix(ns):
+        nodes = parent_nodes.copy()
+        while nodes:
+            xmlns = nodes.pop().get('@xmlns')
+            if ns in xmlns:
+                return xmlns[ns]
+
     def sortAttributes(attributes):
         if not attributes:
             return {}
@@ -73,7 +82,7 @@ def xml2dict(xmlstring):
             if ks[0] == 'xmlns':
                 if len(ks) == 2 :
                     k = ks[1]
-                    assert k, 'missing namespace declaration prefix!'
+                    assert k, 'Missing namespace declaration prefix!'
                 else:
                     k = ''
                 xmlns[k] = v
@@ -107,17 +116,22 @@ def xml2dict(xmlstring):
     def endCDATA():  # void handle to skip default
         pass
 
+    def characters(data):
+        data = data.strip()
+        if data:
+            parent_nodes[-1]['#text'].append(data)
+
     def endElement(name):
 
         def replaceNode(data):
             parent_node = parent_nodes[-1][name]
-            parent_node.pop()
+            assert parent_node.pop() is node, 'Unkown error during endElement()'
             parent_node.append(data)
 
         nonlocal isCDATA
         node = parent_nodes.pop()
-        if node.get('@xsi:nil') in (True, 1):
-            node.clear()
+        if node.get('@xsi:nil') in (True, 1) and \
+                                    getNSPrefix('xsi') == xml_schema_instance:
             replaceNode(None)
         else:
             text = node.pop('#text')
@@ -126,28 +140,31 @@ def xml2dict(xmlstring):
             if text:
                 name = parent_nodes and name or None
                 if name and not node and len(text) == 1 and not isCDATA:
-                    data = _convert(text[0])
+                    data = _convert(text[0])  # no attributes & sub-elements
                 else:
                     data = '\n'.join(text)  # prefer a string than a list
-                if name and not node:  # no sub-elements
-                    replaceNode(data)
+                if name and not node:
+                    replaceNode(data)  # no attributes & sub-elements
                 else:
                     node['#text'] = data
             elif not node:
-                parent_nodes[-1][name].pop()
+                replaceNode('')  # placeholder use to keep the structure
         isCDATA = False  # ends here, not CDATA's end
-
-    def characters(data):
-        data = data.strip()
-        if data:
-            parent_nodes[-1]['#text'].append(data)
 
     parser.DefaultHandler = default
     parser.XmlDeclHandler = startXML
     parser.StartElementHandler = startElement
     parser.EndElementHandler = endElement
-    parser.CharacterDataHandler = characters
     parser.StartCdataSectionHandler = startCDATA
     parser.EndCdataSectionHandler = endCDATA
-    parser.Parse(xmlstring, True)
+    parser.CharacterDataHandler = characters
+
+    if isinstance(source, str):
+        parser.Parse(source, True)
+    elif hasattr(source, 'read'):
+        parser.ParseFile(source)
+    else:
+        for s in source:
+            parser.Parse(s)
+        parser.Parse('', True)
     return xml

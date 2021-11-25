@@ -21,7 +21,7 @@ except ImportError:
 from .match import match1
 from .xml2dict import xml2dict
 
-logger = getLogger('html')
+logger = getLogger(__name__)
 
 
 # Add HTTP persistent connections feature into urllib.request
@@ -325,7 +325,9 @@ class HTTPResponse:
             return json.loads(self.text)
         except json.decoder.JSONDecodeError:
             # try remove callback
-            text = match1(self.text, '^(?!\d)\w+\((.+?)\);?$')
+            text = match1(self.text, '^(?!\d)\w+\((.+?)\);?$',
+                                     '^(?!\d)\w+=(\{.+?\});?$',
+                                     '^(?!\d)\w+=(\[.+?\]);?$',)
             if text is None:
                 raise
             return json.loads(text)

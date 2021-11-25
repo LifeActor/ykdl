@@ -3,7 +3,7 @@ from logging import getLogger
 from .http import get_response
 from .human import format_vps
 
-logger = getLogger('m3u8')
+logger = getLogger(__name__)
 
 
 __all__ = ['live_m3u8', 'load_m3u8_playlist', 'load_m3u8']

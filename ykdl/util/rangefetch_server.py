@@ -20,7 +20,7 @@ from urllib3.util.ssl_ import create_urllib3_context
 
 from .http import fake_headers as _fake_headers
 
-logger = logging.getLogger('RangeFetch')
+logger = logging.getLogger(__name__)
 
 
 fake_headers = _fake_headers.copy()

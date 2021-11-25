@@ -61,22 +61,23 @@ LIGHT_CYAN_BACKGROUND = 106    # xterm
 WHITE_BACKGROUND = 107         # xterm
 
 def sprint(text, *colors):
-    """Format text with color or other effects into ANSI escaped string."""
-    #return "\33[{}m{content}\33[{}m".format(";".join([str(color) for color in colors]), RESET, content=text) if IS_ANSI_TERMINAL and colors else text
-    color = ";".join([str(color) for color in colors])
-    return "\33[%sm%s\33[%dm" % (color, text, RESET) if IS_ANSI_TERMINAL and colors else text
+    '''Format text with color or other effects into ANSI escaped string.'''
+    if IS_ANSI_TERMINAL and colors:
+        color = ';'.join(map(str, colors))
+        return '\33[{color}m{text}\33[0m'.format(**vars())
+    return text
 
 import logging
 
 _LOG_COLOR_MAP_ = {
-    logging.CRITICAL : "31;1",
+    logging.CRITICAL : '31;1',
     logging.ERROR    : RED,
     logging.WARNING  : YELLOW,
     logging.INFO     : LIGHT_GRAY,
     logging.DEBUG    : GREEN,
     logging.NOTSET   : DEFAULT }
 
-_colorFormatter = logging.Formatter("\33[%(color)sm%(levelname)s:%(name)s:%(message)s\33[0m")
+_colorFormatter = logging.Formatter('\33[%(color)sm%(levelname)s:%(name)s:%(message)s\33[0m')
 
 class ColorHandler(logging.StreamHandler):
     def __init__(self):

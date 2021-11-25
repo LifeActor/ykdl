@@ -4,7 +4,7 @@ from importlib import import_module
 
 from .util.http import get_location_and_header
 
-logger = logging.getLogger('common')
+logger = logging.getLogger(__name__)
 
 
 # TODO: add support to find module via mid@site[.type]

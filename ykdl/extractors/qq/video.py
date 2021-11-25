@@ -54,9 +54,9 @@ class QQ(VideoExtractor):
                 'defn': profile,
             }
 
-            data = get_resonse('https://vv.video.qq.com/getinfo',
-                               params=params).json()
-
+            resp = get_response('https://vv.video.qq.com/getinfo',
+                               params=params)
+            data = resp.json()
             if 'msg' in data:
                 assert data['msg'] not in ('vid is wrong', 'vid status wrong'), \
                        'wrong vid'
@@ -65,8 +65,8 @@ class QQ(VideoExtractor):
 
             if PLAYER_PLATFORMS and \
                     profile == 'shd' and \
-                    '"name":"shd"' not in content and \
-                    '"name":"fhd"' not in content:
+                    '"name":"shd"' not in resp.text and \
+                    '"name":"fhd"' not in resp.text:
                 for infos in self.get_streams_info('hd'):
                     yield infos
                 return

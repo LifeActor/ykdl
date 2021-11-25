@@ -31,7 +31,7 @@ from .human import *
 from .log import IS_ANSI_TERMINAL
 
 
-logger = getLogger('downloader')
+logger = getLogger(__name__)
 
 print_lock = threading.Lock()
 _max_columns = get_terminal_size().columns - 1

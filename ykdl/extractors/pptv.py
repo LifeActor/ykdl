@@ -40,6 +40,7 @@ class PPTV(VideoExtractor):
                                 'appver': '3.4.3.3',
                                 'nddp': 1
                             }).xml()['root']
+        assert 'error' not in data, data['error'][0]['@message']
 
         info.title = data['channel'][0]['@nm']
         for item, dt, drag in zip(data['channel'][0]['file'][0]['item'],

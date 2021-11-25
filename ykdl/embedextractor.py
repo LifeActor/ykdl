@@ -1,4 +1,3 @@
-from logging import getLogger
 from importlib import import_module
 
 from .common import alias, url_to_module

@@ -51,7 +51,6 @@ class SohuBase(VideoExtractor):
         assert len(data['clipsURL']) == len(data['clipsBytes']) == len(data['su'])
         for new, ck, in zip(data['su'], data['ck']):
             if urlparse(new).netloc == '':
-                cdnurl = 'https://{}/ip?{}', urlencode(params))
                 url = get_response('https://{host}/ip'.format(**vars()),
                                    params={
                                        'ch': data['ch'],

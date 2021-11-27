@@ -493,7 +493,8 @@ def get_response(url, headers={}, data=None, params=None, method='GET',
             del r.request.responses  # clear circular reference
     return response
 
-def get_head_response(url, headers=fake_headers, max_redirections=0):
+def get_head_response(url, headers={}, params=None, max_redirections=0,
+                      default_headers=fake_headers):
     '''Fetch the response of giving URL in HEAD mode.
 
     Returns response, If redirections > max_redirections > 0 (stop on limit),
@@ -501,14 +502,18 @@ def get_head_response(url, headers=fake_headers, max_redirections=0):
     '''
     logger.debug('get_head_response> URL: ' + url)
     try:
-        response = get_response(url, headers=headers, method='HEAD',
-                                max_redirections=max_redirections)
+        response = get_response(url, headers=headers, params=params,
+                                method='HEAD',
+                                max_redirections=max_redirections,
+                                default_headers=default_headers)
     except IOError as e:
         # Maybe HEAD method is not supported, retry
         if match1(str(e), 'HTTP Error (40[345])'):
             logger.debug('get_head_response> HEAD failed, try GET')
-            response = get_response(url, headers=headers, method='HEADGET',
-                                    max_redirections=max_redirections)
+            response = get_response(url, headers=headers, params=params,
+                                    method='HEADGET',
+                                    max_redirections=max_redirections,
+                                    default_headers=default_headers)
         else:
             raise
     return response

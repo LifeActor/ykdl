@@ -17,7 +17,7 @@ if os.name == 'nt':
         IS_ANSI_TERMINAL = True
 
 # ANSI escape code
-# See <http://en.wikipedia.org/wiki/ANSI_escape_code>
+# REF: https://en.wikipedia.org/wiki/ANSI_escape_code
 RESET = 0
 BOLD = 1
 UNDERLINE = 4

@@ -7,9 +7,7 @@ Don't import ALL (*) from module unless ensure all them are needed, if not sure
 then only import the module or its attributes which we are used.
 '''
 
-from ..embedextractor import EmbedExtractor
-from ..extractor import VideoExtractor
-from ..simpleextractor import SimpleExtractor
+from ..extractor import *
 from ..videoinfo import VideoInfo
 
 from ..util.http import *

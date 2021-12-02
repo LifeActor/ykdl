@@ -13,14 +13,25 @@ class NeteaseLive(VideoExtractor):
             raw_data = match1(html, '<script id="__NEXT_DATA__".*?>(.*?)</script>')
             data = json.loads(raw_data)
             self.logger.debug('video_data:\n%s', data)
-            data = data['props']['pageProps']['roomInfoInitData']
-            self.vid = data['live']['ccid']
-            assert self.vid != 0, 'live video is offline'
-            info.title = data['live']['title']
-            info.artist = data['micfirst']['nickname']
+            try:
+                data = data['props']['pageProps']['roomInfoInitData']
+                self.vid = data['live']['ccid']
+                info.title = data['live']['title']
+                info.artist = data['micfirst']['nickname']
+            except KeyError:
+                # project, select first living room
+                data = data['props']['pageProps']['data']
+                rooms = data['module_infos'][0]['content']
+                for room in rooms:
+                    self.vid = room['ccid']
+                    info.artist = room['name']
+                    if room['is_living']:
+                        break
+                info.title = data['share_title']
+            assert self.vid, 'live video is offline'
 
-        data = get_content(
-                'http://cgi.v.cc.163.com/video_play_url/' + self.vid).json()
+        data = get_response('http://cgi.v.cc.163.com/video_play_url/{self.vid}'
+                            .format(**vars())).json()
 
         info.stream_types.append('current')
         info.streams['current'] = {

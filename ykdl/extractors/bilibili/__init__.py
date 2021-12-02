@@ -31,7 +31,7 @@ def get_extractor(url):
 
     if bv_id:
         try:
-            data = json.loads(get_content(API_view + bv_id))
+            data = get_response(API_view + bv_id).json()
             assert data['code'] == 0, "can't play this video!!"
             url = data['data']['redirect_url']
         except AssertionError:

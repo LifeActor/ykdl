@@ -37,7 +37,7 @@ class BaiduMusic(VideoExtractor):
             'type': 'album',
             '_': time.time()
         }
-        data = get_content(api, params=params).json()
+        data = get_response(api, params=params).json()
 
         print('album:\t\t%s' % data['data']['albumName'])
 

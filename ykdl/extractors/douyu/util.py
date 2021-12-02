@@ -12,8 +12,8 @@ js_md5 = get_pkgdata_str(__name__, 'crypto-js-md5.min.js',
 def get_h5enc(html, vid):
     js_enc = match1(html, '(var vdwdae325w_64we =[\s\S]+?)\s*</script>')
     if js_enc is None or 'ub98484234(' not in js_enc:
-        html_h5enc = get_content('https://www.douyu.com/swf_api/homeH5Enc?rids=' + vid)
-        data = json.loads(html_h5enc)
+        data = get_response('https://www.douyu.com/swf_api/homeH5Enc',
+                            params={'rids': vid}).json()
         assert data['error'] == 0, data['msg']
         js_enc = data['data']['room' + vid]
     return js_enc

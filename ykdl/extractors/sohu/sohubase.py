@@ -74,7 +74,7 @@ class SohuBase(VideoExtractor):
         video.stream_types.append(stream_id)
 
     def fetch_info(self, vid):
-        self.apiparams['vid'] = self.vid
+        self.apiparams['vid'] = vid
         return get_response(self.apiurl, params=self.apiparams).json()
 
     def prepare(self):

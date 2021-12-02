@@ -165,6 +165,6 @@ def xml2dict(source):
         parser.ParseFile(source)
     else:
         for s in source:
-            parser.Parse(s)
-        parser.Parse('', True)
+            parser.Parse(s, False)
+        parser.Parse(type(s)(), True)
     return xml

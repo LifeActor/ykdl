@@ -88,9 +88,8 @@ class Youku(VideoExtractor):
             while data is None:
                 e1 = 0
                 e2 = 0
-                data = get_content('https://ups.youku.com/ups/get.json?' + urlencode(params))
-                self.logger.debug('data: ' + str(data))
-                data = json.loads(data)
+                data = get_response('https://ups.youku.com/ups/get.json',
+                                    params=params).json()
                 e1 = data['e']['code']
                 e2 = data['data'].get('error')
                 if e2:

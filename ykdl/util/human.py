@@ -163,9 +163,9 @@ def format_vps(*wh):
 _stream_index = 'OG', '*K', 'BD', 'TD', 'HD', 'SD', 'LD'
 
 def stream_index(id):
-    '''Used by videoinfo.VideoInfo.sort().'''
+    '''Used by ..videoinfo.VideoInfo.sort().'''
     if id.isdecimal():
-        return -int(id)  # m3u8 bandwidth
+        return -int(id), id  # m3u8 bandwidth
     id = id.upper()
     i = 0
     if id.endswith('K'):  # 3.5K
@@ -175,6 +175,6 @@ def stream_index(id):
         i += float(id[2:-1]) * 0.01
         id = 'BD'
     try:
-        return _stream_index.index(id) - i
+        return _stream_index.index(id) - i, id
     except ValueError:
-        return id
+        return 0, id

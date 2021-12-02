@@ -70,13 +70,9 @@ else:
     m3u8._parsed_url = _parsed_url
 
     # hack into HTTP request of m3u8, let it use cykdl's settings
-    @lru_cache(maxsize=None)
+    @lru_cache(maxsize=None)  # live is disabled, results can be cached safely
     def _download(uri, headers):
-        # live is disabled, results can be cached safely
-        kwargs = {}
-        if headers:
-            kwargs['headers'] = dict(headers)
-        response = get_response(uri, **kwargs)
+        response = get_response(uri, dict(headers))
         return response.text, _parsed_url(response.url)
 
     try:

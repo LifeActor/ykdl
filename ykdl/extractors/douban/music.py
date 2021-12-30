@@ -3,11 +3,11 @@
 from .._common import *
 
 
-class DoubanMusic(VideoExtractor):
+class DoubanMusic(Extractor):
     name = 'Douban Music (豆瓣音乐)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url, 'sid=(\d+)')
         assert self.vid, 'No sid has been found!'
@@ -23,9 +23,13 @@ class DoubanMusic(VideoExtractor):
         return info
 
     def extract_song(self, info, song):
+        artist = song['artist']
         info.title = song['title']
-        info.artist = song['artist_name']
-        info.stream_types.append('current')
+        info.artist = artist['name']
+        info.duration = song['play_length']
+        info.add_comment(song['label'])
+        info.add_comment(artist['style'])
+        info.refer = artist['url']
         info.streams['current'] = {
             'container': 'mp3',
             'video_profile': 'current',
@@ -48,7 +52,7 @@ class DoubanMusic(VideoExtractor):
 
         info_list = []
         for s in data['songs']:
-            info = VideoInfo(self.name)
+            info = MediaInfo(self.name)
             self.extract_song(info, s)
             info_list.append(info)
         return info_list

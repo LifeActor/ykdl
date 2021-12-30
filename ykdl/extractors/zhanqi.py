@@ -3,12 +3,12 @@
 from ._common import *
 
 
-class Zhanqi(VideoExtractor):
+class Zhanqi(Extractor):
     # live is down, all are playback
     name = '战旗 (zhanqi)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         self.install_cookie()
 
         html = get_content(self.url)
@@ -17,7 +17,7 @@ class Zhanqi(VideoExtractor):
         info.title = data['title']
         info.artist = data['nickname']
         if data.get('protocol') == 'hls':
-            info.stream_types, info.streams = load_m3u8_playlist(data['playUrl'])
+            info.streams = load_m3u8_playlist(data['playUrl'])
             return info
 
         vid = data['videoId']
@@ -56,7 +56,6 @@ class Zhanqi(VideoExtractor):
                     'fhost': 'h5',
                     'platform': 128
                 }))
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'flv',
             'video_profile': 'current',

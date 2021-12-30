@@ -23,7 +23,7 @@ def generate_tk2(did):
     s = 'did={}|pno=1030|ver=0.3.0301|clit={}'.format(did, int(time.time()))
     return encode_tk2(s)
 
-class Hunantv(VideoExtractor):
+class Hunantv(Extractor):
     name = '芒果TV (HunanTV)'
 
     profile_2_types = {
@@ -35,7 +35,7 @@ class Hunantv(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         self.install_cookie()
         add_header('Referer', self.url)
 
@@ -95,7 +95,6 @@ class Hunantv(VideoExtractor):
                     'video_profile': video_profile,
                     'src' : [url]
                 }
-                info.stream_types.append(stream)
 
         info.extra['referer'] = self.url
         return info

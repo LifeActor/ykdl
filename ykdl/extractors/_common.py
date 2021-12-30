@@ -8,7 +8,7 @@ then only import the module or its attributes which we are used.
 '''
 
 from ..extractor import *
-from ..videoinfo import VideoInfo
+from ..mediainfo import MediaInfo
 
 from ..util.http import *
 from ..util.human import *

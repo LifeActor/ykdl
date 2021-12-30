@@ -91,7 +91,7 @@ def decrypt(obj):
         return
 
 
-class Funshion(VideoExtractor):
+class Funshion(Extractor):
     name = '风行网'
 
     quality_2_id = {
@@ -103,7 +103,7 @@ class Funshion(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         html = get_content(self.url)
         MID = html.find('"mediaid":') > 0
@@ -141,11 +141,14 @@ class Funshion(VideoExtractor):
             for vinfo in vinfos['playinfo']:
                 if vinfo.get('isvip') == '1':
                     continue
-                if stream in info.streams:
-                    if vinfo['codec'] == 'h.264':  # bigger than h.265
-                        continue
+                if vinfo['codec'] == 'h.264':
+                    codec = '-h264'
+                elif vinfo['codec'] == 'h.265':
+                    codec = '-h265'
+                elif vinfo['codec'] == 'h.265_hls_ts':
+                    codec = '-h265t'
                 else:
-                    info.stream_types.append(stream)
+                    codec = ''
                 decrypt(vinfo)
                 url = (
                     'https://jobsfe.funshion.com/play/v1/mp4/{}.mp4?'.
@@ -154,7 +157,7 @@ class Funshion(VideoExtractor):
                         'token': vinfo['token'],
                         'vf': vinfo['vf']
                     }))
-                info.streams[stream] = {
+                info.streams[stream + codec] = {
                     'container': 'mp4',
                     'video_profile': vinfos['name'],
                     'src' : [url],

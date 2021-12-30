@@ -3,11 +3,11 @@
 from .._common import *
 
 
-class BiliVC(VideoExtractor):
+class BiliVC(Extractor):
     name = '哔哩哔哩 小视频 (Bili VC)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         self.vid = match1(self.url, 'video/(\d+)')
 
@@ -18,7 +18,6 @@ class BiliVC(VideoExtractor):
         info.title = video_data['data']['item']['description']
         info.artist = video_data['data']['user']['name']
 
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'mp4',
             'video_profile': 'current',

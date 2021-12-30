@@ -3,11 +3,11 @@
 from ._common import *
 
 
-class Lizhi(VideoExtractor):
+class Lizhi(Extractor):
     name = 'Lizhi FM (荔枝电台)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         html = get_content(self.url)
         self.vid, info.artist, _, info.title = \
@@ -19,7 +19,6 @@ class Lizhi(VideoExtractor):
                             self.vid).json()
         assert data['rcode'] == 0, data['msg']
 
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'mp3',
             'video_profile': 'current',

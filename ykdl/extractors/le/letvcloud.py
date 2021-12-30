@@ -3,7 +3,7 @@
 from .._common import *
 
 
-class Letvcloud(VideoExtractor):
+class Letvcloud(Extractor):
     name = '乐视云 (Letvcloud)'
 
     stream_2_id_profile = {
@@ -14,7 +14,7 @@ class Letvcloud(VideoExtractor):
     }
 
     def letvcloud_download_by_vu(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         #ran = float('0.' + str(random.randint(0, 9999999999999999))) # For ver 2.1
         #str2Hash = 'cfflashformatjsonran{ran}uu{uu}ver2.2vu{vu}bie^#@(%27eib58'.format(vu = vu, uu = uu, ran = ran)  #Magic!/ In ver 2.1
         vu, uu = self.vid
@@ -47,7 +47,6 @@ class Letvcloud(VideoExtractor):
             if st not in media:
                 continue
             url = base64.b64decode(media[st]['play_url']['main_url']).decode()
-            info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': ext,
                 'video_profile': profile,

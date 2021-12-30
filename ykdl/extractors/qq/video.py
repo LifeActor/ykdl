@@ -27,7 +27,7 @@ def qq_get_final_url(url, vid, fmt_id, filename, fvkey, platform):
 
     return url, vip
 
-class QQ(VideoExtractor):
+class QQ(Extractor):
 
     name = '腾讯视频 (QQ)'
     vip = None
@@ -185,7 +185,7 @@ class QQ(VideoExtractor):
             yield title, fmt_name, fmt_cname, type_name, urls, size, rate
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url,
                               'vid=(\w+)',
@@ -213,8 +213,7 @@ class QQ(VideoExtractor):
                 for (title, fmt_name, stream_profile, type_name,
                             urls, size, rate) in self.get_streams_info():
                     stream_id = self.stream_2_id[fmt_name]
-                    if urls and stream_id not in info.stream_types:
-                        info.stream_types.append(stream_id)
+                    if urls:
                         info.streams[stream_id] = {
                             'container': type_name,
                             'video_profile': stream_profile,
@@ -238,7 +237,7 @@ class QQ(VideoExtractor):
             self.logger.warning('This is a VIP video!')
             #self.limit = False
 
-        assert len(info.stream_types), "can't play this video!!"
+        assert info.streams, "can't play this video!!"
         info.title = title
 
         #if self.limit:

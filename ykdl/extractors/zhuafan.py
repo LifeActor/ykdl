@@ -33,11 +33,11 @@ def decodeencoded(encodestr):
     retstr = t7.decode()
     return retstr
 
-class JustFunLive(VideoExtractor):
+class JustFunLive(Extractor):
     name = '抓饭直播 (JustFun Live)'
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
 
         if self.url and not self.vid:
             html = get_content(self.url)
@@ -56,7 +56,6 @@ class JustFunLive(VideoExtractor):
             self.logger.debug('Decoded playInfo: %r', playInfo)
 
             # using only origin, as I have noticed - all links are same
-            info.stream_types.append('current')
             info.streams['current'] = {
                 'container': 'flv',
                 'video_profile': 'current',

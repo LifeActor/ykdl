@@ -31,7 +31,7 @@ def getlive(vid):
     add_header('Cookie', c_dfp)
     return get_response(req_url).json()
 
-class IqiyiLive(VideoExtractor):
+class IqiyiLive(Extractor):
     name = '爱奇艺直播 (IqiyiLive)'
 
     type_2_id = {
@@ -44,7 +44,7 @@ class IqiyiLive(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
         html = get_content(self.url)
         self.vid = match1(html, '"qipuId":(\d+),')
         title = match1(html, '"roomTitle":"([^"]+)",')
@@ -85,8 +85,6 @@ class IqiyiLive(VideoExtractor):
                 ext = 'm3u8'
 
             stream_profile = stream['screenSize']
-            if stream_id not in info.streams:
-                 info.stream_types.append(stream_id)
             info.streams[stream_id] = {
                 'video_profile': stream_profile,
                 'container': ext,
@@ -94,11 +92,7 @@ class IqiyiLive(VideoExtractor):
                 'size': float('inf')
             }
 
-        assert info.stream_types, 'can\'t play this live video!!'
-        if len(info.stream_types) == 1:
-            info.streams['current'] = info.streams.pop(info.stream_types[0])
-            info.stream_types[0] = 'current'
-
+        assert info.streams, "can't play this live video!!"
         return info
 
 site = IqiyiLive()

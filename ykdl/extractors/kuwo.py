@@ -3,11 +3,11 @@
 from ._common import *
 
 
-class Kuwo(VideoExtractor):
+class Kuwo(Extractor):
     name = 'KuWo (酷我音乐)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         self.install_cookie()
 
         if not self.vid:
@@ -46,7 +46,6 @@ class Kuwo(VideoExtractor):
         assert data.get('code') == 200, data['message']
 
         url = data['data']['url']
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'mp3',
             'video_profile': 'current',

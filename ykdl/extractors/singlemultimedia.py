@@ -76,7 +76,7 @@ extNames = {
     *contentTypes.values()
 }
 
-class Multimedia(VideoExtractor):
+class Multimedia(Extractor):
     name = 'Multimedia (多媒体文件)'
 
     def prepare(self):
@@ -96,12 +96,11 @@ class Multimedia(VideoExtractor):
         if title.endswith('.' + ext):
             title = title[0 : -len(ext) - 1]
 
-        info = VideoInfo(self.name)  # ignore judge live status
+        info = MediaInfo(self.name)  # ignore judge live status
         info.title = title
         if ext[:3] == 'm3u':
-            info.stream_types, info.streams = load_m3u8_playlist(self.url)
+            info.streams = load_m3u8_playlist(self.url)
         else:
-            info.stream_types = ['current']
             info.streams['current'] = {
                 'container': ext,
                 'video_profile': 'current',

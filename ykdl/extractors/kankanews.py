@@ -5,11 +5,11 @@ from ._common import *
 
 # TODO: Live & TV
 
-class KankanNews(VideoExtractor):
+class KankanNews(Extractor):
     name = '看看新闻 (kankannews)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         html = get_content(self.url)
         vid = match1(html, 'omsid="(\d+)"')
@@ -34,7 +34,6 @@ class KankanNews(VideoExtractor):
         assert data['code'] == '10000', data['error']['message']
         data = data['result']['video']
 
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'mp4',
             'video_profile': 'current',

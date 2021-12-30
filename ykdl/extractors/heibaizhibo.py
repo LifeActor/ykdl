@@ -8,11 +8,11 @@ assert JSEngine, "No JS Interpreter found, can't extract heibaizhibo!"
 js_m = get_pkgdata_str(__name__, 'heibaizhibo.m.js',
                        'https://pichb2.huoxinglaike.com/nuxt/static/m.js')
 
-class Heibai(VideoExtractor):
+class Heibai(Extractor):
     name = '黑白直播'
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
 
         js_ctx = JSEngine('if (!this.window) {window = {};}')
         js_ctx.append(js_m)
@@ -69,7 +69,6 @@ class Heibai(VideoExtractor):
             assert data_live['score'] >= 0, 'live video is offline!'
             url = js_ctx.call('vp', data_live['liveUrl'])
             stream = ql['defi'].upper()
-            info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': 'flv',
                 'video_profile': ql['name'],

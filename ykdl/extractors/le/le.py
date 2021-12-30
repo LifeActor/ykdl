@@ -28,7 +28,7 @@ def decode(data):
         # directly return
         return data
 
-class Letv(VideoExtractor):
+class Letv(Extractor):
     name = '乐视 (Letv)'
 
     stream_2_id_profile = {
@@ -43,7 +43,7 @@ class Letv(VideoExtractor):
 
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         stream_temp = {st: None for st in self.stream_2_id_profile.keys()}
         self.__STREAM_TEMP__.append(stream_temp)
         if not self.vid:
@@ -101,13 +101,11 @@ class Letv(VideoExtractor):
             stream_temp[stream].write(m3u8_list)
             info.streams[stream_id]['src'] = [stream_temp[stream].name]
             stream_temp[stream].flush()
-            info.stream_types.append(stream_id)
+
         return info
 
     def prepare_list(self):
-
         html = get_content(self.url)
-
         return matchall(html, 'vid="(\d+)"')
 
 site = Letv()

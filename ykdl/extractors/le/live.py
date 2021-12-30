@@ -10,7 +10,7 @@ def get_playback(vid):
     site.vid = vid
     return site.prepare()
 
-class LeLive(VideoExtractor):
+class LeLive(Extractor):
     name = 'Le Live(乐视直播)'
 
     stream_2_id_profile = {
@@ -47,13 +47,11 @@ class LeLive(VideoExtractor):
                 + self.vid,
                 params={'host': 'live.le.com'}).json()
 
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
         info.title = live_data['title']
 
         for st in live_data['rows']:
             stream, profile = self.stream_2_id_profile[st['rateType']]
-            if stream in info.stream_types:
-                continue
             data = get_response(st['streamUrl'],
                                 params={
                                     'format': 1,
@@ -67,7 +65,6 @@ class LeLive(VideoExtractor):
                                     'station': self.vid
                                 }).json()
             src = data['location']
-            info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': 'm3u8',
                 'video_profile': profile,

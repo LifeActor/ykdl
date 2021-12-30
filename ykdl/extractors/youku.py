@@ -27,25 +27,22 @@ def generateUtdid():
     msg += struct.pack('!i', hashCode(base64.standard_b64encode(data)))
     return base64.standard_b64encode(msg)
 
-class Youku(VideoExtractor):
+class Youku(Extractor):
     name = '优酷 (Youku)'
     ref_youku = 'https://v.youku.com'
     ref_tudou = 'https://video.tudou.com'
     ckey_default = 'DIl58SLFxFNndSV1GFNnMQVYkx1PP5tKe1siZu/86PR1u/Wh1Ptd+WOZsHHWxysSfAOhNJpdVWsdVJNsfJ8Sxd8WKVvNfAS8aS8fAOzYARzPyPc3JvtnPHjTdKfESTdnuTW6ZPvk2pNDh4uFzotgdMEFkzQ5wZVXl2Pf1/Y6hLK0OnCNxBj3+nb0v72gZ6b0td+WOZsHHWxysSo/0y9D2K42SaB8Y/+aD2K42SaB8Y/+ahU+WOZsHcrxysooUeND'
     ckey_mobile = '7B19C0AB12633B22E7FE81271162026020570708D6CC189E4924503C49D243A0DE6CD84A766832C2C99898FC5ED31F3709BB3CDD82C96492E721BDD381735026'
-
-    def __init__(self):
-        VideoExtractor.__init__(self)
-        self.params = (
-            ('0532', self.ref_youku, self.ckey_default),
-            ('0590', self.ref_youku, self.ckey_default),
-            ('0505', self.ref_tudou, self.ckey_default),
-            )
+    params = (
+        ('0532', ref_youku, ckey_default),
+        ('0590', ref_youku, ckey_default),
+        ('0505', ref_tudou, ckey_default),
+        )
 
     def prepare(self):
         add_header('Cookie', '__ysuid=%d' % time.time())
 
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         if not self.vid:
              self.vid = match1(self.url.split('//', 1)[1],
@@ -146,19 +143,12 @@ class Youku(VideoExtractor):
             else:
                 c = id_to_container[t]
             size = s['size']
-            info.stream_types.append(t)
             info.streams[t] =  {
                     'container': c,
                     'video_profile': stream_code_to_profiles[t],
                     'size': size,
                     'src' : urls
                 }
-
-        tmp = []
-        for t in info.stream_types:
-            if not t in tmp:
-                tmp.append(t)
-        info.stream_types = tmp
 
         return info
 

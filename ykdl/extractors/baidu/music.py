@@ -3,12 +3,12 @@
 from .._common import *
 
 
-class BaiduMusic(VideoExtractor):
+class BaiduMusic(Extractor):
     name = 'BaiduMusic (百度音乐)'
 
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url, 'http://music.baidu.com/song/([\d]+)')
 
@@ -19,7 +19,6 @@ class BaiduMusic(VideoExtractor):
         info.title = song_data['songName']
         info.artist = song_data['artistName']
 
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': song_data['format'],
             'video_profile': 'current',

@@ -6,7 +6,7 @@ from .._common import *
 assert JSEngine, "No JS Interpreter found, can't extract egame live!"
 
 
-class QQEGame(VideoExtractor):
+class QQEGame(Extractor):
     name = 'QQ EGAME (企鹅电竟)'
 
     lv_2_id = {
@@ -20,7 +20,7 @@ class QQEGame(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
         if not self.vid:
             self.vid = match1(self.url, '/(\d+)')
         if not self.url:
@@ -47,7 +47,6 @@ class QQEGame(VideoExtractor):
 
         for s in videoInfo['streamInfos']:
             stream = self.lv_2_id[s['levelType']]
-            info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': 'flv',
                 'video_profile': s['desc'],

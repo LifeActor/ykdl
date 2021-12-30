@@ -3,7 +3,7 @@
 from .._common import *
 
 
-class HuyaLive(VideoExtractor):
+class HuyaLive(Extractor):
     name = 'Huya Live (虎牙直播)'
 
     def profile_2_id(self, profile):
@@ -18,7 +18,7 @@ class HuyaLive(VideoExtractor):
             }[profile]
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
 
         html  = get_content(self.url)
 
@@ -81,7 +81,6 @@ class HuyaLive(VideoExtractor):
                 params['wsSecret'] = hash.md5('_'.join(
                             [fm, params['u'], sStreamName, ss, params['wsTime']]))
             url = _url + urlencode(params, safe='*')
-            info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': 'flv',
                 'video_profile': video_profile,

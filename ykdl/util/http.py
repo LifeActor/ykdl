@@ -71,14 +71,15 @@ def _do_open(self, http_class, req, **http_conn_args):
     except Empty:
         h = http_class(host, timeout=timeout, **http_conn_args)
     else:
-        h.sock.setblocking(False)
-        try:
-            h.sock.recv(1)
-            h.close()  # drop legacy and disconnection
-        except:
-            if timeout is socket._GLOBAL_DEFAULT_TIMEOUT:
-                timeout = socket.getdefaulttimeout()
-            h.sock.settimeout(timeout)
+        if h.sock:
+            h.sock.setblocking(False)
+            try:
+                h.sock.recv(1)
+                h.close()  # drop legacy and disconnection
+            except:
+                if timeout is socket._GLOBAL_DEFAULT_TIMEOUT:
+                    timeout = socket.getdefaulttimeout()
+                h.sock.settimeout(timeout)
 
     h.set_debuglevel(self._debuglevel)
 
@@ -508,7 +509,7 @@ def get_head_response(url, headers={}, params=None, max_redirections=0,
                                 default_headers=default_headers)
     except IOError as e:
         # Maybe HEAD method is not supported, retry
-        if match1(str(e), 'HTTP Error (40[345])'):
+        if match1(str(e), 'HTTP Error (40[345]|520)'):
             logger.debug('get_head_response> HEAD failed, try GET')
             response = get_response(url, headers=headers, params=params,
                                     method='HEADGET',

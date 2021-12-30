@@ -7,7 +7,7 @@ def sign_api_url(api_url, params_str, skey):
     sign = hash.md5(params_str + skey)
     return '{api_url}?{params_str}&sign={sign}'.format(**vars())
 
-class BiliBase(VideoExtractor):
+class BiliBase(Extractor):
     format_2_type_profile = {
        'flv_p60': ('BD', '高清 1080P'),  #116 IGNORE
         'hdflv2': ('BD', '高清 1080P+'), #112 IGNORE
@@ -21,7 +21,7 @@ class BiliBase(VideoExtractor):
         }
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         info.extra['referer'] = 'https://www.bilibili.com/'
         info.extra['ua'] = fake_headers['User-Agent']
 
@@ -51,8 +51,8 @@ class BiliBase(VideoExtractor):
             elif 'flv' in fmt:
                 ext = 'flv'
             st, prf = self.format_2_type_profile[fmt]
-            if urls and st not in info.streams:
-                info.stream_types.append(st)
+            if urls:
+                st += '-' + str(data['quality'])
                 info.streams[st] = {
                     'container': ext,
                     'video_profile': prf,
@@ -62,11 +62,11 @@ class BiliBase(VideoExtractor):
 
             if qn == 0:
                 aqlts = data['accept_quality'].split(',')
-                aqlts.remove(data['quality'])
+                aqlts.remove(str(data['quality']))
                 for aqlt in aqlts:
                     get_video_info(int(aqlt))
 
         get_video_info()
 
-        assert len(info.stream_types), "can't play this video!!"
+        assert info.streams, "can't play this video!!"
         return info

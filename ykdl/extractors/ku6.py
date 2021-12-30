@@ -19,9 +19,8 @@ class Ku6(SimpleExtractor):
         videos = matchall(html, "'title': '(.+?)',[\s\S]+?'playUrl': '(.+?)',")
         videos.reverse()
         for title, url in videos:
-            info = VideoInfo(self.name)
+            info = MediaInfo(self.name)
             info.title = title
-            info.stream_types.append('current')
             info.streams['current'] = {
                 'container': 'mp4',
                 'src': [url]

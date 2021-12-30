@@ -91,7 +91,7 @@ def getvps(tvid, vid):
     req_url = '{host}{src}&vf={vf}'.format(**vars())
     return get_response(req_url).json()
 
-class Iqiyi(VideoExtractor):
+class Iqiyi(Extractor):
     name = '爱奇艺 (Iqiyi)'
 
     vd_2_id = dict(sum([[(vd, id) for vd in vds] for id, vds in {
@@ -112,7 +112,7 @@ class Iqiyi(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         if self.url and not self.vid:
             vid = match(self.url, 'curid=([^_]+)_([\w]+)')
@@ -160,14 +160,11 @@ class Iqiyi(VideoExtractor):
         def push_stream_vd(vs):
             vd = vs['vd']
             stream = self.vd_2_id[vd]
-            if stream in info.streams:
-                # prefer H264 than H265
-                if vs.get('fileFormat') == 'H265':
-                    return
-            else:
-                info.stream_types.append(stream)
-            m3u8 = vs['m3utx']
             stream_profile = self.id_2_profile[stream]
+            fmt = vs.get('fileFormat')
+            if fmt:
+                stream += '-' + fmt
+            m3u8 = vs['m3utx']
             info.streams[stream] = {
                 'video_profile': stream_profile,
                 'container': 'm3u8',
@@ -177,15 +174,12 @@ class Iqiyi(VideoExtractor):
 
         def push_stream_bid(url_prefix, bid, container, fs_array, size):
             stream = self.vd_2_id[bid]
-            if stream in info.streams:
-                return
             real_urls = []
             for seg_info in fs_array:
                 url = url_prefix + seg_info['l']
                 json_data = get_response(url).json()
                 down_url = json_data['l']
                 real_urls.append(down_url)
-            info.stream_types.append(stream)
             stream_profile = self.id_2_profile[stream]
             info.streams[stream] = {
                 'video_profile': stream_profile,
@@ -205,7 +199,6 @@ class Iqiyi(VideoExtractor):
                 push_stream_vd(vs)
             vip_conf = tmts_data['data'].get('ctl', {}).get('configs')
             if vip_conf:
-                # prefer H264 than H265
                 for vds in (('5', '18'), ('10', '19')):
                     for vd in vds:
                         if vd in vip_conf:
@@ -250,7 +243,8 @@ class Iqiyi(VideoExtractor):
                 break
             except AssertionError:
                 break
-            except:
+            except Exception as e:
+                self.logger.debug(e, exc_info=True)
                 continue
 
         assert info.streams, "can't play this video!!"

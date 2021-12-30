@@ -3,11 +3,11 @@
 from .._common import *
 
 
-class NeteaseLive(VideoExtractor):
+class NeteaseLive(Extractor):
     name = '网易直播 (163)'
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
 
         if self.vid is None:
             self.vid = match1(self.url, 'room/(\d+)')
@@ -24,7 +24,6 @@ class NeteaseLive(VideoExtractor):
             pass
 
         url = data['liveVideoUrl']
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': url.split('.')[-1],
             'video_profile': 'current',

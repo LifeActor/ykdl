@@ -3,11 +3,11 @@
 from ._common import *
 
 
-class Yizhibo(VideoExtractor):
+class Yizhibo(Extractor):
     name = 'Yizhibo (一直播)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         info.live = True
         self.vid = self.url[self.url.rfind('/')+1:].split('.')[0]
 
@@ -19,7 +19,6 @@ class Yizhibo(VideoExtractor):
 
         info.title = data['live_title']
         info.artist = data['nickname']
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'm3u8',
             'video_profile': 'current',

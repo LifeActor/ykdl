@@ -62,7 +62,8 @@ class BiliBase(VideoExtractor):
 
             if qn == 0:
                 aqlts = data['accept_quality'].split(',')
-                aqlts.remove(data['quality'])
+                if data['quality'] in aqlts:
+                    aqlts.remove(data['quality'])
                 for aqlt in aqlts:
                     get_video_info(int(aqlt))
 

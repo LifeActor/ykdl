@@ -5,10 +5,8 @@ import sys
 import os
 try:
     import ykdl
-except(ImportError):
-    _base_len = len('cykdl/__main__.py')
-    _filepath = os.path.abspath(sys.argv[0])[:-_base_len]
-    sys.path[0] = _filepath
+except ImportError:
+    sys.path.insert(0, os.path.abspath(__file__ + '/../..'))
     import ykdl
 
 from argparse import ArgumentParser
@@ -19,15 +17,17 @@ import types
 import ast
 from urllib.request import ProxyHandler, HTTPSHandler, getproxies
 from urllib.parse import urlparse
+from tempfile import NamedTemporaryFile
 
 import logging
 logger = logging.getLogger('YKDL')
 
 from ykdl.common import url_to_module
-from ykdl.util.http import add_default_handler, install_default_handlers
-from ykdl.util.external import launch_player, launch_ffmpeg, launch_ffmpeg_download
-from ykdl.util.m3u8 import live_m3u8, load_m3u8
+from ykdl.util.http import add_default_handler, reset_headers, uninstall_cookie, get_response
+from ykdl.util.external import launch_player, launch_ffmpeg_merge, launch_ffmpeg_download
+from ykdl.util.m3u8 import live_m3u8, crypto_m3u8, load_m3u8, _load as _load_m3u8
 from ykdl.util.download import save_urls
+from ykdl.util.wrap import literalize
 from ykdl.version import __version__
 
 m3u8_internal = True
@@ -63,21 +63,20 @@ def clean_slices(name, ext, lenth):
         os.remove(file_name)
 
 def download(urls, name, ext, live=False):
-    # ffmpeg can't handle local m3u8.
-    # only use ffmpeg to hanle m3u8.
-    global m3u8_internal
-    # for live video, always use ffmpeg to rebuild timeline.
-    if ext == 'm3u8' and not live:
-        live = live_m3u8(urls[0])
-    if live:
-        m3u8_internal = False
-    # rebuild m3u8 urls when use internal downloader,
-    # change the ext to segment's ext, default is 'ts',
-    # otherwise change the ext to 'flv' or 'mp4'.
+    url = urls[0]
+    m3u8_crypto = False
     audio = subtitle = None
+    # for live video, always use ffmpeg to rebuild timeline.
+    if not live and ext == 'm3u8':
+        live = live_m3u8(url)
+    internal = not live and m3u8_internal
     if ext == 'm3u8':
-        if m3u8_internal:
-            urls, audio, subtitle = load_m3u8(urls[0])
+        m3u8_crypto = crypto_m3u8(url)
+        # rebuild m3u8 urls when use internal downloader,
+        # change the ext to segment's ext, default is "ts",
+        # otherwise change the ext to "flv" or "mp4".
+        if internal:
+            urls, audio, subtitle = load_m3u8(url)
             ext = urlparse(urls[0])[2].split('.')[-1]
             if ext not in ['ts', 'm4s', 'mp4', 'm4a']:
                 ext = 'ts'
@@ -85,17 +84,44 @@ def download(urls, name, ext, live=False):
             ext = 'flv'
         else:
             ext = 'mp4'
+    elif ext == 'mpd':
+        # very slow
+        # and now, it has many problems
+        # TODO: implement internal download/merge process
+        internal = False
+        ext = 'mp4'
 
-    # OK check m3u8_internal
-    if not m3u8_internal:
-        launch_ffmpeg_download(urls[0], name + '.' + ext)
+    # OK check internal
+    if not internal:
+        launch_ffmpeg_download(url, name + '.' + ext, allow_all_ext=m3u8_crypto)
     else:
         if save_urls(urls, name, ext, jobs=args.jobs,
                      fail_confirm=not args.no_fail_confirm,
                      fail_retry_eta=args.fail_retry_eta):
             lenth = len(urls)
             if lenth > 1 and not args.no_merge:
-                launch_ffmpeg(name, ext, lenth)
+                if m3u8_crypto:
+                    # use ffmpeg to merge internal downloaded m3u8
+                    # build the local m3u8, and then the headers cannot be set
+                    lm3u8 = NamedTemporaryFile(mode='w+t', suffix='.m3u8',
+                                               dir='.', encoding='utf-8')
+                    lkeys = []  # temp keys' references
+                    m = _load_m3u8(url)
+                    for k in m.keys + m.session_keys:
+                        if k and k.uri:
+                            key = NamedTemporaryFile(mode='w+b', suffix='.key',
+                                                     dir='.')
+                            key.write(get_response(k.absolute_uri).content)
+                            key.flush()
+                            k.uri = os.path.basename(key.name)
+                            lkeys.append(key)
+                    for i, seg in enumerate(m.segments):
+                        seg.uri = '%s_%d.%s' % (name, i, ext)
+                    lm3u8.write(m.dumps())
+                    lm3u8.flush()
+                    launch_ffmpeg_download(lm3u8.name, name + '.mp4', False, True)
+                else:
+                    launch_ffmpeg_merge(name, ext, lenth)
                 clean_slices(name, ext, lenth)
         else:
             logger.critical('{}> donwload failed'.format(name))
@@ -106,7 +132,7 @@ def download(urls, name, ext, live=False):
                          fail_confirm=not args.no_fail_confirm,
                          fail_retry_eta=args.fail_retry_eta):
                 if lenth > 1 and not args.no_merge:
-                    launch_ffmpeg(name, ext, lenth)
+                    launch_ffmpeg_merge(name, ext, lenth)
                     clean_slices(name, ext, lenth)
             else:
                 logger.critical('{}> HLS audio donwload failed'.format(name))
@@ -127,27 +153,24 @@ def download_subtitles(subtitles, name):
 
 def handle_videoinfo(info, index=0):
     i = args.format or '0'
-    if i.isdigit():
+    if i.isdecimal():
         i = int(i)
-        if i > len(info.stream_types):
-             i =  len(info.stream_types) -1
-        stream_id = info.stream_types[i]
+        if i > len(info.streams) -1:
+             i = -1
     else:
-        if not i in info.stream_types:
-            stream_id = info.stream_types[0]
-        else:
-            stream_id = i
-    if not args.json:
-        info.print_info(stream_id, args.info)
-    else:
+        i = info.streams.index(i)
+    stream_id = info.streams.get_id(i)
+    if args.json:
         print(json.dumps(info.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False))
+    else:
+        info.print_info(stream_id, args.info)
     if args.info or args.json:
         return
     urls = info.streams[stream_id]['src']
     name = args.output_name
     if name:
         if '\\u' in name:
-            name = ast.literal_eval('"{}"'.format(name))
+            name = literalize(name)
         if args.playlist:
             name = name + '_' + str(index)
     else:
@@ -175,7 +198,7 @@ def handle_videoinfo(info, index=0):
 def main():
     arg_parser()
     if not args.debug:
-        logging.root.setLevel(logging.WARNING)
+        logging.root.setLevel(logging.INFO)
     else:
         logging.root.setLevel(logging.DEBUG)
 
@@ -230,7 +253,6 @@ def main():
     proxy_handler = ProxyHandler(proxies)
 
     add_default_handler(proxy_handler)
-    install_default_handlers()
 
     #mkdir and cd to output dir
     if not args.output_dir == '.':
@@ -247,6 +269,8 @@ def main():
     exit = 0
     try:
         for url in args.video_urls:
+            reset_headers()
+            uninstall_cookie()
             try:
                 m, u = url_to_module(url)
                 if args.playlist:
@@ -268,7 +292,7 @@ def main():
                 logger.critical(str(e))
                 exit = 1
             except (RuntimeError, NotImplementedError, SyntaxError) as e:
-                logger.error(str(e))
+                logger.error(repr(e))
                 exit = 1
     except KeyboardInterrupt:
         logger.info('Interrupted by Ctrl-C')

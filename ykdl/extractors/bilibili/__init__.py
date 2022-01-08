@@ -4,13 +4,10 @@ from .._common import *
 from .idconvertor import av2bv
 
 
-API_view = 'https://api.bilibili.com/x/web-interface/view?bvid='
-
-add_default_handler(HTTPCookieProcessor)
-install_default_handlers()
-add_header('Referer', 'https://www.bilibili.com/')
-
 def get_extractor(url):
+    install_cookie()
+    add_header('Referer', 'https://www.bilibili.com/')
+
     if 'live.bilibili' in url:
         from . import live as s
         return s.site, url
@@ -31,7 +28,8 @@ def get_extractor(url):
 
     if bv_id:
         try:
-            data = get_response(API_view + bv_id).json()
+            data = get_response('https://api.bilibili.com/x/web-interface/view',
+                                params={'bvid': bv_id}).json()
             assert data['code'] == 0, "can't play this video!!"
             url = data['data']['redirect_url']
         except AssertionError:

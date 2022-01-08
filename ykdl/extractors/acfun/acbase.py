@@ -3,7 +3,7 @@
 from .._common import *
 
 
-class AcBase(VideoExtractor):
+class AcBase(Extractor):
 
     quality_2_id = {
         2160: '4K',
@@ -15,7 +15,7 @@ class AcBase(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         html = get_content(self.url)
         info.title, info.artist, sourceVid, m3u8Info = self.get_page_info(html)
 
@@ -23,19 +23,14 @@ class AcBase(VideoExtractor):
         self.logger.debug('m3u8Info:\n%s', m3u8Info)
         url = random.choice(['url', 'backupUrl'])
         for q in m3u8Info:
-            if q['frameRate'] > 30:
-                # drop 60 FPS
-                continue
             quality = int(match1(q['qualityType'], '(\d+)'))
             stream_type = self.quality_2_id[quality]
+            if q['frameRate'] > 30:
+                stream_type += '-f' + str(int(q['frameRate'] + 0.1))
             stream_profile = q['qualityLabel']
             urls = q[url]
             if not isinstance(urls, list):
                 urls = [urls]
-            if stream_type not in info.streams:
-                info.stream_types.append(stream_type)
-            else:
-                continue
             info.streams[stream_type] = {
                 'container': 'm3u8',
                 'video_profile': stream_profile,

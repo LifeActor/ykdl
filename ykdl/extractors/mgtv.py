@@ -23,7 +23,7 @@ def generate_tk2(did):
     s = 'did={}|pno=1030|ver=0.3.0301|clit={}'.format(did, int(time.time()))
     return encode_tk2(s)
 
-class Hunantv(VideoExtractor):
+class Hunantv(Extractor):
     name = '芒果TV (HunanTV)'
 
     profile_2_types = {
@@ -35,8 +35,8 @@ class Hunantv(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name)
-        self.install_cookie()
+        info = MediaInfo(self.name)
+        install_cookie()
         add_header('Referer', self.url)
 
         if self.url and not self.vid:
@@ -46,7 +46,6 @@ class Hunantv(VideoExtractor):
             if self.vid is None:
                 html = get_content(self.url)
                 if match1(self.url, 'com/h/(\d+).html'):
-                    from ykdl.util.jsengine import JSEngine
                     assert JSEngine, 'No JS Interpreter found!!!'
                     js_ctx = JSEngine()
                     js = match1(html, '<script>window.__NUXT__=(.+);</script>')
@@ -95,7 +94,6 @@ class Hunantv(VideoExtractor):
                     'video_profile': video_profile,
                     'src' : [url]
                 }
-                info.stream_types.append(stream)
 
         info.extra['referer'] = self.url
         return info

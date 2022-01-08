@@ -4,7 +4,7 @@ from .._common import *
 from .util import get_h5enc, ub98484234
 
 
-class DouyutvVideo(VideoExtractor):
+class DouyutvVideo(Extractor):
     name = '斗鱼视频 (DouyuTV)'
 
     profile_2_id = {
@@ -14,7 +14,7 @@ class DouyutvVideo(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         pid = match1(self.url, 'show/(.*)')
         if 'vmobile' in self.url:
             self.url = 'https://v.douyu.com/show/' + pid
@@ -28,9 +28,8 @@ class DouyutvVideo(VideoExtractor):
         ub98484234(js_enc, self, params)
 
         add_header('Referer', self.url)
-        add_header('Cookie', 'dy_did=' + params['did'])
-
         video_data = get_response('https://v.douyu.com/api/stream/getStreamUrl',
+                                  {'Cookie': 'dy_did=' + params['did']},
                                   data=params).json()
         assert video_data['error'] == 0, video_data
 
@@ -38,7 +37,6 @@ class DouyutvVideo(VideoExtractor):
             if not st_date:
                 continue
             stream = self.profile_2_id[video_profile]
-            info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': 'm3u8',
                 'video_profile': video_profile,

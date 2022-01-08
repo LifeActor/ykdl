@@ -3,7 +3,7 @@
 from ._common import *
 
 
-class YinYueTai(VideoExtractor):
+class YinYueTai(Extractor):
     name = 'YinYueTai (音乐台)'
 
     types_2_id_profile = {
@@ -14,7 +14,7 @@ class YinYueTai(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         if not self.vid:
             self.vid = match1(self.url,
                               '//\w+.yinyuetai.com/video/(?:h5/)?(\d+)')
@@ -32,7 +32,6 @@ class YinYueTai(VideoExtractor):
 
         for s in video_data['videoUrlModels']:
             stream_id, video_profile = self.types_2_id_profile[s['qualityLevel']]
-            info.stream_types.append(stream_id)
             info.streams[stream_id] = {
                 'container': 'flv',
                 'video_profile': video_profile,

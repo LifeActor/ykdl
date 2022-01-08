@@ -3,18 +3,17 @@
 from .._common import *
 
 
-class IfengVideo(VideoExtractor):
+class IfengVideo(Extractor):
     name = '凤凰视频 (ifeng video)'  # Expired
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         self.vid = self.url[-13: -6]
         info.title = self.name + '-' + self.vid
         data = get_response(
                 'http://tv.ifeng.com/html5/{self.vid}/video.json'
                 .format(**vars())).json()
         if 'bqSrc' in data:
-            info.stream_types.append('SD')
             info.streams['SD'] = {
                 'container': 'mp4',
                 'video_profile': '标清',
@@ -22,7 +21,6 @@ class IfengVideo(VideoExtractor):
                 'size': 0
             }
         if 'gqSrc' in data:
-            info.stream_types.append('HD')
             info.streams['HD'] = {
                 'container': 'mp4',
                 'video_profile': '高清',

@@ -3,11 +3,11 @@
 from .._common import *
 
 
-class TikTok(VideoExtractor):
+class TikTok(Extractor):
     name = '抖音 (TikTok)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         vid = match1(self.url, '(?:video/|vid=)(\d+)')
         data = get_response('https://www.douyin.com/web/api/v2/aweme/iteminfo/',
                             params={'item_ids': vid}).json()
@@ -20,7 +20,6 @@ class TikTok(VideoExtractor):
 
         info.title = '{title} - {nickName}(@{uid})'.format(**vars())
         info.artist = nickName
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'mp4',
             'video_profile': 'current',

@@ -28,7 +28,7 @@ def getlive(uid, rate='source'):
     return get_response('https://m-glider-xiu.pps.tv/v2/stream/get.json',
                         data=params).json()
 
-class PPS(VideoExtractor):
+class PPS(Extractor):
     name = '奇秀（Qixiu)'
 
     rate_2_id_profile = {
@@ -38,7 +38,7 @@ class PPS(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
         html = get_content(self.url)
         self.vid = match1(html, '"user_id":"([^"]+)",')
         title = json.loads(match1(html, '"room_name":("[^"]*"),'))
@@ -59,7 +59,6 @@ class PPS(VideoExtractor):
                 sep = '?' in url and '&' or '?'
                 url = '{url}{sep}ran={ran}'.format(**vars())
                 stream_id, stream_profile = self.rate_2_id_profile[rate]
-                info.stream_types.append(stream_id)
                 info.streams[stream_id] = {
                     'video_profile': stream_profile,
                     'container': 'flv',
@@ -82,7 +81,7 @@ class PPS(VideoExtractor):
         error_msg = get_live_info()
         if error_msg:
             self.logger.debug('error_msg:\n' + error_msg)
-        assert len(info.stream_types), error_msg or "can't play this live video!!"
+        assert info.streams, error_msg or "can't play this live video!!"
 
         return info
 

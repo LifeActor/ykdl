@@ -3,7 +3,7 @@
 from ._common import *
 
 
-class CNTV(VideoExtractor):
+class CNTV(Extractor):
     name = '央视网 (CNTV)'
 
     supported_chapters = [
@@ -15,7 +15,7 @@ class CNTV(VideoExtractor):
         ['lowChapters', 'LD', '流畅']]
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         self.vid = match1(self.url, '(?:guid|videoCenterId)=(\w+)',
                                     '(\w+)/index\.shtml')
         if self.url and not self.vid:
@@ -42,7 +42,6 @@ class CNTV(VideoExtractor):
                 urls = []
                 for v in stream_data:
                    urls.append(v['url'])
-                info.stream_types.append(stream_type)
                 info.streams[stream_type] = {
                     'container': 'mp4',
                     'video_profile': profile,

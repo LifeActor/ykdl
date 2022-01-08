@@ -126,7 +126,7 @@ def human_time(t, days=False):
     return ':'.join('%02d' % t for t in pt)
 
 def format_vps(*wh):
-    '''Convert giving width and height to stream ID and progressive scan marking.
+    '''Convert giving width/height to stream Format and progressive scan marking.
 
     e.g.
         1920, 1080      => 'BD', '1080P'
@@ -145,36 +145,36 @@ def format_vps(*wh):
     max_ps, min_ps = max(wh), min(wh)
     ps = abs(max_ps / min_ps * 3 - 4) < 0.5 and max_ps * 4 / 3 or max_ps
     if ps <= 480:
-        id = 'LD'
+        fmt = 'LD'
     elif ps <= 640:
-        id = 'SD'
+        fmt = 'SD'
     elif ps <= 960:
-        id = 'HD'
+        fmt = 'HD'
     elif ps <= 1280:
-        id = 'TD'
+        fmt = 'TD'
     elif ps <= 1920:
-        id = 'BD'
+        fmt = 'BD'
     elif ps <= 2560:
-        id = '2K'
+        fmt = '2K'
     else:
-        id = '{:.1f}'.format(ps/1000).rstrip('0').rstrip('.') + 'K'
-    return id, str(min_ps) + 'P'
+        fmt = '{:.1f}'.format(ps/1000).rstrip('0').rstrip('.') + 'K'
+    return fmt, str(min_ps) + 'P'
 
 _stream_index = 'OG', '*K', 'BD', 'TD', 'HD', 'SD', 'LD'
 
-def stream_index(id):
-    '''Used by ..videoinfo.VideoInfo.sort().'''
-    if id.isdecimal():
-        return -int(id), id  # m3u8 bandwidth
-    id = id.upper()
+def stream_index(fmt):
+    '''Used by ..mediainfo.MediaStreams.'''
+    if fmt.isdecimal():
+        return -int(fmt)  # m3u8 bandwidth
+    fmt = fmt.upper()
     i = 0
-    if id.endswith('K'):  # 3.5K
-        i += float(id[:-1]) * 0.01
-        id = '*K'
-    elif len(id) > 2 and id.startswith('BD'):  # BD4M
-        i += float(id[2:-1]) * 0.01
-        id = 'BD'
+    if fmt.endswith('K'):  # 3.5K
+        i += float(fmt[:-1]) * 0.01
+        fmt = '*K'
+    elif len(fmt) > 2 and fmt.startswith('BD'):  # BD4M
+        i += float(fmt[2:-1]) * 0.01
+        fmt = 'BD'
     try:
-        return _stream_index.index(id) - i, id
+        return _stream_index.index(fmt) - i
     except ValueError:
-        return 0, id
+        return 0

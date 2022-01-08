@@ -3,11 +3,11 @@
 from .._common import *
 
 
-class QQLive(VideoExtractor):
+class QQLive(Extractor):
     name = 'QQ Live (企鹅直播)'
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
         if not self.vid:
             self.vid = match1(self.url, '/(\d+)')
         if not self.vid:
@@ -24,7 +24,6 @@ class QQLive(VideoExtractor):
         info.title = livedata['room_name']
         info.artist = livedata['nickname']
 
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'flv',
             'video_profile': 'current',

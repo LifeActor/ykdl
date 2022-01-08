@@ -3,6 +3,8 @@
 from .._common import *
 from .util import cmd5x_iqiyi3 as cmd5x
 
+# May be closed, see x.pps.tv
+
 
 def getlive(vid):
     tm = time.time()
@@ -28,10 +30,9 @@ def getlive(vid):
     st = int(tm * 1000)
     et = int((tm + 1296000) * 1000)
     c_dfp = '__dfp={dfp}@{et}@{st}'.format(**vars())
-    add_header('Cookie', c_dfp)
-    return get_response(req_url).json()
+    return get_response(req_url, {'Cookie': c_dfp}).json()
 
-class IqiyiLive(VideoExtractor):
+class IqiyiLive(Extractor):
     name = '爱奇艺直播 (IqiyiLive)'
 
     type_2_id = {
@@ -44,17 +45,15 @@ class IqiyiLive(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
         html = get_content(self.url)
-        self.vid = match1(html, '"qipuId":(\d+),')
-        title = match1(html, '"roomTitle":"([^"]+)",')
-        artist = match1(html, '"anchorNickname":"([^"]+)",')
-        info.title = '{title} - {artist}'.format(**vars())
-        info.artist = artist
+        self.vid = match1(html, '"qpId":(\d+)')
 
         data = getlive(self.vid)
         assert data['code'] == 'A00000', data.get('msg', "can't play this live video!!")
         data = data['data']
+        assert data['liveType'] != 2, "can't play this live video!!"
+        info.title = data['name']
 
         for stream in data['streams']:
             stream_type = stream['steamType']  # typo 'streamType' to 'steamType'
@@ -85,8 +84,6 @@ class IqiyiLive(VideoExtractor):
                 ext = 'm3u8'
 
             stream_profile = stream['screenSize']
-            if stream_id not in info.streams:
-                 info.stream_types.append(stream_id)
             info.streams[stream_id] = {
                 'video_profile': stream_profile,
                 'container': ext,
@@ -94,11 +91,7 @@ class IqiyiLive(VideoExtractor):
                 'size': float('inf')
             }
 
-        assert info.stream_types, 'can\'t play this live video!!'
-        if len(info.stream_types) == 1:
-            info.streams['current'] = info.streams.pop(info.stream_types[0])
-            info.stream_types[0] = 'current'
-
+        assert info.streams, "can't play this live video!!"
         return info
 
 site = IqiyiLive()

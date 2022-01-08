@@ -5,11 +5,11 @@ from ._common import *
 import datetime
 
 
-class Laifeng(VideoExtractor):
+class Laifeng(Extractor):
     name = 'laifeng (来疯直播)'
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
 
         html = get_content(self.url)
         info.artist = match1(html, 'anchorName:\s*\'([^\']+)',
@@ -35,7 +35,6 @@ class Laifeng(VideoExtractor):
         assert data['Code'] == 'Success', data['Message']
 
         stream_url = data['HttpFlv'][0]['Url']
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'flv',
             'video_profile': 'current',

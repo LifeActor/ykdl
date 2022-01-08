@@ -3,13 +3,13 @@
 from ._common import *
 
 
-class Baomihua(VideoExtractor):
+class Baomihua(Extractor):
     # https://www.baomihua.com/
     name = '爆米花（Baomihua)'
 
     def prepare(self):
 
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         if self.url:
             self.vid = match1(self.url, '_(\d+)', 'm/(\d+)', 'v/(\d+)')
 
@@ -21,7 +21,7 @@ class Baomihua(VideoExtractor):
                                 'devicetype': 'wap'
                             }).json()
 
-        info.title = unquote(data['title'])
+        info.title = data['title']
         host = data['host']
         stream_name = data['stream_name']
         t = data['videofiletype']
@@ -29,7 +29,6 @@ class Baomihua(VideoExtractor):
 
         hls = data['ishls']
         url = 'http://{host}/{hls}/{stream_name}.{t}'.format(**vars())
-        info.stream_types.append('current')
         info.streams['current'] = {
             'video_profile': 'current',
             'container': t,

@@ -1,13 +1,14 @@
 '''Wrap the functions of official packages which have been frequent used.'''
 
 import os
+import ast
+import json
 import random
 import string
 import pkgutil
-import collections
 
 
-__all__ = ['get_pkgdata_str', 'get_pkgdata_bytes', 'hash',
+__all__ = ['get_pkgdata_str', 'get_pkgdata_bytes', 'hash', 'literalize',
            'get_random_hex', 'get_random_str', 'get_random_name',
            'get_random_id', 'get_random_uuid', 'get_random_uuid_hex']
 
@@ -96,6 +97,13 @@ class HASH:
 
 hash = HASH()  # ISSUE: same name as built-in function
 del HASH
+
+def literalize(s, JSON=False):
+    '''Literalize the giving string as a Python/JSON literal.'''
+    if JSON:
+        return json.loads('"{}"'.format(s))
+    else:
+        return ast.literal_eval('"""{}"""'.format(s))
 
 _id_cache = {}
 _ascii_letters_digits = string.ascii_letters + string.digits

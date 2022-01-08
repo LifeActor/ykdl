@@ -3,7 +3,7 @@
 from .._common import *
 
 
-class BiliLive(VideoExtractor):
+class BiliLive(Extractor):
     name = 'Bilibili live (哔哩哔哩 直播)'
 
     profile_2_id = {
@@ -16,7 +16,7 @@ class BiliLive(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
 
         ID = match1(self.url, '/(\d+)')
         api1_data = get_response(
@@ -64,8 +64,7 @@ class BiliLive(VideoExtractor):
             ext = 'flv'
             prf = aqlts[qlt]
             st = self.profile_2_id[prf]
-            if urls and st not in info.streams:
-                info.stream_types.append(st)
+            if urls:
                 info.streams[st] = {
                     'container': ext,
                     'video_profile': prf,

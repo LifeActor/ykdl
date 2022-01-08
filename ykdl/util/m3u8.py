@@ -1,12 +1,13 @@
 from logging import getLogger
 
+from ..mediainfo import MediaStreams
 from .http import get_response
 from .human import format_vps
 
 logger = getLogger(__name__)
 
 
-__all__ = ['live_m3u8', 'load_m3u8_playlist', 'load_m3u8']
+__all__ = ['live_m3u8', 'crypto_m3u8', 'load_m3u8_playlist', 'load_m3u8']
 
 def no_m3u8_warning():
     logger.warning('No python-m3u8 found, use stub m3u8!!! '
@@ -32,16 +33,20 @@ except:
         no_m3u8_warning()
         return None
 
+    def crypto_m3u8(url):
+        no_m3u8_warning()
+        return None
+
     def load_m3u8_playlist(url):
         no_m3u8_warning()
-        stream_types = ['current']
+        streams = MediaStreams()
         streams['current'] = {
             'container': 'm3u8',
             'video_profile': 'current',
             'src' : [url],
             'size': 0
         }
-        return stream_types, streams
+        return streams
 
     def load_m3u8(url):
         no_m3u8_warning()
@@ -104,6 +109,10 @@ else:
             m = _load(ll[0].absolute_uri)
         return not (m.is_endlist or m.playlist_type == 'VOD')
 
+    def crypto_m3u8(url):
+        m = _load(url)
+        return any(m.keys + m.session_keys)  # ignore method NONE
+
     def _get_stream_info(l, name):
         return getattr(getattr(l, 'stream_info',
                                getattr(l, 'iframe_stream_info', None)),
@@ -112,7 +121,6 @@ else:
     def load_m3u8_playlist(url):
 
         def append_stream(stype, profile, urls):
-            stream_types.append(stype)
             streams[stype] = {
                 'container': 'm3u8',
                 'video_profile': profile,
@@ -120,8 +128,7 @@ else:
                 'size': 0
             }
 
-        stream_types = []
-        streams = {}
+        streams = MediaStreams()
         m = _load(url)
         ll = m.playlists or m.iframe_playlists
         if ll:
@@ -134,7 +141,7 @@ else:
                     append_stream(bandwidth, bandwidth, [l.absolute_uri])
         else:
             append_stream('current','current', [url])
-        return stream_types, streams
+        return streams
 
     def load_m3u8(url):
 

@@ -3,11 +3,11 @@
 from .._common import *
 
 
-class HuajiaoVideo(VideoExtractor):
+class HuajiaoVideo(Extractor):
     name = 'huajiao video (花椒小视频)'
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
 
         self.vid = match1(self.url, 'vid=(\d+)')
 
@@ -24,7 +24,6 @@ class HuajiaoVideo(VideoExtractor):
 
         info.artist = data['user_name']
         info.title = data['video_name']
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'mp4',
             'src': [data['video_url']],

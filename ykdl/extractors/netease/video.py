@@ -3,11 +3,11 @@
 from .._common import *
 
 
-class NeteaseVideo(VideoExtractor):
+class NeteaseVideo(Extractor):
     name = '网易视频 (163)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         if self.vid is None:
             self.vid = match1(self.url, '(\w+)\.html')
@@ -22,7 +22,6 @@ class NeteaseVideo(VideoExtractor):
         data = data['data']
         info.title = data['title']
         info.artist = data.get('username')
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'mp4',
             'video_profile': 'current',

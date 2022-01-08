@@ -3,11 +3,11 @@
 from .._common import *
 
 
-class Embed(VideoExtractor):
+class Embed(Extractor):
     name = '新浪视频 (sina)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         vid = match1(self.url, '/(\d+)\.mp4')
         if vid:
@@ -17,7 +17,6 @@ class Embed(VideoExtractor):
         elif 'vid=' in self.url:
             r_url = get_location(self.url)
 
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'mp4',
             'video_profile': 'current',

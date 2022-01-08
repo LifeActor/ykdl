@@ -145,14 +145,14 @@ def split_cmd_urls(cmd, urls):
         cmds = [_cmd]
     return cmds
 
-def launch_ffmpeg(basename, ext, lenth):
+def launch_ffmpeg_merge(basename, ext, lenth):
     print('Merging video %s using FFmpeg:' % basename)
     if ext == 'ts':
         outputfile = basename + '.mp4'
     else:
         outputfile = basename + '.' + ext
 
-    if ext in ['ts', 'mpg', 'mpeg']:
+    if ext in ['ts', 'm4s', 'm4f', 'mpg', 'mpeg']:
         cmd = [ 'ffmpeg',
                 '-y', '-hide_banner',
                 '-i', '-',
@@ -188,7 +188,7 @@ def launch_ffmpeg(basename, ext, lenth):
             cmd[-1:-1] = ['-bsf:a', 'aac_adtstoasc']
         subprocess.call(cmd)
 
-def launch_ffmpeg_download(url, name):
+def launch_ffmpeg_download(url, name, set_headers=True, allow_all_ext=False):
     print('Now downloading: %s' % name)
     logger.warning('''
 =================================
@@ -198,12 +198,17 @@ def launch_ffmpeg_download(url, name):
 
     cmd = [ 'ffmpeg',
             '-y', '-hide_banner',
-            '-headers', ''.join('%s: %s\r\n' % x for x in fake_headers.items()),
             '-i', url,
             '-c', 'copy',
-            '-bsf:a', 'aac_adtstoasc',
             name ]
+    if name.endswith('.mp4'):
+        cmd[-1:-1] = ['-bsf:a', 'aac_adtstoasc']
     if os.path.isfile(url):
-       cmd[2:2] = ['-protocol_whitelist', 'file,http,https,tls,rtp,tcp,udp,crypto,httpproxy']
+        cmd[3:3] = ['-protocol_whitelist', 'file,http,https,tls,rtp,tcp,udp,crypto,httpproxy']
+    if set_headers:
+        # can use for only HTTP protocol
+        cmd[3:3] = ['-headers', ''.join('%s: %s\r\n' % x for x in fake_headers.items())]
+    if allow_all_ext:
+        cmd[3:3] = ['-allowed_extensions', 'ALL']
 
     subprocess.call(cmd)

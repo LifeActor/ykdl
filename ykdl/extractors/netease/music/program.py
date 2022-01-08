@@ -12,7 +12,6 @@ class NeteaseDj(NeteaseMusicBase):
         return data['program']['mainSong']
 
     def prepare_list(self):
-        add_header('Referer', 'http://music.163.com/')
         vid =  match1(self.url, '\?id=([^&]+)')
         if 'djradio' in self.url:
             listdata =  get_response(

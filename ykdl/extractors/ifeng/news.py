@@ -3,7 +3,7 @@
 from .._common import *
 
 
-class Ifeng(VideoExtractor):
+class Ifeng(Extractor):
     name = '凤凰新闻 (ifeng news)'  # EXPIRED
 
     types_2_id_profile = {
@@ -13,7 +13,7 @@ class Ifeng(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         if not self.vid:
             self.vid= match1(self.url, '#([a-zA-Z0-9\-]+)',
                                        '/([a-zA-Z0-9\-]+).shtml')
@@ -29,17 +29,16 @@ class Ifeng(VideoExtractor):
         info.title = doc.getElementsByTagName('item')[0].getAttribute('Name')
         videos = doc.getElementsByTagName('videos')
         for v in videos[0].getElementsByTagName('video'):
-            if v.getAttribute('mediaType') == 'mp4':
-                _t = v.getAttribute('type')
-                _u = v.getAttribute('VideoPlayUrl')
-                stream, profile = self.types_2_id_profile[_t]
-                info.stream_types.append(stream)
-                info.streams[stream] = {
-                    'container': 'mp4',
-                    'video_profile': profile,
-                    'src' : [_u],
-                    'size': 0
-                    }
+            ext = v.getAttribute('mediaType')
+            _t = v.getAttribute('type')
+            _u = v.getAttribute('VideoPlayUrl')
+            stream, profile = self.types_2_id_profile[_t]
+            info.streams[stream] = {
+                'container': ext,
+                'video_profile': profile,
+                'src' : [_u],
+                'size': 0
+                }
 
         return info
 

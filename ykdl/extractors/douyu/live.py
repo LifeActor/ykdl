@@ -9,7 +9,7 @@ douyu_match_pattern = [
     'data-room_id="([^"]+)'
 ]
 
-class Douyutv(VideoExtractor):
+class Douyutv(Extractor):
     name = '斗鱼直播 (DouyuTV)'
 
     profile_2_id = {
@@ -24,7 +24,7 @@ class Douyutv(VideoExtractor):
      }
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
         add_header('Referer', 'https://www.douyu.com')
 
         html = get_content(self.url)
@@ -72,9 +72,6 @@ class Douyutv(VideoExtractor):
                 stream = 'OG'
             else:
                 stream = self.profile_2_id[video_profile]
-            if stream in info.streams:
-                return
-            info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': match1(live_data['rtmp_live'], '\.(\w+)\?'),
                 'video_profile': video_profile,
@@ -94,7 +91,7 @@ class Douyutv(VideoExtractor):
                 return ', '.join(error_msges)
 
         error_msg = get_live_info()
-        assert len(info.stream_types), error_msg
+        assert info.streams, error_msg
         return info
 
     def prepare_list(self):

@@ -3,7 +3,7 @@
 from .._common import *
 
 
-class HuyaLive(VideoExtractor):
+class HuyaLive(Extractor):
     name = 'Huya Live (虎牙直播)'
 
     def profile_2_id(self, profile):
@@ -18,7 +18,7 @@ class HuyaLive(VideoExtractor):
             }[profile]
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
 
         html  = get_content(self.url)
 
@@ -47,7 +47,7 @@ class HuyaLive(VideoExtractor):
         sUrlSuffix = stream_info['sFlvUrlSuffix']
         _url = '{sUrl}/{sStreamName}.{sUrlSuffix}?'.format(**vars())
 
-        reSecret = not screenType and liveSourceType in (8, 13)
+        reSecret = not screenType and liveSourceType in (0, 8, 13)
         params = dict(parse_qsl(unescape(stream_info['sFlvAntiCode'])))
         if reSecret:
             params.setdefault('t', '100')  # 102
@@ -65,6 +65,7 @@ class HuyaLive(VideoExtractor):
                  'u': str(u),
                  'seqid': str(int(ct * 1000) + uid),
                  'ver': '1',
+                 'uuid': int(ct % 1e7 * 1e6 % 0xffffffff),
              })
             fm = base64.b64decode(params['fm']).decode().split('_', 1)[0]
             ss = hash.md5('|'.join([params['seqid'], params['ctype'], params['t']]))
@@ -81,7 +82,6 @@ class HuyaLive(VideoExtractor):
                 params['wsSecret'] = hash.md5('_'.join(
                             [fm, params['u'], sStreamName, ss, params['wsTime']]))
             url = _url + urlencode(params, safe='*')
-            info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': 'flv',
                 'video_profile': video_profile,

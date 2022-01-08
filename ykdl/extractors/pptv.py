@@ -3,7 +3,7 @@
 from ._common import *
 
 
-class PPTV(VideoExtractor):
+class PPTV(Extractor):
     # https://tv.pptv.com/
     name = 'PPTV (PP聚力)'
 
@@ -16,7 +16,7 @@ class PPTV(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         html = get_content(self.url)
         self.vid = match1(html, '"(?:c|ps)id":"?(\d+)')
@@ -61,8 +61,6 @@ class PPTV(VideoExtractor):
 
             stype = format_vps(item['@width'], item['@height'])[0]
             video_profile = self.id_2_profile[stype]
-            if stype not in info.stream_types:
-                info.stream_types.append(stype)
             info.streams[stype] = {
                 'container': 'mp4',
                 'video_profile': video_profile,

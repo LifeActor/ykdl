@@ -3,11 +3,11 @@
 from .._common import *
 
 
-class NeteaseLive(VideoExtractor):
+class NeteaseLive(Extractor):
     name = '网易CC直播 (163)'
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
         if not self.vid:
             html = get_content(self.url)
             raw_data = match1(html, '<script id="__NEXT_DATA__".*?>(.*?)</script>')
@@ -33,7 +33,6 @@ class NeteaseLive(VideoExtractor):
         data = get_response('http://cgi.v.cc.163.com/video_play_url/{self.vid}'
                             .format(**vars())).json()
 
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'flv',
             'video_profile': 'current',

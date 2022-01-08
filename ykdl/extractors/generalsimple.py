@@ -9,17 +9,18 @@ from .singlemultimedia import contentTypes
 
 pattern1 = r'''(?ix)
 ["'](
-    (?:https?:|\\?/)[^"']+?\.
+    (?:https?:|\\?/)[^"'#]+?\.
     (
-        m3u8?                       | # !H5 list/HLS
+        m3u8?                       | # HLS
+        mpd                         | # DASH
         mp4|webm                    | # video/audio
-        f4v|flv|ts                  | # !H5 video
+        f4v|flv|ts                  | # video
         mov|qt|m4[pv]|og[mv]        | # video
         ogg|3gp|mpe?g               | # video/audio
         mp3|flac|wave?|oga|aac|weba   # audio
     )
-    (?:\?[^"']+)?
-)["']
+    /?(?:\?.+?)?
+)["'#]
 '''
 pattern2 = r'''(?ix)
 <(?:video|audio|source)[^>]+?src=["'](
@@ -30,11 +31,11 @@ pattern2 = r'''(?ix)
 )["'])?
 '''
 
-class GeneralSimple(VideoExtractor):
+class GeneralSimple(Extractor):
     name = 'GeneralSimple (通用简单)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         html = get_content(self.url)
 
@@ -49,12 +50,14 @@ class GeneralSimple(VideoExtractor):
                 _ = match(html, pattern2)
                 url, ctype = _ and _ or (_, _)
             if url:
+                if not i:
+                    url = unescape(url)
                 break
             elif i == 0:
                 html = unquote(unescape(html))
 
         if url:
-            url = json.loads('"{url}"'.format(**vars()))
+            url = literalize(url, True)
             url = match1(url, '.+(https?://.+)') or url  # redirect clear
             if url[:2] == '//':
                 url = self.url[:self.url.find('/')] + url
@@ -64,9 +67,8 @@ class GeneralSimple(VideoExtractor):
                 ext = contentTypes.get(ctype) or url_info(url)[1] or (
                         str(ctype).lower().startswith('audio') and 'mp3' or 'mp4')
             if ext[:3] == 'm3u':
-                info.stream_types, info.streams = load_m3u8_playlist(url)
+                info.streams = load_m3u8_playlist(url)
             else:
-                info.stream_types.append('current')
                 info.streams['current'] = {
                     'container': ext,
                     'video_profile': 'current',

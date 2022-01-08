@@ -3,11 +3,11 @@
 from .._common import *
 
 
-class Huajiao(VideoExtractor):
+class Huajiao(Extractor):
     name = 'huajiao (花椒直播)'
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
         html = get_content(self.url)
         t_a = match1(html, '"keywords" content="([^"]+)')
         info.title = t_a.split(',')[0]
@@ -17,7 +17,7 @@ class Huajiao(VideoExtractor):
         if replay_url and len(replay_url) > 2:
             replay_url = json.loads(replay_url)
             info.live = False
-            info.stream_types, info.streams = load_m3u8_playlist(replay_url)
+            info.streams = load_m3u8_playlist(replay_url)
             return info
 
         self.vid = match1(html, '"sn":"([^"]+)')
@@ -41,7 +41,6 @@ class Huajiao(VideoExtractor):
         video_data = json.loads(decoded_json.decode())
         live_url = video_data['main']
         info.live = True
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'flv',
             'video_profile': 'current',

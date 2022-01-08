@@ -3,7 +3,7 @@
 from ..._common import *
 
 
-class NeteaseMv(VideoExtractor):
+class NeteaseMv(Extractor):
     name = 'Netease Mv (网易音乐Mv)'
 
     profile_type = [
@@ -16,8 +16,7 @@ class NeteaseMv(VideoExtractor):
     stream_ids = [id for _, id in profile_type]
 
     def prepare(self):
-        add_header('Referer', 'http://music.163.com/')
-        video = VideoInfo(self.name)
+        video = MediaInfo(self.name)
         if not self.vid:
             self.vid =  match1(self.url, '\?id=(.*)', 'mv/(\d+)')
 
@@ -33,7 +32,6 @@ class NeteaseMv(VideoExtractor):
         for id in self.stream_ids:
             if id in mv['brs']:
                 stream_id, stream_profile = self.profile_2_id_profile[id]
-                video.stream_types.append(stream_id)
                 video.streams[stream_id] = {
                     'container': 'mp4',
                     'video_profile': stream_profile,

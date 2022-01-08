@@ -3,7 +3,7 @@
 from ._common import *
 
 
-class Weibo(VideoExtractor):
+class Weibo(Extractor):
     name = '微博 (Weibo)'
 
     quality_2_id = {
@@ -16,7 +16,7 @@ class Weibo(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         add_header('User-Agent', 'Baiduspider')
 
@@ -24,9 +24,6 @@ class Weibo(VideoExtractor):
 
         def append_stream(video_profile, video_quality, url):
             stream_id = self.quality_2_id[video_quality]
-            if stream_id in info.stream_types:
-                return
-            info.stream_types.append(stream_id)
             info.streams[stream_id] = {
                 'video_profile': video_profile,
                 'container': 'mp4',
@@ -52,7 +49,6 @@ class Weibo(VideoExtractor):
             else:
                 url = match1(html, 'action-data="[^"]+?&video_src=([^"&]+)')
                 if url:
-                    info.stream_types.append('current')
                     info.streams['current'] = {
                         'video_profile': 'current',
                         'container': 'mp4',

@@ -94,25 +94,25 @@ class GeneralEmbed(EmbedExtractor):
 
     def prepare_playlist(self):
 
-        def append_video_info(site, vid):
-            video_info = self.new_video_info()
-            video_info['site'] = site
-            video_info['vid'] = vid
-            self.video_info_list.append(video_info)
+        def append_media_info(site, vid):
+            media_info = self.new_media_info()
+            media_info['site'] = site
+            media_info['vid'] = vid
+            self.media_info_list.append(media_info)
 
         content = get_content(self.url)
 
         vids = matchall(content, *youku_embed_patterns)
         for vid in vids:
-            append_video_info('youku',vid)
+            append_media_info('youku',vid)
 
         vids = matchall(content, *qq_embed_patterns)
         for vid in vids:
-            append_video_info('qq.video',vid)
+            append_media_info('qq.video',vid)
 
         vids = matchall(content, *sohu_embed_patterns)
         for vid in vids:
-            append_video_info('sohu.my',vid)
+            append_media_info('sohu.my',vid)
 
         urls = matchall(content, *ku6_embed_url)
         for url in urls:
@@ -123,44 +123,44 @@ class GeneralEmbed(EmbedExtractor):
                     '{}/style/{}/sn/{}'
                     .format(flashvars[0], flashvars[1],flashvars[2])).json()
             vid = data['ku6vid']
-            append_video_info('ku6',vid)
+            append_media_info('ku6',vid)
 
         vids = matchall(content, *ku6_embed_patterns)
         for v in vids:
-            append_video_info('ku6', v)
+            append_media_info('ku6', v)
 
         vids = matchall(content, *netease_embed_patterns)
         for v in vids:
-            append_video_info('netease.video', v)
+            append_media_info('netease.video', v)
 
         vids = matchall(content, *iqiyi_embed_patterns)
         for v in vids:
             videoid, tvid = v
-            append_video_info('iqiyi', (tvid, videoid))
+            append_media_info('iqiyi', (tvid, videoid))
 
         vids = matchall(content, *lecloud_embed_patterns)
         for v in vids:
             uu, vu = v
-            append_video_info('le.letvcloud', (vu, uu))
+            append_media_info('le.letvcloud', (vu, uu))
 
         vids = matchall(content, *ifeng_embed_patterns)
         for v in vids:
             v  = v.split('&')[0]
-            append_video_info('ifeng.news', v)
+            append_media_info('ifeng.news', v)
 
         vids = matchall(content, *weibo_embed_patterns)
         for v in vids:
-            append_video_info('weibo', 'http://weibo.com/p/' + v)
+            append_media_info('weibo', 'http://weibo.com/p/' + v)
 
         vids = matchall(content, *sina_embed_patterns)
         for v in vids:
             v  = v.split('&')[0]
-            append_video_info('sina.video', v)
+            append_media_info('sina.video', v)
 
         vids = matchall(content, *bilibili_embed_patterns)
         for v in vids:
             v = 'https://www.bilibili.com/video/av{}'.format(v)
-            append_video_info('bilibili.video', v)
+            append_media_info('bilibili.video', v)
 
 
         vids = matchall(content, *dilidili_embed_patterns)
@@ -173,13 +173,13 @@ class GeneralEmbed(EmbedExtractor):
             elif site =='yun':
                 site = 'le.letvcloud'
                 v = v.split(':')
-            append_video_info(site, v)
+            append_media_info(site, v)
 
         tmp = []
-        for v in self.video_info_list:
+        for v in self.media_info_list:
             if not v in tmp:
                 tmp.append(v)
-        self.video_info_list = tmp
+        self.media_info_list = tmp
 
     parser = EmbedExtractor.parser_list
 

@@ -3,7 +3,7 @@
 from .._common import *
 
 
-class TikTok(VideoExtractor):
+class TikTok(Extractor):
     name = '抖音直播 (TikTok)'
 
     quality_2_profile_id = {
@@ -15,7 +15,7 @@ class TikTok(VideoExtractor):
      }
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         html = get_content(self.url)
         data = match1(html,
@@ -43,7 +43,6 @@ class TikTok(VideoExtractor):
             if not url:
                 continue
             video_profile, stream = self.quality_2_profile_id[ql]
-            info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': 'flv',
                 'video_profile': video_profile,

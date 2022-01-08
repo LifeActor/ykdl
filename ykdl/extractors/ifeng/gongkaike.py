@@ -3,11 +3,11 @@
 from .._common import *
 
 
-class IfengOpenC(VideoExtractor):
+class IfengOpenC(Extractor):
     name = '凤凰公开课 (ifeng open course)'  # 404
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
         if not self.vid:
             self.vid= match1(self.url, '#([a-zA-Z0-9\-]+)',
                                        '/([a-zA-Z0-9\-]+).shtml')
@@ -22,7 +22,6 @@ class IfengOpenC(VideoExtractor):
         info.title = match1(xml, 'SE_Title="([^"]+)')
         urls = matchall(xml, 'playurl="([^"]+)')
         urls = ['http://ips.ifeng.com/' + u[7:] for u in urls ]
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'mp4',
             'video_profile': 'current',

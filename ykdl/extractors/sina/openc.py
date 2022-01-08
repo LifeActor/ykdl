@@ -8,11 +8,11 @@ def get_k(vid, rand):
     s = '{vid}Z6prk18aWxP278cVAH{t}{rand}'.format(**vars())
     return hash.md5(s)[:16] + t
 
-class OpenC(VideoExtractor):
+class OpenC(Extractor):
     name = 'Sina openCourse (新浪公开课)'
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         if self.url:
             html = get_content(self.url)
@@ -37,7 +37,6 @@ class OpenC(VideoExtractor):
             urls.append(durl['url'])
             size += durl['filesize']
 
-        info.stream_types.append('current')
         info.streams['current'] = {
             'container': 'hlv',
             'video_profile': 'current',

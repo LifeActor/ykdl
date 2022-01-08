@@ -3,7 +3,7 @@
 from .._common import *
 
 
-class LeLunbo(VideoExtractor):
+class LeLunbo(Extractor):
     name = 'Le Lunbo (乐视轮播)'
 
     stream_2_id_profile = {
@@ -16,7 +16,7 @@ class LeLunbo(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name, True)
+        info = MediaInfo(self.name, True)
         if not self.vid:
             self.vid = match1(self.url, 'channel=([\d]+)')
 
@@ -28,8 +28,6 @@ class LeLunbo(VideoExtractor):
 
         for st in live_data['streams']:
             stream, profile = self.stream_2_id_profile[st['rateType']]
-            if stream in info.stream_types:
-                continue
             data = get_response(st['streamUrl'],
                                 params={
                                     'format': 1,
@@ -43,7 +41,6 @@ class LeLunbo(VideoExtractor):
                                     'station': self.vid
                                 }).json()
             src = data['location']
-            info.stream_types.append(stream)
             info.streams[stream] = {
                 'container': 'm3u8',
                 'video_profile': profile,

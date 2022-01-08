@@ -5,7 +5,7 @@ from .._common import *
 
 assert JSEngine, "No JS Interpreter found, can't extract netease openCourse!"
 
-class OpenC(VideoExtractor):
+class OpenC(Extractor):
     name = '网易公开课 (163 openCourse)'
 
     sopported_stream_types = [
@@ -36,7 +36,7 @@ class OpenC(VideoExtractor):
             self.prepare_data()
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         if self.data is None:
             self.prepare_data()
@@ -91,7 +91,6 @@ class OpenC(VideoExtractor):
                     if not url:
                         continue
                     size = movie['{ext}{tp}Size{orig}'.format(**vars())]
-                    info.stream_types.append(stream)
                     info.streams[stream] = {
                         'container': ext,
                         'video_profile': profile,

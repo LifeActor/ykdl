@@ -3,7 +3,7 @@
 from .._common import *
 
 
-class HuyaVideo(VideoExtractor):
+class HuyaVideo(Extractor):
     name = 'huya video (虎牙视频)'
 
     quality_2_id_profile = {
@@ -14,7 +14,7 @@ class HuyaVideo(VideoExtractor):
     }
 
     def prepare(self):
-        info = VideoInfo(self.name)
+        info = MediaInfo(self.name)
 
         self.vid = match1(self.url, 'play/(\d+)')
         html = get_content(self.url)
@@ -43,11 +43,7 @@ class HuyaVideo(VideoExtractor):
             ext = stream_date['format']
             quality =stream_date['definition']
             stream, video_profile = self.quality_2_id_profile[quality]
-            if stream not in info.stream_types:
-                info.stream_types.append(stream)
-            elif ext == 'm3u8':
-                # prefer mp4
-                continue
+            stream += '-' + ext
             url = stream_date['transcode']['urls'][0]
             info.streams[stream] = {
                 'container': ext,

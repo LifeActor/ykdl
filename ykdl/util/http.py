@@ -11,8 +11,9 @@ from collections import defaultdict
 from http.client import HTTPResponse as _HTTPResponse
 from urllib.parse import parse_qs, urlencode
 from urllib.request import Request, install_opener, build_opener, \
+                           AbstractHTTPHandler, HTTPCookieProcessor, \
                            HTTPRedirectHandler as _HTTPRedirectHandler, \
-                           AbstractHTTPHandler, URLError, HTTPError
+                           URLError, HTTPError
 try:
     from queue import SimpleQueue as Queue, Empty  # py37 and above
 except ImportError:
@@ -234,7 +235,7 @@ class HTTPResponse:
         self.method = response._method
         self.url = response.url
         self.locations = request.locations
-        self.status = response.status
+        self.status = self.code = response.status
         self.reason = response.reason
         self.headers = self.msg = headers = response.headers
         self.raw = data = not request.headget and response.read() or b''
@@ -344,12 +345,13 @@ for _ in ('getheader', 'getheaders', 'info', 'geturl', 'getcode'):
 
 # utils
 
-__all__ = ['add_default_handler', 'install_default_handlers', 'fake_headers',
+__all__ = ['add_default_handler', 'install_default_handlers', 'install_cookie',
+           'uninstall_cookie', 'get_cookie', 'get_cookies', 'fake_headers',
            'reset_headers', 'add_header', 'get_response', 'get_head_response',
-           'get_location', 'get_location_and_header', 'get_content_and_location',
-           'get_content', 'url_info']
+           'get_location', 'get_content', 'url_info']
 
 _opener = None
+_cookiejar = None
 _default_handlers = []
 
 def add_default_handler(handler):
@@ -359,23 +361,34 @@ def add_default_handler(handler):
         this is use to setting GLOBAL (urllib) HTTP proxy and HTTPS verify,
         use it carefully.
     '''
+    global _cookiejar
     if isinstance(handler, type):
         handler = handler()
     if isinstance(handler, _HTTPRedirectHandler):
         logger.warning('HTTPRedirectHandler is not custom!')
         return
-    remove_default_handler(handler)
+    remove_default_handler(handler, True)
     _default_handlers.append(handler)
     logger.debug('Add %s to default handlers', handler)
+    if isinstance(handler, HTTPCookieProcessor):
+        if getattr(_cookiejar, '_cookies', None):
+            _cookiejar._cookies.update(handler.cookiejar._cookies)
+            handler.cookiejar._cookies.update(_cookiejar._cookies)
+        _cookiejar = handler.cookiejar
 
-def remove_default_handler(handler):
+def remove_default_handler(handler, via_add=False):
+    global _cookiejar
     if not isinstance(handler, type):
         handler = type(handler)
-    for default_handler in _default_handlers:
-        if isinstance(default_handler, handler):
-            _default_handlers.remove(default_handler)
-            logger.debug('Remove %s from default handlers', default_handler)
+    for _default_handler in _default_handlers:
+        default_handler = type(_default_handler)
+        if issubclass(default_handler, handler) or via_add and \
+                    issubclass(handler, default_handler):
+            _default_handlers.remove(_default_handler)
+            logger.debug('Remove %s from default handlers', _default_handler)
             break
+    if issubclass(handler, HTTPCookieProcessor):
+        _cookiejar = None
 
 def install_default_handlers():
     '''Install the default handlers to urllib.request as its opener.'''
@@ -383,6 +396,58 @@ def install_default_handlers():
     # Always use our custom HTTPRedirectHandler
     _opener = build_opener(HTTPRedirectHandler, *_default_handlers)
     install_opener(_opener)
+
+def install_cookie():
+    '''Install HTTPCookieProcessor to default opener.'''
+    if _cookiejar is None:
+        add_default_handler(HTTPCookieProcessor)
+        install_default_handlers()
+
+def uninstall_cookie():
+    '''Uninstall HTTPCookieProcessor from default opener.'''
+    if _cookiejar:
+        remove_default_handler(HTTPCookieProcessor)
+        install_default_handlers()
+
+def get_cookie(domain, path, name):
+    '''Return specified cookie in existence, or None.
+
+    MUST call install_cookie() before use.
+    '''
+    try:
+        return _cookiejar._cookies[domain][path][name]
+    except KeyError:
+        pass
+
+def get_cookies(domain=None, path=None, name=None):
+    '''Get cookies in existence.
+    No param (None) get all, mismatch param get empty.
+
+    MUST call install_cookie() before use.
+    '''
+    if name and path and domain:
+        return [get_cookie(domain, path, name)]
+    cookies = []
+    c = _cookiejar._cookies
+    if domain is None:
+        dl = c.values()
+    else:
+        d = c.get(domain)
+        dl = d and [d] or []
+    for d in dl:
+        if path is None:
+            pl = d.values()
+        else:
+            p = d.get(path)
+            pl = p and [p] or []
+        for p in pd:
+            if name is None:
+                cookies.extend(p.values())
+            else:
+                n = p.get(name)
+                if n:
+                    cookies.append(n)
+    return cookies
 
 _default_fake_headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -529,31 +594,6 @@ def get_location(*args, **kwargs):
     response = get_head_response(*args, **kwargs)
     return response.url
 
-def get_location_and_header(*args, **kwargs):
-    '''**DEPRECATED**
-    Try fetch the redirected location and the headers of giving URL.
-
-    Params: same as get_head_response().
-            If redirections > max_redirections > 0, returned headers is fake.
-
-    Returns URL and headers.
-    '''
-    response = get_head_response(*args, **kwargs)
-    return response.url, response.headers
-
-def get_content_and_location(*args, **kwargs):
-    '''**DEPRECATED**
-    Try fetch the content and the redirected location of giving URL.
-
-    Params: same as get_response().
-
-    Returns content (encoding=='ignore') or decoded content, and URL.
-    '''
-    response = get_response(*args, **kwargs)
-    if kwargs.get('encoding') == 'ignore':
-        return response.content, response.url
-    return response.text, response.url
-
 def get_content(*args, **kwargs):
     '''Fetch the content of giving URL.
 
@@ -561,7 +601,10 @@ def get_content(*args, **kwargs):
 
     Returns content (encoding=='ignore') or decoded content.
     '''
-    return get_content_and_location(*args, **kwargs)[0]
+    response = get_response(*args, **kwargs)
+    if kwargs.get('encoding') == 'ignore':
+        return response.content
+    return response.text
 
 def url_info(url, headers=None, size=False):
     # TODO: modify to return named(filename, ext, size, ...)

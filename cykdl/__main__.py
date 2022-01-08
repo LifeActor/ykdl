@@ -23,7 +23,7 @@ import logging
 logger = logging.getLogger('YKDL')
 
 from ykdl.common import url_to_module
-from ykdl.util.http import add_default_handler, get_response
+from ykdl.util.http import add_default_handler, reset_headers, uninstall_cookie, get_response
 from ykdl.util.external import launch_player, launch_ffmpeg_merge, launch_ffmpeg_download
 from ykdl.util.m3u8 import live_m3u8, crypto_m3u8, load_m3u8, _load as _load_m3u8
 from ykdl.util.download import save_urls
@@ -198,7 +198,7 @@ def handle_videoinfo(info, index=0):
 def main():
     arg_parser()
     if not args.debug:
-        logging.root.setLevel(logging.WARNING)
+        logging.root.setLevel(logging.INFO)
     else:
         logging.root.setLevel(logging.DEBUG)
 
@@ -269,6 +269,8 @@ def main():
     exit = 0
     try:
         for url in args.video_urls:
+            reset_headers()
+            uninstall_cookie()
             try:
                 m, u = url_to_module(url)
                 if args.playlist:
@@ -290,7 +292,7 @@ def main():
                 logger.critical(str(e))
                 exit = 1
             except (RuntimeError, NotImplementedError, SyntaxError) as e:
-                logger.error(str(e))
+                logger.error(repr(e))
                 exit = 1
     except KeyboardInterrupt:
         logger.info('Interrupted by Ctrl-C')

@@ -50,6 +50,8 @@ class GeneralSimple(Extractor):
                 _ = match(html, pattern2)
                 url, ctype = _ and _ or (_, _)
             if url:
+                if not i:
+                    url = unescape(url)
                 break
             elif i == 0:
                 html = unquote(unescape(html))

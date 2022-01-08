@@ -28,9 +28,8 @@ class DouyutvVideo(Extractor):
         ub98484234(js_enc, self, params)
 
         add_header('Referer', self.url)
-        add_header('Cookie', 'dy_did=' + params['did'])
-
         video_data = get_response('https://v.douyu.com/api/stream/getStreamUrl',
+                                  {'Cookie': 'dy_did=' + params['did']},
                                   data=params).json()
         assert video_data['error'] == 0, video_data
 

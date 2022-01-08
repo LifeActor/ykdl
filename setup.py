@@ -1,17 +1,20 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+#!/usr/bin/env python3
+
 from setuptools import setup
+import os
+import re
 
-try:
-    import wheel
-except:
-    pass
 
-import os, codecs, platform
+def read_file(*paths):
+    with open(os.path.join(here, *paths), 'r', encoding='utf-8') as fp:
+        return fp.read()
 
-here = os.path.abspath(os.path.dirname(__file__))
-README = codecs.open(os.path.join(here, 'README.rst'), encoding='utf8').read()
-CHANGES = codecs.open(os.path.join(here, 'CHANGELOG.rst'), encoding='utf8').read()
+def get_version():
+    content = read_file('ykdl', 'version.py')
+    version_match = re.search('^__version__ = [\'"]([^\'"]+)', content, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError('Unable to find version string.')
 
 def find_packages(*tops):
     packages = []
@@ -21,31 +24,27 @@ def find_packages(*tops):
                 packages.append(root)
     return packages
 
-from ykdl.version import __version__
-try:
-    from ykdl.util.jsengine import JSEngine
-except ImportError:
-    JSEngine = None
-
-REQ = ['m3u8']  # remove pycryptodome, it is not being used now
+# memo: pycryptodome is not being used now
+REQ = ['m3u8', 'jsengine']
 EXT = {
   'proxy': ['ExtProxy'],
   'rangefetch': ['urllib3'],
-  'js': JSEngine is None and ['PyChakra>=2.2.0'] or [],
-  'color': os.name == 'nt' and ['colorama'] or []
+  'js': ["QuickJS; os_name != 'nt'",
+         "PyChakra>=2.2.0; os_name == 'nt' and platform_release < '8'"],
+  'color': ["colorama; os_name == 'nt'"]
 }
-EXT['all'] = sum((rs for rs in EXT.values()), [])
-EXT['all-js'] = EXT['all'].copy()
-try:
-    EXT['all-js'].remove(EXT['js'][0])
-except IndexError:
-    pass
+EXT['all-js'] = sum((v for k,v in EXT.items() if k != 'js'), [])
+EXT['all'] = EXT['all-js'] + EXT['js']
 EXT['net'] = EXT['proxy'] + EXT['rangefetch']
+
+here = os.path.abspath(os.path.dirname(__file__))
+README = read_file('README.rst')
+CHANGES = read_file('CHANGELOG.rst')
 
 
 setup(
     name = 'ykdl',
-    version = __version__,
+    version = get_version(),
     author = 'Zhang Ning',
     author_email = 'zhangn1985@gmail.com',
     maintainer = 'SeaHOH',
@@ -56,7 +55,6 @@ setup(
     long_description = README + '\n\n' +  CHANGES,
     keywords = 'video download youku acfun bilibili',
     packages = find_packages('ykdl', 'cykdl'),
-    requires = REQ,
     install_requires = REQ,
     extras_require = EXT,
     platforms = 'any',
@@ -64,6 +62,7 @@ setup(
     package_data = {
         'ykdl': ['extractors/*.js', 'extractors/*/*.js'],
     },
+    python_requires = '>=3.5',
 
     classifiers = [
         'Development Status :: 4 - Beta',
@@ -87,7 +86,7 @@ setup(
         'Topic :: Multimedia :: Video',
         'Topic :: Utilities'
     ],
-    entry_points={
+    entry_points = {
         'console_scripts': ['ykdl=cykdl.__main__:main']
     },
 )

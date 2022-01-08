@@ -1,6 +1,7 @@
 import sys
 import json
 import random
+import logging
 from collections import defaultdict
 from datetime import datetime
 from html import unescape
@@ -12,16 +13,18 @@ from .util.human import human_size, _format_time, human_time, stream_index
 from .util.match import match, match1
 from .util.wrap import get_random_str
 
+logger = logging.getLogger(__name__)
+
 
 class MediaInfo:
     def __init__(self, site, live=False):
         self.site = site
         self.live = live
         self._title = None
+        self._album = None
         self._artist = None
         self._duration = None
         self._comments = []
-        self.refer = None
         self.streams = MediaStreams()
         self.subtitles = []
         self.extra = {k: '' for k in ['ua',
@@ -39,6 +42,15 @@ class MediaInfo:
     def title(self, value):
         if value:
             self._title = unquote(unescape(value))
+
+    @property
+    def album(self):
+        return self._album
+
+    @album.setter
+    def album(self, value):
+        if value:
+            self._album = unquote(unescape(value))
 
     @property
     def artist(self):
@@ -105,6 +117,7 @@ class MediaInfo:
         json_dict = {
             'site'          : self.site,
             'title'         : self.title,
+            'album'         : self.album,
             'artist'        : self.artist,
             'duration'      : self.duration,
             'comments'      : self.comments,
@@ -121,6 +134,7 @@ class MediaInfo:
         self.lprint(
         ['site:                 {}', self.site],
         ['title:                {}', self.title],
+        ['album:                {}', self.album],
         ['artist:               {}', self.artist],
         ['duration:             {}', self.duration and human_time(self.duration)],
         ['comments:             {}', self.comments],
@@ -140,6 +154,10 @@ class MediaInfo:
         unique_title = []
         if self.title:
             unique_title.append(self.title)
+            if self.album and self.album not in self.title:
+                unique_title.append(self.album)
+            if self.artist and self.artist not in self.title:
+                unique_title.append(self.artist)
         else:
             unique_title += [self.site, get_random_str(8)]
         if not stream_id == 'current':
@@ -268,7 +286,12 @@ class MediaStreams:
     def index(self, name):
         '''Index name, no Error, a lower or the highest(0) are fallback.'''
         hit, fallback, i = self._index(name)
-        return (hit or fallback) and i or 0
+        i = (hit or fallback) and i or 0
+        if not hit:
+            fb = self.get_id(i)
+            if fb != 'current':
+                logger.info('The fallback %r has applied to %r', fb, name)
+        return i
 
     def get_id(self, i):
         '''Get the name of index.'''

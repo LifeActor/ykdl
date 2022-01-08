@@ -21,7 +21,7 @@ class Baomihua(Extractor):
                                 'devicetype': 'wap'
                             }).json()
 
-        info.title = unquote(data['title'])
+        info.title = data['title']
         host = data['host']
         stream_name = data['stream_name']
         t = data['videofiletype']

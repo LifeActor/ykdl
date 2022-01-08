@@ -80,9 +80,9 @@ class QQ(Extractor):
         fvkey = video.get('fvkey')
         # Not to be absolutely accuracy.
         #fp2p = data.get('fp2p')
-        #iflag = video.get('iflag')
-        #pl = video.get('pl')
-        #self.limit = bool(iflag or pl)
+        iflag = video.get('iflag')
+        pl = video.get('pl')
+        self.limit = bool(iflag or pl)
         self.vip = video['drm']
 
         # Priority for range fetch.
@@ -100,11 +100,11 @@ class QQ(Extractor):
                     cdn_url_2 = cdn_url
             elif not cdn_url_1:
                 cdn_url_1 = cdn_url
-        #if self.limit:
-        #    cdn_url = cdn_url_3 or cdn_url_1 or cdn_url_2
-        #else:
-        #    cdn_url = cdn_url_1 or cdn_url_2 or cdn_url_3
-        cdn_url = cdn_url_1 or cdn_url_2 or cdn_url_3
+        if self.limit:
+            cdn_url = cdn_url_3 or cdn_url_1 or cdn_url_2
+        else:
+            cdn_url = cdn_url_1 or cdn_url_2 or cdn_url_3
+        #cdn_url = cdn_url_1 or cdn_url_2 or cdn_url_3
 
         dt = cdn['dt']
         if dt == 1:

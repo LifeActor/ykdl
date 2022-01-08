@@ -61,7 +61,6 @@ class NeteaseMusicBase(Extractor):
 
     def prepare(self):
         info = MediaInfo(self.name)
-        add_header('Referer', 'http://music.163.com/')
         if not self.vid:
             self.vid =  match1(self.url, 'song/(\d+)', '\?id=(.*)')
         api_url = self.api_url.format(self.vid, self.vid)

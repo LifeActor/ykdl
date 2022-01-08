@@ -39,7 +39,7 @@ Step:
 
  #. `Python 3 <https://www.python.org/downloads/>`_
 
- #. pip
+ #. pip and setuptools, make sure they are updated.
 
     .. code-block:: console
 

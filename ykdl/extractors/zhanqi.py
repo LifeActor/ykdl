@@ -9,7 +9,7 @@ class Zhanqi(Extractor):
 
     def prepare(self):
         info = MediaInfo(self.name)
-        self.install_cookie()
+        install_cookie()
 
         html = get_content(self.url)
         data = json.loads(match1(html, 'oPageConfig.oVideo = ({.+?});',

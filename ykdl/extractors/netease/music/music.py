@@ -12,7 +12,6 @@ class NeteaseMusic(NeteaseMusicBase):
         return data['songs'][0]
 
     def prepare_list(self):
-        add_header('Referer', 'http://music.163.com/')
         vid =  match1(self.url, '\?id=(.*)')
         params = {
             'id': vid,

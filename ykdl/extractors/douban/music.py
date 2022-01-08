@@ -3,59 +3,63 @@
 from .._common import *
 
 
-class DoubanMusic(Extractor):
-    name = 'Douban Music (豆瓣音乐)'
+def get_info_list(sids):
+    data = get_response('https://music.douban.com/j/artist/playlist',
+                        data={
+                            'source' : '',
+                            'sids' : sids,
+                            'ck' : ''
+                        }).json()
 
-    def prepare(self):
-        info = MediaInfo(self.name)
-        if not self.vid:
-            self.vid = match1(self.url, 'sid=(\d+)')
-        assert self.vid, 'No sid has been found!'
-
-        data = get_response(
-                'https://music.douban.com/j/artist/playlist',
-                data={
-                    'source' : '',
-                    'sids' : self.vid,
-                    'ck' : ''
-                }).json()
-        self.extract_song(info, data['songs'][0])
-        return info
-
-    def extract_song(self, info, song):
+    info_list = []
+    for song in data['songs']:
+        info = MediaInfo(site.name)
+        info_list.append(info)
         artist = song['artist']
         info.title = song['title']
         info.artist = artist['name']
         info.duration = song['play_length']
         info.add_comment(song['label'])
         info.add_comment(artist['style'])
-        info.refer = artist['url']
+        info.extra['referer'] = artist['url']
         info.streams['current'] = {
             'container': 'mp3',
             'video_profile': 'current',
-            'src' : [song['url']],
+            'src' : [(artist['picture'], song['url'])],
             'size': 0
         }
+    assert info_list, "can't find songs of %r, may has been removed!" % sids
+    return info_list
 
-    def parser_list(self, url):
+class DoubanMusic(Extractor):
+    name = 'Douban Music (豆瓣音乐)'
 
-        sids = match1(url, 'sid=([0-9,]+)')
+    def prepare(self):
+        info = MediaInfo(self.name)
+        if not self.vid:
+            self.vid = match1(self.url, 's(?:id)?=(\d+)')
+        assert self.vid, 'No sid has been found!'
+
+        return get_info_list(self.vid)[0]
+
+    def list_only(self):
+        return 'site.douban' in self.url and not match(self.url, 's=(\d+)') or \
+                match(self.url, 'sid=\d+,(\d)')
+
+    def prepare_list(self):
+
+        if 'site.douban' in self.url:
+            sids = matchall(get_content(self.url), 'sid="(\d+)"')
+        else:
+            sids = matchall(match1(self.url, 'sid=([\d,]+)') or '', '(\d+)')
         assert sids, 'No sid has been found!'
 
-        data = get_response(
-                'https://music.douban.com/j/artist/playlist',
-                data={
-                    'source' : '',
-                    'sids' : sids,
-                    'ck' : ''
-                }).json()
-
-        info_list = []
-        for s in data['songs']:
-            info = MediaInfo(self.name)
-            self.extract_song(info, s)
-            info_list.append(info)
-        return info_list
+        sids, osids = [], sids
+        for sid in osids:
+            if sid not in sids:
+                sids.append(sid)
+        sids = ','.join(sids)
+        return get_info_list(sids)
 
 
 site = DoubanMusic()

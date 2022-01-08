@@ -40,8 +40,6 @@ class Youku(Extractor):
         )
 
     def prepare(self):
-        add_header('Cookie', '__ysuid=%d' % time.time())
-
         info = MediaInfo(self.name)
 
         if not self.vid:
@@ -62,10 +60,11 @@ class Youku(Extractor):
             self.vid = 'X' + vid
         self.logger.debug('VID: ' + self.vid)
 
-        self.install_cookie()
-        get_response('https://gm.mmstat.com/yt/ykcomment.play.commentInit?cna=')
-        utid = self.get_cookie('.mmstat.com', '/', 'cna').value
-        self.uninstall_cookie()
+        install_cookie()
+        get_response('https://gm.mmstat.com/yt/ykcomment.play.commentInit?cna=',
+                     {'Cookie': '__ysuid=%d' % time.time()})
+        utid = get_cookie('.mmstat.com', '/', 'cna').value
+        uninstall_cookie()
 
         for ccode, ref, ckey in self.params:
             add_header('Referer', ref)

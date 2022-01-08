@@ -3,7 +3,7 @@
 from .._common import *
 
 
-class SohuBase(VideoExtractor):
+class SohuBase(Extractor):
 
     supported_stream_types = [
         #'h2654kVid',
@@ -71,7 +71,6 @@ class SohuBase(VideoExtractor):
             'src': urls,
             'size' : size
         }
-        video.stream_types.append(stream_id)
 
     def fetch_info(self, vid):
         self.apiparams['vid'] = vid
@@ -95,7 +94,7 @@ class SohuBase(VideoExtractor):
             self.apiparams = site.apiparams
             info = self.fetch_info(self.vid)
 
-        video = VideoInfo(self.name)
+        video = MediaInfo(self.name)
         # this is needless now, uid well be registered in the the following code
         #video.extra['header'] = 'Range: '
         if info['status'] == 1:

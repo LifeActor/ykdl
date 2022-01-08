@@ -2,7 +2,7 @@ import re
 import logging
 from importlib import import_module
 
-from .util.http import get_location_and_header
+from .util.http import get_response, get_head_response
 
 logger = logging.getLogger(__name__)
 
@@ -69,15 +69,15 @@ def url_to_module(url):
         if ext in singlemultimedia.extNames:
             logger.debug('> the extension name %r match multimedia types', ext)
             logger.debug('> Go SingleMultimedia')
-            singlemultimedia.site.resheader = get_location_and_header(url)[1]
+            singlemultimedia.site.resinfo = get_head_response(url).info()
             return singlemultimedia.site, url
 
         logger.debug('> Try HTTP Redirection!')
-        new_url, resheader = get_location_and_header(url)
+        response = get_response(url)
 
-        if new_url == url:
+        if response.url == url:
             logger.debug('> NO HTTP Redirection')
-            if resheader['Content-Type'].startswith('text/'):
+            if response.headers['Content-Type'].startswith('text/'):
                 logger.debug('> Try GeneralSimple')
                 from ykdl.extractors.generalsimple import site
                 if site.parser(url):
@@ -86,8 +86,8 @@ def url_to_module(url):
                 return import_module('ykdl.extractors.generalembed').site, url
             else:
                 logger.debug('> Try SingleMultimedia')
-                singlemultimedia.site.resheader = resheader
+                singlemultimedia.site.resinfo = response.info()
                 return singlemultimedia.site, url
-        else:
-            logger.info('> New url: ' + new_url)
-            return url_to_module(new_url)
+
+        logger.info('> New url: ' + response.url)
+        return url_to_module(response.url)

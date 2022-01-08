@@ -3,12 +3,12 @@
 from .._common import *
 
 
-add_header('User-Agent',
-           'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) '
-           'AppleWebKit/603.1.30 (KHTML, like Gecko) '
-           'Version/10.1 Safari/603.1.30')
-
 def get_extractor(url):
+    add_header('User-Agent',
+               'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) '
+               'AppleWebKit/603.1.30 (KHTML, like Gecko) '
+               'Version/10.1 Safari/603.1.30')
+
     if 'lunbo' in url:
         from . import lunbo as s
     elif match(url, '(live[\./]|/izt/)'):

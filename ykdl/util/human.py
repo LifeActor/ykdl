@@ -163,7 +163,7 @@ def format_vps(*wh):
 _stream_index = 'OG', '*K', 'BD', 'TD', 'HD', 'SD', 'LD'
 
 def stream_index(fmt):
-    '''Used by ..videoinfo.VideoInfo.sort().'''
+    '''Used by ..mediainfo.MediaStreams.'''
     if fmt.isdecimal():
         return -int(fmt)  # m3u8 bandwidth
     fmt = fmt.upper()

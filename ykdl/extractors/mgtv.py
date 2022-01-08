@@ -36,7 +36,7 @@ class Hunantv(Extractor):
 
     def prepare(self):
         info = MediaInfo(self.name)
-        self.install_cookie()
+        install_cookie()
         add_header('Referer', self.url)
 
         if self.url and not self.vid:
@@ -46,7 +46,6 @@ class Hunantv(Extractor):
             if self.vid is None:
                 html = get_content(self.url)
                 if match1(self.url, 'com/h/(\d+).html'):
-                    from ykdl.util.jsengine import JSEngine
                     assert JSEngine, 'No JS Interpreter found!!!'
                     js_ctx = JSEngine()
                     js = match1(html, '<script>window.__NUXT__=(.+);</script>')

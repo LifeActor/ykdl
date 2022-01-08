@@ -47,7 +47,7 @@ class HuyaLive(Extractor):
         sUrlSuffix = stream_info['sFlvUrlSuffix']
         _url = '{sUrl}/{sStreamName}.{sUrlSuffix}?'.format(**vars())
 
-        reSecret = not screenType and liveSourceType in (8, 13)
+        reSecret = not screenType and liveSourceType in (0, 8, 13)
         params = dict(parse_qsl(unescape(stream_info['sFlvAntiCode'])))
         if reSecret:
             params.setdefault('t', '100')  # 102
@@ -65,6 +65,7 @@ class HuyaLive(Extractor):
                  'u': str(u),
                  'seqid': str(int(ct * 1000) + uid),
                  'ver': '1',
+                 'uuid': int(ct % 1e7 * 1e6 % 0xffffffff),
              })
             fm = base64.b64decode(params['fm']).decode().split('_', 1)[0]
             ss = hash.md5('|'.join([params['seqid'], params['ctype'], params['t']]))

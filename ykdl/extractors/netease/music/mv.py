@@ -16,7 +16,6 @@ class NeteaseMv(Extractor):
     stream_ids = [id for _, id in profile_type]
 
     def prepare(self):
-        add_header('Referer', 'http://music.163.com/')
         video = MediaInfo(self.name)
         if not self.vid:
             self.vid =  match1(self.url, '\?id=(.*)', 'mv/(\d+)')

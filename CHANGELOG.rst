@@ -1,6 +1,24 @@
 Change Log for ykdl
 ===================
 
+1.8.0 beta 1
+------------
+
+:warning: :warning: :warning: <lots of breaks except CLI>
+
+- code clear and unified code style
+- split JSEngine as standalone package
+- refactor many core modules, now they become powerful and ease for use
+- add support for persistent connection
+- add support for crypto M3U
+- add support for multi streams in same format, and lower quality fallback
+  for `--format`
+- remove EOL sites: Bobo, Chushou, Huomao
+- fix setup.py bug which wrong pack of wheel
+- fixed many bugs
+- updated some sites
+
+
 1.8.0 alpha 2
 -------------
 

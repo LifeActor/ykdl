@@ -29,13 +29,14 @@ REQ = ['m3u8', 'jsengine']
 EXT = {
   'proxy': ['ExtProxy'],
   'rangefetch': ['urllib3'],
+  'br': ['BrotliCFFI'],
   'js': ["QuickJS; os_name != 'nt'",
          "PyChakra>=2.2.0; os_name == 'nt' and platform_release < '8'"],
   'color': ["colorama; os_name == 'nt'"]
 }
 EXT['all-js'] = sum((v for k,v in EXT.items() if k != 'js'), [])
 EXT['all'] = EXT['all-js'] + EXT['js']
-EXT['net'] = EXT['proxy'] + EXT['rangefetch']
+EXT['net'] = EXT['proxy'] + EXT['rangefetch'] + EXT['br']
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = read_file('README.rst')

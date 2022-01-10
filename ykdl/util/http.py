@@ -19,6 +19,14 @@ try:
 except ImportError:
     from queue import Queue, Empty
 
+try:
+    try:
+        import brotlicffi as brotli
+    except ImportError:
+        import brotli
+except ImportError:
+    brotli =None
+
 from .match import match1
 from .xml2dict import xml2dict
 
@@ -251,10 +259,9 @@ class HTTPResponse:
                     payload = payload[0]
                 if isinstance(payload, str):
                     ce =  match1(payload, '(?i)content-encoding:\s*([\w-]+)')
-            if ce == 'gzip':
-                data = ungzip(data)
-            elif ce == 'deflate':
-                data = undeflate(data)
+            decompressor = decompressors.get(ce)
+            if callable(decompressor):
+                data = decompressor(data)
         self.content = data
         self._encoding = encoding
         if finish and self.locations:
@@ -455,6 +462,8 @@ _default_fake_headers = {
     'Accept-Language': 'zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3',
     'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:60.1) Gecko/20100101 Firefox/60.1'
 }
+if brotli:
+    _default_fake_headers['Accept-Encoding'] += ', br'
 fake_headers = _default_fake_headers.copy()
 
 def reset_headers():
@@ -464,7 +473,6 @@ def reset_headers():
 
 def add_header(key, value):
     '''Set the fake_headers[key] to value.'''
-    global fake_headers
     fake_headers[key] = value
 
 def ungzip(data):
@@ -473,8 +481,19 @@ def ungzip(data):
 
 def undeflate(data):
     '''Decompresses data for Content-Encoding: deflate.'''
-    decompressobj = zlib.decompressobj(-zlib.MAX_WBITS)
-    return decompressobj.decompress(data) + decompressobj.flush()
+    decompressor = zlib.decompressobj(-zlib.MAX_WBITS)
+    return decompressor.decompress(data) + decompressor.flush()
+
+def unbrotli(data):
+    '''Decompresses data for Content-Encoding: br.'''
+    return brotli.decompress(data)
+
+decompressors = {
+    'gzip': ungzip,
+    'deflate': undeflate
+}
+if brotli:
+    decompressors['br'] = unbrotli
 
 def get_response(url, headers={}, data=None, params=None, method='GET',
                       max_redirections=None, encoding=None,

@@ -38,7 +38,7 @@ class BaiduMusic(Extractor):
         }
         data = get_response(api, params=params).json()
 
-        print('album:\t\t%s' % data['data']['albumName'])
+        self.logger.info('album:\n\t%s', data['data']['albumName'])
 
         return data['data']['songIdList']
 

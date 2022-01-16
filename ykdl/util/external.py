@@ -146,7 +146,7 @@ def split_cmd_urls(cmd, urls):
     return cmds
 
 def launch_ffmpeg_merge(basename, ext, lenth):
-    print('Merging video %s using FFmpeg:' % basename)
+    print('Merging video %s using FFmpeg:' % basename, file=sys.stderr)
     if ext == 'ts':
         outputfile = basename + '.mp4'
     else:
@@ -189,7 +189,7 @@ def launch_ffmpeg_merge(basename, ext, lenth):
         subprocess.call(cmd)
 
 def launch_ffmpeg_download(url, name, set_headers=True, allow_all_ext=False):
-    print('Now downloading: %s' % name)
+    print('Now downloading: %s' % name, file=sys.stderr)
     logger.warning('''
 =================================
   stop downloading by press 'q'

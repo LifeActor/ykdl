@@ -502,8 +502,8 @@ def get_response(url, headers={}, data=None, params=None, method='GET',
 
     Params: both `params` and `data` always use "UTF-8" as encoding.
 
-    Returns response, If redirections > max_redirections > 0 (stop on limit),
-    this is a fake response except its attribute `url`.
+    Returns response, when redirections > max_redirections > 0 (stop on limit),
+    it is a fake response except the attribute `url`.
     '''
     global _opener
     url = url.split('#', 1)[0]  # remove fragment if exist, it's useless
@@ -530,13 +530,12 @@ def get_response(url, headers={}, data=None, params=None, method='GET',
         method = 'GET'
     elif method != 'HEAD':
         logger.debug('get_response> URL: ' + url)
-    if default_headers:
-        _headers = default_headers.copy()
-        _headers.update(headers)
-        headers = _headers
+    if data and method == 'GET':
+        method = 'POST'
+    req = Request(url, headers=default_headers, method=method)
+    for k, v in headers.items():
+        req.add_header(k, v)
     if data:
-        headers = {k.capitalize(): v for k, v in headers.items()}
-        ctype = headers.get('Content-type')
         form = False
         if isinstance(data, str):
             data = data.encode()
@@ -555,13 +554,11 @@ def get_response(url, headers={}, data=None, params=None, method='GET',
                     eq = bs.count(b'=')
                     sp = bs.count(b'&')
                     form = eq and eq == sp + 1
-        if not (ctype or form):
+        if not (form or req.has_header('Content-type')):
             raise ValueError(
                 'Inputed data is not type of "application/x-www-form-urlencoded"'
                 ', the "Content-Type" header MUST be gave.')
-        if data and method == 'GET':
-            method = 'POST'
-    req = Request(url, headers=headers, data=data, method=method)
+        req.data = data
     req.headget = headget
     req.max_redirections = max_redirections
     req.redirect_dict = {}  # init here allow disable redirect
@@ -582,8 +579,8 @@ def get_head_response(url, headers={}, params=None, max_redirections=0,
                       default_headers=fake_headers):
     '''Fetch the response of giving URL in HEAD mode.
 
-    Returns response, If redirections > max_redirections > 0 (stop on limit),
-    this is fake except its attribute `url`.
+    Returns response, when redirections > max_redirections > 0 (stop on limit),
+    it is a fake response except the attribute `url`.
     '''
     logger.debug('get_head_response> URL: ' + url)
     try:

@@ -43,7 +43,6 @@ def AES_128_CBC_b64_wrapper(data, key, iv):
 def netease_req(ids='468490608', snd_key=None, encSecKey=None):
     data = make_json_data(ids)
     if snd_key is None:
-        print('here')
         snd_key = get_random_str(16, 'snd_key')
         encSecKey = RSA_string(snd_key)
     first_pass = AES_128_CBC_b64_wrapper(data, first_key, iv)

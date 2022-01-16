@@ -52,6 +52,10 @@ if os.name == 'nt':
     # Re-encoding Windows cmd shell output, py35 and below
 
     if sys.version_info < (3, 6):
+        sys.stderr = io.TextIOWrapper(sys.stderr.detach(),
+                                      encoding=sys.stderr.encoding,
+                                      errors='ignore',
+                                      line_buffering=True)
         sys.stdout = io.TextIOWrapper(sys.stdout.detach(),
                                       encoding=sys.stdout.encoding,
                                       errors='ignore',

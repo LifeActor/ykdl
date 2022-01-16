@@ -68,7 +68,7 @@ def multi_hook(action, size=None, total=None, part=None):
             if not force_refresh and ct - _processes_last_refresh < 0.1:
                 return
             _processes_last_refresh = ct
-            sys.stdout.write(_clear_enter)
+            sys.stderr.write(_clear_enter)
             if _processes_single:
                 if '%' in _progress:
                     Processes = _progress_bar + get_processes_suffix()
@@ -79,9 +79,9 @@ def multi_hook(action, size=None, total=None, part=None):
                 Processes += ' '.join(['P%d-%s' % p for p in _processes.items()])
                 if len(Processes) > _max_columns:
                     Processes = Processes[:_max_columns - 3] + '...'
-            sys.stdout.write(Processes)
-            sys.stdout.write('\r')
-            sys.stdout.flush()
+            sys.stderr.write(Processes)
+            sys.stderr.write('\r')
+            sys.stderr.flush()
 
     def processes_deamon():
         nonlocal ct
@@ -153,7 +153,8 @@ def multi_hook(action, size=None, total=None, part=None):
     elif action == 'print':
         args, kwargs = action_args
         with print_lock:
-            sys.stdout.write(_clear_enter)
+            sys.stderr.write(_clear_enter)
+            kwargs['file'] = sys.stderr
             print(*args, **kwargs)
 
     elif action == 'init':
@@ -282,7 +283,7 @@ def save_url(*args, tries=3, **kwargs):
         except IncompleteRead:
             pass
         except KeyboardInterrupt:
-            print()
+            print(file=sys.stderr)
             raise
 
 def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
@@ -314,11 +315,11 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
             multi = True
         else:
             tries = 3
-    print('Start downloading: ' + name)
+    print('Start downloading: ' + name, file=sys.stderr)
     reporthook(['init'])
     while tries:
         if count > 1 and os.path.exists(name + '.' + ext):
-            print('Skipped: files has already been downloaded')
+            print('Skipped: files has already been downloaded', file=sys.stderr)
             return True
         tries -= 1
         reporthook(['start', not multi, status])
@@ -343,7 +344,7 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
                 from threading import _shutdown_locks
                 _threads_queues.clear()
                 _shutdown_locks.clear()
-                print()
+                print(file=sys.stderr)
                 raise
         else:
             run(save_url, tries=1)
@@ -352,7 +353,8 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
         print('\nCurrent downloaded %s, cost %s.'
               '\nTotal downloaded %s of %s, cost %s'
               % (human_size(downloaded), human_time(_cost),
-                 human_size(size), human_size(total), human_time(cost)))
+                 human_size(size), human_size(total), human_time(cost)),
+              file=sys.stderr)
         succeed = 0 not in status
         if not succeed:
             if count == 1:
@@ -377,5 +379,5 @@ def save_urls(urls, name, ext, jobs=1, fail_confirm=True,
             break
         if not tries:
             tries += 1
-        print('Restart downloading: ' + name)
+        print('Restart downloading: ' + name, file=sys.stderr)
     return succeed

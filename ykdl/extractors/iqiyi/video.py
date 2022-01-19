@@ -189,7 +189,7 @@ class Iqiyi(Extractor):
             }
 
         def fetch_tmts():
-            #raise
+            raise
             # try use tmts first
             # less http requests, get results quickly
             tmts_data = gettmts(tvid, vid)

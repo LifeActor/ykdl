@@ -16,6 +16,11 @@ class Weibo(Extractor):
     }
 
     def prepare(self):
+        if 'passport.weibo' in self.url:
+            url = parse_qs(self.url.split('?', 1)[-1]).get('url')
+            assert url, 'lost the url param in a link of "passport.weibo"'
+            self.url = url[0]
+
         info = MediaInfo(self.name)
 
         add_header('User-Agent', 'Baiduspider')

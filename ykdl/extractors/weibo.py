@@ -26,7 +26,7 @@ class Weibo(Extractor):
         add_header('User-Agent', 'Baiduspider')
 
         self.vid = match1(self.url, '\D(\d{4}:(?:\d{16}|\w{32}))(?:\W|$)',
-                                    '(media|weibo)_id=(\d{16})')
+                                    'media_id=(\d{16})')
 
         def append_stream(video_profile, video_quality, url):
             stream_id = self.quality_2_id[video_quality]

@@ -3,18 +3,29 @@
 import os
 import ast
 import json
+import base64
 import random
 import string
 import pkgutil
 
 
-__all__ = ['get_pkgdata_str', 'get_pkgdata_bytes', 'hash', 'literalize',
+__all__ = ['get_pkgdata_str', 'get_pkgdata_bytes', 'unb64', 'hash', 'literalize',
            'get_random_hex', 'get_random_str', 'get_random_name',
            'get_random_id', 'get_random_uuid', 'get_random_uuid_hex']
 
+def unb64(b64, target='str'):
+    '''Decode Base64 object to string/bytes.
+
+    Params: `target` is 'str' or 'bytes'
+    '''
+    if target == 'str':
+        return base64.b64decode(b64).decode()
+    if target == 'bytes':
+        return base64.b64decode(b64)
+
 def get_pkgdata_str(package, resource, url=None, encoding=None):
     '''Fetch the resource data from package, or from a fallback URL if give.
-    
+
     Params: `package` package name usually the `__name__` attribute with
             current module.
 

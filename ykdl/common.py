@@ -80,7 +80,8 @@ def url_to_module(url):
             if response.headers['Content-Type'].startswith('text/'):
                 logger.debug('> Try GeneralSimple')
                 from ykdl.extractors.generalsimple import site
-                if site.parser(url):
+                site = site.get_proxy('parser', url)
+                if site:
                     return site, url
                 logger.debug('> Try GeneralEmbed')
                 return import_module('ykdl.extractors.generalembed').site, url

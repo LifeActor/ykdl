@@ -3,6 +3,7 @@ import sys
 import gzip
 import zlib
 import json
+import base64
 import socket
 import functools
 from io import BytesIO
@@ -64,7 +65,7 @@ def _do_open(self, http_class, req, **http_conn_args):
     '''Return an HTTPResponse object for the request, using http_class.
 
     http_class must implement the HTTPConnection API from http.client.
-    
+
     There has some codes to handle persistent connections.
     '''
     host = req.host
@@ -150,7 +151,7 @@ _HTTPResponse._close_conn = _close_conn  # monkey patch, but secure
 
 class HTTPRedirectHandler(_HTTPRedirectHandler):
     '''Log all responses during redirect, support specify max redirections
-    
+
     MUST call from get_response(), or fallback to original HTTPRedirectHandler
     '''
     max_repeats = 2
@@ -270,7 +271,8 @@ class HTTPResponse:
             self._responses = []
 
     def __repr__(self):
-        return '<%s object at %s>' % (type(self).__name__, hex(id(self)))
+        return '<%s object [%d] at %s>' % (type(self).__name__,
+                                           self.status, hex(id(self)))
 
     def __str__(self):
         return self.text
@@ -311,10 +313,15 @@ class HTTPResponse:
                 encoding = encoding.decode()
             if isinstance(encoding, str):
                 try:
-                    self._text = self.content.decode(encoding, errors='replace')
+                    if encoding == 'base64':
+                        self._text = base64.b64decode(self.content) \
+                                           .decode('utf-8', errors='replace')
+                    else:
+                        self._text = self.content.decode(encoding, errors='replace')
                 except:
                     logger.debug('Try decode with encoding %r fail', encoding)
                 else:
+                    self._encoding = encoding
                     return True
         decode(self._encoding) or \
         decode(self.headers.get_content_charset()) or \
@@ -335,8 +342,8 @@ class HTTPResponse:
         except json.decoder.JSONDecodeError:
             # try remove callback
             text = match1(self.text, '^(?!\d)\w+\((.+?)\);?$',
-                                     '^(?!\d)\w+=(\{.+?\});?$',
-                                     '^(?!\d)\w+=(\[.+?\]);?$',)
+                                     '^(?:var )?(?!\d)\w+=(\{.+?\});?$',
+                                     '^(?:var )?(?!\d)\w+=(\[.+?\]);?$',)
             if text is None:
                 raise
             return json.loads(text)
@@ -475,9 +482,16 @@ def add_header(key, value):
     '''Set the fake_headers[key] to value.'''
     fake_headers[key] = value
 
+class GzipReader(gzip._GzipReader):
+    def _read_eof(self):
+        try:
+            super()._read_eof()
+        except EOFError:
+            logger.info(' Ignoring a bad checksum of gzip.')
+
 def ungzip(data):
     '''Decompresses data for Content-Encoding: gzip.'''
-    return gzip.GzipFile(fileobj=BytesIO(data)).read()
+    return GzipReader(BytesIO(data)).read()
 
 def undeflate(data):
     '''Decompresses data for Content-Encoding: deflate.'''

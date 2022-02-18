@@ -75,7 +75,7 @@ class GeneralSimple(Extractor):
                     'src': [url],
                     'size': 0
                 }
-            self.parser = lambda *a: info
+            info.extra['referer'] = fake_headers['referer'] = self.url
             return info
 
 site = GeneralSimple()

@@ -62,15 +62,23 @@ def clean_slices(name, ext, lenth):
         file_name = '%s_%d.%s' % (name, i, ext)
         os.remove(file_name)
 
+def fix_sa_name(name, ext, lenth):
+    if lenth > 1:
+        return
+    fn1 = '%s.%s' % (name, ext)
+    fn2 = '%s_0.%s' % (name, ext)
+    os.rename(fn1, fn2)
+
 def download(urls, name, ext, live=False):
     url = urls[0]
+    m3u8 = ext == 'm3u8'
     m3u8_crypto = False
     audio = subtitle = None
     # for live video, always use ffmpeg to rebuild timeline.
-    if not live and ext == 'm3u8':
+    if not live and m3u8:
         live = live_m3u8(url)
     internal = not live and m3u8_internal
-    if ext == 'm3u8':
+    if m3u8:
         m3u8_crypto = crypto_m3u8(url)
         # rebuild m3u8 urls when use internal downloader,
         # change the ext to segment's ext, default is "ts",
@@ -99,7 +107,8 @@ def download(urls, name, ext, live=False):
                      fail_confirm=not args.no_fail_confirm,
                      fail_retry_eta=args.fail_retry_eta):
             lenth = len(urls)
-            if lenth > 1 and not args.no_merge:
+            if (m3u8 or lenth > 1) and not args.no_merge:
+                fix_sa_name(name, ext, lenth)
                 if m3u8_crypto:
                     # use ffmpeg to merge internal downloaded m3u8
                     # build the local m3u8, and then the headers cannot be set
@@ -131,7 +140,8 @@ def download(urls, name, ext, live=False):
             if save_urls(audio, name, ext, jobs=args.jobs,
                          fail_confirm=not args.no_fail_confirm,
                          fail_retry_eta=args.fail_retry_eta):
-                if lenth > 1 and not args.no_merge:
+                if (m3u8 or lenth > 1) and not args.no_merge:
+                    fix_sa_name(name, ext, lenth)
                     launch_ffmpeg_merge(name, ext, lenth)
                     clean_slices(name, ext, lenth)
             else:

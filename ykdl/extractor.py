@@ -1,5 +1,6 @@
 from logging import getLogger
 from importlib import import_module
+from types import GeneratorType
 
 from .common import alias, url_to_module
 from .mediainfo import MediaInfo
@@ -10,6 +11,12 @@ from .util.match import match1
 __all__ = ['Extractor', 'SimpleExtractor', 'EmbedExtractor']
 
 class Extractor:
+
+    def get_proxy(self, parser, url):
+        assert parser in ['parser', 'parser_list']
+        info = getattr(self, parser)(url)
+        if info:
+            return ProxyExtractor(self, info)
 
     def __init__(self):
         self.logger = getLogger(self.name)
@@ -27,6 +34,8 @@ class Extractor:
             self.vid= url
 
         info = self.prepare()
+        if info:
+            info.orig_url = url
         return info
 
     def parser_list(self, url):
@@ -43,6 +52,7 @@ class Extractor:
             else:
                 info = self.parser(media)
             if info:
+                info.orig_url = url
                 yield info
 
     def prepare(self):
@@ -76,6 +86,27 @@ class Extractor:
         MUST override!!
         '''
         pass
+
+
+class ProxyExtractor(Extractor):
+
+    def __init__(self, real, info):
+        self.name = real.name
+        self.url = real.url
+        self.vid = real.vid
+        if type(info) in [GeneratorType, list]:
+            self.info_list = info
+        else:
+            self.info_list = [info]
+
+    def parser(self, url):
+        for info in self.parser_list(url):
+            return info
+
+    def parser_list(self, url):
+        if url in [self.url, self.vid]:
+            for info in self.info_list:
+                yield info
 
 
 class SimpleExtractor(Extractor):

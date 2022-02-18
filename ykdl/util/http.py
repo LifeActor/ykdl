@@ -583,14 +583,16 @@ def get_head_response(url, headers={}, params=None, max_redirections=0,
     it is a fake response except the attribute `url`.
     '''
     logger.debug('get_head_response> URL: ' + url)
+    # Bad HEAD response: t.cn
+    method = '//t.cn/' in url and 'HEADGET' or 'HEAD'
     try:
         response = get_response(url, headers=headers, params=params,
-                                method='HEAD',
+                                method=method,
                                 max_redirections=max_redirections,
                                 default_headers=default_headers)
     except IOError as e:
         # Maybe HEAD method is not supported, retry
-        if match1(str(e), 'HTTP Error (40[345]|520)'):
+        if method != 'HEADGET' and match1(str(e), 'HTTP Error (40[345]|520)'):
             logger.debug('get_head_response> HEAD failed, try GET')
             response = get_response(url, headers=headers, params=params,
                                     method='HEADGET',

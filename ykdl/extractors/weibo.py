@@ -25,7 +25,8 @@ class Weibo(Extractor):
 
         add_header('User-Agent', 'Baiduspider')
 
-        self.vid = match1(self.url, '\D(\d{4}:(?:\d{16}|\w{32}))(?:\W|$)')
+        self.vid = match1(self.url, '\D(\d{4}:(?:\d{16}|\w{32}))(?:\W|$)',
+                                    '(media|weibo)_id=(\d{16})')
 
         def append_stream(video_profile, video_quality, url):
             stream_id = self.quality_2_id[video_quality]
@@ -36,10 +37,12 @@ class Weibo(Extractor):
             }
 
         if self.vid is None:
-            page = match1(self.url, 'https?://[^/]+(/\d+/\w+)')
+            rurl = get_location(self.url)
+            assert '/sorry?' not in rurl, 'can not find any video!!!'
+            page = match1(rurl, 'https?://[^/]+(/\d+/\w+)')
             if page is None or match1(page, '/(\d+)$'):
-                html = get_content(self.url.replace('//weibo.', '//hk.weibo.')
-                                           .replace('/user/', '/'))
+                html = get_content(rurl.replace('//weibo.', '//hk.weibo.')
+                                       .replace('/user/', '/'))
                 page = match1(html, '"og:url".+weibo.com(/\d+/\w+)')
             assert page, 'can not find any video!!!'
             html = get_content('https://weibo.com' + page)
@@ -70,6 +73,8 @@ class Weibo(Extractor):
                 assert self.vid, 'can not find any video!!!'
 
         if self.vid:
+            if ':' not in self.vid:
+                self.vid = '1034:' + self.vid  # oid, the prefix is not necessary and would not be checked
             vdata = get_response('https://weibo.com/tv/api/component',
                         headers={
                             'Referer': 'https://weibo.com/tv/show/' + self.vid

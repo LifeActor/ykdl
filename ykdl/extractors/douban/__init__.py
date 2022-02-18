@@ -6,4 +6,8 @@ def get_extractor(url):
         from . import music as s
         return s.site, url
 
+    if 'movie.douban' in url and '/trailer' in url:
+        from . import movie as s
+        return s.site, url
+
     raise NotImplementedError(url)

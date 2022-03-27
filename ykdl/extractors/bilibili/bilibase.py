@@ -9,15 +9,15 @@ def sign_api_url(api_url, params_str, skey):
 
 class BiliBase(Extractor):
     format_2_type_profile = {
-       'flv_p60': ('BD', '高清 1080P'),  #116 IGNORE
-        'hdflv2': ('BD', '高清 1080P+'), #112 IGNORE
-           'flv': ('BD', '高清 1080P'),  #80
-    'flv720_p60': ('TD', '高清 720P'),   #74  IGNORE
-        'flv720': ('TD', '高清 720P'),   #64
-         'hdmp4': ('TD', '高清 720P'),   #48
-        'flv480': ('HD', '清晰 480P'),   #32
-           'mp4': ('SD', '流畅 360P'),   #16
-        'flv360': ('SD', '流畅 360P'),   #15
+        'hdflv2': ('4K', '超清 4K'),       #120 IGNORE
+       'flv_p60': ('BD', '高清 1080P60'),  #116 IGNORE
+           'flv': ('BD', '高清 1080P'),    #80
+    'flv720_p60': ('TD', '高清 720P'),     #74  IGNORE
+        'flv720': ('TD', '高清 720P'),     #64
+         'hdmp4': ('TD', '高清 720P'),     #48
+        'flv480': ('HD', '清晰 480P'),     #32
+           'mp4': ('SD', '流畅 360P'),     #16
+        'flv360': ('SD', '流畅 360P'),     #15
         }
 
     def prepare(self):

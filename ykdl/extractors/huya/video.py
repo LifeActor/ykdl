@@ -19,11 +19,11 @@ class HuyaVideo(Extractor):
         self.vid = match1(self.url, 'play/(\d+)')
         html = get_content(self.url)
         if not self.vid:
-            self.vid = match1(html, 'data-vid="(\d+)')
-        title = match1(html, '<h1 class="video-title">(.+?)</h1>')
-        info.artist = artist = match1(html,
-                            "<div class='video-author'>[\s\S]+?<h3>(.+?)</h3>")
-        info.title = '{title} - {artist}'.format(**vars())
+            self.vid = match1(html, 'vid = (\d+)', 'data-vid="(\d+)')
+        assert self.vid, "can't find VID!!"
+
+        info.title = match1(html, '<h1 class="video-title">(.+?)</h1>')
+        info.artist = match1(html, '<div class="video-author">[\s\S]+?<h3>(.+?)</h3>')
 
         t1 = int(time.time() * 1000)
         t2 = t1 + random.randrange(5, 10)

@@ -25,7 +25,7 @@ def find_packages(*tops):
     return packages
 
 # memo: pycryptodome is not being used now
-REQ = ['m3u8>=1.0.0', 'jsengine>=1.0.2']
+REQ = ['m3u8>=1.0.0', 'jsengine>=1.0.5']
 EXT = {
   'proxy': ['ExtProxy'],
   'rangefetch': ['urllib3'],

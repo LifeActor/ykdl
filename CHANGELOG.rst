@@ -1,6 +1,17 @@
 Change Log for ykdl
 ===================
 
+1.8.0
+-----
+
+:warning: :warning: :warning: <lots of breaks>
+
+- add Brotli support (extra)
+- fix output and update dependencies
+- update Bilibili, Douban, Huya, iQIYI, Weibo
+- more see early PRE-releases
+
+
 1.8.0 beta 1
 ------------
 

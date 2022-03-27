@@ -358,6 +358,7 @@ for _ in ('getheader', 'getheaders', 'info', 'geturl', 'getcode'):
 
 
 # utils
+# TODO: implement session
 
 __all__ = ['add_default_handler', 'install_default_handlers', 'install_cookie',
            'uninstall_cookie', 'get_cookie', 'get_cookies', 'fake_headers',

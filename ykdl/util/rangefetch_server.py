@@ -2,6 +2,7 @@
 Use urllib3 to reusing connections.
 Auto-adjust number of threads.
 '''
+# TODO: use .http instead of urllib3
 
 import os
 import re

@@ -2,7 +2,7 @@ import re
 import logging
 from importlib import import_module
 
-from .util.http import get_response, get_head_response
+from .util.http import get_head_response
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +73,7 @@ def url_to_module(url):
             return singlemultimedia.site, url
 
         logger.debug('> Try HTTP Redirection!')
-        response = get_response(url)
+        response = get_head_response(url)
 
         if response.url == url:
             logger.debug('> NO HTTP Redirection')

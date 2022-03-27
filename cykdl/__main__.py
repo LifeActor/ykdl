@@ -50,7 +50,7 @@ def arg_parser():
     parser.add_argument('--no-fail-confirm', action='store_true', default=False, help='Do not wait confirm when downloading failed, for run as tasks (non-blocking)')
     parser.add_argument('--no-merge', action='store_true', default=False, help='Do not merge video slides')
     parser.add_argument('--no-sub', action='store_true', default=False, help='Do not download subtitles')
-    parser.add_argument('-s', '--start', type=int, default=0, metavar='INDEX_NUM', help='Start from INDEX to play/download playlist')
+    parser.add_argument('-s', '--start', type=int, default=-1, metavar='INDEX_NUM', help='Start from INDEX to play/download playlist, default -1, index at media of current URL')
     parser.add_argument('-j', '--jobs', type=int, default=8, metavar='NUM', help='Number of jobs for multiprocess download')
     parser.add_argument('--debug', default=False, action='store_true', help='Print debug messages from ykdl')
     parser.add_argument('video_urls', type=str, nargs='+', help='video urls')
@@ -285,6 +285,7 @@ def main():
                 m, u = url_to_module(url)
                 if args.playlist:
                     parser = m.parser_list
+                    m.from1 = args.start >= 0
                 else:
                     parser = m.parser
                 info = parser(u)
@@ -312,7 +313,7 @@ def main():
         if 'local issuer' in errmsg:
             logger.warning('Please install or update Certifi, and try again:\n'
                            'pip3 install certifi --upgrade')
-        exit = 1
+        exit = 255
     sys.exit(exit)
 
 if __name__ == '__main__':

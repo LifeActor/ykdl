@@ -18,7 +18,7 @@ from _thread import start_new_thread
 import urllib3
 from urllib3.util.ssl_ import create_urllib3_context
 
-from .http import fake_headers as _fake_headers
+from .http import fake_headers as _fake_headers, get_location
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +79,8 @@ class RangeFetchHandler(http.server.BaseHTTPRequestHandler):
                 'Range request not be accepted, range fetch can not be finished, url: %s' %  self.url)
             return
 
+        self.url = get_location(self.url)
+        self.url_parts = url_parts = urlsplit(self.url)
         request_range = self.headers.get('Range')
         if request_range:
             request_range = getbytes(request_range)

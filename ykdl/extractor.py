@@ -22,6 +22,7 @@ class Extractor:
         self.logger = getLogger(self.name)
         self.url = None
         self.vid = None
+        self.from1 = None
 
     def parser(self, url):
         self.url = None

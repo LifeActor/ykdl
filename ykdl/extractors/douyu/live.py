@@ -31,8 +31,10 @@ class Douyutv(Extractor):
         self.vid = match1(html, '\$ROOM\.room_id\s*=\s*(\d+)',
                                 'room_id\s*=\s*(\d+)',
                                 '"room_id.?":(\d+)',
-                                'data-onlineid=(\d+)')
+                                'data-onlineid=(\d+)',
+                                '(房间已被关闭)')
 
+        assert self.vid != '房间已被关闭', '房间已被关闭'
         title = match1(html, 'Title-head\w*">([^<]+)<')
         artist = match1(html, 'Title-anchorName\w*" title="([^"]+)"')
         if not title or not artist:

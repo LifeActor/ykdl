@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from .._common import *
-from .bilibase import BiliBase, sign_api_url
-from .idconvertor import av2bv
+from .util import *
+from .bilibase import BiliBase
 
 
 APPKEY = 'iVGUTjsxvpLeuDCf'
@@ -43,7 +43,6 @@ class BiliVideo(BiliBase):
         return sign_api_url(api_url, params_str, SECRETKEY)
 
     def prepare_list(self):
-        # backup https://api.bilibili.com/x/player/pagelist?bvid=
         vid = match1(self.url, '/(av\d+|(?:BV|bv)[0-9A-Za-z]{10})')
         if self.from1:
             page = 1
@@ -51,10 +50,7 @@ class BiliVideo(BiliBase):
             page = int(match1(self.url, '(?:page|\?p)=(\d+)', 'index_(\d+)\.') or '1')
         if vid[:2] == 'av':
             vid = av2bv(vid)
-        data = get_response('https://api.bilibili.com/x/web-interface/view',
-                            params={'bvid': vid}).json()
-        assert data['code'] == 0, "can't play this video!!"
-        data = data['data']
+        data = get_media_data(vid)
 
         if 'ugc_season' in data:
             bvids = [section['bvid'] for section in

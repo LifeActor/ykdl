@@ -3,10 +3,6 @@
 from .._common import *
 
 
-def sign_api_url(api_url, params_str, skey):
-    sign = hash.md5(params_str + skey)
-    return '{api_url}?{params_str}&sign={sign}'.format(**vars())
-
 class BiliBase(Extractor):
     format_2_type_profile = {
         'hdflv2': ('4K', '超清 4K'),       #120 IGNORE

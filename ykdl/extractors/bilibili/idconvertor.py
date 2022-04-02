@@ -8,6 +8,9 @@ Origin by mcft:
 Modified by SeaHOH
 '''
 
+
+__all__ = ['bv2av', 'av2bv']
+
 tablec = list('fZodR9XQDSUm21yCkr6zBqiveYah8bt4xsWpHnJE7jL5VG3guMTKNPAwcF')
 tablei = {c: i for i, c in enumerate(tablec)}
 bvtl = list('BV1**4*1*7**')

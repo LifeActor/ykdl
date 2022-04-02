@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from .._common import *
-from .bilibase import BiliBase, sign_api_url
+from .util import *
+from .bilibase import BiliBase
 
 
 APPKEY = '84956560bc028eb7'
@@ -41,9 +42,9 @@ class BiliBan(BiliBase):
 
     def prepare_list(self):
         html = get_content(self.url)
-        eplist = matchall(html, '"epList":(\[.*?\])')
+        eplist = match1(html, '"episodes":(\[.+?\])')
         if eplist:
-            eplist = [match1(ep, '"(?:ep_)?id":(\d+),') for ep in eplist]
+            eplist = matchall(eplist, '"id":(\d+),')
             return ['https://www.bilibili.com/bangumi/play/ep' + eid
                     for eid in eplist if eid]
 

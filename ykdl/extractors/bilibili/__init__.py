@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .._common import *
-from .idconvertor import av2bv
-
+from .util import *
 
 def get_extractor(url):
     install_cookie()
@@ -28,10 +27,7 @@ def get_extractor(url):
 
     if bv_id:
         try:
-            data = get_response('https://api.bilibili.com/x/web-interface/view',
-                                params={'bvid': bv_id}).json()
-            assert data['code'] == 0, "can't play this video!!"
-            url = data['data']['redirect_url']
+            url = get_media_data(bv_id)['redirect_url']
         except AssertionError:
             raise
         except:

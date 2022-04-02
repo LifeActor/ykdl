@@ -161,11 +161,16 @@ class MediaInfo:
                 unique_title.append(self.artist)
         else:
             unique_title += [self.site, get_random_str(8)]
+        unique_title = [*legitimize('_'.join(unique_title))]
+        if not unique_title[-1]:
+            unique_title.pop()
         if not stream_id == 'current':
             unique_title.append(stream_id)
         if self.live:
-            unique_title.append(datetime.now().isoformat().split('.')[0])
-        return legitimize('_'.join(unique_title))
+            unique_title.append(legitimize(
+                    datetime.now().isoformat().split('.')[0]
+                    )[0])
+        return '_'.join(unique_title)
 
     @staticmethod
     def lprint(*ll):

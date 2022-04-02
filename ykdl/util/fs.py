@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import zlib
 import platform
 
 
@@ -47,7 +48,7 @@ def legitimize(text, compress='. -_', strip='. -_', trim=82):
     text = text.translate(translate_table)
 
     # Compress same characters, default target are dot, space, minus and underline
-    compress = set(list(compress))
+    compress = set(compress)
     chars = []
     last_char = None
     for char in text:
@@ -61,4 +62,7 @@ def legitimize(text, compress='. -_', strip='. -_', trim=82):
     text = text.strip(strip)
 
     # Trim to specifying Unicode characters length, default target is 82
-    return text[:trim]
+    crc = zlib.crc32(text[trim:].encode())
+    if crc:
+        crc = '{crc:x}'.format(**vars())
+    return text[:trim], crc

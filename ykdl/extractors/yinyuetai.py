@@ -44,7 +44,7 @@ class YinYueTai(Extractor):
     def prepare_list(self):
         playlist_id = match1(self.url, 'http://\w+.yinyuetai.com/playlist/(\d+)')
         playlist_data = get_response(
-                'http://m.yinyuetai.com/mv/get-simple-playlist-info'
+                'http://m.yinyuetai.com/mv/get-simple-playlist-info',
                 params={'playlistId': playlist_id}).json()
 
         videos = playlist_data['playlistInfo']['videos']

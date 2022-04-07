@@ -94,14 +94,14 @@ def getvps(tvid, vid):
 class Iqiyi(Extractor):
     name = '爱奇艺 (Iqiyi)'
 
-    vd_2_id = dict(sum([[(vd, id) for vd in vds] for id, vds in {
+    vd_2_id = reverse_list_dict({
         '4K': [10, 19],
         'BD': [5, 18, 600],
         'TD': [4, 17, 500],
         'HD': [2, 14, 21, 75, 300],
         'SD': [1, 200],
         'LD': [96, 100]
-    }.items()], []))
+    })
     id_2_profile = {
         '4K': '4K',
         'BD': '1080p',

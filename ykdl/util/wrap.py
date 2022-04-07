@@ -9,9 +9,14 @@ import string
 import pkgutil
 
 
-__all__ = ['get_pkgdata_str', 'get_pkgdata_bytes', 'unb64', 'hash', 'literalize',
+__all__ = ['reverse_list_dict', 'unb64', 'hash', 'literalize',
+           'get_pkgdata_str', 'get_pkgdata_bytes',
            'get_random_hex', 'get_random_str', 'get_random_name',
            'get_random_id', 'get_random_uuid', 'get_random_uuid_hex']
+
+def reverse_list_dict(d):
+    '''Reverse {key: values[List]} to {value: key}'''
+    return dict(sum([[(v, k) for v in vs] for k, vs in d.items()], []))
 
 def unb64(b64, target='str'):
     '''Decode Base64 object to string/bytes.

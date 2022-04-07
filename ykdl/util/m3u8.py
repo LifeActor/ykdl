@@ -69,7 +69,7 @@ def crypto_m3u8(url, **kwargs):
     '''Same as _load().'''
     m = _load(url, **kwargs)
     for k in m.keys:
-        assert not k.uri.startswith('skd:'), 'Unsupported FairPlay Streaming'
+        assert not (k and k.uri.startswith('skd:')), 'Unsupported FairPlay Streaming'
     return any(m.keys + m.session_keys)  # ignore method NONE
 
 def _get_stream_info(l, name):

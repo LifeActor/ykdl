@@ -3,23 +3,24 @@ import logging
 from importlib import import_module
 
 from .util.http import get_head_response
+from .util.wrap import reverse_list_dict
 
 logger = logging.getLogger(__name__)
 
 
 # TODO: add support to find module via mid@site[.type]
 
-alias = {
-        '163'    : 'netease',
-        'aixifan': 'acfun',
-        'amemv'  : 'douyin',
-        'cntv'   : 'cctv',
-        'douyutv': 'douyu',
-        'iask'   : 'sina',
-        'iesdouyin' : 'douyin',
-        'letv'   : 'le',
-        'wetv'   : 'qq'
-}
+alias = reverse_list_dict({
+    'acfun'     : ['aixifan'],
+    'cctv'      : ['cntv'],
+    'douyin'    : ['amemv', 'iesdouyin'],
+    'douyu'     : ['douyutv'],
+    'le'        : ['letv'],
+    'netease'   : ['163'],
+    'qq'        : ['wetv'],
+    'sina'      : ['iask'],
+    'weibo'     : ['weibocdn'],
+})
 exclude_list = {'com', 'net', 'org'}
 
 def url_to_module(url):

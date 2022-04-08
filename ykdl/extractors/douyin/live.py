@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .._common import *
+from .._byted_acrawler import get_signed_cookies
 
 
 class TikTok(Extractor):
@@ -17,7 +18,7 @@ class TikTok(Extractor):
     def prepare(self):
         info = MediaInfo(self.name)
 
-        html = get_content(self.url)
+        html = get_content(self.url, headers={'Cookie': get_signed_cookies(self.url)})
         data = match1(html,
                      'id="RENDER_DATA" type="application/json">(.+?)</script>',
                      '__INIT_PROPS__ = (.+?)</script>')

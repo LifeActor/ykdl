@@ -4,53 +4,29 @@ from ._common import *
 
 
 class YinYueTai(Extractor):
-    name = 'YinYueTai (音乐台)'
-
-    types_2_id_profile = {
-        'sh': ['BD', '原画'],
-        'he': ['TD', '超清'],
-        'hd': ['HD', '高清'],
-        'hc': ['SD', '标清']
-    }
+    name = '音悦台 (YinYueTai)'
 
     def prepare(self):
         info = MediaInfo(self.name)
+        fake_headers['Referer'] = 'https://www.yinyuetai.com/'
+        info.extra['referer'] = 'https://www.yinyuetai.com/'
         if not self.vid:
-            self.vid = match1(self.url,
-                              '//\w+.yinyuetai.com/video/(?:h5/)?(\d+)')
+            self.vid = match1(self.url,'\Wid=(\d+)')
 
-        data = get_response('http://ext.yinyuetai.com/main/get-h-mv-info',
-                            params={
-                                'json': 'true',
-                                'videoId': self.vid
-                            }).json()
-        assert not data['error'], 'some error happens'
+        data = get_response('https://data.yinyuetai.com/video/getVideoInfo',
+                            params={'id': self.vid}).json()
+        assert not data['delFlag'], 'MTV has been deleted!'
 
-        video_data = data['videoInfo']['coreVideoInfo']
-        info.title = video_data['videoName']
-        info.artist = video_data['artistNames']
+        info.title = data['videoName']
+        info.artist = data['artistName']
 
-        for s in video_data['videoUrlModels']:
-            stream_id, video_profile = self.types_2_id_profile[s['qualityLevel']]
-            info.streams[stream_id] = {
-                'container': 'flv',
-                'video_profile': video_profile,
-                'src' : [s['videoUrl']],
-                'size': s['fileSize']
-            }
+        url = data['videoUrl']
+        info.streams['current'] = {
+            'container': url_info(url)[1],
+            'video_profile': 'current',
+            'src' : [url]
+        }
 
         return info
-
-    def prepare_list(self):
-        playlist_id = match1(self.url, 'http://\w+.yinyuetai.com/playlist/(\d+)')
-        playlist_data = get_response(
-                'http://m.yinyuetai.com/mv/get-simple-playlist-info'
-                params={'playlistId': playlist_id}).json()
-
-        videos = playlist_data['playlistInfo']['videos']
-        # TODO
-        # I should directly use playlist data instead to request by vid...
-        # to be update
-        return [v['playListDetail']['videoId'] for v in videos]
 
 site = YinYueTai()

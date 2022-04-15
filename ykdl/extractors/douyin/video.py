@@ -20,6 +20,8 @@ class TikTok(Extractor):
 
         info.title = '{title} - {nickName}(@{uid})'.format(**vars())
         info.artist = nickName
+        info.duration = video_info['duration'] // 1000
+
         info.streams['current'] = {
             'container': 'mp4',
             'video_profile': 'current',

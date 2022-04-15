@@ -84,6 +84,7 @@ class SohuBase(Extractor):
                 html = get_content(self.url)
                 self.vid = match1(html, '/(\d+)/v\.swf',
                                         'vid="(\d+)"',
+                                        "bid:'(\d+)'",
                                         '&id=(\d+)')
 
         info = self.fetch_info(self.vid)

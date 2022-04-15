@@ -31,7 +31,7 @@ EXT = {
   'rangefetch': ['urllib3'],
   'br': ['BrotliCFFI'],
   'js': ["QuickJS; os_name != 'nt'",
-         "PyChakra>=2.2.0; os_name == 'nt' and platform_release < '8'"],
+         "PyChakra>=2.2.0; os_name == 'nt' and platform_version < '6.2'"],
   'color': ["colorama; os_name == 'nt'"]
 }
 EXT['all-js'] = sum((v for k,v in EXT.items() if k != 'js'), [])

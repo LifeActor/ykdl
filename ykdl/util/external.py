@@ -179,8 +179,8 @@ def launch_ffmpeg_merge(basename, ext, lenth):
 
         cmd = [ 'ffmpeg',
                 '-y', '-hide_banner',
-                '-safe', '-1',
                 '-f', 'concat',
+                '-safe', '0',
                 '-i', inputfile.name,
                 '-c', 'copy',
                 outputfile ]

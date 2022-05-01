@@ -44,10 +44,6 @@ class BiliVideo(BiliBase):
 
     def prepare_list(self):
         vid = match1(self.url, '/(av\d+|(?:BV|bv)[0-9A-Za-z]{10})')
-        if self.start >= 0:
-            page = 1
-        else:
-            page = int(match1(self.url, '(?:page|\?p)=(\d+)', 'index_(\d+)\.') or '1')
         if vid[:2] == 'av':
             vid = av2bv(vid)
         data = get_media_data(vid)
@@ -61,7 +57,11 @@ class BiliVideo(BiliBase):
                 yield 'https://www.bilibili.com/video/{bvid}'.format(**vars())
 
         else:
-            self.start = page - 1
+            if self.start < 0:
+                page = int(match1(self.url, '[^a-z]p(?:age)?=(\d+)',
+                                            'index_(\d+)\.')
+                           or '1')
+                self.start = page - 1
             for p in range(1, data['videos'] + 1):
                 yield 'https://www.bilibili.com/video/{vid}?p={p}'.format(**vars())
 

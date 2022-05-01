@@ -55,11 +55,14 @@ def get_ttwid_cookies(url):
     uninstall_cookie()
     return cd2cs(cookies)
 
+cookies = None
 _get_content = get_content
 
 def get_content(url):
-    if 'douyin.' in url:
-        cookies = get_signed_cookies(url)
-    elif 'ixigua.' in url:
-        cookies = get_ttwid_cookies(url)
+    global cookies
+    if cookies is None:
+        if 'douyin.' in url:
+            cookies = get_signed_cookies(url)
+        elif 'ixigua.' in url:
+            cookies = get_ttwid_cookies(url)
     return _get_content(url, headers={'Cookie': cookies})

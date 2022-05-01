@@ -20,6 +20,7 @@ class MediaInfo:
     def __init__(self, site, live=False):
         self.site = site
         self.live = live
+        self.index = None
         self.orig_url = None
         self._title = None
         self._album = None

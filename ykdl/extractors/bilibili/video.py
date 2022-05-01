@@ -44,7 +44,7 @@ class BiliVideo(BiliBase):
 
     def prepare_list(self):
         vid = match1(self.url, '/(av\d+|(?:BV|bv)[0-9A-Za-z]{10})')
-        if self.from1:
+        if self.start >= 0:
             page = 1
         else:
             page = int(match1(self.url, '(?:page|\?p)=(\d+)', 'index_(\d+)\.') or '1')
@@ -55,11 +55,14 @@ class BiliVideo(BiliBase):
         if 'ugc_season' in data:
             bvids = [section['bvid'] for section in
                      data['ugc_season']['sections'][0]['episodes']]
-            if not self.from1:
-                bvids = bvids[bvids.index(vid):]
-            return ['https://www.bilibili.com/video/{}'.format(bvid) for bvid in bvids]
+            if self.start < 0:
+                self.start = bvids.index(vid)
+            for bvid in bvids:
+                yield 'https://www.bilibili.com/video/{bvid}'.format(**vars())
 
-        return ['https://www.bilibili.com/video/{}?p={}'.format(vid, p)
-                for p in range(page, data['videos'] + 1)]
+        else:
+            self.start = page - 1
+            for p in range(1, data['videos'] + 1):
+                yield 'https://www.bilibili.com/video/{vid}?p={p}'.format(**vars())
 
 site = BiliVideo()

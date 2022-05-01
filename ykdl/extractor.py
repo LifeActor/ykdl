@@ -22,14 +22,14 @@ class Extractor:
         self.logger = getLogger(self.name)
         self.url = None
         self.vid = None
-        self.from1 = None
+        self.start = -1
 
     def parser(self, url):
         self.url = None
         self.vid = None
         if isinstance(url, str) and url.startswith('http'):
             self.url = url
-            if self.list_only():
+            if not hasattr(self, '_is_list') and self.list_only():
                 return self.parser_list(url)
         else:
             self.vid= url
@@ -42,19 +42,28 @@ class Extractor:
     def parser_list(self, url):
         self.url = url
         self._is_list = True
-        media_list = self.prepare_list()
-        if not media_list:
-            raise NotImplementedError(
-                    'playlist not support for {self.name} with url: {self.url}'
-                    .format(**vars()))
-        for media in media_list:
-            if isinstance(media, MediaInfo):
-                info = media
-            else:
-                info = self.parser(media)
-            if info:
-                info.orig_url = url
-                yield info
+        try:
+            i = None
+            media_list = self.prepare_list()
+            self.logger.debug('> start at index %d', self.start)
+            for i, media in enumerate(media_list):
+                if i < self.start:
+                    self.logger.debug('> skip index %d: %r', i, media)
+                    continue
+                if isinstance(media, MediaInfo):
+                    info = media
+                else:
+                    info = self.parser(media)
+                if info:
+                    info.index = i
+                    info.orig_url = url
+                    yield info
+            if i is None:
+                raise NotImplementedError(
+                        'playlist not support for {self.name} with url: {self.url}'
+                        .format(**vars()))
+        finally:
+            self.start = -1
 
     def prepare(self):
         '''
@@ -95,7 +104,7 @@ class ProxyExtractor(Extractor):
         self.name = real.name
         self.url = real.url
         self.vid = real.vid
-        if type(info) in [GeneratorType, list]:
+        if isinstance(info, (GeneratorType, list)):
             self.info_list = info
         else:
             self.info_list = [info]
@@ -247,18 +256,27 @@ class EmbedExtractor(Extractor):
     def parser_list(self, url):
         self.url = url
         self.media_info_list = []
-        self.prepare_playlist()
+        try:
+            self.prepare_playlist()
 
-        if not self.media_info_list:
-            raise NotImplementedError(
-                'Playlist is not supported for {self.name} with url: {self.url}'
-                .format(**vars()))
+            if not self.media_info_list:
+                raise NotImplementedError(
+                    'Playlist is not supported for {self.name} with url: {self.url}'
+                    .format(**vars()))
 
-        for media in self.media_info_list:
-            if isinstance(media, MediaInfo):
-                info = media
-            else:
-                info = self._parser(media)
-            if info:
-                yield info
+            self.logger.debug('> start at index %d', self.start)
+            for i, media in enumerate(self.media_info_list):
+                if i < self.start:
+                    self.logger.debug('> skip index %d: %r', i, media)
+                    continue
+                if isinstance(media, MediaInfo):
+                    info = media
+                else:
+                    info = self._parser(media)
+                if info:
+                    info.index = i
+                    info.orig_url = url
+                    yield info
+        finally:
+            self.start = -1
 

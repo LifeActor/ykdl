@@ -13,11 +13,11 @@ from argparse import ArgumentParser
 import socket
 import ssl
 import json
-import types
 import ast
 from urllib.request import ProxyHandler, HTTPSHandler, getproxies
 from urllib.parse import urlparse
 from tempfile import NamedTemporaryFile
+from types import GeneratorType
 
 import logging
 logger = logging.getLogger('YKDL')
@@ -161,7 +161,7 @@ def download_subtitles(subtitles, name):
                          fail_retry_eta=args.fail_retry_eta):
             logger.critical('{}> donwload failed'.format(_name))
 
-def handle_videoinfo(info, index=0):
+def handle_videoinfo(info):
     i = args.format or '0'
     if i.isdecimal():
         i = int(i)
@@ -181,8 +181,8 @@ def handle_videoinfo(info, index=0):
     if name:
         if '\\u' in name:
             name = literalize(name)
-        if args.playlist:
-            name = name + '_' + str(index)
+        if info.index is not None:
+            name = name + '_' + str(info.index)
     else:
         name = info.build_file_name(stream_id)
 
@@ -285,18 +285,13 @@ def main():
                 m, u = url_to_module(url)
                 if args.playlist:
                     parser = m.parser_list
-                    m.from1 = args.start >= 0
+                    m.start = args.start
                 else:
                     parser = m.parser
                 info = parser(u)
-                if type(info) is types.GeneratorType or type(info) is list:
-                    ind = 0
+                if isinstance(info, (GeneratorType, list)):
                     for i in info:
-                        if ind < args.start:
-                            ind += 1
-                            continue
-                        handle_videoinfo(i, index=ind)
-                        ind += 1
+                        handle_videoinfo(i)
                 else:
                     handle_videoinfo(info)
             except AssertionError as e:

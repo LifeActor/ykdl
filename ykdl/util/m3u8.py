@@ -23,20 +23,13 @@ def live_m3u8_lenth():
 
 import m3u8
 from m3u8.parser import urljoin
-from functools import lru_cache
-
-# hack into HTTP request of m3u8, let it use cykdl's settings
-@lru_cache(maxsize=None)  # live is disabled, results can be cached safely
-def _download(uri, headers, hkwargs):
-    response = get_response(uri, dict(headers), **dict(hkwargs))
-    return response.text, urljoin(response.url, '.')
 
 class HTTPClient():
     hkwargs = {}
     def download(self, uri, timeout=None, headers={}, *args, **kwargs):
-        headers = tuple(sorted(headers.items()))
-        hkwargs = tuple(sorted(self.hkwargs.items()))
-        return _download(uri, headers, hkwargs)
+        # live is disabled, results can be cached safely
+        response = get_response(uri, headers, cache=True, **self.hkwargs)
+        return response.text, urljoin(response.url, '.')
 
 def _load(uri, **kwargs):
     '''Support keyword arguments from m3u8.load().
@@ -58,7 +51,7 @@ def _load(uri, **kwargs):
     return m3u8.load(uri, **kwargs)
 
 def live_m3u8(url, **kwargs):
-    '''Same as _load().'''
+    '''Params: as same as _load().'''
     m = _load(url, **kwargs)
     ll = m.playlists or m.iframe_playlists
     if ll:
@@ -66,7 +59,7 @@ def live_m3u8(url, **kwargs):
     return not (m.is_endlist or m.playlist_type == 'VOD')
 
 def crypto_m3u8(url, **kwargs):
-    '''Same as _load().'''
+    '''Params: as same as _load().'''
     m = _load(url, **kwargs)
     for k in m.keys:
         assert not (k and k.uri.startswith('skd:')), 'Unsupported FairPlay Streaming'
@@ -78,7 +71,7 @@ def _get_stream_info(l, name):
                    name)
 
 def load_m3u8_playlist(url, **kwargs):
-    '''Same as _load().'''
+    '''Params: as same as _load().'''
 
     def append_stream(stype, profile, urls):
         streams[stype] = {
@@ -104,7 +97,7 @@ def load_m3u8_playlist(url, **kwargs):
     return streams
 
 def load_m3u8(url, **kwargs):
-    '''Same as _load().'''
+    '''Params: as same as _load().'''
 
     def load_media(l=None, m=None):
         urls = []

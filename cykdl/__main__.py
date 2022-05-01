@@ -23,7 +23,7 @@ import logging
 logger = logging.getLogger('YKDL')
 
 from ykdl.common import url_to_module
-from ykdl.util.http import add_default_handler, reset_headers, uninstall_cookie, get_response
+from ykdl.util import http
 from ykdl.util.external import launch_player, launch_ffmpeg_merge, launch_ffmpeg_download
 from ykdl.util.m3u8 import live_m3u8, crypto_m3u8, load_m3u8, _load as _load_m3u8
 from ykdl.util.download import save_urls
@@ -50,9 +50,10 @@ def arg_parser():
     parser.add_argument('--no-fail-confirm', action='store_true', default=False, help='Do not wait confirm when downloading failed, for run as tasks (non-blocking)')
     parser.add_argument('--no-merge', action='store_true', default=False, help='Do not merge video slides')
     parser.add_argument('--no-sub', action='store_true', default=False, help='Do not download subtitles')
+    parser.add_argument('--no-http-cache', action='store_true', default=False, help='Do not allow HTTP cache')
     parser.add_argument('-s', '--start', type=int, default=-1, metavar='INDEX_NUM', help='Start from INDEX to play/download playlist, default -1, index at media of current URL')
     parser.add_argument('-j', '--jobs', type=int, default=8, metavar='NUM', help='Number of jobs for multiprocess download')
-    parser.add_argument('--debug', default=False, action='store_true', help='Print debug messages from ykdl')
+    parser.add_argument('--debug', action='store_true', default=False, help='Print debug messages from ykdl')
     parser.add_argument('video_urls', type=str, nargs='+', help='video urls')
     global args
     args = parser.parse_args()
@@ -120,7 +121,7 @@ def download(urls, name, ext, live=False):
                         if k and k.uri:
                             key = NamedTemporaryFile(mode='w+b', suffix='.key',
                                                      dir='.')
-                            key.write(get_response(k.absolute_uri).content)
+                            key.write(http.get_response(k.absolute_uri).content)
                             key.flush()
                             k.uri = os.path.basename(key.name)
                             lkeys.append(key)
@@ -234,7 +235,7 @@ def main():
                 elif os.path.isdir(cert):
                     context.load_verify_locations(capath=cert)
             https_handler = HTTPSHandler(context=context)
-            add_default_handler(https_handler)
+            http.add_default_handler(https_handler)
             args.certs = certs
         else:
             args.certs = None
@@ -262,7 +263,10 @@ def main():
         }
     proxy_handler = ProxyHandler(proxies)
 
-    add_default_handler(proxy_handler)
+    http.add_default_handler(proxy_handler)
+
+    if args.no_http_cache:
+        http.CACHED.set(0)
 
     #mkdir and cd to output dir
     if not args.output_dir == '.':
@@ -279,8 +283,8 @@ def main():
     exit = 0
     try:
         for url in args.video_urls:
-            reset_headers()
-            uninstall_cookie()
+            http.reset_headers()
+            http.uninstall_cookie()
             try:
                 m, u = url_to_module(url)
                 if args.playlist:

@@ -7,11 +7,12 @@ import base64
 import socket
 import functools
 from io import BytesIO
+from types import NoneType
 from logging import getLogger
 from collections import defaultdict
 from http.client import HTTPResponse as _HTTPResponse
 from urllib.parse import parse_qs, urlencode
-from urllib.request import Request, install_opener, build_opener, \
+from urllib.request import Request as _Request, install_opener, build_opener, \
                            AbstractHTTPHandler, HTTPCookieProcessor, \
                            HTTPRedirectHandler as _HTTPRedirectHandler, \
                            URLError, HTTPError
@@ -191,9 +192,9 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
         # Useless in our modules, memo for somebody may needs
         #newurl = newurl.replace(' ', '%20')
 
-        newreq = Request(newurl, data=data, headers=newheaders,
-                         origin_req_host=req.origin_req_host,
-                         unverifiable=True, method=method)
+        newreq = _Request(newurl, data=data, headers=newheaders,
+                          origin_req_host=req.origin_req_host,
+                          unverifiable=True, method=method)
 
         # Important attributes MUST be passed to new request
         newreq.headget = req.headget
@@ -220,6 +221,17 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
                 return fp
             raise
         return newres
+
+
+# Custom HTTP request
+
+class Request(_Request):
+    '''Can be used as keys based on the pivotal attributes.'''
+    def __eq__(self, other):
+        return isinstance(other, self.__class__)
+
+    def __hash__(self):
+        return hash((self.get_method(), self._full_url, self.data, *self.header_items()))
 
 
 # Custom HTTP response
@@ -363,11 +375,35 @@ for _ in ('getheader', 'getheaders', 'info', 'geturl', 'getcode'):
 __all__ = ['add_default_handler', 'install_default_handlers', 'install_cookie',
            'uninstall_cookie', 'get_cookie', 'get_cookies', 'fake_headers',
            'reset_headers', 'add_header', 'get_response', 'get_head_response',
-           'get_location', 'get_content', 'url_info']
+           'get_location', 'get_content', 'url_info', 'CACHED']
 
 _opener = None
 _cookiejar = None
 _default_handlers = []
+
+class Bool:
+    def __init__(self, o):
+        self.set(o)
+    def __bool__(self):
+        return self.boolean
+    def set(self, o):
+        self.boolean = bool(o)
+
+CACHED = Bool(1)
+del Bool
+
+def _opener_open(req, encoding):
+    global _opener
+    if _opener is None:
+        install_default_handlers()
+    try:
+        response = HTTPResponse(req, _opener.open(req), encoding)
+    finally:
+        for r in req.responses:
+            del r.request.responses  # clear circular reference
+    return response
+
+_opener_open_cached = functools.lru_cache(maxsize=None)(_opener_open)
 
 def add_default_handler(handler):
     '''Added handlers will be used via install_default_handlers().
@@ -411,6 +447,7 @@ def install_default_handlers():
     # Always use our custom HTTPRedirectHandler
     _opener = build_opener(HTTPRedirectHandler, *_default_handlers)
     install_opener(_opener)
+    _opener_open_cached.cache_clear()
 
 def install_cookie():
     '''Install HTTPCookieProcessor to default opener.'''
@@ -455,7 +492,7 @@ def get_cookies(domain=None, path=None, name=None):
         else:
             p = d.get(path)
             pl = p and [p] or []
-        for p in pd:
+        for p in pl:
             if name is None:
                 cookies.extend(p.values())
             else:
@@ -512,7 +549,7 @@ if brotli:
 
 def get_response(url, headers={}, data=None, params=None, method='GET',
                       max_redirections=None, encoding=None,
-                      default_headers=fake_headers):
+                      default_headers=fake_headers, cache=True):
     '''Fetch the response of giving URL.
 
     Params: both `params` and `data` always use "UTF-8" as encoding.
@@ -520,7 +557,6 @@ def get_response(url, headers={}, data=None, params=None, method='GET',
     Returns response, when redirections > max_redirections > 0 (stop on limit),
     it is a fake response except the attribute `url`.
     '''
-    global _opener
     url = url.split('#', 1)[0]  # remove fragment if exist, it's useless
     if params: 
         url, _, query = url.partition('?')
@@ -544,7 +580,7 @@ def get_response(url, headers={}, data=None, params=None, method='GET',
     if headget:                    # without read content
         method = 'GET'
     elif method != 'HEAD':
-        logger.debug('get_response> URL: ' + url)
+        logger.debug('get_response> URL: %s', url)
     if data and method == 'GET':
         method = 'POST'
     req = Request(url, headers=default_headers, method=method)
@@ -578,17 +614,17 @@ def get_response(url, headers={}, data=None, params=None, method='GET',
     req.max_redirections = max_redirections
     req.redirect_dict = {}  # init here allow disable redirect
     req.locations = []
-    req.responses = responses = []
+    req.responses = []
     if encoding == 'ignore':
         encoding = None
-    if _opener is None:
-        install_default_handlers()
-    try:
-        response = HTTPResponse(req, _opener.open(req), encoding)
-    finally:
-        for r in responses:
-            del r.request.responses  # clear circular reference
-    return response
+    if cache and isinstance(data, (NoneType, bytes)):
+        hits = _opener_open_cached.cache_info().hits
+        response = _opener_open_cached(req, encoding)
+        if _opener_open_cached.cache_info().hits - hits:
+            logger.debug('get_response> hit cache URL: %s', url)
+        return response
+    else:
+        return _opener_open(req, encoding)
 
 def get_head_response(url, headers={}, params=None, max_redirections=0,
                       default_headers=fake_headers):

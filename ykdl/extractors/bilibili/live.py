@@ -45,32 +45,44 @@ class BiliLive(Extractor):
 
         def get_live_info(qn=1):
             data = get_response(
-                    'https://api.live.bilibili.com/xlive/web-room/v1/playUrl/playUrl',
+                    'https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo',
                     params={
-                        'https_url_req': 1,
-                        'cid': self.vid,
-                        'platform': 'web',
+                        'room_id': self.vid,
+                        'protocol': '0,1',    # 0 = http_stream, 1 = http_hls
+                        'format': '0,1,2',
+                        'codec': '0,1',       # 0 = avc, 1 = hevc
                         'qn': qn,
-                        'ptype': 16
+                        'platform': 'web',
+                        'ptype': 8,
+                        'dolby': 5
                     }).json()
 
             assert data['code'] == 0, data['msg']
 
-            data = data['data']
-            urls = [random.choice(data['durl'])['url']]
-            qlt = data['current_qn']
-            aqlts = {x['qn']: x['desc'] for x in data['quality_description']}
-            size = float('inf')
-            ext = 'flv'
-            prf = aqlts[qlt]
-            st = self.profile_2_id[prf]
-            if urls:
-                info.streams[st] = {
-                    'container': ext,
-                    'video_profile': prf,
-                    'src' : urls,
-                    'size': size
-                }
+            data = data['data']['playurl_info']['playurl']
+            g_qn_desc = {x['qn']: x['desc'] for x in data['g_qn_desc']}
+            
+            for stream in data['stream']:
+                for format in stream['format']:
+                    for codec in format['codec']:
+                        url_info = random.choice(codec['url_info'])
+                        urls = [url_info['host']+codec['base_url']+url_info['extra']]
+                        qlt = codec['current_qn']
+                        aqlts = {x: g_qn_desc[x] for x in codec['accept_qn']}
+                        size = float('inf')
+                        if 'http_stream' in stream['protocol_name']:
+                            ext = 'flv'
+                        elif 'http_hls' in stream['protocol_name']:
+                            ext = 'm3u8'
+                        prf = aqlts[qlt]
+                        st = '%s-%s-%s-%s' % (self.profile_2_id[prf], stream['protocol_name'], format['format_name'], codec['codec_name'])
+                        if urls:
+                            info.streams[st] = {
+                                'container': ext,
+                                'video_profile': prf,
+                                'src' : urls,
+                                'size': size
+                            }
 
             if qn == 1:
                 del aqlts[qlt]

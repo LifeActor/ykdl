@@ -201,7 +201,7 @@ def launch_ffmpeg_download(url, name, set_headers=True, allow_all_ext=False):
             '-i', url,
             '-c', 'copy',
             name ]
-    if name.endswith('.mp4'):
+    if name.endswith(('.mp4', '.flv')):
         cmd[-1:-1] = ['-bsf:a', 'aac_adtstoasc']
     if os.path.isfile(url):
         cmd[3:3] = ['-protocol_whitelist', 'file,http,https,tls,rtp,tcp,udp,crypto,httpproxy']

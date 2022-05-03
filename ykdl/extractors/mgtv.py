@@ -37,7 +37,7 @@ class Hunantv(Extractor):
     def prepare(self):
         info = MediaInfo(self.name)
         install_cookie()
-        add_header('Referer', self.url)
+        info.extra.referer = self.url
 
         if self.url and not self.vid:
             self.vid = match1(self.url, 'com/[bl]/\d+/(\d+).html')
@@ -95,7 +95,6 @@ class Hunantv(Extractor):
                     'src' : [url]
                 }
 
-        info.extra['referer'] = self.url
         return info
 
 site = Hunantv()

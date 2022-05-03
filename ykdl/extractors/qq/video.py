@@ -251,7 +251,7 @@ class QQ(Extractor):
         #    }
         #    self.logger.warning('This is a restricted video!')
 
-        info.extra['referer'] = 'https://v.qq.com/'
+        info.extra.referer = 'https://v.qq.com/'
         return info
 
     def prepare_list(self):

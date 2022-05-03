@@ -8,8 +8,7 @@ class YinYueTai(Extractor):
 
     def prepare(self):
         info = MediaInfo(self.name)
-        fake_headers['Referer'] = 'https://www.yinyuetai.com/'
-        info.extra['referer'] = 'https://www.yinyuetai.com/'
+        info.extra.referer = 'https://www.yinyuetai.com/'
         if not self.vid:
             self.vid = match1(self.url,'\Wid=(\d+)')
 

@@ -9,6 +9,7 @@ from urllib.parse import unquote
 
 from .util import log
 from .util.fs import legitimize
+from .util.http import fake_headers
 from .util.human import human_size, _format_time, human_time, stream_index
 from .util.match import match, match1
 from .util.wrap import get_random_str
@@ -29,12 +30,7 @@ class MediaInfo:
         self._comments = []
         self.streams = MediaStreams()
         self.subtitles = []
-        self.extra = {k: '' for k in ['ua',
-                                      'referer',
-                                      'header',
-                                      'proxy',
-                                      'rangefetch'
-                                     ]}
+        self.extra = ExtraDict()
 
     @property
     def title(self):
@@ -178,6 +174,31 @@ class MediaInfo:
         for l, *v in ll:
             if v[0]:
                 print(l.format(*v))
+
+
+class ExtraDict(dict):
+    default_keys = 'ua', 'referer', 'header', 'proxy', 'rangefetch'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for k in self.default_keys:
+            if k not in self:
+                self[k] = ''
+
+    def __getattr__(self, name):
+        if name in self:
+            return self[name]
+        raise AttributeError(name)
+
+    def __setattr__(self, name, value):
+        if name in self:
+            self[name] = value
+            if name == 'ua':
+                fake_headers['User-Agent'] = value
+            elif name == 'referer':
+                fake_headers['Referer'] = value
+        else:
+            object.__setattr__(self, name, value)
 
 
 class MediaStreams:

@@ -18,7 +18,7 @@ class BiliBase(Extractor):
 
     def prepare(self):
         info = MediaInfo(self.name)
-        info.extra['referer'] = 'https://www.bilibili.com/'
+        info.extra.referer = 'https://www.bilibili.com/'
         info.extra['ua'] = fake_headers['User-Agent']
 
         self.vid, info.title, info.artist = self.get_page_info()

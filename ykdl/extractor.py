@@ -32,7 +32,7 @@ class Extractor:
             if not hasattr(self, '_is_list') and self.list_only():
                 return self.parser_list(url)
         else:
-            self.vid= url
+            self.vid = url
 
         info = self.prepare()
         if info:
@@ -64,6 +64,7 @@ class Extractor:
                         .format(**vars()))
         finally:
             self.start = -1
+            del self._is_list
 
     def prepare(self):
         '''
@@ -279,4 +280,4 @@ class EmbedExtractor(Extractor):
                     yield info
         finally:
             self.start = -1
-
+            del self._is_list

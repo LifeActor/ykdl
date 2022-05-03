@@ -4,10 +4,11 @@ from .._common import *
 
 
 class BiliLive(Extractor):
-    name = 'Bilibili live (哔哩哔哩 直播)'
+    name = 'Bilibili live (哔哩哔哩直播)'
 
     profile_2_id = {
-        '4K':   '4K',
+        '杜比': 'unknown',  # FIXME: placeholder
+          '4K': '4K',
         '原画': 'OG',
         '蓝光': 'BD',
         '超清': 'TD',
@@ -15,39 +16,49 @@ class BiliLive(Extractor):
         '流畅': 'SD'
     }
 
+    def live_status(self):
+        id = match1(self.url, '/(\d+)')
+        data = get_response(
+                'https://api.live.bilibili.com/room/v1/Room/room_init',
+                params={'id': id}, cache=False).json()
+        assert data['code'] == 0, data['msg']
+        data = data['data']
+
+        self.vid = data['room_id'], str(data['uid'])
+        live_status = data['live_status']
+
+        assert not data['is_locked'], '房间已封禁'
+        assert not data['encrypted'], '房间已加密'
+        assert live_status > 0, '主播正在觅食......'
+
+        return live_status
+
+    def list_only(self):
+        return self.live_status() == 2
+
     def prepare(self):
         info = MediaInfo(self.name, True)
+        room_id, uid = self.vid
 
-        ID = match1(self.url, '/(\d+)')
-        api1_data = get_response(
-                'https://api.live.bilibili.com/room/v1/Room/room_init',
-                params={'id': ID}).json()
-        if api1_data['code'] == 0:
-            self.vid = api1_data['data']['room_id']
-        else:
-            self.logger.debug('Get room ID from API failed: %s', api1_data['msg'])
-            self.vid = ID
+        data = get_response(
+                'https://api.live.bilibili.com/room/v1/Room/get_status_info_by_uids',
+                params={'uids[]': uid}, cache=False).json()
+        assert data['code'] == 0, data['msg']
+        data = data['data'][uid]
 
-        api2_data = get_response(
-                'https://api.live.bilibili.com/room/v1/Room/get_info',
-                params={'room_id': self.vid}).json()
-        assert api2_data['code'] == 0, api2_data['msg']
-        api2_data = api2_data['data']
-        assert api2_data['live_status'] == 1, '主播正在觅食......'
-        info.title = title = api2_data['title']
+        info.title = '{data[title]} - {data[uname]}'.format(**vars())
+        info.add_comment(data['tag_name'])
 
-        api3_data = get_response(
-                'https://api.live.bilibili.com/live_user/v1/UserInfo/get_anchor_in_room',
-                params={'roomid': self.vid}).json()
-        if api3_data['code'] == 0:
-            info.artist = artist = api3_data['data']['info']['uname']
-            info.title = '{title} - {artist}'.format(**vars())
+        g_qn_desc = None
+        aqlts = set()
+        aqlts_p = set()
+        size = float('inf')
 
         def get_live_info(qn=1):
             data = get_response(
                     'https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo',
                     params={
-                        'room_id': self.vid,
+                        'room_id': room_id,
                         'protocol': '0,1',    # 0 = http_stream, 1 = http_hls
                         'format': '0,1,2',
                         'codec': '0,1',       # 0 = avc, 1 = hevc
@@ -55,41 +66,77 @@ class BiliLive(Extractor):
                         'platform': 'web',
                         'ptype': 8,
                         'dolby': 5
-                    }).json()
-
+                    }, cache=False).json()
             assert data['code'] == 0, data['msg']
-
             data = data['data']['playurl_info']['playurl']
-            g_qn_desc = {x['qn']: x['desc'] for x in data['g_qn_desc']}
-            
+
+            nonlocal g_qn_desc, aqlts
+            if g_qn_desc is None:
+                g_qn_desc = {x['qn']: x['desc'] for x in data['g_qn_desc']}
+            qlt = None
+
             for stream in data['stream']:
                 for format in stream['format']:
                     for codec in format['codec']:
-                        url_info = random.choice(codec['url_info'])
-                        urls = [url_info['host']+codec['base_url']+url_info['extra']]
-                        qlt = codec['current_qn']
-                        aqlts = {x: g_qn_desc[x] for x in codec['accept_qn']}
-                        size = float('inf')
-                        if 'http_stream' in stream['protocol_name']:
-                            ext = 'flv'
-                        elif 'http_hls' in stream['protocol_name']:
+                        aqlts.update(x for x in codec['accept_qn']
+                                     if x not in aqlts_p)
+                        if qlt is None:
+                            qlt = codec['current_qn']
+                            prf = g_qn_desc[qlt]
+                        st = self.profile_2_id[prf]
+                        if 'http_hls' in stream['protocol_name']:
                             ext = 'm3u8'
-                        prf = aqlts[qlt]
-                        st = '%s-%s-%s-%s' % (self.profile_2_id[prf], stream['protocol_name'], format['format_name'], codec['codec_name'])
-                        if urls:
-                            info.streams[st] = {
-                                'container': ext,
-                                'video_profile': prf,
-                                'src' : urls,
-                                'size': size
-                            }
+                            st += '-hls'
+                        else:
+                            ext = format['format_name']
+                        if codec['codec_name'] == 'hevc':
+                            st += '-h265'
+                        if st in info.streams:
+                            self.logger.debug('skip stream: [ %s %s %s ]',
+                                              stream['protocol_name'],
+                                              format['format_name'],
+                                              codec['codec_name'],)
+                            continue
+                        url_info = random.choice(codec['url_info'])
+                        url = url_info['host'] + codec['base_url'] + url_info['extra']
+                        info.streams[st] = {
+                            'container': ext,
+                            'video_profile': prf,
+                            'src' : [url],
+                            'size': size
+                        }
 
             if qn == 1:
-                del aqlts[qlt]
-                for aqlt in aqlts:
-                    get_live_info(aqlt)
+                aqlts.remove(qlt)
+                aqlts_p.add(qlt)
+                while aqlts:
+                    qlt = aqlts.pop()
+                    aqlts_p.add(qlt)
+                    get_live_info(qlt)
 
         get_live_info()
+        info.extra.referer= 'https://live.bilibili.com/'
         return info
+
+    def prepare_list(self):
+        from .video import site
+
+        if self.vid is None:
+            self.live_status()
+        room_id, uid = self.vid
+        self.start = -1  # skip is not allowed
+
+        while True:
+            data = get_response(
+                    'https://api.live.bilibili.com/live/getRoundPlayVideo',
+                    params={'room_id': room_id}, cache=False).json()
+            assert data['code'] == 0, data['msg']
+            bvid_url = data['data'].get('bvid_url')
+            assert bvid_url, '轮播结束'
+
+            info = site.parser(bvid_url)
+            info.site = '哔哩哔哩轮播'
+            info.title = '(轮播) ' + info.title
+            yield info
 
 site = BiliLive()

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import re
 import sys
 import zlib
 import platform
@@ -12,7 +13,7 @@ else:
 
 translate_table = None
 
-def legitimize(text, compress='. -_', strip='. -_', trim=82):
+def legitimize(text, compress='.-_', strip='. -_', trim=82):
     '''Converts a string to a valid filename.'''
 
     global translate_table
@@ -47,8 +48,9 @@ def legitimize(text, compress='. -_', strip='. -_', trim=82):
 
     text = text.translate(translate_table)
 
-    # Compress same characters, default target are dot, space, minus and underline
-    compress = set(compress)
+    # Compress same ASCII characters, default target are dot, minus and underline
+    # Whitespace characters will always be compressed
+    compress = set(c for c in compress if ord(c) < 128)
     chars = []
     last_char = None
     for char in text:
@@ -56,6 +58,7 @@ def legitimize(text, compress='. -_', strip='. -_', trim=82):
             chars.append(char)
         last_char = char
     text = ''.join(chars)
+    text = re.sub('\\s+', ' ', text)
 
 
     # Strip characters, default target are same as compress default target

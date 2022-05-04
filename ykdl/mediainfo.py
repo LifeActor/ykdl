@@ -79,7 +79,7 @@ class MediaInfo:
             value = unquote(unescape(value))
             self._comments.append(value)
 
-    def print_stream_info(self, stream_id, show_all=False):
+    def print_stream_info(self, stream_id, show_full=False):
         stream = self.streams[stream_id]
         fmt, id = self.streams._split_id(stream_id)
         stream_fmt = id and self.streams[fmt] is stream and fmt
@@ -95,21 +95,23 @@ class MediaInfo:
         ['      size:           {} ({:d} Bytes)', size and human_size(size), size],
         ['    # download-with:  {}', stream_id != 'current' and
                 log.sprint('ykdl --format=%s [URL]' % stream_id, log.UNDERLINE)])
-        if show_all:
+        if show_full:
             print('Real urls:')
             for url in stream['src']:
                 print(url)
+        print('')
 
-    def print_subtitle_info(self, subtitle, show_all=False):
+    def print_subtitle_info(self, subtitle, show_full=False):
         size = subtitle.get('size', 0) not in (0, float('inf')) and subtitle['size']
         self.lprint(
         ['    - language:       {}', log.sprint(subtitle['lang'], log.NEGATIVE)],
         ['      name:           {}', subtitle['name']],
         ['      format:         {}', subtitle['format']],
         ['      size:           {} ({:d} Bytes)', size and human_size(size), size])
-        if show_all:
+        if show_full:
             print('Real url:')
             print(subtitle['src'])
+        print('')
 
     def jsonlize(self):
         json_dict = {
@@ -128,7 +130,7 @@ class MediaInfo:
                 json_dict['streams'][s].pop('size')
         return json_dict
 
-    def print_info(self, stream_id=None, show_all=False):
+    def print_info(self, stream_id=None, show_all=False, show_full=False):
         self.lprint(
         ['site:                 {}', self.site],
         ['title:                {}', self.title],
@@ -137,16 +139,16 @@ class MediaInfo:
         ['duration:             {}', self.duration and human_time(self.duration)],
         ['comments:             {}', self.comments],
         ['streams:', 1])
-        if not show_all:
-            stream_id = stream_id or self.streams.get_id(0)
-            self.print_stream_info(stream_id, show_all)
-        else:
+        if show_all:
             for stream_id in self.streams:
-                self.print_stream_info(stream_id, show_all)
+                self.print_stream_info(stream_id, show_full)
+        else:
+            stream_id = stream_id or self.streams.get_id(0)
+            self.print_stream_info(stream_id, show_full)
         if self.subtitles:
             print('subtitles:')
             for subtitle in self.subtitles:
-                self.print_subtitle_info(subtitle, show_all)
+                self.print_subtitle_info(subtitle, show_full)
 
     def build_file_name(self, stream_id):
         unique_title = []

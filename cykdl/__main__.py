@@ -23,7 +23,7 @@ import logging
 logger = logging.getLogger('YKDL')
 
 from ykdl.common import url_to_module
-from ykdl.util import http
+from ykdl.util import http, log
 from ykdl.util.external import launch_player, launch_ffmpeg_merge, launch_ffmpeg_download
 from ykdl.util.m3u8 import live_m3u8, crypto_m3u8, load_m3u8, _load as _load_m3u8
 from ykdl.util.download import save_urls
@@ -38,6 +38,7 @@ def arg_parser():
     parser.add_argument('-l', '--playlist', action='store_true', default=False, help='Download as a playlist')
     parser.add_argument('-i', '--info', action='store_true', default=False, help='Display the information of videos without downloading')
     parser.add_argument('-J', '--json', action='store_true', default=False, help='Display info in json format')
+    parser.add_argument('-a', '--show-all', action='store_true', default=False, help='Display all available video format before downloading')
     parser.add_argument('-F', '--format',  help='Video format code, or resolution level 0, 1, ...')
     parser.add_argument('-o', '--output-dir', default='.', help='Set the output directory for downloaded videos')
     parser.add_argument('-O', '--output-name', default='', help='Downloaded videos with the NAME you want')
@@ -174,7 +175,11 @@ def handle_videoinfo(info):
     if args.json:
         print(json.dumps(info.jsonlize(), indent=4, sort_keys=True, ensure_ascii=False))
     else:
-        info.print_info(stream_id, args.info)
+        info.print_info(stream_id, args.show_all, args.info)
+        if args.show_all:
+            action = args.player and 'playing' or 'downloading'
+            print('Now %s format ' % action
+                  + log.sprint(stream_id, log.NEGATIVE))
     if args.info or args.json:
         return
     urls = info.streams[stream_id]['src']

@@ -5,9 +5,10 @@ IS_ANSI_TERMINAL = os.getenv('TERM', '').startswith((
     'linux',
     'screen',
     'vt100',
-    'xterm'))
+    'xterm'
+))
 
-if os.name == 'nt':
+if not IS_ANSI_TERMINAL and os.name == 'nt':
     try:
         import colorama
     except ImportError:
@@ -75,7 +76,8 @@ _LOG_COLOR_MAP_ = {
     logging.WARNING  : YELLOW,
     logging.INFO     : LIGHT_GRAY,
     logging.DEBUG    : GREEN,
-    logging.NOTSET   : DEFAULT }
+    logging.NOTSET   : DEFAULT
+}
 
 _colorFormatter = logging.Formatter('\33[%(color)sm%(levelname)s:%(name)s:%(message)s\33[0m')
 

@@ -17,6 +17,7 @@ translate_table_cs = None
 def _ensure_translate_table():
     global translate_table, translate_table_cs
     if translate_table is None:
+        ### Visible ###
         # Control characters
         # Delete them except Tab and Newline
         translate_table = dict.fromkeys((*range(32), *range(127, 160)))
@@ -35,12 +36,14 @@ def _ensure_translate_table():
 
         translate_table_cs = translate_table.copy()
 
-        # Legitimize characters for filename
+        ### Legality ###
         translate_table.update({
             ord('/'): '／',  # File path component separator
         })
         if system == 'Windows':
-            # Windows NTFS (Win32 namespace)
+            # FAT12 / FAT16 / FAT32 (VFAT LFNs)
+            # exFAT
+            # NTFS / ReFS (Win32 namespace)
             translate_table.update({
                 ord('\\'): '＼',
                 ord(':'): '꞉',
@@ -52,10 +55,11 @@ def _ensure_translate_table():
                 ord('|'): '¦',
             })
         elif system == 'Darwin':
-            # Mac OS HFS+
-            translate_table.update({
-                ord(':'): '꞉',
-            })
+            # HFS+ except longstanding cases
+            if int(platform.release().split('.')[0]) < 17:
+                translate_table.update({
+                    ord(':'): '꞉',
+                })
 
 def legitimize(text, compress='', strip='', trim=82):
     '''Converts a string to a valid filename.

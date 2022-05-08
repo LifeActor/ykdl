@@ -18,7 +18,6 @@ def _ensure_translate_table():
     global translate_table, translate_table_cs
     if translate_table is None:
         # Control characters
-        # POSIX systems could accept them, but we wouldn't like this
         # Delete them except Tab and Newline
         translate_table = dict.fromkeys((*range(32), *range(127, 160)))
         translate_table.update({
@@ -41,7 +40,7 @@ def _ensure_translate_table():
             ord('/'): '／',  # File path component separator
         })
         if system == 'Windows':
-            # Windows (non-POSIX namespace), drop old reserved characters
+            # Windows NTFS (Win32 namespace)
             translate_table.update({
                 ord('\\'): '＼',
                 ord(':'): '꞉',
@@ -65,6 +64,9 @@ def legitimize(text, compress='', strip='', trim=82):
     _ensure_translate_table()
     text = text.translate(translate_table)
     text = compress_strip(text, compress, strip, True)
+
+    assert text, 'the given filename could not be legalized!'
+
     crc = zlib.crc32(text[trim:].encode())
     if crc:
         crc = '{crc:x}'.format(**vars())

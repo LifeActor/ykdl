@@ -8,7 +8,7 @@ from html import unescape
 from urllib.parse import unquote
 
 from .util import log
-from .util.fs import legitimize
+from .util.fs import legitimize, compress_strip
 from .util.http import fake_headers
 from .util.human import human_size, _format_time, human_time, stream_index
 from .util.match import match, match1
@@ -39,7 +39,7 @@ class MediaInfo:
     @title.setter
     def title(self, value):
         if value:
-            self._title = unquote(unescape(value))
+            self._title = compress_strip(unquote(unescape(value)))
 
     @property
     def album(self):

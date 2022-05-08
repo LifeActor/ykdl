@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-import re
 import sys
 import zlib
 import platform
+from unicodedata import category
 
 
 if sys.platform.startswith(('msys', 'cygwin')):
@@ -12,60 +12,78 @@ else:
     system = platform.system()
 
 translate_table = None
+translate_table_cs = None
 
-def legitimize(text, compress='.-_', strip='. -_', trim=82):
-    '''Converts a string to a valid filename.'''
-
-    global translate_table
-
+def _ensure_translate_table():
+    global translate_table, translate_table_cs
     if translate_table is None:
-        # Non-Printable Characters
-        # POSIX systems could accept 1-31, but we wouldn't like this
-        # Delete them except tab and newline
-        translate_table = dict.fromkeys(range(32))
+        # Control characters
+        # POSIX systems could accept them, but we wouldn't like this
+        # Delete them except Tab and Newline
+        translate_table = dict.fromkeys((*range(32), *range(127, 160)))
         translate_table.update({
             ord('\t'): ' ',
             ord('\n'): '-',
-            ord('/'): '／',
+        })
+
+        # Unicode Category Separator characters
+        # Convert to Space
+        translate_table.update({
+            u: ' '
+            for u in range(32, sys.maxunicode)
+            if category(chr(u))[0] == 'Z'
+        })
+
+        translate_table_cs = translate_table.copy()
+
+        # Legitimize characters for filename
+        translate_table.update({
+            ord('/'): '／',  # File path component separator
         })
         if system == 'Windows':
             # Windows (non-POSIX namespace), drop old reserved characters
             translate_table.update({
                 ord('\\'): '＼',
-                ord(':'): '：',
-                ord('*'): '＊',
-                ord('?'): '？',
-                ord('"'): '＂',
+                ord(':'): '꞉',
+                ord('*'): '∗',
+                ord('?'): '‽',
+                ord('"'): '″',
                 ord('<'): '＜',
                 ord('>'): '＞',
-                ord('|'): '｜',
+                ord('|'): '¦',
             })
         elif system == 'Darwin':
             # Mac OS HFS+
             translate_table.update({
-                ord(':'): '：',
+                ord(':'): '꞉',
             })
 
+def legitimize(text, compress='', strip='', trim=82):
+    '''Converts a string to a valid filename.
+    Also see `help(compress_strip)`.
+    '''
+    _ensure_translate_table()
     text = text.translate(translate_table)
+    text = compress_strip(text, compress, strip, True)
+    crc = zlib.crc32(text[trim:].encode())
+    if crc:
+        crc = '{crc:x}'.format(**vars())
+    return text[:trim], crc
 
-    # Compress same ASCII characters, default target are dot, minus and underline
-    # Whitespace characters will always be compressed
-    compress = set(c for c in compress if ord(c) < 128)
+def compress_strip(text, compress='', strip='', translated=False):
+    '''Compress same characters, and then strip.
+    Dot, Minus, Underline and whole characters of Unicode Category Separator
+    will always be compressed and stripped.
+    '''
+    if not translated:
+        _ensure_translate_table()
+        text = text.translate(translate_table_cs)
+
+    compress = set(c for c in compress + '.-_ ')
     chars = []
     last_char = None
     for char in text:
         if not (char is last_char and char in compress):
             chars.append(char)
         last_char = char
-    text = ''.join(chars)
-    text = re.sub('\\s+', ' ', text)
-
-
-    # Strip characters, default target are same as compress default target
-    text = text.strip(strip)
-
-    # Trim to specifying Unicode characters length, default target is 82
-    crc = zlib.crc32(text[trim:].encode())
-    if crc:
-        crc = '{crc:x}'.format(**vars())
-    return text[:trim], crc
+    return ''.join(chars).strip(strip + '.-_ ')

@@ -256,6 +256,7 @@ class EmbedExtractor(Extractor):
 
     def parser_list(self, url):
         self.url = url
+        self._is_list = True
         self.media_info_list = []
         try:
             self.prepare_playlist()

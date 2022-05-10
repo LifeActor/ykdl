@@ -3,7 +3,6 @@
 import sys
 import zlib
 import platform
-from unicodedata import category
 
 
 if sys.platform.startswith(('msys', 'cygwin')):
@@ -20,7 +19,7 @@ def _ensure_translate_table():
         ### Visible ###
         # Control characters
         # Delete them except Tab and Newline
-        translate_table = dict.fromkeys((*range(32), *range(127, 160)))
+        translate_table = dict.fromkeys((*range(0x20), *range(0x7F, 0xA0)))
         translate_table.update({
             ord('\t'): ' ',
             ord('\n'): '-',
@@ -28,11 +27,18 @@ def _ensure_translate_table():
 
         # Unicode Category Separator characters
         # Convert to Space
-        translate_table.update({
-            u: ' '
-            for u in range(32, sys.maxunicode)
-            if category(chr(u))[0] == 'Z'
-        })
+        translate_table.update(dict.fromkeys((
+            # Generate:
+            #   import sys
+            #   from unicodedata import category 
+            #   ', '.join((f'0x{u:X}'
+            #              for u in range(0x20, sys.maxunicode)
+            #              if category(chr(u))[0] == 'Z'))
+            0x20, 0xA0,
+            0x1680, 0x2000, 0x2001, 0x2002, 0x2003, 0x2004,
+            0x2005, 0x2006, 0x2007, 0x2008, 0x2009, 0x200A,
+            0x2028, 0x2029, 0x202F, 0x205F, 0x3000
+        ), ' '))
 
         translate_table_cs = translate_table.copy()
 

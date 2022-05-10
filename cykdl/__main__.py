@@ -32,9 +32,10 @@ from ykdl.version import __version__
 
 m3u8_internal = True
 args = None
+description = 'YouKuDownLoader(YKDL {}), a video downloader forked from you-get 0.3.34@soimort'.format(__version__)
 
-def arg_parser():
-    parser = ArgumentParser(description='YouKuDownLoader(ykdl {}), a video downloader. Forked from you-get 0.3.34@soimort'.format(__version__))
+def parse_args(argv=None):
+    parser = ArgumentParser(description=description)
     parser.add_argument('-l', '--playlist', action='store_true', default=False, help='Download as a playlist')
     parser.add_argument('-i', '--info', action='store_true', default=False, help='Display the information of videos without downloading')
     parser.add_argument('-J', '--json', action='store_true', default=False, help='Display info in json format')
@@ -55,9 +56,9 @@ def arg_parser():
     parser.add_argument('-s', '--start', type=int, default=-1, metavar='INDEX_NUM', help='Start from INDEX to play/download playlist, default -1, index at media of current URL')
     parser.add_argument('-j', '--jobs', type=int, default=8, metavar='NUM', help='Number of jobs for multiprocess download')
     parser.add_argument('--debug', action='store_true', default=False, help='Print debug messages from ykdl')
-    parser.add_argument('video_urls', type=str, nargs='+', help='video urls')
+    parser.add_argument('video_urls', type=str, nargs='*', help='video urls')
     global args
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
 def clean_slices(name, ext, lenth):
     for i in range(lenth):
@@ -211,8 +212,32 @@ def handle_videoinfo(info):
         if not args.no_sub:
             download_subtitles(info.subtitles, name)
 
-def main():
-    arg_parser()
+def handle_video(video):
+    http.reset_headers()
+    http.uninstall_cookie()
+    try:
+        m, u = url_to_module(video)
+        if args.playlist:
+            parser = m.parser_list
+            m.start = args.start
+        else:
+            parser = m.parser
+        info = parser(u)
+        if isinstance(info, (GeneratorType, list)):
+            for i in info:
+                handle_videoinfo(i)
+        else:
+            handle_videoinfo(info)
+    except AssertionError as e:
+        logger.critical(str(e))
+        return 1
+    except (RuntimeError, NotImplementedError, SyntaxError) as e:
+        logger.error(repr(e))
+        return 1
+    return 0
+
+def main(argv=None):
+    parse_args(argv)
     if not args.debug:
         logging.root.setLevel(logging.INFO)
     else:
@@ -285,40 +310,45 @@ def main():
     if os.path.exists(args.output_dir):
         os.chdir(args.output_dir)
 
-    exit = 0
-    try:
-        for url in args.video_urls:
-            http.reset_headers()
-            http.uninstall_cookie()
-            try:
-                m, u = url_to_module(url)
-                if args.playlist:
-                    parser = m.parser_list
-                    m.start = args.start
-                else:
-                    parser = m.parser
-                info = parser(u)
-                if isinstance(info, (GeneratorType, list)):
-                    for i in info:
-                        handle_videoinfo(i)
-                else:
-                    handle_videoinfo(info)
-            except AssertionError as e:
-                logger.critical(str(e))
-                exit = 1
-            except (RuntimeError, NotImplementedError, SyntaxError) as e:
-                logger.error(repr(e))
-                exit = 1
-    except KeyboardInterrupt:
-        logger.info('Interrupted by Ctrl-C')
-    except Exception as e:
-        errmsg = str(e)
-        logger.debug(errmsg, exc_info=True)
-        if 'local issuer' in errmsg:
-            logger.warning('Please install or update Certifi, and try again:\n'
-                           'pip3 install certifi --upgrade')
-        exit = 255
-    sys.exit(exit)
+    if args.video_urls:
+        exit = 0
+        try:
+            for rc in map(handle_video, args.video_urls):
+                exit = exit or rc
+        except KeyboardInterrupt:
+            logger.info('Interrupted by Ctrl-C')
+            exit = 0
+        except Exception as e:
+            errmsg = str(e)
+            logger.debug(errmsg, exc_info=True)
+            if 'local issuer' in errmsg:
+                logger.warning('Please install or update Certifi, and try again:\n'
+                               'pip3 install certifi --upgrade')
+            exit = 255
+        finally:
+            sys.exit(exit)
+
+    print('Welcome to use', description)
+    print('Start interactive mode, now support an URL as input.')
+    print('Input "exit" or press Ctrl-C to exit.')
+    while True:
+        try:
+            video = input('YKDL> ').strip()
+        except KeyboardInterrupt:
+             sys.exit()
+        try:
+            if video:
+                if video == 'exit':
+                    sys.exit()
+                handle_video(video)
+        except KeyboardInterrupt:
+            logger.warning('\nInterrupted by Ctrl-C, press Ctrl-C again to exit YKDL.')
+        except Exception as e:
+            errmsg = str(e)
+            logger.debug(errmsg, exc_info=True)
+            if 'local issuer' in errmsg:
+                logger.warning('Please install or update Certifi, and try again:\n'
+                               'pip3 install certifi --upgrade')
 
 if __name__ == '__main__':
     main()

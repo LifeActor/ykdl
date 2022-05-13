@@ -42,8 +42,8 @@ class DoubanMusic(Extractor):
             return info
 
     def list_only(self):
-        return 'site.douban' in self.url and not match(self.url, 's=(\d+)') or \
-                match(self.url, 'sid=\d+,(\d)')
+        return 'site.douban' in self.url and not match(self.url, 's=\d+') or \
+                match(self.url, 'sid=\d+,\d')
 
     def prepare_list(self):
 

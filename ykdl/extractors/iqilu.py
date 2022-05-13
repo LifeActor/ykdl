@@ -12,7 +12,7 @@ class Iqilu(SimpleExtractor):
         self.url_pattern = '"mp4-wrapper"[^"]+"(http[^"]+)"'
 
     def l_assert(self):
-        assert match(self.url, '(https?://v\.iqilu\.com/\w+)')
+        assert match(self.url, 'https?://v\.iqilu\.com/\w+')
 
     def reprocess(self):
         self.info.title = '[{self.info.artist}] {self.info.title}'.format(**vars())

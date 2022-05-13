@@ -115,8 +115,8 @@ class Iqiyi(Extractor):
         info = MediaInfo(self.name)
 
         if self.url and not self.vid:
-            vid = match(self.url, 'curid=([^_]+)_([\w]+)')
-            if vid:
+            vid = matchm(self.url, 'curid=([^_]+)_([\w]+)')
+            if vid[0]:
                 self.vid = vid
                 try:
                     info_json = get_response(

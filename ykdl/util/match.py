@@ -1,7 +1,7 @@
 import re
 
 
-__all__ = ['match', 'match1', 'matchall']
+__all__ = ['match', 'match1', 'matchm', 'matchall']
 
 def _format_str(pattern, string):
     '''Format the target which will be scanned, makes the worker happy.'''
@@ -33,49 +33,56 @@ def _format_str(pattern, string):
     return string
 
 def match(obj, *patterns):
-    '''Scans a object for matched some patterns with catch mode (matches first).
+    '''Scans a object for matched some patterns with capture mode (matches first).
 
     Params:
         `obj`, any object which contains string data.
         `patterns`, arbitrary number of regex patterns.
 
-    Returns all the catched substring of first match, or None.
+    Returns the first Match object, or None.
     '''
-
     for pattern in patterns:
         string = _format_str(pattern, obj)
-        match = re.search(pattern, string)
-        groups = match and match.groups()
-        if groups:
-            return groups
+        m = re.search(pattern, string)
+        if m:
+            return m
     return None
 
 def match1(obj, *patterns):
-    '''Scans a object for matched some patterns with catch mode (catches first).
+    '''Scans a object for matched some patterns with capture mode.
 
     Params: same as match()
 
-    Returns the first catched substring, or None.
+    Returns the first captured substring, or None.
     '''
+    m = match(obj, *patterns)
+    return m and m.groups()[0]
 
-    groups = match(obj, *patterns)
-    return groups and groups[0]
+def matchm(obj, *patterns):
+    '''Scans a object for matched some patterns with capture mode.
+
+    Params: same as match()
+
+    Returns all captured substrings of the first Match object, or same number of
+    None objects.
+    '''
+    m = match(obj, *patterns)
+    return m and m.groups() or (None,) * re.compile(patterns[0]).groups
 
 
 def matchall(obj, *patterns):
-    '''Scans a object for matched some patterns with catch mode (matches all).
+    '''Scans a object for matched some patterns with capture mode.
 
     Params: same as match()
 
-    Returns a list of all the catched substring of matches, or a empty list.
-    If a conformity form of catches in the list has be excepted, all the regex
-    patterns MUST include a similar catch mode.
+    Returns a list of all the captured substring of matches, or a empty list.
+    If a conformity form of captures in the list has be excepted, all the regex
+    patterns MUST include a similar capture mode.
     '''
-
     ret = []
     for pattern in patterns:
         string = _format_str(pattern, obj)
-        match = re.findall(pattern, string)
-        ret += match
+        m = re.findall(pattern, string)
+        ret += m
 
     return ret

@@ -549,7 +549,7 @@ if brotli:
 
 def get_response(url, headers={}, data=None, params=None, method='GET',
                       max_redirections=None, encoding=None,
-                      default_headers=fake_headers, cache=True):
+                      default_headers=fake_headers, cache=CACHED):
     '''Fetch the response of giving URL.
 
     Params: both `params` and `data` always use "UTF-8" as encoding.

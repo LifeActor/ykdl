@@ -8,7 +8,7 @@ def _format_str(s):
         s = s.decode()
     s = s.lower()
     n = match1(s, '^((?:0x)?[0-9a-f])$')  #
-    if n and match(n, '([a-fx])'):        # only convert which is unambiguous
+    if n and match(n, '[a-fx]'):        # only convert which is unambiguous
         return str(int(n, 16))
     return s
 
@@ -33,22 +33,22 @@ def human_size(n, unit=None):
     if isinstance(n, (str, bytes)):
         n = _format_str(n)
         try:
-            n, nu = match(n, '''(?x)
-                             (?:
-                                 ^          |  # start
-                                 \De        |  # no scientific notation
-                                 [^\-\.\de]    # no negative, dot, number
-                             )
-                             (
-                                 \d+           # integer
-                                 (?:\.\d+)?    # float
-                                 (?!\.)        # bad float
-                                 (?:e\d+)?     # scientific notation
-                                 (?![\.\de])   # bad scientific notation
-                             )
-                             \s*
-                             (?:([kmgt])i?b)?  # unit
-                             ''')
+            n, nu = matchm(n, '''(?x)
+                              (?:
+                                  ^          |  # start
+                                  \De        |  # no scientific notation
+                                  [^\-\.\de]    # no negative, dot, number
+                              )
+                              (
+                                  \d+           # integer
+                                  (?:\.\d+)?    # float
+                                  (?!\.)        # bad float
+                                  (?:e\d+)?     # scientific notation
+                                  (?![\.\de])   # bad scientific notation
+                              )
+                              \s*
+                              (?:([kmgt])i?b)?  # unit
+                              ''')
         except TypeError:
             raise ValueError('invalid literal for human_size(): %r' % n)
         f = float(n)

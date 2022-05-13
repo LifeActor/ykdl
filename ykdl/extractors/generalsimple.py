@@ -7,7 +7,7 @@ from .singlemultimedia import contentTypes
 # TODO: subtitles support
 # REF: https://developer.mozilla.org/zh-CN/docs/Web/API/WebVTT_API
 
-pattern1 = r'''(?ix)
+pattern_ext = r'''(?ix)
 ["'](
     (?:https?:|\\?/)[^"'#]+?\.
     (
@@ -22,13 +22,15 @@ pattern1 = r'''(?ix)
     /?(?:\?.+?)?
 )["'#]
 '''
-pattern2 = r'''(?ix)
-<(?:video|audio|source)[^>]+?src=["'](
-    (?:https?:|\\?/)[^"']+
-)["']
-[^>]+?(?:type=["'](
-    (?:video|audio)/[^"']+
-)["'])?
+pattern_src = r'''(?ix)
+<(?:video|audio|source)[^>]+?
+src=["']((?:https?:|\\?/)[^"']+)["']
+[^>]+?
+(?:
+    type=["']((?:video|audio|application)/[^"']+)["']
+    |
+    [^>](?!type)*>
+)
 '''
 
 class GeneralSimple(Extractor):
@@ -44,11 +46,9 @@ class GeneralSimple(Extractor):
 
         ext = ctype = None
         for i in range(2):
-            _ = match(html, pattern1)
-            url, ext = _ and _ or (_, _)
+            url, ctype = matchm(html, pattern_src)
             if url is None:
-                _ = match(html, pattern2)
-                url, ctype = _ and _ or (_, _)
+                url, ext = matchm(html, pattern_ext)
             if url:
                 if not i:
                     url = unescape(url)
@@ -63,11 +63,12 @@ class GeneralSimple(Extractor):
                 url = self.url[:self.url.find('/')] + url
             elif url[0] == '/':
                 url = self.url[:self.url.find('/', 9)] + url
-            if ext is None:
+            if ext is None or ctype:
+                ctype = str(ctype).lower()
                 ext = contentTypes.get(ctype) or url_info(url)[1] or (
-                        str(ctype).lower().startswith('audio') and 'mp3' or 'mp4')
+                            ctype.startswith('audio') and 'mp3' or 'mp4')
             if ext[:3] == 'm3u':
-                info.streams = load_m3u8_playlist(url)
+                info.streams = load_m3u8_playlist(url, headers={'Referer': self.url})
             else:
                 info.streams['current'] = {
                     'container': ext,

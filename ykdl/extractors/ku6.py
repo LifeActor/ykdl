@@ -12,7 +12,7 @@ class Ku6(SimpleExtractor):
         pass
 
     def list_only(self):
-        return match(self.url, 'https://www.ku6.com/detail/(\d+)')
+        return match(self.url, 'https://www.ku6.com/detail/\d+')
 
     def prepare_list(self):
         html = get_content(self.url)

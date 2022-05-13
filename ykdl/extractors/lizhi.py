@@ -10,11 +10,11 @@ class Lizhi(Extractor):
         info = MediaInfo(self.name)
 
         html = get_content(self.url)
-        self.vid, info.artist, _, info.title = \
-                    match(html, 'data-hidden-ph\s?=\s?"(.+?)" '
-                                'data-user-name\s?=\s?"(.+?)" '
-                                'data-radio-name\s?=\s?"(.+?)" '
-                                'data-title\s?=\s?"(.+?)"')
+        self.vid, info.artist, _, info.title = matchm(html,
+                'data-hidden-ph\s?=\s?"(.+?)" '
+                'data-user-name\s?=\s?"(.+?)" '
+                'data-radio-name\s?=\s?"(.+?)" '
+                'data-title\s?=\s?"(.+?)"')
         data = get_response('https://www.lizhi.fm/hidden_ph/' +
                             self.vid).json()
         assert data['rcode'] == 0, data['msg']

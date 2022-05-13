@@ -11,7 +11,7 @@ def get_extractor(url):
 
     if 'lunbo' in url:
         from . import lunbo as s
-    elif match(url, '(live[\./]|/izt/)'):
+    elif match(url, 'live[\./]|/izt/'):
         from . import live as s
     elif 'bcloud' in url:
         from . import letvcloud as s

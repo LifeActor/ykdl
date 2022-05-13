@@ -336,11 +336,12 @@ def main(argv=None):
             video = input('YKDL> ').strip()
         except KeyboardInterrupt:
              sys.exit()
+        if not video:
+            continue
+        if video == 'exit':
+            sys.exit()
         try:
-            if video:
-                if video == 'exit':
-                    sys.exit()
-                handle_video(video)
+            handle_video(video)
         except KeyboardInterrupt:
             logger.warning('\nInterrupted by Ctrl-C, press Ctrl-C again to exit YKDL.')
         except Exception as e:

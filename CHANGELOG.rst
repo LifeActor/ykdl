@@ -1,6 +1,18 @@
 Change Log for ykdl
 ===================
 
+1.8.1
+-----
+
+- add support HTTP cache
+- add support interactive mode
+- add `--show-all` argument
+- improve handling of media title and filename
+- bilibili.live API has been changed (#600 @fraic)
+- support new sites: iXiGua
+- update GeneralSimple, Bilibili, DouYin, YinYueTai
+
+
 1.8.0
 -----
 

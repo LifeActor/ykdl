@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from setuptools import setup
+from setuptools import setup, find_packages
 import os
 import re
 
@@ -16,27 +16,19 @@ def get_version():
         return version_match.group(1)
     raise RuntimeError('Unable to find version string.')
 
-def find_packages(*tops):
-    packages = []
-    for d in tops:
-        for root, dirs, files in os.walk(d, followlinks=True):
-            if '__init__.py' in files:
-                packages.append(root)
-    return packages
-
 # memo: pycryptodome is not being used now
-REQ = ['m3u8>=1.0.0', 'jsengine>=1.0.5']
+REQ = [
+    'm3u8>=1.0.0',
+    'jsengine>=1.0.5',
+    "colorama;os_name=='nt'",
+]
 EXT = {
   'proxy': ['ExtProxy'],
-  'rangefetch': ['urllib3'],
   'br': ['BrotliCFFI'],
-  'js': ["QuickJS; os_name != 'nt'",
-         "PyChakra>=2.2.0; os_name == 'nt' and platform_version < '6.2'"],
-  'color': ["colorama; os_name == 'nt'"]
 }
-EXT['all-js'] = sum((v for k,v in EXT.items() if k != 'js'), [])
-EXT['all'] = EXT['all-js'] + EXT['js']
-EXT['net'] = EXT['proxy'] + EXT['rangefetch'] + EXT['br']
+EXT['net'] = sum(EXT.values(), [])
+EXT['js'] = ['quickjs']
+EXT['all'] = list(set(sum((EXT.values()), [])))
 
 here = os.path.abspath(os.path.dirname(__file__))
 README = read_file('README.rst')
@@ -55,7 +47,7 @@ setup(
     description = 'a video downloader written in Python',
     long_description = README + '\n\n' +  CHANGES,
     keywords = 'video download youku acfun bilibili',
-    packages = find_packages('ykdl', 'cykdl'),
+    packages = find_packages(),
     install_requires = REQ,
     extras_require = EXT,
     platforms = 'any',

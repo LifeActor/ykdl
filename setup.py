@@ -47,7 +47,7 @@ setup(
     description = 'a video downloader written in Python',
     long_description = README + '\n\n' +  CHANGES,
     keywords = 'video download youku acfun bilibili',
-    packages = find_packages(),
+    packages = find_packages(here),
     install_requires = REQ,
     extras_require = EXT,
     platforms = 'any',

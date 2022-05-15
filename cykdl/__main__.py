@@ -56,7 +56,7 @@ def parse_args(argv=None):
     parser.add_argument('-s', '--start', type=int, default=-1, metavar='INDEX_NUM', help='Start from INDEX to play/download playlist, default -1, index at media of current URL')
     parser.add_argument('-j', '--jobs', type=int, default=8, metavar='NUM', help='Number of jobs for multiprocess download')
     parser.add_argument('--debug', action='store_true', default=False, help='Print debug messages from ykdl')
-    parser.add_argument('video_urls', type=str, nargs='*', help='video urls')
+    parser.add_argument('video_urls', type=str, nargs='*', help='video urls, leave empty then enter interactive mode')
     global args
     args = parser.parse_args(argv)
 

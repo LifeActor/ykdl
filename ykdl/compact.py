@@ -13,6 +13,11 @@ from .util.log import ColorHandler
 logging.basicConfig(handlers=[ColorHandler()])
 
 
+if sys.version_info < (3, 10):
+    import types
+    types.NoneType = type(None)
+
+
 def bound_monkey_patch(orig, new):
     '''Monkey patch the original function with new, and bind the original
     function as its first argument, at end clear the new function from the

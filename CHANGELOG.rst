@@ -1,6 +1,12 @@
 Change Log for ykdl
 ===================
 
+1.8.1.post1
+-----------
+
+- fix compatibility bug on Python 3.9 and below (#604)
+
+
 1.8.1
 -----
 

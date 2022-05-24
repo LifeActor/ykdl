@@ -15,18 +15,43 @@ class BiliBan(BiliBase):
     def list_only(self):
         return '/play/ss' in self.url
 
-    def get_page_info(self):
+    def get_page_info(self, info):
         html = get_content(self.url)
-        date = json.loads(match1(html, '__INITIAL_STATE__=({.+?});'))
-        vid = date['epInfo']['cid']
-        mediaInfo = date['mediaInfo']
-        self.seasonType = mediaInfo.get('ssType')
-        title = date.get('h1Title') or \
-                match1(html, '<title>(.+?)[_-]\w+[_-]bilibili[_-]哔哩哔哩<')
-        upInfo = mediaInfo.get('upInfo')
-        artist = upInfo and upInfo.get('name')
+        data = json.loads(match1(html, '__INITIAL_STATE__=({.+?});'))
 
-        return vid, title, artist
+        epInfo = data['epInfo']
+        assert epInfo['epStatus'] != 13, "can't play VIP video!"
+
+        self.vid = epInfo['cid']
+        mediaInfo = data['mediaInfo']
+        self.seasonType = mediaInfo['ssType']
+        ssTypeFormat = mediaInfo['ssTypeFormat']
+        ss_name = ssTypeFormat['name']
+        ss_name_e = ssTypeFormat['homeLink'].split('/')[-2].title()
+        if ss_name_e != 'Anime':
+            if ss_name_e == 'Tv':
+                ss_name_e = 'TV'
+            info.site = '哔哩哔哩 {ss_name} (Bilibili {ss_name_e})'.format(**vars())
+
+        def get_badge():
+            stype = epInfo['sectionType']
+            if stype:
+                for s in data['sections']:
+                    if s['type'] == stype:
+                        return s['title']
+            else:
+                return epInfo['badge']
+
+        title_h1 = data['h1Title']
+        title_share = epInfo['share_copy']
+        title = title_h1 in title_share and title_share or title_h1
+        badge = get_badge()
+        if badge != '预告':
+            badge = ''
+        info.title = '{title} {badge}'.format(**vars())
+        info.artist = mediaInfo.get('upInfo', {}).get('name') or \
+                      mediaInfo.get('up_info', {}).get('uname')
+        info.duration = epInfo['duration'] // 1000
 
     def get_api_url(self, qn):
         params_str = urlencode([
@@ -42,10 +67,19 @@ class BiliBan(BiliBase):
 
     def prepare_list(self):
         html = get_content(self.url)
-        eplist = match1(html, '"episodes":(\[.+?\])')
-        if eplist:
-            eplist = matchall(eplist, '"id":(\d+),')
-            return ['https://www.bilibili.com/bangumi/play/ep' + eid
-                    for eid in eplist if eid]
+        data = json.loads(match1(html, '__INITIAL_STATE__=({.+?});'))
+        epid = data['epInfo']['id']
+        eplist = sum((s['epList'] for s in data['sections']), data['epList'])
+        epids = [ep['id'] for ep in eplist if ep['epStatus'] != 13]
+
+        assert epids, "can't play VIP videos!"
+
+        if epid and self.start < 0:
+            try:
+                self.start = epids.index(epid)
+            except ValueError:  # dropped VIP epid
+                pass
+        for id in epids:
+            yield 'https://www.bilibili.com/bangumi/play/ep{id}'.format(**vars())
 
 site = BiliBan()

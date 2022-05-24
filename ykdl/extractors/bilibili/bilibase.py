@@ -21,8 +21,7 @@ class BiliBase(Extractor):
         info.extra.referer = 'https://www.bilibili.com/'
         info.extra['ua'] = fake_headers['User-Agent']
 
-        self.vid, info.title, info.artist = self.get_page_info()
-
+        self.get_page_info(info)
         assert self.vid, "can't play this video: " + self.url
 
         def get_video_info(qn=0):

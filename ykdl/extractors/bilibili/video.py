@@ -12,25 +12,26 @@ api_url = 'https://interface.bilibili.com/v2/playurl'
 class BiliVideo(BiliBase):
     name = '哔哩哔哩 (Bilibili)'
 
-    def get_page_info(self):
+    def get_page_info(self, info):
         page_index = match1(self.url, '\?p=(\d+)', 'index_(\d+)\.') or '1'
         html = get_content(self.url)
-        date = json.loads(match1(html, '__INITIAL_STATE__=({.+?});'))['videoData']
-        title = date['title']
-        artist = date['owner']['name']
-        pages = date['pages']
+        data = json.loads(match1(html, '__INITIAL_STATE__=({.+?});'))['videoData']
+        title = data['title']
+        pages = data['pages']
         for page in pages:
            index = str(page['page'])
            subtitle = page['part']
            if index == page_index:
-               vid = page['cid']
+               self.vid = page['cid']
                if len(pages) > 1:
                    title = '{title} - {index} - {subtitle}'.format(**vars())
                elif subtitle and subtitle != title:
                    title = '{title} - {subtitle}'.format(**vars())
                break
-
-        return vid, title, artist
+        info.title = title
+        info.artist = data['owner']['name']
+        info.duration = data['duration']
+        info.add_comment(data['tname'])
 
     def get_api_url(self, qn):
         params_str = urlencode([

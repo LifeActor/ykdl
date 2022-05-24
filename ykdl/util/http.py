@@ -11,7 +11,7 @@ from types import NoneType
 from logging import getLogger
 from collections import defaultdict
 from http.client import HTTPResponse as _HTTPResponse
-from urllib.parse import parse_qs, urlencode
+from urllib.parse import parse_qs, urlencode, urlsplit
 from urllib.request import Request as _Request, install_opener, build_opener, \
                            AbstractHTTPHandler, HTTPCookieProcessor, \
                            HTTPRedirectHandler as _HTTPRedirectHandler, \
@@ -29,7 +29,7 @@ try:
 except ImportError:
     brotli =None
 
-from .match import match1
+from .match import match, match1
 from .xml2dict import xml2dict
 
 logger = getLogger(__name__)
@@ -626,6 +626,12 @@ def get_response(url, headers={}, data=None, params=None, method='GET',
     else:
         return _opener_open(req, encoding)
 
+def _check_hostname_badhead(url, set=set('''
+    aweme.snssdk.com
+    t.cn
+    '''.split())):
+    return urlsplit(url).hostname.lower() in set
+
 def get_head_response(url, headers={}, params=None, max_redirections=0,
                       default_headers=fake_headers):
     '''Fetch the response of giving URL in HEAD mode.
@@ -634,8 +640,7 @@ def get_head_response(url, headers={}, params=None, max_redirections=0,
     it is a fake response except the attribute `url`.
     '''
     logger.debug('get_head_response> URL: ' + url)
-    # Bad HEAD response: t.cn
-    method = '//t.cn/' in url and 'HEADGET' or 'HEAD'
+    method = _check_hostname_badhead(url) and 'HEADGET' or 'HEAD'
     try:
         response = get_response(url, headers=headers, params=params,
                                 method=method,
@@ -643,7 +648,7 @@ def get_head_response(url, headers={}, params=None, max_redirections=0,
                                 default_headers=default_headers)
     except IOError as e:
         # Maybe HEAD method is not supported, retry
-        if method != 'HEADGET' and match1(str(e), 'HTTP Error (40[345]|520)'):
+        if method != 'HEADGET' and match(str(e), 'HTTP Error (40[345]|520)'):
             logger.debug('get_head_response> HEAD failed, try GET')
             response = get_response(url, headers=headers, params=params,
                                     method='HEADGET',

@@ -11,7 +11,6 @@ from .util import log
 from .util.fs import legitimize, compress_strip
 from .util.http import fake_headers
 from .util.human import human_size, _format_time, human_time, stream_index
-from .util.match import match, match1
 from .util.wrap import get_random_str
 
 logger = logging.getLogger(__name__)

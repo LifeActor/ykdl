@@ -89,7 +89,7 @@ class Letv(Extractor):
                                    'r': int(time.time() * 1000),
                                    'appid': 500
                                },
-                               charset='ignore')
+                               encoding='ignore')
             m3u8_list = decode(m3u8)
             stream_id, video_profile = self.stream_2_id_profile[stream]
             info.streams[stream_id] = {
@@ -97,7 +97,7 @@ class Letv(Extractor):
                 'video_profile': video_profile,
                 'size' : 0
             }
-            stream_temp[stream] = compact_tempfile(mode='w+b', suffix='.m3u8')
+            stream_temp[stream] = NamedTemporaryFile(mode='w+b', suffix='.m3u8')
             stream_temp[stream].write(m3u8_list)
             info.streams[stream_id]['src'] = [stream_temp[stream].name]
             stream_temp[stream].flush()

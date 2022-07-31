@@ -182,7 +182,7 @@ class HTTPRedirectHandler(_HTTPRedirectHandler):
 
         data = req.data  # is used by fixedly method redirections
         newheaders = {k.lower(): v for k, v in req.headers.items()}
-        if code in self.rmethod:
+        if code in self.amcodes:
             for header in ('content-length', 'content-type', 'transfer-encoding'):
                 newheaders.pop(header, None)
             data = None

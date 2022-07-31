@@ -137,20 +137,18 @@ class Iqiyi(Extractor):
 
             else:
                 tvid = match1(html,
-                              'tvId:\s*"([^"]+)',
                               'data-video-tvId="([^"]+)',
-                              '''\['tvid'\]\s*=\s*"([^"]+)''',
-                              '"tvId":\s*([^,]+)')
+                              '\Wtv[iI]d"?\'?\]?\s*(?:=|:)\s*"?\'?([^"\',]+)')
                 videoid = match1(html,
                                 'data-video-vid="([^"]+)',
-                                'vid"?\'?\]?\s*(?:=|:)\s*"?\'?([^"\',]+)')
+                                '\Wvid"?\'?\]?\s*(?:=|:)\s*"?\'?([^"\',]+)')
                 if not (tvid and videoid):
                     url = match1(html, '(www\.iqiyi\.com/v_\w+\.html)')
                     if url:
                         self.url = 'https://' + url
                         return get_vid()
                 self.vid = (tvid, videoid)
-                info.title = match1(html, '<title>([^<]+)').split('-')[0]
+                info.title = '-'.join(match1(html, '<title>([^<]+)').split('-')[:-3])
 
         if self.url and not self.vid:
             get_vid()
@@ -189,7 +187,6 @@ class Iqiyi(Extractor):
             }
 
         def fetch_tmts():
-            raise
             # try use tmts first
             # less http requests, get results quickly
             tmts_data = gettmts(tvid, vid)

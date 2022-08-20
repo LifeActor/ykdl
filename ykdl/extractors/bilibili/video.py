@@ -50,8 +50,9 @@ class BiliVideo(BiliBase):
         data = get_media_data(vid)
 
         if 'ugc_season' in data:
-            bvids = [section['bvid'] for section in
-                     data['ugc_season']['sections'][0]['episodes']]
+            bvids = [episode['bvid'] for episode in
+                        sum((section['episodes'] for section in
+                            data['ugc_season']['sections']), [])]
             if self.start < 0:
                 self.start = bvids.index(vid)
             for bvid in bvids:

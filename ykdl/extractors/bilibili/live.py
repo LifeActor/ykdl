@@ -92,11 +92,12 @@ class BiliLive(Extractor):
                         if codec['codec_name'] == 'hevc':
                             st += '-h265'
                         if st in info.streams:
-                            self.logger.debug('skip stream: [ %s %s %s ]',
-                                              stream['protocol_name'],
-                                              format['format_name'],
-                                              codec['codec_name'],)
-                            continue
+                            st += '-bak'
+                        #    self.logger.debug('skip stream: [ %s %s %s ]',
+                        #                      stream['protocol_name'],
+                        #                      format['format_name'],
+                        #                      codec['codec_name'],)
+                        #    continue
                         url_info = random.choice(codec['url_info'])
                         url = url_info['host'] + codec['base_url'] + url_info['extra']
                         info.streams[st] = {

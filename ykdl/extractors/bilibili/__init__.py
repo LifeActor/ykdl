@@ -19,11 +19,11 @@ def get_extractor(url):
 
     page_index = match1(url, '(?:page|\?p)=(\d+)', 'index_(\d+)\.') or '1'
 
-    av_id = match1(url, '(?:/av|aid=)(\d+)')
-    if av_id:
-        bv_id = av2bv(av_id)
-    else:
-        bv_id = match1(url, '((?:BV|bv)[0-9A-Za-z]{10})')
+    bv_id = match1(url, '((?:BV|bv)[0-9A-Za-z]{10})')
+    if not bv_id:
+        av_id = match1(url, '(?:/av|aid=)(\d+)')
+        if av_id:
+            bv_id = av2bv(av_id)
 
     if bv_id:
         try:

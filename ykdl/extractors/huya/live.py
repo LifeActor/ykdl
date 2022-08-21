@@ -22,11 +22,11 @@ class HuyaLive(Extractor):
 
         html  = get_content(self.url)
 
-        json_stream = match1(html, '"stream": "([a-zA-Z0-9+=/]+)"')
-        assert json_stream, 'live video is offline'
-        data = json.loads(base64.b64decode(json_stream).decode())
+        json_stream = match1(html, 'stream: ({.+)\n.*?};')
+        assert json_stream, "can't found video!!"
+        data = json.loads(json_stream)
         self.logger.debug('data:\n%s', data)
-        assert data['status'] == 200, data['msg']
+        assert data['vMultiStreamInfo'], 'live video is offline'
 
         room_info = data['data'][0]['gameLiveInfo']
         info.title = '{}「{} - {}」'.format(
@@ -51,21 +51,21 @@ class HuyaLive(Extractor):
         params = dict(parse_qsl(unescape(stream_info['sFlvAntiCode'])))
         if reSecret:
             params.setdefault('t', '100')  # 102
-            ct = int(params['wsTime'], 16) + random.random()
+            ct = int((int(params['wsTime'], 16) + random.random()) * 1000)
             lPresenterUid = stream_info['lPresenterUid']
-            if not sStreamName.startswith(str(lPresenterUid)):
+            if liveSourceType and not sStreamName.startswith(str(lPresenterUid)):
                 uid = lPresenterUid
             else:
-                uid = int(ct % 1e7 * 1e6 % 0xffffffff)
+                uid = int(ct % 1e10 * 1e3 % 0xffffffff)
             u1 = uid & 0xffffffff00000000
             u2 = uid & 0xffffffff
             u3 = uid & 0xffffff
             u = u1 | u2 >> 24 | u3 << 8
             params.update({
                  'u': str(u),
-                 'seqid': str(int(ct * 1000) + uid),
+                 'seqid': str(ct + uid),
                  'ver': '1',
-                 'uuid': int(ct % 1e7 * 1e6 % 0xffffffff),
+                 'uuid': int((ct % 1e10 + random.random()) * 1e3 % 0xffffffff),
              })
             fm = base64.b64decode(params['fm']).decode().split('_', 1)[0]
             ss = hash.md5('|'.join([params['seqid'], params['ctype'], params['t']]))

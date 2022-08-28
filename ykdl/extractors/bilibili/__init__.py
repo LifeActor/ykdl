@@ -19,19 +19,23 @@ def get_extractor(url):
 
     page_index = match1(url, '(?:page|\?p)=(\d+)', 'index_(\d+)\.') or '1'
 
-    bv_id = match1(url, '((?:BV|bv)[0-9A-Za-z]{10})')
+    bv_id = match1(url, r'\b((?:BV|bv)[0-9A-Za-z]{10})')
     if not bv_id:
-        av_id = match1(url, '(?:/av|aid=)(\d+)')
+        av_id = match1(url, r'\b(?:av|aid=)(\d+)')
         if av_id:
             bv_id = av2bv(av_id)
 
     if bv_id:
-        try:
-            url = get_media_data(bv_id)['redirect_url']
-        except AssertionError:
-            raise
-        except:
-            url = 'https://www.bilibili.com/video/' + bv_id
+        data = get_media_data(bv_id)
+        forward = data.get('forward')
+        if forward:
+            from .video import site
+            forward = av2bv(forward)
+            site.logger.warning('视频撞车了! 从 %s 跳转至首发 %s', bv_id, forward)
+            bv_id = forward
+            data = get_media_data(bv_id)
+        url = data.get('redirect_url') or \
+              'https://www.bilibili.com/video/' + bv_id
     else:
         url = get_location(url)
 

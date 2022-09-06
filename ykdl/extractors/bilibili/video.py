@@ -19,18 +19,18 @@ class BiliVideo(BiliBase):
         title = data['title']
         pages = data['pages']
         for page in pages:
-           index = str(page['page'])
-           subtitle = page['part']
-           if index == page_index:
-               self.vid = page['cid']
-               if len(pages) > 1:
-                   title = '{title} - {index} - {subtitle}'.format(**vars())
-               elif subtitle and subtitle != title:
-                   title = '{title} - {subtitle}'.format(**vars())
-               break
+            index = str(page['page'])
+            subtitle = page['part']
+            if index == page_index:
+                self.vid = page['cid']
+                if len(pages) > 1:
+                    title = '{title} - {index} - {subtitle}'.format(**vars())
+                elif subtitle and subtitle != title:
+                    title = '{title} - {subtitle}'.format(**vars())
+                info.duration = page['duration']
+                break
         info.title = title
         info.artist = data['owner']['name']
-        info.duration = data['duration']
         info.add_comment(data['tname'])
 
     def get_api_url(self, qn):

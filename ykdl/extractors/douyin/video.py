@@ -3,8 +3,8 @@
 from .._common import *
 
 
-class TikTok(Extractor):
-    name = '抖音 (TikTok)'
+class Douyin(Extractor):
+    name = '抖音 (Douyin)'
 
     def prepare(self):
         info = MediaInfo(self.name)
@@ -30,4 +30,4 @@ class TikTok(Extractor):
         }
         return info
 
-site = TikTok()
+site = Douyin()

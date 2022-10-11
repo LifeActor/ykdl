@@ -4,8 +4,8 @@ from .._common import *
 from .. import _byted
 
 
-class TikTok(Extractor):
-    name = '抖音直播 (TikTok)'
+class Douyin(Extractor):
+    name = '抖音直播 (Douyin)'
 
     quality_2_profile_id = {
           'ORIGIN': ['原画', 'OG'],
@@ -18,17 +18,32 @@ class TikTok(Extractor):
     def prepare(self):
         info = MediaInfo(self.name)
 
-        html = _byted.get_content(self.url)
-        data = match1(html,
-                     'id="RENDER_DATA" type="application/json">(.+?)</script>',
-                     '__INIT_PROPS__ = (.+?)</script>')
-        data = json.loads(unquote(data))
-        self.logger.debug('data: \n%s', data)
+        if 'amemv.com' in self.url:
+            data = get_response('https://webcast.amemv.com/webcast/room/reflow/info/',
+                                params={
+                                    'verifyFp': '',
+                                    'type_id': 0,
+                                    'live_id': 1,
+                                    'sec_user_id': '',
+                                    'app_id': 1128,
+                                    'msToken': '',
+                                    'X-Bogus': '',
+                                    'room_id': match1(self.url, '/reflow/(\d+)')
+                                }).json()
+            video_info = data['data'].get('room')
+        else:
+            html = _byted.get_content(self.url)
+            data = match1(html,
+                         'id="RENDER_DATA" type="application/json">(.+?)</script>',
+                         '__INIT_PROPS__ = (.+?)</script>')
+            data = json.loads(unquote(data))
+            self.logger.debug('data: \n%s', data)
 
-        try:
-            video_info = data['initialState']['roomStore']['roomInfo'].get('room')
-        except KeyError:
-            video_info = data['/webcast/reflow/:id'].get('room')
+            try:
+                video_info = data['app']['initialState']['roomStore']['roomInfo'].get('room')
+            except KeyError:
+                video_info = data['/webcast/reflow/:id'].get('room')
+
         assert video_info and video_info['status'] == 2, 'live is off!!!'
 
         title = video_info['title']
@@ -58,4 +73,4 @@ class TikTok(Extractor):
 
         return info
 
-site = TikTok()
+site = Douyin()

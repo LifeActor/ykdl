@@ -16,16 +16,16 @@ pattern_ext = r'''(?ix)
         mp4|webm                    | # video/audio
         f4v|flv|ts                  | # video
         mov|qt|m4[pv]|og[mv]        | # video
-        ogg|3gp|mpe?g               | # video/audio
+        ogg|vid|3gp|mpe?g           | # video/audio
         mp3|flac|wave?|oga|aac|weba   # audio
     )
-    /?(?:\?.+?)?
+    /?(?:[\?&].+?)?
 )["'#]
 '''
 pattern_src = r'''(?ix)
 <(?:video|audio|source)[^>]+?
-src=["']((?:https?:|\\?/)[^"']+)["']
-[^>]+?
+src=["']?((?:https?:|\\?/)[^"' ]+)["' ]
+[^>]*?
 (?:
     type=["']((?:video|audio|application)/[^"']+)["']
     |
@@ -63,6 +63,8 @@ class GeneralSimple(Extractor):
                 url = self.url[:self.url.find('/')] + url
             elif url[0] == '/':
                 url = self.url[:self.url.find('/', 9)] + url
+            if '?' not in url and '&' in url:
+                url = url.replace('&', '?', 1)
             if ext is None or ctype:
                 ctype = str(ctype).lower()
                 ext = contentTypes.get(ctype) or url_info(url)[1] or (

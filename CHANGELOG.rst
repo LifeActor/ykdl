@@ -1,6 +1,14 @@
 Change Log for ykdl
 ===================
 
+1.8.2.dev
+-----------
+
+- enable pep517
+- add index item to MediaInfo for playlist
+- update GeneralSimple, Bilibili, Douban
+
+
 1.8.1.post1
 -----------
 

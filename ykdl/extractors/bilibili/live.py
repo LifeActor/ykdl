@@ -126,7 +126,11 @@ class BiliLive(Extractor):
             self.live_status()
         room_id, uid = self.vid
         self.start = -1  # skip is not allowed
+        self.end = 0     # never show index
 
+        bvid_url_last = None
+        repeat_times = 0
+        stop_threshold = 2
         while True:
             data = get_response(
                     'https://api.live.bilibili.com/live/getRoundPlayVideo',
@@ -134,6 +138,13 @@ class BiliLive(Extractor):
             assert data['code'] == 0, data['msg']
             bvid_url = data['data'].get('bvid_url')
             assert bvid_url, '轮播结束'
+
+            if bvid_url == bvid_url_last:
+                repeat_times += 1
+                assert repeat_times < stop_threshold, 'repeat'
+            else:
+                bvid_url_last = bvid_url
+                repeat_times = 0
 
             info = site.parser(bvid_url)
             info.site = '哔哩哔哩轮播'

@@ -54,16 +54,16 @@ class BiliBan(BiliBase):
         info.duration = epInfo['duration'] // 1000
 
     def get_api_url(self, qn):
-        params_str = urlencode([
-            ('appkey', APPKEY),
-            ('cid', self.vid),
-            ('module', 'bangumi'),
-            ('platform', 'html5'),
-            ('player', 1),
-            ('qn', qn),
-            ('season_type', self.seasonType)
-        ])
-        return sign_api_url(api_url, params_str, SECRETKEY)
+        params = {
+            'appkey': APPKEY,
+            'cid': self.vid,
+            'module': 'bangumi',
+            'platform': 'html5',
+            'player': 1,
+            'qn': qn,
+            'season_type': self.seasonType
+        }
+        return sign_api_url(api_url, params, SECRETKEY)
 
     def prepare_list(self):
         html = get_content(self.url)
@@ -79,6 +79,7 @@ class BiliBan(BiliBase):
                 self.start = epids.index(epid)
             except ValueError:  # dropped VIP epid
                 pass
+        self.end = len(epids) - 1
         for id in epids:
             yield 'https://www.bilibili.com/bangumi/play/ep{id}'.format(**vars())
 

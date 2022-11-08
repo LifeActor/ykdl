@@ -35,7 +35,7 @@ def get_extractor(url):
             bv_id = forward
             data = get_media_data(bv_id)
         url = data.get('redirect_url') or \
-              'https://www.bilibili.com/video/' + bv_id
+              'https://www.bilibili.com/video/{bv_id}/'.format(**vars())
     else:
         url = get_location(url)
 

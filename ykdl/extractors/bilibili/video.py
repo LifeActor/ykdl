@@ -15,7 +15,9 @@ class BiliVideo(BiliBase):
     def get_page_info(self, info):
         page_index = match1(self.url, '\?p=(\d+)', 'index_(\d+)\.') or '1'
         html = get_content(self.url)
-        data = json.loads(match1(html, '__INITIAL_STATE__=({.+?});'))['videoData']
+        data = match1(html, '__INITIAL_STATE__=({.+?});')
+        self.logger.debug('data:\n%s', data)
+        data = json.loads(data)['videoData']
         title = data['title']
         pages = data['pages']
         for page in pages:
@@ -34,14 +36,14 @@ class BiliVideo(BiliBase):
         info.add_comment(data['tname'])
 
     def get_api_url(self, qn):
-        params_str = urlencode([
-            ('appkey', APPKEY),
-            ('cid', self.vid),
-            ('platform', 'html5'),
-            ('player', 0),
-            ('qn', qn)
-        ])
-        return sign_api_url(api_url, params_str, SECRETKEY)
+        params = {
+            'appkey': APPKEY,
+            'cid': self.vid,
+            'platform': 'html5',
+            'player': 0,
+            'qn': qn
+        }
+        return sign_api_url(api_url, params, SECRETKEY)
 
     def prepare_list(self):
         vid = match1(self.url, '/(av\d+|(?:BV|bv)[0-9A-Za-z]{10})')
@@ -55,8 +57,9 @@ class BiliVideo(BiliBase):
                             data['ugc_season']['sections']), [])]
             if self.start < 0:
                 self.start = bvids.index(vid)
+            self.end = len(bvids) - 1
             for bvid in bvids:
-                yield 'https://www.bilibili.com/video/{bvid}'.format(**vars())
+                yield 'https://www.bilibili.com/video/{bvid}/'.format(**vars())
 
         else:
             if self.start < 0:
@@ -64,7 +67,8 @@ class BiliVideo(BiliBase):
                                             'index_(\d+)\.')
                            or '1')
                 self.start = page - 1
-            for p in range(1, data['videos'] + 1):
-                yield 'https://www.bilibili.com/video/{vid}?p={p}'.format(**vars())
+            self.end = data['videos'] - 1
+            for p in range(1, self.end + 2):
+                yield 'https://www.bilibili.com/video/{vid}/?p={p}'.format(**vars())
 
 site = BiliVideo()

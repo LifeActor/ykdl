@@ -6,7 +6,7 @@ def get_extractor(url):
         from . import music as s
         return s.site, url
 
-    if 'movie.douban' in url and '/trailer' in url:
+    if 'movie.douban' in url and ('/trailer' in url or '/video' in url):
         from . import movie as s
         return s.site, url
 

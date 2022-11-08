@@ -132,6 +132,7 @@ class MediaInfo:
     def print_info(self, stream_id=None, show_all=False, show_full=False):
         self.lprint(
         ['site:                 {}', self.site],
+        ['index:                {}', self.index and '{} / {}'.format(*self.index)],
         ['title:                {}', self.title],
         ['album:                {}', self.album],
         ['artist:               {}', self.artist],

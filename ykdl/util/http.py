@@ -375,7 +375,7 @@ for _ in ('getheader', 'getheaders', 'info', 'geturl', 'getcode'):
 __all__ = ['add_default_handler', 'install_default_handlers', 'install_cookie',
            'uninstall_cookie', 'get_cookie', 'get_cookies', 'fake_headers',
            'reset_headers', 'add_header', 'get_response', 'get_head_response',
-           'get_location', 'get_content', 'url_info', 'CACHED']
+           'get_location', 'get_content', 'url_info', 'cache_clear', 'CACHED']
 
 _opener = None
 _cookiejar = None
@@ -404,6 +404,9 @@ def _opener_open(req, encoding):
     return response
 
 _opener_open_cached = functools.lru_cache(maxsize=None)(_opener_open)
+
+def cache_clear():
+    _opener_open_cached.cache_clear()
 
 def add_default_handler(handler):
     '''Added handlers will be used via install_default_handlers().
@@ -447,7 +450,7 @@ def install_default_handlers():
     # Always use our custom HTTPRedirectHandler
     _opener = build_opener(HTTPRedirectHandler, *_default_handlers)
     install_opener(_opener)
-    _opener_open_cached.cache_clear()
+    cache_clear()
 
 def install_cookie():
     '''Install HTTPCookieProcessor to default opener.'''

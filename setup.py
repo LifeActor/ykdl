@@ -31,8 +31,12 @@ EXT['js'] = ['quickjs']
 EXT['all'] = list(set(sum((EXT.values()), [])))
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = read_file('README.rst')
-CHANGES = read_file('CHANGELOG.rst')
+LONGS = '\n\n'.join((
+    read_file('README.rst'),
+    *read_file('CHANGELOG.rst').split('\n\n\n')[:4],
+    '`See full change log '
+    '<https://github.com/SeaHOH/ykdl/blob/master/CHANGELOG.rst>`_.\n'
+))
 
 
 setup(
@@ -45,7 +49,7 @@ setup(
     url = 'https://github.com/SeaHOH/ykdl',
     license = 'MIT',
     description = 'a video downloader written in Python',
-    long_description = README + '\n\n' +  CHANGES,
+    long_description = LONGS,
     keywords = 'video download youku acfun bilibili',
     packages = find_packages(here),
     install_requires = REQ,

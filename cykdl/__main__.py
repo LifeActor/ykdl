@@ -15,7 +15,7 @@ import ssl
 import json
 import ast
 from urllib.request import ProxyHandler, HTTPSHandler, getproxies
-from urllib.parse import urlparse
+from urllib.parse import urlsplit
 from tempfile import NamedTemporaryFile
 from types import GeneratorType
 
@@ -59,6 +59,8 @@ def parse_args(argv=None):
     parser.add_argument('video_urls', type=str, nargs='*', help='video urls, leave empty then enter interactive mode')
     global args
     args = parser.parse_args(argv)
+    if args.start > 0:
+        args.start -= 1
 
 def clean_slices(name, ext, lenth):
     for i in range(lenth):
@@ -88,7 +90,7 @@ def download(urls, name, ext, live=False):
         # otherwise change the ext to "flv" or "mp4".
         if internal:
             urls, audio, subtitle = load_m3u8(url)
-            ext = urlparse(urls[0])[2].split('.')[-1]
+            ext = urlsplit(urls[0]).path.split('.')[-1]
             if ext not in ['ts', 'm4s', 'mp4', 'm4a']:
                 ext = 'ts'
         elif live:
@@ -189,7 +191,7 @@ def handle_videoinfo(info):
         if '\\u' in name:
             name = literalize(name)
         if info.index is not None:
-            name = name + '_' + str(info.index)
+            name = name + '_' + str(info.index[0])
     else:
         name = info.build_file_name(stream_id)
 
@@ -338,7 +340,11 @@ def main(argv=None):
              sys.exit()
         if not video:
             continue
-        if video == 'exit':
+        cmd = video.strip().lower()
+        if cmd == 'cache clear':
+            http.cache_clear()
+            continue
+        if cmd == 'exit':
             sys.exit()
         try:
             handle_video(video)

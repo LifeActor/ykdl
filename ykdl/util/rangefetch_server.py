@@ -98,7 +98,7 @@ class RangeFetch():
     ssl_context = None
     proxy = None
     http = None
-    timeout = urllib3.Timeout(connect=1, read=2)
+    timeout = urllib3.Timeout(connect=2, read=5)
     pool_size = 24
 
     down_rate_min = 1024 * 160 # B/s

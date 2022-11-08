@@ -42,22 +42,24 @@ def lazy_import(importstr):
     assert importstr.startswith(('import ', 'from ')), \
            ImportError('Wrong lazy import string: %r' % importstr)
 
+    def _import(_lazy_obj):
+        nonlocal obj
+        if obj is obj_none:
+            try:
+                exec(importstr)
+            except ImportError:
+                obj = None
+            else:
+                obj = locals()[obj_name]
     class lazy_obj:
         def __bool__(self):
-            return bool(self.__obj)
+            _import(self)
+            return bool(obj)
         def __call__(self, *args, **kwargs):
-            return self.__obj(*args, **kwargs)
+            _import(self)
+            return obj(*args, **kwargs)
         def __getattribute__(self, name):
-            nonlocal obj
-            if obj is obj_none:
-                try:
-                    exec(importstr)
-                except ImportError:
-                    obj = None
-                else:
-                    obj = locals()[obj_name]
-            if name == '_lazy_obj__obj':
-                return obj
+            _import(self)
             return getattr(obj, name)
 
     obj = obj_none = object()

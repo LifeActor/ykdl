@@ -23,6 +23,13 @@ class Extractor:
         self.url = None
         self.vid = None
         self.start = -1
+        self.end = 'N/A'
+
+    @property
+    def sum(self):
+        if isinstance(self.end, int):
+            return self.end + 1
+        return self.end
 
     def parser(self, url):
         self.url = None
@@ -55,7 +62,8 @@ class Extractor:
                 else:
                     info = self.parser(media)
                 if info:
-                    info.index = i
+                    if self.sum != 1:
+                        info.index = i + 1, self.sum
                     info.orig_url = url
                     yield info
             if i is None:
@@ -276,7 +284,8 @@ class EmbedExtractor(Extractor):
                 else:
                     info = self._parser(media)
                 if info:
-                    info.index = i
+                    if self.sum != 1:
+                        info.index = i + 1, self.sum
                     info.orig_url = url
                     yield info
         finally:

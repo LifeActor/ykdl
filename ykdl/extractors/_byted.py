@@ -38,10 +38,11 @@ def get_signed_cookies(url):
     install_cookie()
     get_response(url)
     cookies = get_cookies_d(url)
-    cookies.update({
-        '__ac_signature': get_signer(url)('', cookies['__ac_nonce']),
-        '__ac_referer': '__ac_blank'
-    })
+    if '__ac_nonce' in cookies:
+        cookies.update({
+            '__ac_signature': get_signer(url)('', cookies['__ac_nonce']),
+            '__ac_referer': '__ac_blank'
+        })
     uninstall_cookie()
     return cd2cs(cookies)
 

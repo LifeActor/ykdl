@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from .._common import *
-from .. import _byted
 
 
 class Douyin(Extractor):
@@ -32,10 +31,14 @@ class Douyin(Extractor):
                                 }).json()
             video_info = data['data'].get('room')
         else:
-            html = _byted.get_content(self.url)
-            data = match1(html,
-                         'id="RENDER_DATA" type="application/json">(.+?)</script>',
-                         '__INIT_PROPS__ = (.+?)</script>')
+            install_cookie()
+            for _ in range(2):
+                html = get_content(self.url, cache=False)
+                data = match1(html,
+                             'id="RENDER_DATA" type="application/json">(.+?)</script>',
+                             '__INIT_PROPS__ = (.+?)</script>')
+                if data:
+                    break
             data = json.loads(unquote(data))
             self.logger.debug('data: \n%s', data)
 

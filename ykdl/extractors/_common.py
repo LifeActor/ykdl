@@ -16,6 +16,10 @@ from ..util.m3u8 import *
 from ..util.match import *
 from ..util.wrap import *
 
+from ..util.lazy import lazy_import
+lazy_import('from jsengine import JSEngine')
+del lazy_import
+
 import os
 import sys
 import re
@@ -35,36 +39,3 @@ for name in urllib.request.__all__:
     if name.startswith('HTTP') or name.endswith('Handler'):
         g[name] = urllib.request.__dict__[name]
 del g, name
-
-
-def lazy_import(importstr):
-
-    assert importstr.startswith(('import ', 'from ')), \
-           ImportError('Wrong lazy import string: %r' % importstr)
-
-    def _import(_lazy_obj):
-        nonlocal obj
-        if obj is obj_none:
-            try:
-                exec(importstr)
-            except ImportError:
-                obj = None
-            else:
-                obj = locals()[obj_name]
-    class lazy_obj:
-        def __bool__(self):
-            _import(self)
-            return bool(obj)
-        def __call__(self, *args, **kwargs):
-            _import(self)
-            return obj(*args, **kwargs)
-        def __getattribute__(self, name):
-            _import(self)
-            return getattr(obj, name)
-
-    obj = obj_none = object()
-    obj_name = importstr.split()[-1].split('.')[0]
-    globals()[obj_name] = lazy_obj()
-
-lazy_import('from jsengine import JSEngine')
-del lazy_import

@@ -19,10 +19,12 @@ import os
 import sys
 import time
 import socket
+import string
 import threading
 from logging import getLogger
 from shutil import get_terminal_size
 from concurrent.futures import ThreadPoolExecutor
+from urllib.parse import quote
 from urllib.request import Request, urlopen
 from http.client import IncompleteRead
 
@@ -210,6 +212,7 @@ def _save_url(url, name, ext, status, part=None, reporthook=multi_hook):
     response = None
     timeout_q = min(socket.getdefaulttimeout() or 30, 30)
     timeout_r = max(socket.getdefaulttimeout() or 0, 60)
+    url = quote(url, safe=string.punctuation)
     req = Request(url, headers=fake_headers)
     req.remove_header('Accept-encoding')
     try:

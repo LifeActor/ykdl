@@ -7,7 +7,7 @@ class Douyin(Extractor):
     name = '抖音直播 (Douyin)'
 
     quality_2_profile_id = {
-          'ORIGIN': ['原画', 'OG'],
+         'ORIGION': ['原画', 'OG'],
         'FULL_HD1': ['蓝光', 'BD'],
              'HD1': ['超清', 'TD'],
              'SD1': ['高清', 'HD'],
@@ -58,11 +58,15 @@ class Douyin(Extractor):
         if 'flv_pull_url' in stream_info:
             for ql, url in stream_info['flv_pull_url'].items():
                 stream_urls.append(['flv', ql, url])
-            stream_urls.append(['flv', 'ORIGIN', stream_info.get('rtmp_pull_url')])
+            orig = stream_info.get('rtmp_pull_url')
+            if orig and orig not in stream_info['flv_pull_url'].values():
+                stream_urls.append(['flv', 'ORIGION', orig])
         if 'hls_pull_url_map' in stream_info:
             for ql, url in stream_info['hls_pull_url_map'].items():
                 stream_urls.append(['m3u8', ql, url])
-            stream_urls.append(['m3u8', 'ORIGIN', stream_info.get('hls_pull_url')])
+            orig = stream_info.get('hls_pull_url')
+            if orig and orig not in stream_info['hls_pull_url_map'].values():
+                stream_urls.append(['m3u8', 'ORIGION', orig])
 
         for ext, ql, url in stream_urls:
             if not url:

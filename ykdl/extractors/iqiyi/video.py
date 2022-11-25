@@ -127,7 +127,9 @@ class Iqiyi(Extractor):
                     self.vid = None
 
         def get_vid():
-            html = get_content(self.url)
+            html = get_content(self.url, headers={
+                'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.1) Gecko/20100101 Firefox/60.1',
+            })
             video_info = match1(html, ":video-info='(.+?)'")
 
             if video_info:

@@ -17,17 +17,27 @@ class Douyin(Extractor):
     def prepare(self):
         info = MediaInfo(self.name)
 
-        if 'amemv.com' in self.url:
+        rid = match1(self.url, '//live.douyin.com/(\d+)')
+        if rid:
+            data = get_response('https://live.douyin.com/webcast/web/enter/',
+                                params={
+                                    'aid': 6383,
+                                'live_id': 1,
+                        'device_platform': 'web',
+                                'web_rid': rid
+                                }).json()
+            video_info = data['data']['data'][0]
+        elif 'amemv.com' in self.url:
             data = get_response('https://webcast.amemv.com/webcast/room/reflow/info/',
                                 params={
                                     'verifyFp': '',
-                                    'type_id': 0,
-                                    'live_id': 1,
-                                    'sec_user_id': '',
-                                    'app_id': 1128,
-                                    'msToken': '',
-                                    'X-Bogus': '',
-                                    'room_id': match1(self.url, '/reflow/(\d+)')
+                                     'type_id': 0,
+                                     'live_id': 1,
+                                 'sec_user_id': '',
+                                      'app_id': 1128,
+                                     'msToken': '',
+                                     'X-Bogus': '',
+                                     'room_id': match1(self.url, '/reflow/(\d+)')
                                 }).json()
             video_info = data['data'].get('room')
         else:

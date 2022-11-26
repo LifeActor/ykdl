@@ -82,7 +82,7 @@ class MediaInfo:
         stream = self.streams[stream_id]
         fmt, id = self.streams._split_id(stream_id)
         stream_fmt = id and self.streams[fmt] is stream and fmt
-        size = stream.get('size', 0) not in (0, float('inf')) and stream['size']
+        size = stream.get('size', 0) not in (0, Infinity) and stream['size']
         self.lprint(
         ['    - format:         {}', (stream_fmt and
                                       log.sprint(stream_fmt, log.NEGATIVE) + ' '
@@ -101,7 +101,7 @@ class MediaInfo:
         print('')
 
     def print_subtitle_info(self, subtitle, show_full=False):
-        size = subtitle.get('size', 0) not in (0, float('inf')) and subtitle['size']
+        size = subtitle.get('size', 0) not in (0, Infinity) and subtitle['size']
         self.lprint(
         ['    - language:       {}', log.sprint(subtitle['lang'], log.NEGATIVE)],
         ['      name:           {}', subtitle['name']],
@@ -125,7 +125,7 @@ class MediaInfo:
             'extra'         : self.extra,
         }
         for s in json_dict['streams']:
-            if json_dict['streams'][s].get('size') == float('inf'):
+            if json_dict['streams'][s].get('size') == Infinity:
                 json_dict['streams'][s].pop('size')
         return json_dict
 

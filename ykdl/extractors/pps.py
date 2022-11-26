@@ -63,7 +63,7 @@ class PPS(Extractor):
                     'video_profile': stream_profile,
                     'container': 'flv',
                     'src' : [url],
-                    'size': float('inf')
+                    'size': Infinity
                 }
 
             error_msges = []

@@ -76,6 +76,7 @@ class Douyin(Extractor):
                 'container': ext,
                 'video_profile': video_profile,
                 'src' : [url],
+                'size': Infinity
             }
 
         return info

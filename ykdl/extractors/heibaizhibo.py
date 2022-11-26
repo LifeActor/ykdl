@@ -73,7 +73,7 @@ class Heibai(Extractor):
                 'container': 'flv',
                 'video_profile': ql['name'],
                 'src' : [url],
-                'size': float('inf')
+                'size': Infinity
             }
             break  # seems the same quality?
 

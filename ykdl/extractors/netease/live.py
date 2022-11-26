@@ -28,7 +28,7 @@ class NeteaseLive(Extractor):
             'container': url.split('.')[-1],
             'video_profile': 'current',
             'src': [url],
-            'size': 0
+            'size': Infinity
         }
         return info
 

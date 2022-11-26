@@ -6,11 +6,15 @@ import random
 import inspect
 import logging
 import tempfile
+import builtins
 
 from .util.log import ColorHandler
 
 
 logging.basicConfig(handlers=[ColorHandler()])
+
+
+builtins.Infinity = float('inf')
 
 
 if sys.version_info < (3, 10):

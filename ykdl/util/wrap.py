@@ -66,12 +66,16 @@ def get_pkgdata_bytes(package, resource, url=None):
 class HASH:
     '''Supported hash algorithm constructors are provided via attribute name,
     just likes hashlib, but only return hex digest.
+    And the object is also compatible with built-in function `hash`.
 
     For example:
 
         >>> hash.md5('1234567890')
         'e807f1fcf82d132f9bb018ca6738a19f'
-    '''
+        >>> hash(1.0)
+        1
+
+    ----------------------------------------------------------------------'''
 
     algorithms_available = {'MD5', 'SHA1', 'SHA224', 'SHA256', 'SHA384', 'SHA512'}
     init = None
@@ -111,7 +115,11 @@ class HASH:
             '''.format(name=name)
         return hash
 
-hash = HASH()  # ISSUE: same name as built-in function
+    def __call__(self, obj):
+        return _hash(obj)
+
+_hash = hash
+hash = HASH()
 del HASH
 
 def literalize(s, JSON=False):

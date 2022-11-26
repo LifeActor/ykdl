@@ -45,7 +45,7 @@ class Huajiao(Extractor):
             'container': 'flv',
             'video_profile': 'current',
             'src' : [live_url],
-            'size': float('inf')
+            'size': Infinity
         }
         return info
 

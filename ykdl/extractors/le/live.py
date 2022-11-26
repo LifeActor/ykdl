@@ -64,12 +64,11 @@ class LeLive(Extractor):
                                     'vkit': 20161017,
                                     'station': self.vid
                                 }).json()
-            src = data['location']
             info.streams[stream] = {
                 'container': 'm3u8',
                 'video_profile': profile,
-                'size' : float('inf'),
-                'src' : [src]
+                'src': [data['location']],
+                'size': Infinity
             }
 
         return info

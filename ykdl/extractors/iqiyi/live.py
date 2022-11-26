@@ -88,7 +88,7 @@ class IqiyiLive(Extractor):
                 'video_profile': stream_profile,
                 'container': ext,
                 'src' : [url],
-                'size': float('inf')
+                'size': Infinity
             }
 
         assert info.streams, "can't play this live video!!"

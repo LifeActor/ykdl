@@ -39,7 +39,7 @@ class Laifeng(Extractor):
             'container': 'flv',
             'video_profile': 'current',
             'src' : [stream_url],
-            'size': float('inf')
+            'size': Infinity
         }
         return info
 

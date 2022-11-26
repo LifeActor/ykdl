@@ -23,7 +23,7 @@ class Yizhibo(Extractor):
             'container': 'm3u8',
             'video_profile': 'current',
             'src' : [data['play_url']],
-            'size': float('inf')
+            'size': Infinity
         }
         return info
 

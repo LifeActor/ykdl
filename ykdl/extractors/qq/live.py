@@ -28,7 +28,7 @@ class QQLive(Extractor):
             'container': 'flv',
             'video_profile': 'current',
             'src' : ['{}/{}'.format(livedata['rtmp_url'], livedata['rtmp_live'])],
-            'size': float('inf')
+            'size': Infinity
         }
         return info
 

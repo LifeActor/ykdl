@@ -36,13 +36,15 @@ class IXiGua(Extractor):
                 info.streams[stream + '-' + 'flv'] = {
                     'container': 'flv',
                     'video_profile': video_profile,
-                    'src' : [v['FlvUrl']],
+                    'src': [v['FlvUrl']],
+                    'size': Infinity
                 }
             if 'HlsUrl' in v:
                 info.streams[stream + '-' + 'm3u'] = {
                     'container': 'm3u8',
                     'video_profile': video_profile,
-                    'src' : [v['HlsUrl']],
+                    'src': [v['HlsUrl']],
+                    'size': Infinity
                 }
 
         return info

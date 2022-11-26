@@ -78,7 +78,7 @@ class Douyutv(Extractor):
                 'container': match1(live_data['rtmp_live'], '\.(\w+)\?'),
                 'video_profile': video_profile,
                 'src' : [real_url],
-                'size': float('inf')
+                'size': Infinity
             }
 
             error_msges = []

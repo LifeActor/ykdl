@@ -60,7 +60,7 @@ class JustFunLive(Extractor):
                 'container': 'flv',
                 'video_profile': 'current',
                 'src': [playInfo['origin']],
-                'size': float('inf')
+                'size': Infinity
             }
 
         return info

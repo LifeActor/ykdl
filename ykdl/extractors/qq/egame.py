@@ -51,7 +51,7 @@ class QQEGame(Extractor):
                 'container': 'flv',
                 'video_profile': s['desc'],
                 'src': [s['playUrl']],
-                'size': float('inf')
+                'size': Infinity
             }
 
         return info

@@ -22,10 +22,10 @@ class HuyaLive(Extractor):
 
         html  = get_content(self.url)
 
-        json_stream = match1(html, 'stream: ({.+)\n.*?};')
-        assert json_stream, "can't found video!!"
-        data = json.loads(json_stream)
+        data = match1(html, 'stream: ({.+)\n.*?};')
+        assert data, "can't found video!!"
         self.logger.debug('data:\n%s', data)
+        data = json.loads(data)
         assert data['vMultiStreamInfo'], 'live video is offline'
 
         room_info = data['data'][0]['gameLiveInfo']
@@ -86,7 +86,7 @@ class HuyaLive(Extractor):
                 'container': 'flv',
                 'video_profile': video_profile,
                 'src': [url],
-                'size' : float('inf')
+                'size': Infinity
             }
         fake_headers.update({
             'Accept': '*/*',

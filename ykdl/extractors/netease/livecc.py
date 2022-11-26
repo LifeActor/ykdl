@@ -37,7 +37,7 @@ class NeteaseLive(Extractor):
             'container': 'flv',
             'video_profile': 'current',
             'src': [data['videourl']],
-            'size': 0
+            'size': Infinity
         }
         return info
 

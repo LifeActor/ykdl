@@ -52,7 +52,6 @@ class BiliLive(Extractor):
         g_qn_desc = None
         aqlts = set()
         aqlts_p = set()
-        size = float('inf')
 
         def get_live_info(qn=1):
             data = get_response(
@@ -104,7 +103,7 @@ class BiliLive(Extractor):
                             'container': ext,
                             'video_profile': prf,
                             'src' : [url],
-                            'size': size
+                            'size': Infinity
                         }
 
             if qn == 1:

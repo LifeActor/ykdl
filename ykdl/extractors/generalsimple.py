@@ -44,6 +44,12 @@ class GeneralSimple(Extractor):
         info.title = match1(html, '<meta property="og:title" content="([^"]+)',
                                   '<title>(.+?)</title>')
 
+        streams = get_kt_playlist(html)
+        if streams:
+            info.streams = streams
+            info.extra.referer = self.url
+            return info
+
         ext = ctype = None
         for i in range(2):
             url, ctype = matchm(html, pattern_src)

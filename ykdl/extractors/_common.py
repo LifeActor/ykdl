@@ -15,6 +15,7 @@ from ..util.human import *
 from ..util.m3u8 import *
 from ..util.match import *
 from ..util.wrap import *
+from ..util.kt_player import *
 
 from ..util.lazy import lazy_import
 lazy_import('from jsengine import JSEngine')

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .._common import *
+from .. import _byted
 
 
 class Douyin(Extractor):
@@ -21,18 +22,17 @@ class Douyin(Extractor):
             data = get_response('https://webcast.amemv.com/webcast/room/reflow/info/',
                                 params={
                                     'verifyFp': '',
-                                    'type_id': 0,
-                                    'live_id': 1,
-                                    'sec_user_id': '',
-                                    'app_id': 1128,
-                                    'msToken': '',
-                                    'X-Bogus': '',
-                                    'room_id': match1(self.url, '/reflow/(\d+)')
+                                     'type_id': 0,
+                                     'live_id': 1,
+                                 'sec_user_id': '',
+                                      'app_id': 1128,
+                                     'msToken': '',
+                                     'X-Bogus': '',  # 1
+                                     'room_id': match1(self.url, '/reflow/(\d+)')
                                 }).json()
             video_info = data['data'].get('room')
         else:
-            cookies = '__ac_nonce=' + get_random_id(21)
-            html = get_content(self.url, headers={'Cookie': cookies})
+            html = _byted.get_content(self.url)
             data = match1(html,
                          'id="RENDER_DATA" type="application/json">(.+?)</script>',
                          '__INIT_PROPS__ = (.+?)</script>')

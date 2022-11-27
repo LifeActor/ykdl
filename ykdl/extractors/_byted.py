@@ -34,16 +34,13 @@ def get_signer(url):
     return sign
 
 def get_signed_cookies(url):
-    assert JSEngine, "No JS Interpreter found, can't load byted acrawler!"
-    install_cookie()
-    get_response(url)
-    cookies = get_cookies_d(url)
-    if '__ac_nonce' in cookies:
-        cookies.update({
-            '__ac_signature': get_signer(url)('', cookies['__ac_nonce']),
-            '__ac_referer': '__ac_blank'
-        })
-    uninstall_cookie()
+    #assert JSEngine, "No JS Interpreter found, can't load byted acrawler!"
+    __ac_nonce = get_random_id(21)
+    cookies = {
+        '__ac_nonce': __ac_nonce,
+        #'__ac_signature': get_signer(url)('', __ac_nonce),
+        #'__ac_referer': '__ac_blank'
+    }
     return cd2cs(cookies)
 
 def get_ttwid_cookies(url):

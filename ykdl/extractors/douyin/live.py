@@ -31,14 +31,11 @@ class Douyin(Extractor):
                                 }).json()
             video_info = data['data'].get('room')
         else:
-            install_cookie()
-            for _ in range(2):
-                html = get_content(self.url, cache=False)
-                data = match1(html,
-                             'id="RENDER_DATA" type="application/json">(.+?)</script>',
-                             '__INIT_PROPS__ = (.+?)</script>')
-                if data:
-                    break
+            cookies = '__ac_nonce=' + get_random_id(21)
+            html = get_content(self.url, headers={'Cookie': cookies})
+            data = match1(html,
+                         'id="RENDER_DATA" type="application/json">(.+?)</script>',
+                         '__INIT_PROPS__ = (.+?)</script>')
             data = json.loads(unquote(data))
             self.logger.debug('data: \n%s', data)
 

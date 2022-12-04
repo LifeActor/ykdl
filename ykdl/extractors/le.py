@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .._common import *
+from ._common import *
 
 
 def calcTimeKey(t):
@@ -28,8 +28,14 @@ def decode(data):
         # directly return
         return data
 
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) '
+                  'AppleWebKit/603.1.30 (KHTML, like Gecko) '
+                  'Version/10.1 Safari/603.1.30'
+}
+
 class Letv(Extractor):
-    name = '乐视 (Letv)'
+    name = '乐视视频 (Letv)'
 
     stream_2_id_profile = {
         '1080p': ['BD', '1080P'],

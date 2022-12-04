@@ -15,7 +15,6 @@ alias = reverse_list_dict({
     'cctv'      : ['cntv'],
     'douyin'    : ['amemv', 'iesdouyin'],
     'douyu'     : ['douyutv'],
-    'le'        : ['letv'],
     'netease'   : ['163'],
     'qq'        : ['wetv'],
     'sina'      : ['iask'],

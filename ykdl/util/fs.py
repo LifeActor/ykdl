@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import zlib
 import platform
+from .wrap import hash
 
 
 if sys.platform.startswith(('msys', 'cygwin')):
@@ -77,10 +77,12 @@ def legitimize(text, compress='', strip='', trim=82):
 
     assert text, 'the given filename could not be legalized!'
 
-    crc = zlib.crc32(text[trim:].encode())
-    if crc:
-        crc = '{crc:x}'.format(**vars())
-    return text[:trim], crc
+    result = text[:trim]
+    overflow = text[trim:]
+    if overflow:
+        crc = hash.crc32(overflow)
+        result += '_{crc}'.format(**vars())
+    return result
 
 def compress_strip(text, compress='', strip='', translated=False):
     '''Compress same characters, and then strip.

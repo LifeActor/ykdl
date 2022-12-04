@@ -11,7 +11,7 @@ from .util import log
 from .util.fs import legitimize, compress_strip
 from .util.http import fake_headers
 from .util.human import human_size, _format_time, human_time, stream_index
-from .util.wrap import get_random_str
+from .util.wrap import get_random_str, hash
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +33,7 @@ class MediaInfo:
 
     @property
     def title(self):
-        return self._title
+        return self._title or '_'.join([self.site, hash.crc32(self.orig_url)])
 
     @title.setter
     def title(self, value):
@@ -151,18 +151,13 @@ class MediaInfo:
                 self.print_subtitle_info(subtitle, show_full)
 
     def build_file_name(self, stream_id):
-        unique_title = []
-        if self.title:
-            unique_title.append(self.title)
-            if self.album and self.album not in self.title:
-                unique_title.append(self.album)
-            if self.artist and self.artist not in self.title:
-                unique_title.append(self.artist)
-        else:
-            unique_title += [self.site, get_random_str(8)]
-        unique_title = [*legitimize('_'.join(unique_title))]
-        if not unique_title[-1]:
-            unique_title.pop()
+        title = self.title
+        unique_title = [title]
+        if self.album and self.album not in title:
+            unique_title.append(self.album)
+        if self.artist and self.artist not in title:
+            unique_title.append(self.artist)
+        unique_title = [legitimize('_'.join(unique_title))]
         if not stream_id == 'current':
             unique_title.append(stream_id)
         if self.live:

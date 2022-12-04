@@ -3,6 +3,7 @@
 import os
 import ast
 import json
+import zlib
 import base64
 import random
 import string
@@ -114,6 +115,16 @@ class HASH:
             Params: same as hashlib.{name}(), but string/data can be a str.
             '''.format(name=name)
         return hash
+
+    @staticmethod
+    def crc32(data):
+        '''Return the CRC-32 hexdigest of data.
+
+        `data`: string or bytes-like object
+        '''
+        if hasattr(data, 'encode'):
+            data = data.encode()
+        return '{:0>8x}'.format(zlib.crc32(data))
 
     def __call__(self, obj):
         return _hash(obj)

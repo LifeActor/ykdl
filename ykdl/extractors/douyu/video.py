@@ -24,7 +24,7 @@ class DouyutvVideo(Extractor):
             self.url = 'https://v.douyu.com/show/' + self.vid
 
         html = get_content(self.url)
-        info.title = match1(html, 'title>(.+?)_斗鱼视频 - 最6的弹幕视频网站<')
+        info.title = match1(html, 'title>(.+?)-斗鱼视频<')
         self.vid, vid = match1(html, '"point_id":\s?(\d+)'), self.vid
         assert self.vid, "can't find video!!!"
 

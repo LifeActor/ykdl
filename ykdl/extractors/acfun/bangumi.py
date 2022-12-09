@@ -24,9 +24,45 @@ class AcBan(AcBase):
 
         return title, artist, sourceVid, m3u8Info
 
-    def get_path_list(self):
-        html = get_content(self.url)
-        videos = matchall(html, 'href=[\'"](/bangumi/aa\d+_\d+_\d+)[\'"] data-title=[\'"]')
-        return videos
+    def format_mid(self, mid):
+        if not isinstance(mid, tuple):
+            mid = mid, None
+        mid = mid[:2]
+        if len(mid) == 1:
+            mid += (None, )
+        bid, iid = mid
+        assert fullmatch(bid, '(aa)?\d+')
+        assert not iid or fullmatch(iid, '\d+_\d+')
+        bid = match1(bid, '(\d+)')
+        if self.url is None:
+            if iid:
+                self.url = 'https://www.acfun.cn/bangumi/aa{bid}_{iid}'.format(**vars())
+            else:
+                self.url = 'https://www.acfun.cn/bangumi/aa{bid}'.format(**vars())
+        return mid
+
+    def prepare_mid(self):
+        mid = matchm(self.url, '/aa(\d+)_(\d+_\d+)', '/aa(\d+)')
+        if mid[0]:
+            return mid
+
+    def list_only(self):
+        bid, iid = self.mid
+        return bid and not iid
+
+    def prepare_list(self):
+        bid, iid = self.mid
+        html = get_content(
+            'https://www.acfun.cn/bangumi/aa{bid}'.format(**vars()),
+            params={
+                'pagelets': 'pagelet_partlist',
+                'reqID': 0,
+                'ajaxpipe': 1,
+                't': int(time.time() * 1000)
+            })
+        iids = matchall(html, '{bid}_(\d+_\d+)'.format(**vars()))
+        self.set_index(iid, iids)
+        for iid in iids:
+            yield 'https://www.acfun.cn/bangumi/aa{bid}_{iid}'.format(**vars())
 
 site = AcBan()

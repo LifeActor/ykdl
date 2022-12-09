@@ -51,11 +51,11 @@ def get_urls(html):
 def get_kt_playlist(html):
     streams = MediaStreams()
     for url in get_urls(html):
-        video_profile = match1(url, '_(\d+)p?.mp4') + 'P'
-        stream = profile_2_id[video_profile]
+        stream_profile = match1(url, '_(\d+)p?.mp4') + 'P'
+        stream = profile_2_id[stream_profile]
         streams[stream] = {
             'container': 'mp4',
-            'video_profile': video_profile,
+            'profile': stream_profile,
             'src': [url]
         }
     return streams

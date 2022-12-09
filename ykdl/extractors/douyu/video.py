@@ -13,40 +13,38 @@ class DouyutvVideo(Extractor):
         'normal': 'HD'
     }
 
+    def prepare_mid(self):
+        return match1(self.url, 'show/(\w+)')
+
     def prepare(self):
         info = MediaInfo(self.name)
 
-        if self.vid is None:
-            self.vid = match1(self.url, 'show/(\w+)')
-        assert self.vid, "can't find video!!!"
-
         if self.url is None or 'vmobile' in self.url:
-            self.url = 'https://v.douyu.com/show/' + self.vid
+            self.url = 'https://v.douyu.com/show/' + self.mid
 
         html = get_content(self.url)
         info.title = match1(html, 'title>(.+?)-斗鱼视频<')
-        self.vid, vid = match1(html, '"point_id":\s?(\d+)'), self.vid
-        assert self.vid, "can't find video!!!"
+        vid = match1(html, '"point_id":\s?(\d+)')
+        assert vid, "can't find video!!!"
 
-        js_enc = get_h5enc(html, self.vid)
-        params = {'vid': vid}
-        ub98484234(js_enc, self, params)
+        js_enc = get_h5enc(html, vid)
+        params = {'vid': self.mid}
+        ub98484234(js_enc, vid, self.logger, params)
 
         add_header('Referer', self.url)
-        video_data = get_response('https://v.douyu.com/api/stream/getStreamUrl',
-                                  {'Cookie': 'dy_did=' + params['did']},
-                                  data=params).json()
-        assert video_data['error'] == 0, video_data
+        data = get_response('https://v.douyu.com/api/stream/getStreamUrl',
+                            {'Cookie': 'dy_did=' + params['did']},
+                            data=params).json()
+        assert data['error'] == 0, data
 
-        for video_profile, st_date in video_data['data']['thumb_video'].items():
+        for stream_profile, st_date in data['data']['thumb_video'].items():
             if not st_date:
                 continue
-            stream = self.profile_2_id[video_profile]
-            info.streams[stream] = {
+            stream_id = self.profile_2_id[stream_profile]
+            info.streams[stream_id] = {
                 'container': 'm3u8',
-                'video_profile': video_profile,
-                'src' : [st_date['url']],
-                'size': 0
+                'profile': stream_profile,
+                'src': [st_date['url']]
             }
 
         return info

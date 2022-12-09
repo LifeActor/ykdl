@@ -39,13 +39,13 @@ class SohuBase(Extractor):
         'SD': '标清'
     }
 
-    def parser_info(self, video, info, stream, lvid, uid):
-        if not 'allot' in info or lvid != info['id']:
+    def parser_info(self, info, data, stream, lvid, uid):
+        if not 'allot' in data or lvid != data['id']:
             return
         stream_id = self.types_2_id[stream]
         stream_profile = self.id_2_profile[stream_id]
-        host = info['allot']
-        data = info['data']
+        host = data['allot']
+        data = data['data']
         size = sum(map(int, data['clipsBytes']))
         urls = []
         assert len(data['clipsURL']) == len(data['clipsBytes']) == len(data['su'])
@@ -65,72 +65,67 @@ class SohuBase(Extractor):
             else:
                 url = new
             urls.append(url)
-        video.streams[stream_id] = {
+        info.streams[stream_id] = {
             'container': 'mp4',
-            'video_profile': stream_profile,
-            'src': urls,
-            'size' : size
+            'profile': stream_profile,
+            'src' : urls,
+            'size': size
         }
 
     def fetch_info(self, vid):
         self.apiparams['vid'] = vid
         return get_response(self.apiurl, params=self.apiparams).json()
 
+    def prepare_mid(self):
+        mid = match1(self.url, '\d/(\d+)\.s?html',
+                              r'\b[bv]?id=(\d+)',
+                               'share_play.html#(\d+)_')
+        if mid is None:
+            html = get_content(self.url)
+            mid = match1(html, r'\b[bv]id\s*[=:]\s*["\']?(\d+)',
+                               r'(?:&|\x26)[bv]?id=(\d+)'
+                                '/(\d+)/v\.swf')
+        return mid
+
     def prepare(self):
-        if self.url and not self.vid:
-            self.vid = match1(self.url, '\W[b|v]?id=(\d+)',
-                                        'share_play.html#(\d+)_')
-            if not self.vid:
-                html = get_content(self.url)
-                self.vid = match1(html, '/(\d+)/v\.swf',
-                                        'vid="(\d+)"',
-                                        "bid:'(\d+)'",
-                                        '&id=(\d+)')
-
-        info = self.fetch_info(self.vid)
-        if info['status'] == 6:
-            from .my import site
-            self.name = site.name
-            self.apiurl = site.apiurl
-            self.apiparams = site.apiparams
-            info = self.fetch_info(self.vid)
-
-        video = MediaInfo(self.name)
+        info = MediaInfo(self.name)
         # this is needless now, uid well be registered in the the following code
-        #video.extra['header'] = 'Range: '
-        if info['status'] == 1:
-            now = time.time()
-            uid = int(now * 1000)
-            get_response('http://z.m.tv.sohu.com/h5_cc.gif',
-                         params={
-                             'vid': self.vid,
-                             'url': self.url,
-                             'refer': self.url,
-                             't': int(now),
-                             'uid': uid,
-                             #'nid': nid,
-                             #'pid': pid,
-                             #'screen': '1366x768',
-                             #'channeled': channeled,
-                             #'MTV_SRC': MTV_SRC,
-                             #'position': 'page_adbanner',
-                             #'op': 'click',
-                             #'details': '{}',
-                             #'os': 'linux',
-                             #'platform': 'linux',
-                             #'passport': '',
-                         })
+        #info.extra['header'] = 'Range: '
 
-            data = info['data']
-            video.title = data['tvName']
-            for stream in self.supported_stream_types:
-                lvid = data.get(stream)
-                if lvid == 0 or not lvid:
-                    continue
-                if lvid != self.vid:
-                    _info = self.fetch_info(lvid)
-                else:
-                    _info = info
+        data = self.fetch_info(self.mid)
+        assert data['status'] == 1, data
 
-                self.parser_info(video, _info, stream, lvid, uid)
-        return video
+        # report
+        now = time.time()
+        uid = int(now * 1000)
+        get_response('http://z.m.tv.sohu.com/h5_cc.gif',
+                     params={
+                         'vid': self.mid,
+                         'url': self.url,
+                         'refer': self.url,
+                         't': int(now),
+                         'uid': uid,
+                         #'nid': nid,
+                         #'pid': pid,
+                         #'screen': '1366x768',
+                         #'channeled': channeled,
+                         #'MTV_SRC': MTV_SRC,
+                         #'position': 'page_adbanner',
+                         #'op': 'click',
+                         #'details': '{}',
+                         #'os': 'linux',
+                         #'platform': 'linux',
+                         #'passport': '',
+                     })
+
+        _data = data['data']
+        info.title = _data['tvName']
+        for stream in self.supported_stream_types:
+            lvid = _data.get(stream)
+            if lvid == 0 or not lvid:
+                continue
+            if lvid != self.mid:
+                data = self.fetch_info(lvid)
+            self.parser_info(info, data, stream, lvid, uid)
+
+        return info

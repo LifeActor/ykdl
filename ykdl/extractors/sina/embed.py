@@ -9,19 +9,13 @@ class Embed(Extractor):
     def prepare(self):
         info = MediaInfo(self.name)
 
-        vid = match1(self.url, '/(\d+)\.mp4')
-        if vid:
-            r_url = get_location(
-                        'https://ask.ivideo.sina.com.cn/v_play_ipad.php',
-                        params={'vid': vid})
-        elif 'vid=' in self.url:
-            r_url = get_location(self.url)
+        vid = match1(self.url, '/(\d+)\.mp4', 'vid=(\d+)')
+        url = 'https://ask.ivideo.sina.com.cn/v_play_ipad.php?' + urlencode({'vid': vid})
 
         info.streams['current'] = {
             'container': 'mp4',
-            'video_profile': 'current',
-            'src': [r_url],
-            'size' : 0
+            'profile': 'current',
+            'src': [url]
         }
         return info
 

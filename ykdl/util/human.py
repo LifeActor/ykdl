@@ -78,6 +78,10 @@ def human_size(n, unit=None):
     return ' '.join(['{:.3f}'.format(n).rstrip('0').rstrip('.'), unit])
 
 def _format_time(s):
+    try:
+        return int(_format_str(s))
+    except ValueError:
+        pass
     s = match1(s, '''(?x)
                   (?:^|[^:\.\d])
                   (
@@ -99,10 +103,7 @@ def _format_time(s):
         for i, n in enumerate(reversed(s.split(':'))):
             t += int(n) * 60 ** i
         return t
-    try:
-        return int(_format_str(s))
-    except ValueError:
-        return -1
+    return -1
 
 def human_time(t, days=False):
     '''Convert giving number to a hunman read timestamp.
@@ -132,10 +133,11 @@ def format_vps(*wh):
         1920, 1080      => 'BD', '1080P'
         '720x540'       => 'HD', '540P'
         '540', '960'    => 'HD', '540P'
+        '540P'          => 'HD', '540P'
     '''
     if len(wh) == 1 and isinstance(wh[0], str):
         wh = wh[0].lower().split('x')
-    assert len(wh) == 2, 'need width and height.'
+    assert str(wh[0])[-1:].upper() == 'P' or len(wh) == 2, 'need width and height.'
     def get_n(n):
         try:
             return int(n)
@@ -143,21 +145,22 @@ def format_vps(*wh):
             return int(n[:-1])
     wh = list(map(get_n, wh))
     max_ps, min_ps = max(wh), min(wh)
-    ps = abs(max_ps / min_ps * 3 - 4) < 0.5 and max_ps * 4 / 3 or max_ps
-    if ps <= 480:
+    if len(wh) == 1 or not 2.4 > max_ps / min_ps > 1.5:
+        max_ps = min_ps * 16 / 9
+    if max_ps <= 480:
         fmt = 'LD'
-    elif ps <= 640:
+    elif max_ps <= 640:
         fmt = 'SD'
-    elif ps <= 960:
+    elif max_ps <= 960:
         fmt = 'HD'
-    elif ps <= 1280:
+    elif max_ps <= 1280:
         fmt = 'TD'
-    elif ps <= 1920:
+    elif max_ps <= 1920:
         fmt = 'BD'
-    elif ps <= 2560:
+    elif max_ps <= 2560:
         fmt = '2K'
     else:
-        fmt = '{:.1f}'.format(ps/1000).rstrip('0').rstrip('.') + 'K'
+        fmt = '{:.1f}'.format(max_ps/1000).rstrip('0').rstrip('.') + 'K'
     return fmt, str(min_ps) + 'P'
 
 _stream_index = 'OG', '*K', 'BD', 'TD', 'HD', 'SD', 'LD'

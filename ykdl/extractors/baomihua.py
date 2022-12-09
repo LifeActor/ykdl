@@ -7,16 +7,16 @@ class Baomihua(Extractor):
     # https://www.baomihua.com/
     name = '爆米花（Baomihua)'
 
+    def prepare_mid(self):
+        return match1(self.url, '_(\d+)', 'm/(\d+)', 'v/(\d+)')
+
     def prepare(self):
-
         info = MediaInfo(self.name)
-        if self.url:
-            self.vid = match1(self.url, '_(\d+)', 'm/(\d+)', 'v/(\d+)')
 
-        add_header('Referer', 'https://m.video.baomihua.com/')
+        add_header('Referer', 'https://m.mideo.baomihua.com/')
         data = get_response('https://play.baomihua.com/getvideourl.aspx',
                             params={
-                                'flvid': self.vid,
+                                'flvid': self.mid,
                                 'datatype': 'json',
                                 'devicetype': 'wap'
                             }).json()
@@ -30,10 +30,10 @@ class Baomihua(Extractor):
         hls = data['ishls']
         url = 'http://{host}/{hls}/{stream_name}.{t}'.format(**vars())
         info.streams['current'] = {
-            'video_profile': 'current',
             'container': t,
-            'src': [url],
-            'size' : size
+            'profile': 'current',
+            'src' : [url],
+            'size': size
         }
         return info
 

@@ -22,7 +22,6 @@ class BiliBase(Extractor):
         info.extra['ua'] = fake_headers['User-Agent']
 
         self.get_page_info(info)
-        assert self.vid, "can't play this video: " + self.url
 
         def get_video_info(qn=0):
             # need login with high qn
@@ -50,7 +49,7 @@ class BiliBase(Extractor):
                 st += '-' + str(data['quality'])
                 info.streams[st] = {
                     'container': ext,
-                    'video_profile': prf,
+                    'profile': prf,
                     'src' : urls,
                     'size': size
                 }

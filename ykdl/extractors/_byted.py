@@ -15,9 +15,6 @@ def get_cookies_d(url):
     return {c.name: c.value
             for c in get_cookies(urlsplit(url).hostname, '/')}
 
-def cd2cs(cd):
-    return ';'.join('='.join(kv) for kv in cd.items())
-
 def get_signer(url):
     assert JSEngine, "No JS Interpreter found, can't load byted acrawler!"
     global js_acrawler
@@ -41,17 +38,17 @@ def get_signed_cookies(url):
         #'__ac_signature': get_signer(url)('', __ac_nonce),
         #'__ac_referer': '__ac_blank'
     }
-    return cd2cs(cookies)
+    return cookies
 
 def get_ttwid_cookies(url):
     install_cookie()
     get_response(url)
     cookies = get_cookies_d(url)
     cookies['ttwid_date'] = '1'
-    get_response(url, headers={'Cookie': cd2cs(cookies)})
+    get_response(url, headers={'Cookie': cookies})
     cookies = get_cookies_d(url)
     uninstall_cookie()
-    return cd2cs(cookies)
+    return cookies
 
 cookies = None
 _get_content = get_content

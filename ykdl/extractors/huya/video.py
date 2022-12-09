@@ -13,15 +13,17 @@ class HuyaVideo(Extractor):
             '350': ['SD', '流畅']
     }
 
+    def prepare_mid(self):
+        mid = match1(self.url, 'play/(\d+)')
+        if mid is None:
+            html = get_content(self.url)
+            mid = match1(html, 'vid = (\d+)', 'data-vid="(\d+)')
+        return mid
+
     def prepare(self):
         info = MediaInfo(self.name)
 
-        self.vid = match1(self.url, 'play/(\d+)')
         html = get_content(self.url)
-        if not self.vid:
-            self.vid = match1(html, 'vid = (\d+)', 'data-vid="(\d+)')
-        assert self.vid, "can't find VID!!"
-
         info.title = match1(html, '<h1 class="video-title">(.+?)</h1>')
         info.artist = match1(html, '<div class="video-author">[\s\S]+?<h3>(.+?)</h3>')
 
@@ -32,7 +34,7 @@ class HuyaVideo(Extractor):
                         params={
                             'callback': 'jQuery1124{rnd}_{t1}'.format(**vars()),
                             'r': 'vhuyaplay/video',
-                            'vid': self.vid,
+                            'vid': self.mid,
                             'format': 'mp4,m3u8',
                             '_': t2
                         }).json()
@@ -42,14 +44,14 @@ class HuyaVideo(Extractor):
         for stream_date in data:
             ext = stream_date['format']
             quality =stream_date['definition']
-            stream, video_profile = self.quality_2_id_profile[quality]
-            stream += '-' + ext
+            stream_id, stream_profile = self.quality_2_id_profile[quality]
+            stream_id += '-' + ext
             url = stream_date['transcode']['urls'][0]
-            info.streams[stream] = {
+            info.streams[stream_id] = {
                 'container': ext,
-                'video_profile': video_profile,
-                'src': [url],
-                'size' : int(stream_date['size'])
+                'profile': stream_profile,
+                'src' : [url],
+                'size': int(stream_date['size'])
             }
 
         return info

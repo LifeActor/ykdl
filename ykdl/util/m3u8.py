@@ -73,12 +73,11 @@ def _get_stream_info(l, name):
 def load_m3u8_playlist(url, **kwargs):
     '''Params: as same as _load().'''
 
-    def append_stream(stype, profile, urls):
-        streams[stype] = {
+    def append_stream(stream_id, stream_profile, urls):
+        streams[stream_id] = {
             'container': 'm3u8',
-            'video_profile': profile,
-            'src' : urls,
-            'size': 0
+            'profile': stream_profile,
+            'src': urls
         }
 
     streams = MediaStreams()

@@ -58,9 +58,8 @@ class Zhanqi(Extractor):
                 }))
         info.streams['current'] = {
             'container': 'flv',
-            'video_profile': 'current',
-            'src' : [url],
-            'size': 0
+            'profile': 'current',
+            'src': [url]
         }
         return info
 

@@ -19,12 +19,20 @@ class QQEGame(Extractor):
          1: 'SD',
     }
 
+    @staticmethod
+    def format_mid(mid):
+        mid = fullmatch(mid, '\d+')
+        assert mid
+        return mid
+
+    def prepare_mid(self):
+        return match1(self.url, '/(\d+)')
+
     def prepare(self):
         info = MediaInfo(self.name, True)
-        if not self.vid:
-            self.vid = match1(self.url, '/(\d+)')
-        if not self.url:
-            self.url = 'https://egame.qq.com/' + self.vid
+
+        if self.url is None:
+            self.url = 'https://egame.qq.com/' + self.mid
         html = get_content(self.url)
 
         js_nuxt = match1(html, '<script>window.__NUXT__=(.+?)</script>')
@@ -46,11 +54,11 @@ class QQEGame(Extractor):
         info.title = '{title} - {artist}'.format(**vars())
 
         for s in videoInfo['streamInfos']:
-            stream = self.lv_2_id[s['levelType']]
-            info.streams[stream] = {
+            stream_id = self.lv_2_id[s['levelType']]
+            info.streams[stream_id] = {
                 'container': 'flv',
-                'video_profile': s['desc'],
-                'src': [s['playUrl']],
+                'profile': s['desc'],
+                'src' : [s['playUrl']],
                 'size': Infinity
             }
 

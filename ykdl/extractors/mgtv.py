@@ -26,42 +26,42 @@ def generate_tk2(did):
 class Hunantv(Extractor):
     name = '芒果TV (HunanTV)'
 
-    profile_2_types = {
-        '复刻版': 'BD',
+    profile_2_id = {
+      '复刻版': 'BD',
         '蓝光': 'BD',
         '超清': 'TD',
         '高清': 'HD',
         '标清': 'SD'
     }
 
+    def prepare_mid(self):
+        mid = match1(self.url, 'com/[bl]/\d+/(\d+).html',
+                               'com/s/(\d+).html')
+        if mid is None:
+            html = get_content(self.url)
+            if match1(self.url, 'com/h/(\d+).html'):
+                assert JSEngine, 'No JS Interpreter found!!!'
+                js_ctx = JSEngine()
+                js = match1(html, '<script>window.__NUXT__=(.+);</script>')
+                data = js_ctx.eval(js)
+                mid = match1(data, "PartId': '(\d+)'")
+            else:
+                mid = match1(html,
+                             'window.location = "/b/\d+/(\d+).html"',
+                            r'routePath:"\\u002Fl\\u002F\d+\\u002F(\d+).html"',
+                             'vid[=:]\D?(\d+)')
+        return mid
+
     def prepare(self):
         info = MediaInfo(self.name)
-        install_cookie()
         info.extra.referer = self.url
-
-        if self.url and not self.vid:
-            self.vid = match1(self.url, 'com/[bl]/\d+/(\d+).html')
-            if self.vid is None:
-                self.vid = match1(self.url, 'com/s/(\d+).html')
-            if self.vid is None:
-                html = get_content(self.url)
-                if match1(self.url, 'com/h/(\d+).html'):
-                    assert JSEngine, 'No JS Interpreter found!!!'
-                    js_ctx = JSEngine()
-                    js = match1(html, '<script>window.__NUXT__=(.+);</script>')
-                    data = str(js_ctx.eval(js))
-                    self.vid = match1(data, "PartId': '(\d+)'")
-                else:
-                    self.vid = match1(html, 'window.location = "/b/\d+/(\d+).html"',
-                                           r'routePath:"\\u002Fl\\u002F\d+\\u002F(\d+).html"',
-                                            'vid[=:]\D?(\d+)')
-        assert self.vid, 'can not find video!!!'
+        install_cookie()
 
         did = get_random_uuid()
         tk2 = generate_tk2(did)
         params = {
             'tk2': tk2,
-            'video_id': self.vid,
+            'video_id': self.mid,
             'type': 'pch5'
         }
         data = get_response('https://pcweb.api.mgtv.com/player/video',
@@ -87,12 +87,12 @@ class Hunantv(Extractor):
             if lurl:
                 url = get_response(domain + lurl,
                                    params={'did': did}).json()['info']
-                video_profile = lstream['name']
-                stream = self.profile_2_types[video_profile]
-                info.streams[stream] = {
+                stream_profile = lstream['name']
+                stream_id = self.profile_2_id[stream_profile]
+                info.streams[stream_id] = {
                     'container': 'm3u8',
-                    'video_profile': video_profile,
-                    'src' : [url]
+                    'profile': stream_profile,
+                    'src': [url]
                 }
 
         return info

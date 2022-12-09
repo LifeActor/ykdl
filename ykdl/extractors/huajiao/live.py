@@ -6,6 +6,10 @@ from .._common import *
 class Huajiao(Extractor):
     name = 'huajiao (花椒直播)'
 
+    def prepare_mid(self):
+        html = get_content(self.url)
+        return match1(html, '"sn":"([^"]+)')
+
     def prepare(self):
         info = MediaInfo(self.name, True)
         html = get_content(self.url)
@@ -20,14 +24,13 @@ class Huajiao(Extractor):
             info.streams = load_m3u8_playlist(replay_url)
             return info
 
-        self.vid = match1(html, '"sn":"([^"]+)')
         channel = match1(html, '"channel":"([^"]+)')
         encoded_json = get_response('http://g2.live.360.cn/liveplay',
                                     params={
                                         'stype': 'flv',
                                         'channel': channel,
                                         'bid': 'huajiao',
-                                        'sn': self.vid,
+                                        'sn': self.mid,
                                         'sid': get_random_uuid_hex('SID'),
                                         '_rate': 'xd',
                                         'ts': time.time(),
@@ -37,14 +40,14 @@ class Huajiao(Extractor):
                                         '_sign': 'null',
                                         '_ver': 13
                                     }).content
-        decoded_json = base64.b64decode(encoded_json[0:3] + encoded_json[6:])
-        video_data = json.loads(decoded_json.decode())
-        live_url = video_data['main']
+        decoded_json = unb64(encoded_json[0:3] + encoded_json[6:])
+        self.logger.debug('decoded_json:\n%s', decoded_json)
+        data = json.loads(decoded_json)
         info.live = True
         info.streams['current'] = {
             'container': 'flv',
-            'video_profile': 'current',
-            'src' : [live_url],
+            'profile': 'current',
+            'src' : [data['main']],
             'size': Infinity
         }
         return info

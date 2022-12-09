@@ -18,6 +18,7 @@ class Ku6(SimpleExtractor):
         html = get_content(self.url)
         videos = matchall(html, "'title': '(.+?)',[\s\S]+?'playUrl': '(.+?)',")
         videos.reverse()
+        self.set_index(None, videos)
         for title, url in videos:
             info = MediaInfo(self.name)
             info.title = title

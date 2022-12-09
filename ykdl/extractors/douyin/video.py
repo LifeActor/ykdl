@@ -6,11 +6,15 @@ from .._common import *
 class Douyin(Extractor):
     name = '抖音 (Douyin)'
 
+    def prepare_mid(self):
+        return match1(self.url, '(?:video/|vid=)(\d+)')
+
     def prepare(self):
         info = MediaInfo(self.name)
-        vid = match1(self.url, '(?:video/|vid=)(\d+)')
+
         data = get_response('https://www.douyin.com/web/api/v2/aweme/iteminfo/',
-                            params={'item_ids': vid}).json()
+                            params={'item_ids': self.mid}).json()
+        assert not data['filter_list'], data['filter_list'][0]['filter_reason']
 
         video_info = data['item_list'][0]
         title = video_info['desc']
@@ -24,9 +28,9 @@ class Douyin(Extractor):
 
         info.streams['current'] = {
             'container': 'mp4',
-            'video_profile': 'current',
-            'src' : [video_info['video']['play_addr']['url_list'][0]
-                                .replace('playwm', 'play')],
+            'profile': video_info['video']['ratio'].upper(),
+            'src': [video_info['video']['play_addr']['url_list'][0]
+                              .replace('playwm', 'play')]
         }
         return info
 

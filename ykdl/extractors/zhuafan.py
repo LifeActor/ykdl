@@ -3,65 +3,45 @@
 from ._common import *
 
 
-def decodeencoded(encodestr):
-    b = bytearray(base64.b64decode(encodestr))
-    t7 = bytearray()
-    if len(b) > 12:
-        if b[0] == 255 and b[1] == 255 and b[2] == 255 and b[3] == 254:
-            t2 = b[4]
-            t3 = b[5]
-            t4 = b[6]
-            t5 = b[7]
-            t6 = (b[t4 + 8] & 255 ^ t2) << 24 | \
-                 (b[t4 + 9] & 255 ^ t3) << 16 | \
-                 (b[t4 + 10] & 255 ^ t2) << 8 | \
-                  b[t4 + 11] & 255 ^ t3
-            if t6 == len(b) - 12 - t4 - t5:
-                t8 = t4 + 12
-                t9 = t6 + 1
-                t7 = bytearray(t9 - 1)
-                while t9 >= 0:
-                    if (t9 & 1) == 0:
-                        t10 = t2
-                    else:
-                        t10 = t3
-                    try:
-                        t7[t9] = (b[t8 + t9] ^ t10)
-                    except Exception as e:
-                        pass
-                    t9 -= 1
-    retstr = t7.decode()
-    return retstr
-
 class JustFunLive(Extractor):
     name = '抓饭直播 (JustFun Live)'
+
+    def prepare_mid(self):
+        return match1(self.url, 'live/(\d+)')
 
     def prepare(self):
         info = MediaInfo(self.name, True)
 
-        if self.url and not self.vid:
+        try:
+            data = get_response(
+                    'https://www.zhuafan.tech/live-channel-info/channel/v2/info',
+                    params={
+                        'cid': self.mid,
+                        'decrypt': 1
+                    }).json()
+        except:
             html = get_content(self.url)
+            data = match1(html, 'window\.__INITIAL_STATE__ = ({.+})</script>')
+            self.logger.debug('data:\n%s', data)
+            data = json.loads(data)['channel']
 
-            title = match1(html, '<div class="play-title-inner">([^<]+)</div>')
-            info.artist = artist =match1(html, 'data-director="([^"]+)"')
-            info.title = '{title} - {artist}'.format(**vars())
+        assert data['playStatusCode'] == 0, data['playStatusCodeDesc']
 
-            PL = match1(html, 'var PL = {([\s\S]+?)}')
-            data = dict((k.strip(), json.loads(v)) for k, v in 
-                        (kv.split(':') for kv in PL.split(','))
-                        if k.strip())
-            assert data['close'] == 'false', data['closeReason']
-            self.logger.debug('Encoded playInfo: %s', data['playInfo'])
-            playInfo = json.loads(decodeencoded(data['playInfo']))
-            self.logger.debug('Decoded playInfo: %r', playInfo)
+        info.artist = data['uname']
+        info.title = data['cname']
 
-            # using only origin, as I have noticed - all links are same
-            info.streams['current'] = {
-                'container': 'flv',
-                'video_profile': 'current',
-                'src': [playInfo['origin']],
-                'size': Infinity
-            }
+        info.streams['OG-FLV'] = {
+            'container': 'flv',
+            'profile': 'current',
+            'src' : [data['httpsPlayInfo']],
+            'size': Infinity
+        }
+        info.streams['OG-HLS'] = {
+            'container': 'm3u8',
+            'profile': 'current',
+            'src' : [data['hlsPlayInfo']],
+            'size': Infinity
+        }
 
         return info
 

@@ -241,7 +241,7 @@ class HTTPResponse:
         '''Wrap urllib.request.Request and http.client.HTTPResponse.
 
         Params:
-            `encoding` is used by decode responsed content.
+            `encoding`, a string/callable object used for decode responsed content.
 
             `finish`, only has effect on redirections.
 
@@ -335,6 +335,9 @@ class HTTPResponse:
                 else:
                     self._encoding = encoding
                     return True
+            if callable(encoding):
+                self._text = encoding(self.content)
+                return True
         decode(self._encoding) or \
         decode(self.headers.get_content_charset()) or \
         'json' in self.headers.get_content_subtype().lower() and \
@@ -555,7 +558,9 @@ def get_response(url, headers={}, data=None, params=None, method='GET',
                       default_headers=fake_headers, cache=CACHED):
     '''Fetch the response of giving URL.
 
-    Params: both `params` and `data` always use "UTF-8" as encoding.
+    Params:
+        both `params` and `data` always use "UTF-8" as encoding.
+        `encoding` can be a callable object used for decode content
 
     Returns response, when redirections > max_redirections > 0 (stop on limit),
     it is a fake response except the attribute `url`.
@@ -588,6 +593,8 @@ def get_response(url, headers={}, data=None, params=None, method='GET',
         method = 'POST'
     req = Request(url, headers=default_headers, method=method)
     for k, v in headers.items():
+        if k.lower() == 'cookie' and isinstance(v, dict):
+            v = ';'.join('='.join(c) for c in v.items())
         req.add_header(k, v)
     if data:
         form = False
@@ -630,6 +637,7 @@ def get_response(url, headers={}, data=None, params=None, method='GET',
         return _opener_open(req, encoding)
 
 def _check_hostname_badhead(url, set=set('''
+    ask.ivideo.sina.com.cn
     aweme.snssdk.com
     t.cn
     '''.split())):

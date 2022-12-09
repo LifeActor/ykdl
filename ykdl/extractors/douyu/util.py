@@ -9,16 +9,16 @@ assert JSEngine, "No JS Interpreter found, can't extract douyu live/video!"
 js_md5 = get_pkgdata_str(__name__, 'crypto-js-md5.min.js',
         'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.9-1/crypto-js.min.js')
 
-def get_h5enc(html, vid):
+def get_h5enc(html, rid):
     js_enc = match1(html, '(var vdwdae325w_64we =[\s\S]+?)\s*</script>')
     if js_enc is None or 'ub98484234(' not in js_enc:
         data = get_response('https://www.douyu.com/swf_api/homeH5Enc',
-                            params={'rids': vid}).json()
+                            params={'rids': rid}).json()
         assert data['error'] == 0, data['msg']
-        js_enc = data['data']['room' + vid]
+        js_enc = data['data']['room' + rid]
     return js_enc
 
-def ub98484234(js_enc, extractor, params):
+def ub98484234(js_enc, rid, logger, params):
     names_dict = {
         'debugMessages': get_random_name(8),
         'decryptedCodes': get_random_name(8),
@@ -77,12 +77,12 @@ def ub98484234(js_enc, extractor, params):
 
     did = get_random_uuid_hex()
     tt = str(int(time.time()))
-    ub98484234 = js_ctx.call('ub98484234', extractor.vid, did, tt)
+    ub98484234 = js_ctx.call('ub98484234', rid, did, tt)
     ub98484234 = {
         'decryptedCodes': ub98484234[names_dict['decryptedCodes']],
         'resoult': ub98484234[names_dict['resoult']]
     }
-    extractor.logger.debug('ub98484234: %s', ub98484234)
+    logger.debug('ub98484234: %s', ub98484234)
     ub98484234 = ub98484234['resoult']
     params.update({
         'v': match1(ub98484234, 'v=(\d+)'),

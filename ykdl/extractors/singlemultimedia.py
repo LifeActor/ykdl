@@ -103,7 +103,7 @@ class Multimedia(Extractor):
         else:
             info.streams['current'] = {
                 'container': ext,
-                'video_profile': 'current',
+                'profile': 'current',
                 'src': [self.url],
                 'size': int(self.resinfo.get('Content-Length', 0))
             }

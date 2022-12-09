@@ -53,13 +53,13 @@ class IXiGua(Extractor):
         info.duration = videoResource['video_duration']
 
         for v in videoResource['video_list'].values():
-            video_profile = v['definition']
-            stream = self.profile_2_id(video_profile)
-            info.streams[stream] = {
+            stream_profile = v['definition']
+            stream_id = self.profile_2_id(stream_profile)
+            info.streams[stream_id] = {
                 'container': v['vtype'],
-                'video_profile': video_profile,
-                'size': v['size'],
+                'profile': stream_profile,
                 'src' : [unb64(v['main_url'])],
+                'size': v['size']
             }
 
         return info
@@ -73,8 +73,7 @@ class IXiGua(Extractor):
 
         ep_ids = [b for a, b in sorted((ep['seq'], ep['episodeId'])
                                        for ep in data['data']['playlist'])]
-        if episodeId and self.start <= 0:
-            self.start = ep_ids.index(episodeId)
+        self.set_index(episodeId, ep_ids)
         for ep_id in ep_ids:
             yield 'https://www.ixigua.com/{albumId}?id={ep_id}'.format(**vars())
 

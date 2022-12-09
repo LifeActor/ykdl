@@ -24,7 +24,7 @@ class BiliVideo(BiliBase):
             index = str(page['page'])
             subtitle = page['part']
             if index == page_index:
-                self.vid = page['cid']
+                self.mid = page['cid']
                 if len(pages) > 1:
                     title = '{title} - {index} - {subtitle}'.format(**vars())
                 elif subtitle and subtitle != title:
@@ -38,7 +38,7 @@ class BiliVideo(BiliBase):
     def get_api_url(self, qn):
         params = {
             'appkey': APPKEY,
-            'cid': self.vid,
+            'cid': self.mid,
             'platform': 'html5',
             'player': 0,
             'qn': qn
@@ -55,20 +55,17 @@ class BiliVideo(BiliBase):
             bvids = [episode['bvid'] for episode in
                         sum((section['episodes'] for section in
                             data['ugc_season']['sections']), [])]
-            if self.start < 0:
-                self.start = bvids.index(vid)
-            self.end = len(bvids) - 1
+            self.set_index(vid, bvids)
             for bvid in bvids:
                 yield 'https://www.bilibili.com/video/{bvid}/'.format(**vars())
 
         else:
-            if self.start < 0:
-                page = int(match1(self.url, '[^a-z]p(?:age)?=(\d+)',
-                                            'index_(\d+)\.')
-                           or '1')
-                self.start = page - 1
-            self.end = data['videos'] - 1
-            for p in range(1, self.end + 2):
+            page = int(match1(self.url, '[^a-z]p(?:age)?=(\d+)',
+                                        'index_(\d+)\.')
+                       or '1')
+            self.set_index(page, data['videos'])
+            for p in range(data['videos']):
+                p = p + 1
                 yield 'https://www.bilibili.com/video/{vid}/?p={p}'.format(**vars())
 
 site = BiliVideo()

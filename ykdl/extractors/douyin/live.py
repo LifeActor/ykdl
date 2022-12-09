@@ -68,10 +68,10 @@ class Douyin(Extractor):
         for ext, ql, url in stream_urls:
             if not url:
                 continue
-            video_profile, stream = self.quality_2_profile_id[ql]
-            info.streams[stream + '-' + ext[:3]] = {
+            stream_profile, stream_id = self.quality_2_profile_id[ql]
+            info.streams[stream_id + '-' + ext[:3]] = {
                 'container': ext,
-                'video_profile': video_profile,
+                'profile': stream_profile,
                 'src' : [url],
                 'size': Infinity
             }

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .._common import *
+import functools
 
 
 assert JSEngine, "No JS Interpreter found, can't extract netease openCourse!"
@@ -19,37 +20,51 @@ class OpenC(Extractor):
     }
 
     def list_only(self):
-        self.vid = match1(self.url, 'mid=(\w+)')
-        return self.vid is None
+        return self.mid[1] is None
+
+    @staticmethod
+    def format_mid(mid):
+        if not isinstance(mid, tuple):
+            mid = mid, None
+        mid = mid[:2]
+        assert len(mid) == 2 and mid[0]
+        return mid
+
+    def prepare_mid(self):
+        return match1(self.url, r'\bpid=(\w+)'), match1(self.url, r'\bmid=(\w+)')
+
+    @functools.lru_cache(maxsize=None)
+    def parse_html(self, url):
+        html = get_content(url)
+        js = match1(html, 'window\.__NUXT__=(.+);</script>')
+        data = JSEngine().eval(js)
+        self.logger.debug('data: \n%s', data)
+        return data
 
     def prepare_data(self):
-        html = get_content(self.url)
-        js = match1(html, 'window\.__NUXT__=(.+);</script>')
-        js_ctx = JSEngine()
-        data = js_ctx.eval(js)
-        self.logger.debug('video_data: \n%s', data)
+        url = 'https://open.163.com/newview/movie/free?pid={}'.format(self.mid[0])
+        data = self.parse_html(url)
         try:
             self.url = data['data'][0]['playUrl']
         except KeyError:
-            self.data = data
+            return data
         else:
-            self.prepare_data()
+            self.mid = None
+            return self.prepare_data()
 
     def prepare(self):
         info = MediaInfo(self.name)
 
-        if self.data is None:
-            self.prepare_data()
-        data = self.data
+        data = self.prepare_data()
         moiveList = data['state']['movie']['moiveList']
-        if self.vid is None:
-            movie = moiveList[0]
-        else:
-            for movie in moiveList:
-                mid = movie['mid']
-                if mid == self.vid:
-                    break
-            assert mid == self.vid, "can't found mid %r" % mid
+        if not moiveList:
+            return
+
+        mid = self.mid[1]
+        for movie in moiveList:
+            if movie['mid'] == mid:
+                break
+        assert movie['mid'] == mid, "can't found mid %r" % mid
 
         title = data['data'][0]['title']
         mtitle = movie['title'].rpartition(title)[-1]
@@ -82,19 +97,19 @@ class OpenC(Extractor):
         info.title = title
         info.artist = director
 
-        for stream, tp, profile in self.sopported_stream_types:
+        for stream_id, tp, stream_profile in self.sopported_stream_types:
             for ext in ['mp4', 'm3u8']:
                 for orig in ['', 'Orign']:
-                    if stream in info.streams:
+                    if stream_id in info.streams:
                         continue
                     url = movie['{ext}{tp}Url{orig}'.format(**vars())]
                     if not url:
                         continue
                     size = movie['{ext}{tp}Size{orig}'.format(**vars())]
-                    info.streams[stream] = {
+                    info.streams[stream_id] = {
                         'container': ext,
-                        'video_profile': profile,
-                        'src': [url],
+                        'profile': stream_profile,
+                        'src' : [url],
                         'size': size
                     }
 
@@ -112,14 +127,18 @@ class OpenC(Extractor):
                 'lang': lang,
                 'name': name,
                 'format': 'srt',
-                'src': sub['subUrl'],
+                'src' : sub['subUrl'],
                 'size': sub['subSize']
             })
 
         return info
 
     def prepare_list(self):
-        self.prepare_data()
-        return [movie['mid'] for movie in self.data['state']['movie']['moiveList']]
+        data = self.prepare_data()
+        pid, mid = self.mid
+        mids = [movie['mid'] for movie in data['state']['movie']['moiveList']]
+        self.set_index(mid, mids)
+        for mid in mids:
+            yield pid, mid
 
 site = OpenC()

@@ -39,26 +39,21 @@ class Youku(Extractor):
         ('0505', ref_tudou, ckey_default),
         )
 
+    def prepare_mid(self):
+        mid = match1(self.url.split('//', 1)[1],
+                    '^v[^\.]?\.[^/]+/v_show/id_([a-zA-Z0-9=]+)',
+                    '^player[^/]+/(?:player\.php/sid|embed)/([a-zA-Z0-9=]+)',
+                    '^static.+loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',
+                    '^(?:new-play|video)\.tudou\.com/v/([a-zA-Z0-9=]+)')
+        if mid is None:
+            html = get_content(self.url)
+            mid = match1(html, '''videoIds?["']?\s*[:=]\s*["']?([a-zA-Z0-9=]+)''')
+        elif mid.isdigit():
+            mid = 'X' + b64('%d' % (int(mid) * 4))
+        return mid
+
     def prepare(self):
         info = MediaInfo(self.name)
-
-        if not self.vid:
-             self.vid = match1(self.url.split('//', 1)[1],
-                               '^v[^\.]?\.[^/]+/v_show/id_([a-zA-Z0-9=]+)',
-                               '^player[^/]+/(?:player\.php/sid|embed)/([a-zA-Z0-9=]+)',
-                               '^static.+loader\.swf\?VideoIDS=([a-zA-Z0-9=]+)',
-                               '^(?:new-play|video)\.tudou\.com/v/([a-zA-Z0-9=]+)')
-
-        if not self.vid:
-            html = get_content(self.url)
-            self.vid = match1(html, '''videoIds?["']?\s*[:=]\s*["']?([a-zA-Z0-9=]+)''')
-
-        if self.vid.isdigit():
-            vid = base64.b64encode(b'%d' % (int(self.vid) * 4))
-            if not isinstance(vid, str):
-                vid = vid.decode()
-            self.vid = 'X' + vid
-        self.logger.debug('VID: ' + self.vid)
 
         install_cookie()
         get_response('https://gm.mmstat.com/yt/ykcomment.play.commentInit?cna=',
@@ -73,7 +68,7 @@ class Youku(Extractor):
             else:
                _utid = utid
             params = {
-                'vid': self.vid,
+                'vid': self.mid,
                 'ccode': ccode,
                 'utid': _utid,
                 'ckey': ckey,
@@ -117,7 +112,7 @@ class Youku(Extractor):
         audio_lang = 'default'
         if 'dvd' in data and 'audiolang' in data['dvd']:
             for l in data['dvd']['audiolang']:
-                if l['vid'].startswith(self.vid):
+                if l['vid'].startswith(self.mid):
                     audio_lang = l['langcode']
                     break
 
@@ -126,7 +121,8 @@ class Youku(Extractor):
             if not audio_lang == s['audio_lang']:
                 continue
             self.logger.debug('stream> ' + str(s))
-            t = stream_code_to_id[s['stream_type']]
+            stream_id = stream_code_to_id[s['stream_type']]
+            stream_profile = stream_code_to_profiles[stream_id]
             urls = []
             for u in s['segs']:
                 self.logger.debug('seg> ' + str(u))
@@ -140,13 +136,13 @@ class Youku(Extractor):
                 urls = [s['m3u8_url']]
                 c = 'm3u8'
             else:
-                c = id_to_container[t]
+                c = id_to_container[stream_id]
             size = s['size']
-            info.streams[t] =  {
+            info.streams[stream_id] =  {
                     'container': c,
-                    'video_profile': stream_code_to_profiles[t],
-                    'size': size,
-                    'src' : urls
+                    'profile': stream_profile,
+                    'src' : urls,
+                    'size': size
                 }
 
         return info

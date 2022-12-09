@@ -137,7 +137,7 @@ class Funshion(Extractor):
 
         fetch_mozecname(vid)
         for vinfos in data['playlist']:
-            stream = self.quality_2_id[vinfos['code']]
+            stream_id = self.quality_2_id[vinfos['code']]
             for vinfo in vinfos['playinfo']:
                 if vinfo.get('isvip') == '1':
                     continue
@@ -157,9 +157,9 @@ class Funshion(Extractor):
                         'token': vinfo['token'],
                         'vf': vinfo['vf']
                     }))
-                info.streams[stream + codec] = {
+                info.streams[stream_id + codec] = {
                     'container': 'mp4',
-                    'video_profile': vinfos['name'],
+                    'profile': vinfos['name'],
                     'src' : [url],
                     'size': int(vinfo['filesize'])
                 }

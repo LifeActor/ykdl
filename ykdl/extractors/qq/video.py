@@ -33,8 +33,8 @@ class QQ(Extractor):
     vip = None
 
     stream_2_id = {
-        'fhd': 'BD',
-        'shd': 'TD',
+        'fhd': 'BD',  #
+        'shd': 'TD',  # null
          'hd': 'HD',
         'mp4': 'HD',
         'flv': 'HD',
@@ -43,33 +43,28 @@ class QQ(Extractor):
     }
 
 
-    def get_streams_info(self, profile='shd'):
+    def get_streams_info(self, vid, profile='shd'):
         for PLAYER_PLATFORM in PLAYER_PLATFORMS.copy():
-            params = {
-                'otype': 'json',
-                'platform': PLAYER_PLATFORM,
-                'vid': self.vid,
-                'defnpayver': 1,
-                'appver': PLAYER_VERSION,
-                'defn': profile,
-            }
-
-            resp = get_response('https://vv.video.qq.com/getinfo',
-                               params=params)
-            data = resp.json()
+            data = get_response('https://vv.video.qq.com/getinfo',
+                                params={
+                                    'otype': 'json',
+                                    'platform': PLAYER_PLATFORM,
+                                    'vid': vid,
+                                    'defnpayver': 1,
+                                    'appver': PLAYER_VERSION,
+                                    'defn': profile,
+                                }).json()
             if 'msg' in data:
-                assert data['msg'] not in ('vid is wrong', 'vid status wrong'), \
-                       'wrong vid'
-                PLAYER_PLATFORMS.remove(PLAYER_PLATFORM)
                 continue
 
-            if PLAYER_PLATFORMS and \
-                    profile == 'shd' and \
-                    '"name":"shd"' not in resp.text and \
-                    '"name":"fhd"' not in resp.text:
-                for infos in self.get_streams_info('hd'):
-                    yield infos
-                return
+            #if PLAYER_PLATFORMS and \
+            #        profile == 'shd' and \
+            #        '"name":"shd"' not in resp.text and \
+            #        '"name":"fhd"' not in resp.text:
+            #    for infos in self.get_streams_info(vid, 'hd'):
+            #        yield infos
+            #    return
+
             break
 
         assert 'msg' not in data, data['msg']
@@ -108,11 +103,11 @@ class QQ(Extractor):
 
         dt = cdn['dt']
         if dt == 1:
-            type_name = 'flv'
+            ext = 'flv'
         elif dt == 2:
-            type_name = 'mp4'
+            ext = 'mp4'
         else:
-            type_name = fn.split('.')[-1]
+            ext = fn.split('.')[-1]
 
         _num_clips = video['cl']['fc']
         #self.limit = video.get('type', 0) > 1000
@@ -130,7 +125,7 @@ class QQ(Extractor):
         #    url = '{}{}?vkey={}'.format(cdn_url, filename, fvkey)
         #    size = video['cl']['ci'][0]['cs'] # not correct, real size is smaller.
         #    rate = size // float(video['cl']['ci'][0]['cd'])
-        #    yield title, fmt_name, fmt_cname, type_name, [url], size, rate
+        #    yield title, fmt_name, fmt_cname, ext, [url], size, rate
         #    return
 
         for fmt in data['fl']['fi']:
@@ -163,7 +158,7 @@ class QQ(Extractor):
 
             if num_clips == 0:
                 filename = '.'.join(fns)
-                url, vip = qq_get_final_url(cdn_url, self.vid, fmt_id,
+                url, vip = qq_get_final_url(cdn_url, vid, fmt_id,
                                             filename, fvkey, PLAYER_PLATFORM)
                 if vip:
                     self.vip = vip
@@ -174,7 +169,7 @@ class QQ(Extractor):
                 for idx in range(1, num_clips + 1):
                     fns[-2] = str(idx)
                     filename = '.'.join(fns)
-                    url, vip = qq_get_final_url(cdn_url, self.vid, fmt_id,
+                    url, vip = qq_get_final_url(cdn_url, vid, fmt_id,
                                             filename, fvkey, PLAYER_PLATFORM)
                     if vip:
                         self.vip = vip
@@ -182,63 +177,66 @@ class QQ(Extractor):
                     elif url:
                         urls.append(url)
 
-            yield title, fmt_name, fmt_cname, type_name, urls, size, rate
+            yield title, fmt_name, fmt_cname, ext, urls, size, rate
+
+    def list_only(self):
+        cid, vid = self.mid
+        return cid and not vid
+
+    @staticmethod
+    def format_mid(mid):
+        # [0] cover id, length 15
+        # [1] video id, length 11
+        if not isinstance(mid, tuple):
+            mid = mid, None
+        mid = mid[:2]
+        if len(mid) == 1:
+            mid += (None, )
+        assert any(mid)
+        if mid[0] and len(mid[0]) == 11:
+            mid = mid[::-1]
+        assert not mid[0] or len(mid[0]) == 15
+        assert not mid[1] or len(mid[1]) == 11
+        return mid
+
+    def parse_html(self):
+        html = get_content(self.url)
+        return match1(html, r'\bvid[\"\']?\s*[=:]\s*[\"\']?(\w+)')
+
+    def prepare_mid(self):
+        mid = matchm(self.url, '/x/page/(\w+)\.html',
+                               r'\bvid=(\w+)',
+                               '/x/cover/(\w+)\.html',
+                               '/x/cover/(\w+)/(\w+)\.html',
+                               '/(\w+)/?$')
+        if any(mid):
+            return mid
+        return self.parse_html()
 
     def prepare(self):
         info = MediaInfo(self.name)
-        if not self.vid:
-            self.vid = match1(self.url,
-                              'vid=(\w+)',
-                              '/(\w+)\.html',
-                              '/(\w+)$')
 
-        if self.vid and match1(self.url, '(^https?://film\.qq\.com)'):
-            self.url = 'https://v.qq.com/x/cover/%s.html' % self.vid
-
-        if not self.vid or len(self.vid) != 11:
-            html = get_content(self.url)
-            self.vid = match1(html,
-                              '&vid=(\w+)',
-                              'vid:\s*[\"\'](\w+)',
-                              'vid\s*=\s*[\"\']\s*(\w+)',
-                              '"vid":"(\w+)"')
-
-            if not self.vid and '<body class="page_404">' in html:
-                self.logger.warning('This video has been deleted!')
-                return info
+        cid, vid = self.mid
+        if vid is None:
+            if self.url is None:
+                self.url = 'https://v.qq.com/x/cover/{cid}.html'.format(**vars())
+            vid = self.parse_html()
 
         video_rate = {}
-        for _ in range(2):
-            try:
-                for (title, fmt_name, stream_profile, type_name,
-                            urls, size, rate) in self.get_streams_info():
-                    stream_id = self.stream_2_id[fmt_name]
-                    if urls:
-                        info.streams[stream_id] = {
-                            'container': type_name,
-                            'video_profile': stream_profile,
-                            'src' : urls,
-                            'size': size
-                        }
-                        video_rate[stream_id] = rate
-                break
-            except AssertionError as e:
-                if 'wrong vid' in str(e):
-                    html = get_content(self.url)
-                    self.vid = match1(html,
-                                      '&vid=(\w+)',
-                                      'vid:\s*[\"\'](\w+)',
-                                      'vid\s*=\s*[\"\']\s*(\w+)',
-                                      '"vid":"(\w+)"')
-                    continue
-                raise e
+        for (title, fmt_name, stream_profile, ext, urls, size, rate) in self.get_streams_info(vid):
+            if urls:
+                stream_id = self.stream_2_id[fmt_name]
+                info.streams[stream_id] = {
+                    'container': ext,
+                    'profile': stream_profile,
+                    'src' : urls,
+                    'size': size
+                }
+                video_rate[stream_id] = rate
 
         if self.vip:
             self.logger.warning('This is a VIP video!')
             #self.limit = False
-
-        assert info.streams, "can't play this video!!"
-        info.title = title
 
         #if self.limit:
         #    # Downloading some videos is very slow, use multithreading range fetch to speed up.
@@ -251,12 +249,21 @@ class QQ(Extractor):
         #    }
         #    self.logger.warning('This is a restricted video!')
 
+        info.title = title
         info.extra.referer = 'https://v.qq.com/'
         return info
 
     def prepare_list(self):
-        html = get_content(self.url)
-        vids = [a.strip('"') for a in match1(html, '\"vid\":\[([^\]]+)').split(',')]
+        cid, vid = self.mid
+        html = get_content('https://v.qq.com/x/cover/{cid}.html'.format(**vars()))
+        vids = match1(html, '"video_ids":(\[.+?\])')
+        if vids:
+            vids = json.loads(vids)
+        else:
+            vids = matchall(html, r'\bdata-vid="(\w+)"') or \
+                   matchall(html, '"vid":"(\w+)"')
+        # FIXME some covers are reversed
+        self.set_index(vid, vids)
         return vids
 
 site = QQ()

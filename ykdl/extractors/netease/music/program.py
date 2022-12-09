@@ -6,22 +6,22 @@ from .musicbase import NeteaseMusicBase
 
 class NeteaseDj(NeteaseMusicBase):
     name = 'Netease Dj (网易电台)'
-    api_url = 'http://music.163.com/api/dj/program/detail/?id={}&ids=[{}]&csrf_token='
+    api_url = 'http://music.163.com/api/dj/program/detail/'
 
     def get_music(self, data):
         return data['program']['mainSong']
 
     def prepare_list(self):
-        vid =  match1(self.url, '\?id=([^&]+)')
         if 'djradio' in self.url:
-            listdata =  get_response(
-                            'http://music.163.com/api/dj/program/byradio/',
-                            params={
-                                'radioId': vid,
-                                'ids': vid,
-                                'csrf_token': '',
-                            }).json()
-            playlist = listdata['programs']
-        return [p['id'] for p in playlist]
+            data =  get_response(
+                        'http://music.163.com/api/dj/program/byradio/',
+                        params={
+                            'radioId': self.mid,
+                            'ids': self.mid,
+                            'csrf_token': '',
+                        }).json()
+            mids = [p['id'] for p in data['programs']]
+            self.set_index(self.mid, mids)
+            return mids
 
 site = NeteaseDj()

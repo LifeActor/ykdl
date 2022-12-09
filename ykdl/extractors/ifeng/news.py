@@ -12,32 +12,31 @@ class Ifeng(Extractor):
         '350k': ['SD', '标清']
     }
 
+    def prepare_mid(self):
+        mid = match1(self.url, '#([a-zA-Z0-9\-]+)',
+                               '/([a-zA-Z0-9\-]+).shtml')
+        if mid is None:
+            html = get_content(self.url)
+            mid = match1(html, r'\bvid"?: "([^"]+)')
+        return mid
+
     def prepare(self):
         info = MediaInfo(self.name)
-        if not self.vid:
-            self.vid= match1(self.url, '#([a-zA-Z0-9\-]+)',
-                                       '/([a-zA-Z0-9\-]+).shtml')
-        if not self.vid:
-            html = get_content(self.url)
-            self.vid = match1(html, '"vid": "([^"]+)',
-                                    'vid: "([^"]+)')
-        assert self.vid, 'No VID found!!'
 
         doc = get_response(
                 'http://vxml.ifengimg.com/video_info_new/{}/{}/{}.xml'
-                .format(self.vid[-2], self.vid[-2:], self.vid)).xml()
+                .format(self.mid[-2], self.mid[-2:], self.mid)).xml()
         info.title = doc.getElementsByTagName('item')[0].getAttribute('Name')
         videos = doc.getElementsByTagName('videos')
         for v in videos[0].getElementsByTagName('video'):
             ext = v.getAttribute('mediaType')
             _t = v.getAttribute('type')
             _u = v.getAttribute('VideoPlayUrl')
-            stream, profile = self.types_2_id_profile[_t]
-            info.streams[stream] = {
+            stream_id, stream_profile = self.types_2_id_profile[_t]
+            info.streams[stream_id] = {
                 'container': ext,
-                'video_profile': profile,
-                'src' : [_u],
-                'size': 0
+                'profile': stream_profile,
+                'src': [_u]
                 }
 
         return info

@@ -13,9 +13,15 @@ class Miaopai(Extractor):
 
     name = '秒拍 (Miaopai)'
 
+    def prepare_mid(self):
+        mid = match1(self.url, '/media/([^\./]+)')
+        if mid is None:
+            html = get_content(self.url)
+            mid = match1(html, 's[cm]id ?= ?[\'"]([^\'"]+)[\'"]')
+        return mid
+
     def prepare(self):
         info = MediaInfo(self.name)
-        html = None
         title = None
 
         if 'show' in self.url:
@@ -24,19 +30,10 @@ class Miaopai(Extractor):
                 self.logger.debug('redirect to' + new_url)
                 self.url = new_url
 
-        if not self.vid:
-            self.vid = match1(self.url, '/media/([^\./]+)')
-        if not self.vid:
-            html = get_content(self.url)
-            self.vid = match1(html, 's[cm]id ?= ?[\'"]([^\'"]+)[\'"]')
-        assert self.vid, 'No VID match!'
-        info.title = self.name + '_' + self.vid
-
-
-        if len(self.vid) > 24:
+        if len(self.mid) > 24:
             add_header('Referer', self.url)
-            cb = '_jsonp{}'.format(get_random_str(10))
-            json_html = get_content(api_info1.format(self.vid, cb))
+            cb = '_jsonp{}'.format(get_random_str(10).lower())
+            data = get_response(api_info1.format(self.mid, cb)).json()
             data = json.loads(json_html[json_html.find('{'):-2])
             assert data['code'] == 200, data['msg']
 
@@ -47,19 +44,19 @@ class Miaopai(Extractor):
         
         else:
             try:
-                data = get_response(api_info2.format(self.vid)).json()
+                data = get_response(api_info2.format(self.mid)).json()
                 assert data['status'] == 200, data['msg']
 
                 data = data['result']
                 title = data['ext']['t']
-                scid = data['scid'] or self.vid
+                scid = data['scid'] or self.mid
                 ext = data['stream']['and']
                 base = data['stream']['base']
                 vend = data['stream']['vend']
                 url = '{base}{scid}.{ext}?vend={vend}'.format(**vars())
             except:
                 # fallback
-                data = get_response(api_stream.format(self.vid)).json()
+                data = get_response(api_stream.format(self.mid)).json()
                 assert data['status'] == 200, data['msg']
 
                 data = data['result'][0]
@@ -71,16 +68,14 @@ class Miaopai(Extractor):
                 url = '{scheme}{host}{path}{sign}'.format(**vars())
 
         if not title:
-            if not html:
-                html = get_content(self.url)
+            html = get_content(self.url)
             title = match1(html, '<meta name="description" content="([^"]+)">')
-        if title:
-            info.title = title
+        info.title = title
 
         info.streams['current'] = {
             'container': ext or 'mp4',
-            'src': [url],
-            'size' : 0
+            'profile': 'current',
+            'src': [url]
         }
         return info
 

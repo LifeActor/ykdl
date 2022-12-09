@@ -17,14 +17,14 @@ class BiliLive(Extractor):
     }
 
     def live_status(self):
-        id = match1(self.url, '/(\d+)')
+        mid = self.mid[0]
         data = get_response(
                 'https://api.live.bilibili.com/room/v1/Room/room_init',
-                params={'id': id}, cache=False).json()
+                params={'id': mid}, cache=False).json()
         assert data['code'] == 0, data['msg']
         data = data['data']
 
-        self.vid = data['room_id'], str(data['uid'])
+        self.mid = mid, data['room_id'], str(data['uid'])
         live_status = data['live_status']
 
         assert not data['is_locked'], '房间已封禁'
@@ -36,10 +36,24 @@ class BiliLive(Extractor):
     def list_only(self):
         return self.live_status() == 2
 
+    @staticmethod
+    def format_mid(mid):
+        # [0]:  web room id
+        # [1]: real room id
+        # [2]:      user id
+        if not isinstance(mid, tuple):
+            mid = (mid, )
+        wrid = fullmatch(mid[0], '\d+')
+        assert wrid
+        return wrid, *mid[1:]
+
+    def prepare_mid(self):
+        return match1(self.url, '/(\d+)')
+
     def prepare(self):
         info = MediaInfo(self.name, True)
-        room_id, uid = self.vid
 
+        _, room_id, uid = self.mid
         data = get_response(
                 'https://api.live.bilibili.com/room/v1/Room/get_status_info_by_uids',
                 params={'uids[]': uid}, cache=False).json()
@@ -101,7 +115,7 @@ class BiliLive(Extractor):
                         url = url_info['host'] + codec['base_url'] + url_info['extra']
                         info.streams[st] = {
                             'container': ext,
-                            'video_profile': prf,
+                            'profile': prf,
                             'src' : [url],
                             'size': Infinity
                         }
@@ -121,9 +135,11 @@ class BiliLive(Extractor):
     def prepare_list(self):
         from .video import site
 
-        if self.vid is None:
+        try:
+            room_id = self.mid[1]
+        except IndexError:
             self.live_status()
-        room_id, uid = self.vid
+            room_id = self.mid[1]
         self.start = -1  # skip is not allowed
         self.end = 0     # never show index
 

@@ -56,30 +56,37 @@ def netease_req(ids='468490608', snd_key=None, encSecKey=None):
 
 class NeteaseMusicBase(Extractor):
 
-    mp3_api = 'http://music.163.com/weapi/song/enhance/player/url?csrf_token='
+    def prepare_mid(self):
+        return match1(self.url, r'\bid=(\w+)', 'song/(\d+)')
 
     def prepare(self):
         info = MediaInfo(self.name)
-        if not self.vid:
-            self.vid =  match1(self.url, 'song/(\d+)', '\?id=(.*)')
-        api_url = self.api_url.format(self.vid, self.vid)
-        music = self.get_music(get_response(api_url).json())
-        self.logger.debug('music info:\n%s', music)
-        info.title = music['name']
-        info.artist = music['artists'][0]['name']
 
-        real_id = music['id']
+        data = get_response(self.api_url, params={
+                                              'id': self.mid,
+                                             'ids': self.mid,
+                                      'csrf_token': ''
+                                          }).json()
+        data = self.get_music(data)
+        self.logger.debug('data:\n%s', data)
 
+        info.title = data['name']
+        info.artist = data['artists'][0]['name']
+
+        real_id = data['id']
         snd_key = get_random_str(16, 'snd_key')
         encSecKey = RSA_string(snd_key)
         payload = netease_req(real_id, snd_key, encSecKey)
+        data = get_response(
+            'http://music.163.com/weapi/song/enhance/player/url?csrf_token=',
+            data=payload).json()['data'][0]
+        self.logger.debug('mp3 data:\n%s', data)
 
-        mp3_info = get_response(self.mp3_api, data=payload).json()['data'][0]
-        self.logger.debug('mp3:\n%s', mp3_info)
         info.streams['current'] =  {
-            'container': mp3_info['type'],
-            'video_profile': 'current',
-            'src' : [mp3_info['url']],
-            'size': mp3_info['size']
+            'container': data['type'],
+            'profile': 'current',
+            'src' : [data['url']],
+            'size': data['size']
         }
+
         return info

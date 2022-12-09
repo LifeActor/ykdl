@@ -80,7 +80,7 @@ class GeneralSimple(Extractor):
             else:
                 info.streams['current'] = {
                     'container': ext,
-                    'video_profile': 'current',
+                    'profile': 'current',
                     'src': [url],
                     'size': 0
                 }

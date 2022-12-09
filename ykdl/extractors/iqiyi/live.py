@@ -44,15 +44,17 @@ class IqiyiLive(Extractor):
         #'': 'LD'
     }
 
+    def prepare_mid(self):
+        html = get_content(self.url)
+        return match1(html, '"qpId":(\d+)')
+
     def prepare(self):
         info = MediaInfo(self.name, True)
-        html = get_content(self.url)
-        self.vid = match1(html, '"qpId":(\d+)')
 
-        data = getlive(self.vid)
-        assert data['code'] == 'A00000', data.get('msg', "can't play this live video!!")
+        data = getlive(self.mid)
+        assert data['code'] == 'A00000', data.get('msg', "can't play this live video!")
         data = data['data']
-        assert data['liveType'] != 2, "can't play this live video!!"
+        assert data['liveType'] != 2, 'this live is off!'
         info.title = data['name']
 
         for stream in data['streams']:
@@ -85,13 +87,12 @@ class IqiyiLive(Extractor):
 
             stream_profile = stream['screenSize']
             info.streams[stream_id] = {
-                'video_profile': stream_profile,
                 'container': ext,
+                'profile': stream_profile,
                 'src' : [url],
                 'size': Infinity
             }
 
-        assert info.streams, "can't play this live video!!"
         return info
 
 site = IqiyiLive()

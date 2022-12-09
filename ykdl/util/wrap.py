@@ -2,16 +2,18 @@
 
 import os
 import ast
+import sys
 import json
 import zlib
 import base64
 import random
 import string
 import pkgutil
+import traceback
 
 
-__all__ = ['reverse_list_dict', 'unb64', 'hash', 'literalize',
-           'get_pkgdata_str', 'get_pkgdata_bytes',
+__all__ = ['reverse_list_dict', 'b64', 'unb64', 'hash', 'literalize',
+           'deprecated', 'get_pkgdata_str', 'get_pkgdata_bytes',
            'get_random_hex', 'get_random_str', 'get_random_name',
            'get_random_id', 'get_random_uuid', 'get_random_uuid_hex']
 
@@ -19,15 +21,33 @@ def reverse_list_dict(d):
     '''Reverse {key: values[List]} to {value: key}'''
     return dict(sum([[(v, k) for v in vs] for k, vs in d.items()], []))
 
-def unb64(b64, target='str'):
+def b64(s, target=str, urlsafe=False):
+    '''Encode string/bytes-like object to Base64.
+
+    Params:
+        `target` is `str` or `bytes`
+        `urlsafe` to use `urlsafe_b64encode`
+    '''
+    encode = getattr(base64, urlsafe and 'urlsafe_b64encode' or 'b64encode')
+    if isinstance(s, str):
+        s = s.encode()
+    if target is str:
+        return encode(s).decode()
+    if target is bytes:
+        return encode(s)
+
+def unb64(b64, target=str, urlsafe=False):
     '''Decode Base64 object to string/bytes.
 
-    Params: `target` is 'str' or 'bytes'
+    Params:
+        `target` is `str` or `bytes`
+        `urlsafe` to use `urlsafe_b64decode`
     '''
-    if target == 'str':
-        return base64.b64decode(b64).decode()
-    if target == 'bytes':
-        return base64.b64decode(b64)
+    decode = getattr(base64, urlsafe and 'urlsafe_b64decode' or 'b64decode')
+    if target is str:
+        return decode(b64).decode()
+    if target is bytes:
+        return decode(b64)
 
 def get_pkgdata_str(package, resource, url=None, encoding=None):
     '''Fetch the resource data from package, or from a fallback URL if give.
@@ -139,6 +159,18 @@ def literalize(s, JSON=False):
         return json.loads('"{}"'.format(s))
     else:
         return ast.literal_eval('"""{}"""'.format(s))
+
+_deprecated_once = set()
+
+def deprecated(msg):
+    '''Forced deprecated warning.'''
+    f = sys._getframe(2)
+    key = msg, f.f_code.co_filename, f.f_lineno
+    if key in _deprecated_once:
+        return
+    _deprecated_once.add(key)
+    print('DeprecationWarning: ', msg, '\n', *traceback.format_stack(f),
+          sep='', file=sys.stderr)
 
 _id_cache = {}
 _ascii_letters_digits = string.ascii_letters + string.digits

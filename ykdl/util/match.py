@@ -1,7 +1,7 @@
 import re
 
 
-__all__ = ['match', 'match1', 'matchm', 'matchall']
+__all__ = ['match', 'fullmatch', 'match1', 'matchm', 'matchall']
 
 def _format_str(pattern, string):
     '''Format the target which will be scanned, makes the worker happy.'''
@@ -46,6 +46,20 @@ def match(obj, *patterns):
         m = re.search(pattern, string)
         if m:
             return m
+    return None
+
+def fullmatch(obj, *patterns):
+    '''Scans a object for fully matched some patterns (matches first).
+
+    Params: same as match()
+
+    Returns the match string, or None.
+    '''
+    for pattern in patterns:
+        string = _format_str(pattern, obj)
+        m = re.fullmatch(pattern, string)
+        if m:
+            return m.string
     return None
 
 def match1(obj, *patterns):

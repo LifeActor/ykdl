@@ -161,7 +161,7 @@ def launch_ffmpeg_merge(basename, ext, lenth):
         pipe_input = subprocess.Popen(cmd, stdin=subprocess.PIPE).stdin
 
         # use pipe pass data does not need to wait subprocess
-        bufsize = 1024 * 64
+        bufsize = 1024 * 1024 * 4
         for i in range(lenth):
             inputfile = '%s_%d.%s' % (basename, i, ext)
             with open(inputfile, 'rb') as fp:

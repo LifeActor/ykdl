@@ -12,6 +12,28 @@ from .util import md5, md5x, cmd5x
 # src=02020031010000000000
 # salt=3sj8xof48xof4tk9f4tk9ypgk9ypg5ul
 
+def get_epsodelist(tvid):
+    secret_key = 'howcuteitis'
+    params = {
+        'entity_id': tvid,
+        'timestamp': int(time.time() * 1000),
+        'src': 'pcw_tvg',
+        'vip_status': '0',
+        'vip_type': '',
+        'auth_cookie': '',
+        'device_id': get_random_id(32, 'device_id'),
+        'user_id': '',
+        'app_version': '3.0.0'
+    }
+    src = urlencode(sorted(params.items()) + [('secret_key', secret_key)])
+    params['sign'] = hash.md5(src).upper()
+    data = get_response('https://mesh.if.iqiyi.com/tvg/pcw/base_info',
+                        params=params).json()
+    return sorted(sum(data['data']['template']['pure_data']['selector_bk'][0]
+                          ['videos']['feature_paged']
+                          .values(), []),
+                  key=lambda ep: ep['album_order'])
+
 def gettmts(tvid, vid):
     tm = int(time.time() * 1000)
     key = 'd5fb4bd9d50c4be6948c97edd7254b0e'
@@ -111,80 +133,86 @@ class Iqiyi(Extractor):
         'LD': '210p'
     }
 
+    def format_mid(self, mid):
+        if isinstance(mid, (str, bytes)):
+            mid = fullmatch(mid, '[av]_[0-9a-z]+')
+            assert mid
+            self.url = 'https://www.iqiyi.com/{mid}.html'.format(**vars())
+            return None
+        assert isinstance(mid, tuple)
+        mid = mid[:2]
+        assert len(mid) == 2 and all(mid)
+        return mid
+
+    def parse_html(self):
+        html = get_content(self.url, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.1) Gecko/20100101 Firefox/60.1',
+        })
+        data = match1(html, "playPageInfo=({.+?});")
+        if data:
+            return json.loads(data)
+
+        url = match1(html, '(www\.iqiyi\.com/v_[0-9a-z]+\.html)')
+        if url:
+            self.url = 'https://' + url
+            return self.parse_html()
+
+    def prepare_mid(self):
+        mid = matchm(self.url, 'curid=([^_]+)_([\w]+)')
+        if all(mid):
+            return mid
+        data = self.parse_html()
+        return data and (str(data['tvId']), data['vid'])
+
     def prepare(self):
         info = MediaInfo(self.name)
 
-        if self.url and not self.vid:
-            vid = matchm(self.url, 'curid=([^_]+)_([\w]+)')
-            if vid[0]:
-                self.vid = vid
-                try:
-                    info_json = get_response(
-                            'http://pcw-api.iqiyi.com/video/video/playervideoinfo',
-                            params={'tvid': self.vid[0]}).json()
-                    info.title = info_json['data']['vn']
-                except:
-                    self.vid = None
+        try:
+            info_data = self.parse_html()
+            assert info_data
+        except:
+            tvid, vid = self.mid
+            info_data = get_response(
+                    'http://pcw-api.iqiyi.com/video/video/playervideoinfo',
+                    params={'tvid': tvid}).json()['data']
+            info.title = info_data['vn']
+            info.duration = info_data['plg']
+        else:
+            tvid = str(info_data['tvId'])
+            vid = info_data['vid']
+            info.title = info_data['name']
+            info.duration = info_data['duration']
 
-        def get_vid():
-            html = get_content(self.url, headers={
-                'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.1) Gecko/20100101 Firefox/60.1',
-            })
-            video_info = match1(html, ":video-info='(.+?)'")
-
-            if video_info:
-                video_info = json.loads(video_info)
-                self.vid = str(video_info['tvId']), str(video_info['vid'])
-                info.title = video_info['name']
-
-            else:
-                tvid = match1(html,
-                              'data-video-tvId="([^"]+)',
-                              '\Wtv[iI]d"?\'?\]?\s*(?:=|:)\s*"?\'?([^"\',]+)')
-                videoid = match1(html,
-                                'data-video-vid="([^"]+)',
-                                '\Wvid"?\'?\]?\s*(?:=|:)\s*"?\'?([^"\',]+)')
-                if not (tvid and videoid):
-                    url = match1(html, '(www\.iqiyi\.com/v_\w+\.html)')
-                    if url:
-                        self.url = 'https://' + url
-                        return get_vid()
-                self.vid = (tvid, videoid)
-                info.title = '-'.join(match1(html, '<title>([^<]+)').split('-')[:-3])
-
-        if self.url and not self.vid:
-            get_vid()
-        tvid, vid = self.vid
-        assert tvid and vid, "can't play this video!!"
+        if info_data['payMark']:
+            self.logger.warning('<%s> is a VIP video!', info.title)
 
         def push_stream_vd(vs):
             vd = vs['vd']
-            stream = self.vd_2_id[vd]
-            stream_profile = self.id_2_profile[stream]
+            stream_id = self.vd_2_id[vd]
+            stream_profile = self.id_2_profile[stream_id]
             fmt = vs.get('fileFormat')
             if fmt:
-                stream += '-' + fmt
+                stream_id += '-' + fmt
             m3u8 = vs['m3utx']
-            info.streams[stream] = {
-                'video_profile': stream_profile,
+            info.streams[stream_id] = {
                 'container': 'm3u8',
-                'src': [m3u8],
-                'size': 0
+                'profile': stream_profile,
+                'src': [m3u8]
             }
 
         def push_stream_bid(url_prefix, bid, container, fs_array, size):
-            stream = self.vd_2_id[bid]
+            stream_id = self.vd_2_id[bid]
             real_urls = []
             for seg_info in fs_array:
                 url = url_prefix + seg_info['l']
                 json_data = get_response(url).json()
                 down_url = json_data['l']
                 real_urls.append(down_url)
-            stream_profile = self.id_2_profile[stream]
-            info.streams[stream] = {
-                'video_profile': stream_profile,
+            stream_profile = self.id_2_profile[stream_id]
+            info.streams[stream_id] = {
                 'container': container,
-                'src': real_urls,
+                'profile': stream_profile,
+                'src' : real_urls,
                 'size': size
             }
 
@@ -246,12 +274,26 @@ class Iqiyi(Extractor):
                 self.logger.debug(e, exc_info=True)
                 continue
 
-        assert info.streams, "can't play this video!!"
         return info
+
+    def list_only(self):
+        return self.url and match(self.url, 'a_[0-9a-z]+\.html')
 
     def prepare_list(self):
         html = get_content(self.url)
 
-        return matchall(html, 'data-tvid=\"([^\"]+)\" data-vid=\"([^\"]+)\"')
+        if self.list_only():
+            data = matchall(html, "value='({.+})'/>")
+            data = json.loads(data)
+            epsodelist = data['epsodelist'] + data['updateprevuelist']
+            self.set_index(None, epsodelist)
+            for ep in epsodelist:
+                yield ep['tvId'], ep['vid']
+        else:
+            mids = [matchall(ep['play_url'], 'tvid=(\d+).+vid=(\w+)')[0]
+                    for ep in get_epsodelist(self.mid[0])]
+            self.set_index(self.mid, mids)
+            for mid in mids:
+                yield mid
 
 site = Iqiyi()

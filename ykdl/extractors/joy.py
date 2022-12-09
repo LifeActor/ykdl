@@ -7,13 +7,14 @@ class Joy(Extractor):
 
     name = '激动网 (Joy)'
 
+    def prepare_mid(self):
+        return match1(self.url, 'resourceId=([0-9]+)')
+
     def prepare(self):
         info = MediaInfo(self.name)
-        if not self.vid:
-            self.vid = match1(self.url, 'resourceId=([0-9]+)')
 
         data= get_response('https://api.joy.cn/v1/video',
-                           params={'id': self.vid}).json()
+                           params={'id': self.mid}).json()
         assert data['code'] > 0, data['message']
         data = data['data']
 
@@ -23,7 +24,7 @@ class Joy(Extractor):
 
         info.streams['current'] = {
             'container': ext,
-            'video_profile': 'current',
+            'profile': 'current',
             'src': [url]
         }
         return info

@@ -31,19 +31,19 @@ class IXiGua(Extractor):
         info.title = '{title} - {artist}'.format(**vars())
 
         for v in room_info['playInfo']:
-            video_profile, stream = self.quality_2_profile_id[v['Resolution']]
+            stream_profile, stream_id = self.quality_2_profile_id[v['Resolution']]
             if 'FlvUrl' in v:
-                info.streams[stream + '-' + 'flv'] = {
+                info.streams[stream_id + '-' + 'flv'] = {
                     'container': 'flv',
-                    'video_profile': video_profile,
-                    'src': [v['FlvUrl']],
+                    'profile': stream_profile,
+                    'src' : [v['FlvUrl']],
                     'size': Infinity
                 }
             if 'HlsUrl' in v:
-                info.streams[stream + '-' + 'm3u'] = {
+                info.streams[stream_id + '-' + 'm3u'] = {
                     'container': 'm3u8',
-                    'video_profile': video_profile,
-                    'src': [v['HlsUrl']],
+                    'profile': stream_profile,
+                    'src' : [v['HlsUrl']],
                     'size': Infinity
                 }
 

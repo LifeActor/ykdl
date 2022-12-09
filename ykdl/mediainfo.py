@@ -89,8 +89,7 @@ class MediaInfo:
                                       or '')
                                    + log.sprint(stream_id, log.NEGATIVE)],
         ['      container:      {}', stream.get('container')],
-        ['      video-profile:  {}', stream.get('video_profile')],
-        ['      quality:        {}', stream.get('quality')],
+        ['      profile:        {}', stream.get('profile')],
         ['      size:           {} ({:d} Bytes)', size and human_size(size), size],
         ['    # download-with:  {}', stream_id != 'current' and
                 log.sprint('ykdl --format=%s [URL]' % stream_id, log.UNDERLINE)])
@@ -259,6 +258,8 @@ class MediaStreams:
             id = str(self._formats[fmt])
         if (fmt, id) in self._streams:
             raise KeyError(name)
+        value.setdefault('video_profile', value['profile'])
+        value.setdefault('size', 0)
         self._streamids.append((stream_index(fmt), fmt, id))
         self._streams[(fmt, id)] = value
         self._formats[fmt] += 1

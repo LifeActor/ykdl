@@ -1,3 +1,4 @@
+import traceback
 from logging import getLogger
 from importlib import import_module
 from types import GeneratorType
@@ -6,6 +7,7 @@ from .common import alias, url_to_module
 from .mediainfo import MediaInfo
 from .util.http import get_content, url_info
 from .util.match import match1
+from .util.wrap import deprecated
 
 
 __all__ = ['Extractor', 'SimpleExtractor', 'EmbedExtractor']
@@ -14,16 +16,50 @@ class Extractor:
 
     def get_proxy(self, parser, url):
         assert parser in ['parser', 'parser_list']
-        info = getattr(self, parser)(url)
-        if info:
+        try:
+            info = getattr(self, parser)(url)
+        except AssertionError:
+            return None
+        else:
             return ProxyExtractor(self, info)
 
     def __init__(self):
         self.logger = getLogger(self.name)
         self.url = None
-        self.vid = None
+        self._mid = None
         self.start = -1
         self.end = 'N/A'
+
+    @property
+    def vid(self):
+        deprecated('Extractor().vid is deprecated, '
+                   'please use Extractor().mid instead.')
+        return self.mid
+
+    @vid.setter
+    def vid(self, value):
+        deprecated('Extractor().vid is deprecated, '
+                   'please use Extractor().mid instead.')
+        self._mid = value
+
+    @property
+    def mid(self):
+        if self._mid is None:
+            self.mid = self.prepare_mid()
+        assert self._mid, 'no media ID found!'
+        return self._mid
+
+    @mid.setter
+    def mid(self, value):
+        if not value:
+            self._mid = None
+            return
+        if isinstance(value, list):
+            value = tuple(value)
+        try:
+            self._mid = self.format_mid(value)
+        except AssertionError:
+            raise ValueError('invalid media ID: {value!r}'.format(**vars()))
 
     @property
     def sum(self):
@@ -33,25 +69,44 @@ class Extractor:
 
     def parser(self, url):
         self.url = None
-        self.vid = None
+        self.mid = None
         if isinstance(url, str) and url.startswith('http'):
             self.url = url
             if not hasattr(self, '_is_list') and self.list_only():
                 return self.parser_list(url)
         else:
-            self.vid = url
+            self.mid = url
 
         info = self.prepare()
-        if info:
-            info.orig_url = url
+        assert info and info.streams, 'no media found!'
+        info.orig_url = url
         return info
+
+    def set_index(self, mid, mids):
+        '''Input `int` is the order base 1, or index `mid` from `mids` list.'''
+        if isinstance(mid, int) or isinstance(mids, int):
+            if mid and mid > 0 and self.start < 0:
+                self.start = mid - 1
+            if mids and mids > 0:
+                self.end = mids - 1
+        elif mids and isinstance(mids, list):
+            if mid and self.start < 0:
+                try:
+                    self.start = mids.index(mid)
+                except ValueError:
+                    self.logger.debug(
+                            'MID %r can not be found, may a pay media', mid)
+            self.end = len(mids) - 1
 
     def parser_list(self, url):
         self.url = url
         self._is_list = True
+        i = None
         try:
-            i = None
             media_list = self.prepare_list()
+            if not media_list:
+                return
+
             self.logger.debug('> start at index %d', self.start)
             for i, media in enumerate(media_list):
                 if i < self.start:
@@ -61,32 +116,55 @@ class Extractor:
                     info = media
                 else:
                     info = self.parser(media)
-                if info:
-                    if self.sum != 1:
-                        info.index = i + 1, self.sum
-                    info.orig_url = url
-                    yield info
+                if self.sum != 1:
+                    info.index = i + 1, self.sum
+                info.orig_url = url
+                yield info
+        except:
             if i is None:
-                raise NotImplementedError(
-                        'playlist not support for {self.name} with url: {self.url}'
-                        .format(**vars()))
+                self.logger.debug(traceback.format_exc())
         finally:
             self.start = -1
+            self.end = 'N/A'
             del self._is_list
+            if i is None:
+                raise NotImplementedError(
+                        'playlist not support for {self.name} with url: {url}'
+                        .format(**vars()))
+
+    @staticmethod
+    def format_mid(mid):
+        '''
+        This method make MID as a standard structure.
+        Override if needed.
+        About input mid (see `mid.setter` source above):
+            `bool(mid)` is always `True`.
+            `type(mid)` never be `list`, `list` will be auto convert to `tuple`.
+            recommend raise invalid mid via keyword `assert`.
+        '''
+        return mid
+
+    def prepare_mid(self):
+        '''
+        This method is to do real job to get MID.
+        Override if needed.
+        '''
+        raise NotImplementedError('method `prepare_mid()` of Extractor "{self.name}" '
+                                  'is not implemented'.format(**vars()))
 
     def prepare(self):
         '''
-        this API is to do real job to get source URL, or site and VID
+        This method is to do real job to get source URL, or site and MID.
         sometimes title
         MUST override!!
         '''
-        pass
+        raise NotImplementedError('method `prepare()` of Extractor "{self.name}" '
+                                  'is not implemented'.format(**vars()))
 
     def prepare_list(self):
         '''
-        this API is to do real job to get source URL, or site and VID
-        sometimes title
-        MUST override!!
+        This method is to do real job to get source URL, or site and MID.
+        Override if needed.
         '''
         pass
 
@@ -100,9 +178,9 @@ class Extractor:
 
     def list_only(self):
         '''
-        this API is to check if only the list informations is included
-        if true, go to parser list mode
-        MUST override!!
+        This method is to check if only the list informations is included,
+        if true, go to parser list mode.
+        Override if needed.
         '''
         pass
 
@@ -112,7 +190,7 @@ class ProxyExtractor(Extractor):
     def __init__(self, real, info):
         self.name = real.name
         self.url = real.url
-        self.vid = real.vid
+        self.mid = real.mid
         if isinstance(info, (GeneratorType, list)):
             self.info_list = info
         else:
@@ -123,7 +201,7 @@ class ProxyExtractor(Extractor):
             return info
 
     def parser_list(self, url):
-        if url in [self.url, self.vid]:
+        if url in [self.url, self.mid]:
             for info in self.info_list:
                 yield info
 
@@ -158,8 +236,8 @@ class SimpleExtractor(Extractor):
             self.v_url = [match1(self.html, self.url_pattern)]
 
     def get_info(self):
-        size=0
-        ext=''
+        size = 0
+        ext = ''
         for u in self.v_url:
             _, ext, temp = url_info(u)
             size += temp
@@ -183,31 +261,40 @@ class SimpleExtractor(Extractor):
         self.info.streams['current'] = {
             'container': ext,
             'src': self.v_url,
-            'size' : size
+            'size': size
         }
         return self.info
 
 
+class MediaInfoDict(dict):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setdefault('extra', {})
+
+    def __hash__(self):
+        return hash((self['site'], self['mid']))
+
+
 class EmbedExtractor(Extractor):
     '''
-    this class is to help media embed site to handle
-    media from other site.
-    we just need to know the source URL, or source site name, and media ID
+    This class is to help media embed site to handle media from other site.
+    We just need to know the source URL, or source site name, and media ID
     that's enough.
-    with site name and VID, develop can easily to find out the real URL.
+    With site name and MID, develop can easily to find out the real URL.
 
         embedextractor.media_info['url'] = url
 
     or
 
         embedextractor.media_info['site'] = site
-        embedextractor.media_info['vid'] = vid
+        embedextractor.media_info['mid'] = mid
 
-    compatible: also receive the media info which will return directly.
+    Compatible: also receive the media info which will return directly.
 
         embedextractor.media_info['info'] = info
 
-    because embed site don't have media info, so they don't need stream_info.
+    Because embed site don't have media info, so they don't need stream_info.
     '''
 
     def __init__(self):
@@ -216,8 +303,8 @@ class EmbedExtractor(Extractor):
         self.media_info_list = None
 
     @staticmethod
-    def new_media_info():
-        return {'extra': {}}
+    def new_media_info(*args, **kwargs):
+        return MediaInfoDict(*args, **kwargs)
 
     def _parser(self, media_info):
         if 'info' in media_info:
@@ -225,11 +312,11 @@ class EmbedExtractor(Extractor):
 
         elif 'site' in media_info:
             site = media_info['site']
-            vid = media_info['vid']
+            mid = media_info['mid']
             if site in alias.keys():
                 site = alias[site]
             s = import_module('.'.join(['ykdl','extractors',site])).site
-            info = s.parser(vid)
+            info = s.parser(mid)
  
         elif 'url' in media_info:
             url = media_info['url']
@@ -268,11 +355,8 @@ class EmbedExtractor(Extractor):
         self.media_info_list = []
         try:
             self.prepare_playlist()
-
             if not self.media_info_list:
-                raise NotImplementedError(
-                    'Playlist is not supported for {self.name} with url: {self.url}'
-                    .format(**vars()))
+                return
 
             self.logger.debug('> start at index %d', self.start)
             for i, media in enumerate(self.media_info_list):
@@ -283,11 +367,18 @@ class EmbedExtractor(Extractor):
                     info = media
                 else:
                     info = self._parser(media)
-                if info:
-                    if self.sum != 1:
-                        info.index = i + 1, self.sum
-                    info.orig_url = url
-                    yield info
+                if self.sum != 1:
+                    info.index = i + 1, self.sum
+                info.orig_url = url
+                yield info
+        except:
+            if not self.media_info_list:
+                self.logger.debug(traceback.format_exc())
         finally:
             self.start = -1
+            self.end = 'N/A'
             del self._is_list
+            if not self.media_info_list:
+                raise NotImplementedError(
+                    'Playlist is not supported for {self.name} with url: {url}'
+                    .format(**vars()))

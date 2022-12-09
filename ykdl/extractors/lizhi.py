@@ -6,24 +6,26 @@ from ._common import *
 class Lizhi(Extractor):
     name = 'Lizhi FM (荔枝电台)'
 
+    def prepare_mid(self):
+        pass
+
     def prepare(self):
         info = MediaInfo(self.name)
 
         html = get_content(self.url)
-        self.vid, info.artist, _, info.title = matchm(html,
+        self.mid, info.artist, _, info.title = matchm(html,
                 'data-hidden-ph\s?=\s?"(.+?)" '
                 'data-user-name\s?=\s?"(.+?)" '
                 'data-radio-name\s?=\s?"(.+?)" '
                 'data-title\s?=\s?"(.+?)"')
-        data = get_response('https://www.lizhi.fm/hidden_ph/' +
-                            self.vid).json()
+        data = get_response('https://www.lizhi.fm/hidden_ph/{self.mid}'
+                            .format(**vars())).json()
         assert data['rcode'] == 0, data['msg']
 
         info.streams['current'] = {
             'container': 'mp3',
-            'video_profile': 'current',
-            'src' : [data['data']['url']],
-            'size': 0
+            'profile': 'current',
+            'src': [data['data']['url']]
         }
         return info
 

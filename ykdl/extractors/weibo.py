@@ -15,6 +15,10 @@ class Weibo(Extractor):
          '360': 'SD'
     }
 
+    def prepare_mid(self):
+        return match1(self.url, '\D(\d{4}:(?:\d{16}|\w{32}))(?:\W|$)',
+                                'media_id=(\d{16})')
+
     def prepare(self):
         if 'passport.weibo' in self.url:
             url = parse_qs(self.url.split('?', 1)[-1]).get('url')
@@ -22,21 +26,19 @@ class Weibo(Extractor):
             self.url = url[0]
 
         info = MediaInfo(self.name)
-
         add_header('User-Agent', 'Baiduspider')
 
-        self.vid = match1(self.url, '\D(\d{4}:(?:\d{16}|\w{32}))(?:\W|$)',
-                                    'media_id=(\d{16})')
-
-        def append_stream(video_profile, video_quality, url):
-            stream_id = self.quality_2_id[video_quality]
+        def append_stream(stream_profile, stream_quality, url):
+            stream_id = self.quality_2_id[stream_quality]
             info.streams[stream_id] = {
-                'video_profile': video_profile,
                 'container': 'mp4',
-                'src' : [url]
+                'profile': stream_profile,
+                'src': [url]
             }
 
-        if self.vid is None:
+        try:
+            self.mid
+        except AssertionError:
             rurl = get_location(self.url)
             assert '/sorry?' not in rurl, 'can not find any video!!!'
             page = match1(rurl, 'https?://[^/]+(/\d+/\w+)')
@@ -50,17 +52,17 @@ class Weibo(Extractor):
             if streams:
                 streams = json.loads(unquote(streams))
                 for stream in streams:
-                    video_quality = stream['quality_label'].upper()
-                    video_profile = stream['quality_desc'] + ' ' + video_quality
-                    video_quality = match1(video_quality, '(\d+)')
-                    append_stream(video_profile, video_quality, stream['url'])
+                    stream_quality = stream['quality_label'].upper()
+                    stream_profile = stream['quality_desc'] + ' ' + stream_quality
+                    stream_quality = match1(stream_quality, '(\d+)')
+                    append_stream(stream_profile, stream_quality, stream['url'])
             else:
                 url = match1(html, 'action-data="[^"]+?&video_src=([^"&]+)')
                 if url:
                     info.streams['current'] = {
-                        'video_profile': 'current',
                         'container': 'mp4',
-                        'src' : [unquote(url)]
+                        'profile': 'current',
+                        'src': [unquote(url)]
                     }
             if info.streams:
                 info.title = match1(html, '<meta content="([^"]+)" name="description"').split('\n')[0]
@@ -68,29 +70,28 @@ class Weibo(Extractor):
                 i = info.title.find('】') + 1
                 if i:
                     info.title = info.title[:i]
+                return info
             else:
-                self.vid = match1(html, 'objectid=(\d{4}:(?:\d{16}|\w{32}))\W')
-                assert self.vid, 'can not find any video!!!'
+                self.mid = match1(html, 'objectid=(\d{4}:(?:\d{16}|\w{32}))\W')
 
-        if self.vid:
-            if ':' not in self.vid:
-                self.vid = '1034:' + self.vid  # oid, the prefix is not necessary and would not be checked
-            vdata = get_response('https://weibo.com/tv/api/component',
-                        headers={
-                            'Referer': 'https://weibo.com/tv/show/' + self.vid
-                        },
-                        data={
-                            'data': json.dumps({
-                                'Component_Play_Playinfo': {'oid': self.vid}
-                            })
-                        }).json()['data']['Component_Play_Playinfo']
+        if ':' not in self.mid:
+            self.mid = '1034:' + self.mid  # oid, the prefix is not necessary and would not be checked
+        vdata = get_response('https://weibo.com/tv/api/component',
+                    headers={
+                        'Referer': 'https://weibo.com/tv/show/' + self.mid
+                    },
+                    data={
+                        'data': json.dumps({
+                            'Component_Play_Playinfo': {'oid': self.mid}
+                        })
+                    }).json()['data']['Component_Play_Playinfo']
 
-            info.title = vdata['title']
-            info.artist = vdata['author']
-            for video_profile, url in vdata['urls'].items():
-                if url:
-                    video_quality = match1(video_profile, '(\d+)')
-                    append_stream(video_profile, video_quality, 'https:' + url)
+        info.title = vdata['title']
+        info.artist = vdata['author']
+        for stream_profile, url in vdata['urls'].items():
+            if url:
+                stream_quality = match1(stream_profile, '(\d+)')
+                append_stream(stream_profile, stream_quality, 'https:' + url)
 
         return info
 

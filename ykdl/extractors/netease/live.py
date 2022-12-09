@@ -6,15 +6,16 @@ from .._common import *
 class NeteaseLive(Extractor):
     name = '网易直播 (163)'
 
+    def prepare_mid(self):
+        return match1(self.url, 'room/(\d+)')
+
     def prepare(self):
         info = MediaInfo(self.name, True)
 
-        if self.vid is None:
-            self.vid = match1(self.url, 'room/(\d+)')
-
-        tt = int(time.time() * 1000)
-        url = 'https://data.live.126.net/liveAll/{self.vid}.json?{tt}'.format(**vars())
-        data = get_response(url).json()
+        data = get_response(
+            'https://data.live.126.net/liveAll/{self.mid}.json'.format(**vars()),
+            params={'tt': int(time.time() * 1000)}
+        ).json()
         assert 'liveVideoUrl' in data, 'live video is offline'
 
         info.title = data['roomName']
@@ -22,13 +23,15 @@ class NeteaseLive(Extractor):
             info.artist = data['sourceinfo']['tname']
         except KeyError:
             pass
+        info.duration = duration = data.get('duration')
+        info.add_comment = data['channal']['name']
 
         url = data['liveVideoUrl']
         info.streams['current'] = {
             'container': url.split('.')[-1],
-            'video_profile': 'current',
+            'profile': 'current',
             'src': [url],
-            'size': Infinity
+            not duration and 'size': Infinity
         }
         return info
 

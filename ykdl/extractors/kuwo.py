@@ -6,18 +6,18 @@ from ._common import *
 class Kuwo(Extractor):
     name = 'KuWo (酷我音乐)'
 
+    def prepare_mid(self):
+        return match1(self.url, '/play_detail/(\d+)')
+
     def prepare(self):
         info = MediaInfo(self.name)
         install_cookie()
-
-        if not self.vid:
-            self.vid = match1(self.url, '/play_detail/(\d+)')
 
         if not self.is_list:
             resp = get_response('https://www.kuwo.cn/favicon.ico?v=1')
         kw_token = get_cookie('www.kuwo.cn', '/', 'kw_token').value
         params = {
-            'mid': self.vid,
+            'mid': self.mid,
             'httpsStatus': 1,
             'reqId': get_random_uuid()
         }
@@ -30,9 +30,9 @@ class Kuwo(Extractor):
         pay = data['isListenFee']
         if pay:
             if self.is_list:  # just skip pay when extract from list
-                self.logger.warning('Skip pay song: %s', self.vid)
+                self.logger.warning('Skip pay song: %s', self.mid)
                 return
-            raise AssertionError('Pay song: %s' % self.vid)
+            raise AssertionError('Pay song: %s' % self.mid)
 
         albumpic = data['albumpic']
         album = data['album']
@@ -51,9 +51,8 @@ class Kuwo(Extractor):
         url = data['data']['url']
         info.streams['current'] = {
             'container': 'mp3',
-            'video_profile': 'current',
-            'src' : [url],
-            'size': 0
+            'profile': 'current',
+            'src': [url]
         }
         return info
 

@@ -29,9 +29,21 @@ class AcVideo(AcBase):
 
         return title, artist, sourceVid, m3u8Info
 
-    def get_path_list(self):
+    def format_mid(self, mid):
+        assert fullmatch(mid, '(ac)?\d+')
+        mid = match1(mid, '(\d+)')
+        # force rebuild url for list index
+        self.url = 'https://www.acfun.cn/v/ac{mid}'.format(**vars())
+        return mid
+
+    def prepare_mid(self):
+        return match1(self.url, 'v/ac(\d+)', r'\bac=(\d+)')
+
+    def prepare_list(self):
         html = get_content(self.url)
-        videos = matchall(html, 'href=[\'"](/v/[a-zA-Z0-9_]+)[\'"] title=[\'"]')
+        videos = ['https://www.acfun.cn' + path for path in
+                  matchall(html, 'href=[\'"](/v/ac[0-9_]+)[\'"] title=[\'"]')]
+        self.set_index(self.url, videos)
         return videos
 
 site = AcVideo()

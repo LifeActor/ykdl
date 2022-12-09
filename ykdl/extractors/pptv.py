@@ -15,14 +15,15 @@ class PPTV(Extractor):
         'LD': '流畅'
     }
 
+    def prepare_mid(self):
+        html = get_content(self.url)
+        return match1(html, '"(?:c|ps)id":"?(\d+)')
+
     def prepare(self):
         info = MediaInfo(self.name)
 
-        html = get_content(self.url)
-        self.vid = match1(html, '"(?:c|ps)id":"?(\d+)')
-
         #key = gen_key(int(time.time()) - 60)
-        data = get_response('https://web-play.pptv.com/webplay3-0-{self.vid}.xml'
+        data = get_response('https://web-play.pptv.com/webplay3-0-{self.mid}.xml'
                             .format(**vars()),
                             params={
                                 'zone': 8,
@@ -59,13 +60,13 @@ class PPTV(Extractor):
                 no = seg['@no']
                 urls.append('http://{host}/{no}/{rid}?{params}'.format(**vars()))
 
-            stype = format_vps(item['@width'], item['@height'])[0]
-            video_profile = self.id_2_profile[stype]
-            info.streams[stype] = {
+            stream_id = format_vps(item['@width'], item['@height'])[0]
+            stream_profile = self.id_2_profile[stream_id]
+            info.streams[stream_id] = {
                 'container': 'mp4',
-                'video_profile': video_profile,
-                'size': int(item['@filesize']),
-                'src': urls
+                'profile': stream_profile,
+                'src' : urls,
+                'size': int(item['@filesize'])
             }
 
         return info

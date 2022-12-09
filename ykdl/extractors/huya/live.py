@@ -67,12 +67,12 @@ class HuyaLive(Extractor):
                  'ver': '1',
                  'uuid': int((ct % 1e10 + random.random()) * 1e3 % 0xffffffff),
              })
-            fm = base64.b64decode(params['fm']).decode().split('_', 1)[0]
+            fm = unb64(params['fm']).split('_', 1)[0]
             ss = hash.md5('|'.join([params['seqid'], params['ctype'], params['t']]))
 
         for si in data['vMultiStreamInfo']:
-            video_profile = si['sDisplayName']
-            stream = self.profile_2_id(video_profile)
+            stream_profile = si['sDisplayName']
+            stream_id = self.profile_2_id(stream_profile)
             rate = si['iBitRate']
             if rate:
                 params['ratio'] = rate
@@ -81,10 +81,10 @@ class HuyaLive(Extractor):
             if reSecret:
                 params['wsSecret'] = hash.md5('_'.join(
                             [fm, params['u'], sStreamName, ss, params['wsTime']]))
-            url = _url + urlencode(params, safe='*')
-            info.streams[stream] = {
+            url = _url + urlencode(params, safe=',*')
+            info.streams[stream_id] = {
                 'container': 'flv',
-                'video_profile': video_profile,
+                'profile': stream_profile,
                 'src': [url],
                 'size': Infinity
             }

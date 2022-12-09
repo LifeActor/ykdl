@@ -7,25 +7,26 @@ class IfengVideo(Extractor):
     name = '凤凰视频 (ifeng video)'  # Expired
 
     def prepare(self):
+        return self.url[-13: -6]
+
+    def prepare(self):
         info = MediaInfo(self.name)
-        self.vid = self.url[-13: -6]
-        info.title = self.name + '-' + self.vid
+
+        info.title = self.name + '-' + self.mid
         data = get_response(
-                'http://tv.ifeng.com/html5/{self.vid}/video.json'
+                'http://tv.ifeng.com/html5/{self.mid}/video.json'
                 .format(**vars())).json()
         if 'bqSrc' in data:
             info.streams['SD'] = {
                 'container': 'mp4',
-                'video_profile': '标清',
-                'src' : [data['bqSrc']],
-                'size': 0
+                'profile': '标清',
+                'src': [data['bqSrc']]
             }
         if 'gqSrc' in data:
             info.streams['HD'] = {
                 'container': 'mp4',
-                'video_profile': '高清',
-                'src' : [data['gqSrc']],
-                'size': 0
+                'profile': '高清',
+                'src': [data['gqSrc']]
             }
         return info
 

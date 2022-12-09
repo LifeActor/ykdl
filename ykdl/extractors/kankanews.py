@@ -36,7 +36,7 @@ class KankanNews(Extractor):
 
         info.streams['current'] = {
             'container': 'mp4',
-            'video_profile': 'current',
+            'profile': 'current',
             'src' : [data['videourl']],
             'size': int(data['filesize'])
         }

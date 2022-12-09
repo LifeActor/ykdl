@@ -15,8 +15,8 @@ class DoubanMovie(Extractor):
 
         info.streams['current'] = {
             'container': 'mp4',
-            'video_profile': 'current',
-            'src' : [url]
+            'profile': 'current',
+            'src': [url]
         }
         return info
 

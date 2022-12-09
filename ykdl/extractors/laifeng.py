@@ -37,7 +37,7 @@ class Laifeng(Extractor):
         stream_url = data['HttpFlv'][0]['Url']
         info.streams['current'] = {
             'container': 'flv',
-            'video_profile': 'current',
+            'profile': 'current',
             'src' : [stream_url],
             'size': Infinity
         }

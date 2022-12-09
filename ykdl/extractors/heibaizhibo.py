@@ -68,10 +68,10 @@ class Heibai(Extractor):
             data_live = data_live['data'][0]
             assert data_live['score'] >= 0, 'live video is offline!'
             url = js_ctx.call('vp', data_live['liveUrl'])
-            stream = ql['defi'].upper()
-            info.streams[stream] = {
+            stream_id = ql['defi'].upper()
+            info.streams[stream_id] = {
                 'container': 'flv',
-                'video_profile': ql['name'],
+                'profile': ql['name'],
                 'src' : [url],
                 'size': Infinity
             }

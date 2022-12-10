@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from .._common import *
-import functools
 
 
 assert JSEngine, "No JS Interpreter found, can't extract netease openCourse!"
@@ -33,7 +32,7 @@ class OpenC(Extractor):
     def prepare_mid(self):
         return match1(self.url, r'\bpid=(\w+)'), match1(self.url, r'\bmid=(\w+)')
 
-    @functools.lru_cache(maxsize=None)
+    @functools.cache
     def parse_html(self, url):
         html = get_content(url)
         js = match1(html, 'window\.__NUXT__=(.+);</script>')

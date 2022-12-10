@@ -7,6 +7,7 @@ import inspect
 import logging
 import tempfile
 import builtins
+import functools
 
 from .util.log import ColorHandler
 
@@ -15,6 +16,16 @@ logging.basicConfig(handlers=[ColorHandler()])
 
 
 builtins.Infinity = float('inf')
+
+
+try:
+    functools.cache
+except AttributeError:
+    exec('''\
+def cache(user_function, /):
+    'Simple lightweight unbounded cache.  Sometimes called "memoize".'
+    return lru_cache(maxsize=None)(user_function)
+''', functools.__dict__)
 
 
 if sys.version_info < (3, 10):

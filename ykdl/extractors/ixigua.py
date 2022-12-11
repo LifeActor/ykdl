@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from .._common import *
-from .. import _byted
+from ._common import *
+from . import _byted
 
 
 class IXiGua(Extractor):
@@ -58,7 +58,7 @@ class IXiGua(Extractor):
             info.streams[stream_id] = {
                 'container': v['vtype'],
                 'profile': stream_profile,
-                'src' : [unb64(v['main_url'])],
+                'src' : [unb64(v['backup_url_1'])],  # main_url status 403
                 'size': v['size']
             }
 

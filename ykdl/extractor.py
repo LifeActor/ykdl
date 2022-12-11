@@ -84,12 +84,7 @@ class Extractor:
 
     def set_index(self, mid, mids):
         '''Input `int` is the order base 1, or index `mid` from `mids` list.'''
-        if isinstance(mid, int) or isinstance(mids, int):
-            if mid and mid > 0 and self.start < 0:
-                self.start = mid - 1
-            if mids and mids > 0:
-                self.end = mids - 1
-        elif mids and isinstance(mids, list):
+        if mids and isinstance(mids, list):
             if mid and self.start < 0:
                 try:
                     self.start = mids.index(mid)
@@ -97,6 +92,11 @@ class Extractor:
                     self.logger.debug(
                             'MID %r can not be found, may a pay media', mid)
             self.end = len(mids) - 1
+        elif isinstance(mid, int) or isinstance(mids, int):
+            if mid and mid > 0 and self.start < 0:
+                self.start = mid - 1
+            if mids and mids > 0:
+                self.end = mids - 1
 
     def parser_list(self, url):
         self.url = url

@@ -4,6 +4,8 @@
 from .match import *
 from ..mediainfo import MediaStreams
 
+import time
+
 
 __all__ = ['get_kt_playlist', 'get_kt_media']
 

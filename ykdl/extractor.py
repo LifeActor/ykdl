@@ -21,7 +21,7 @@ class Extractor:
         except AssertionError:
             return None
         else:
-            return ProxyExtractor(self, info)
+            return ProxyExtractor(url, self, info)
 
     def __init__(self):
         self.logger = getLogger(self.name)
@@ -187,10 +187,11 @@ class Extractor:
 
 class ProxyExtractor(Extractor):
 
-    def __init__(self, real, info):
+    def __init__(self, url, real, info):
+        self._orig_url = url
         self.name = real.name
         self.url = real.url
-        self.mid = real.mid
+        self._mid = real._mid
         if isinstance(info, (GeneratorType, list)):
             self.info_list = info
         else:
@@ -201,7 +202,7 @@ class ProxyExtractor(Extractor):
             return info
 
     def parser_list(self, url):
-        if url in [self.url, self.mid]:
+        if url and url in [self._orig_url, self.url, self._mid]:
             for info in self.info_list:
                 yield info
 

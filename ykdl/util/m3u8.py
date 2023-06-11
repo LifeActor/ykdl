@@ -22,7 +22,7 @@ def live_m3u8_lenth():
     live_error()
 
 import m3u8
-from m3u8.parser import urljoin
+from urllib.parse import urljoin
 
 class HTTPClient():
     hkwargs = {}

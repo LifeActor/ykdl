@@ -537,7 +537,7 @@ def ungzip(data):
     '''Decompresses data for Content-Encoding: gzip.'''
     return GzipReader(BytesIO(data)).read()
 
-def undeflate(data):
+def inflate(data):
     '''Decompresses data for Content-Encoding: deflate.'''
     decompressor = zlib.decompressobj(-zlib.MAX_WBITS)
     return decompressor.decompress(data) + decompressor.flush()
@@ -548,7 +548,7 @@ def unbrotli(data):
 
 decompressors = {
     'gzip': ungzip,
-    'deflate': undeflate
+    'deflate': inflate
 }
 if brotli:
     decompressors['br'] = unbrotli

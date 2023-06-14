@@ -60,7 +60,8 @@ class BiliLive(Extractor):
         assert data['code'] == 0, data['msg']
         data = data['data'][uid]
 
-        info.title = '{data[title]} - {data[uname]}'.format(**vars())
+        info.title = '{title} - {uname}'.format(**data)
+        info.artist = data['uname']
         info.add_comment(data['tag_name'])
 
         g_qn_desc = None

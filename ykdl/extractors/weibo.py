@@ -16,8 +16,28 @@ class Weibo(Extractor):
     }
 
     def prepare_mid(self):
-        return match1(self.url, '\D(\d{4}:(?:\d{16}|\w{32}))(?:\W|$)',
-                                'media_id=(\d{16})')
+        patterns = '(?:object|f)_?id"?\s*[=:]\s*"?(\d{4}:(?:\d{16}|\w{32}))\W', \
+                   'media_id=(\d{16}|\w{32})'
+        mid = match1(self.url, '\D(\d{4}:(?:\d{16}|\w{32}))(?:\W|$)',
+                               *patterns)
+        if mid:
+            return mid
+
+        rurl = get_location(self.url)
+        page = match1(rurl, 'https?://[^/]+(/\d+/\w+)')
+        if page is None or match1(page, '/(\d+)$'):
+            html = get_content(rurl.replace('//weibo.', '//hk.weibo.')
+                                   .replace('/user/', '/'))
+            mid = match1(html, *patterns)
+            if mid:
+                return mid
+            page = match1(html, '"og:url".+weibo.com(/\d+/\w+)')
+
+        assert page, 'can not find any video!!!'
+        self.url = 'https://weibo.com' + page
+
+        html = get_content(self.url)
+        return match1(html, *patterns)
 
     def prepare(self):
         if 'passport.weibo' in self.url:
@@ -27,6 +47,8 @@ class Weibo(Extractor):
 
         info = MediaInfo(self.name)
         add_header('User-Agent', 'Baiduspider')
+        rurl = get_location(self.url)
+        assert '/sorry?' not in rurl, 'can not find any video!!!'
 
         def append_stream(stream_profile, stream_quality, url):
             stream_id = self.quality_2_id[stream_quality]
@@ -39,15 +61,7 @@ class Weibo(Extractor):
         try:
             self.mid
         except AssertionError:
-            rurl = get_location(self.url)
-            assert '/sorry?' not in rurl, 'can not find any video!!!'
-            page = match1(rurl, 'https?://[^/]+(/\d+/\w+)')
-            if page is None or match1(page, '/(\d+)$'):
-                html = get_content(rurl.replace('//weibo.', '//hk.weibo.')
-                                       .replace('/user/', '/'))
-                page = match1(html, '"og:url".+weibo.com(/\d+/\w+)')
-            assert page, 'can not find any video!!!'
-            html = get_content('https://weibo.com' + page)
+            html = get_content(self.url)
             streams = match1(html, 'quality_label_list=([^"]+)').split('&')[0]
             if streams:
                 streams = json.loads(unquote(streams))
@@ -71,8 +85,6 @@ class Weibo(Extractor):
                 if i:
                     info.title = info.title[:i]
                 return info
-            else:
-                self.mid = match1(html, 'objectid=(\d{4}:(?:\d{16}|\w{32}))\W')
 
         if ':' not in self.mid:
             self.mid = '1034:' + self.mid  # oid, the prefix is not necessary and would not be checked
@@ -86,13 +98,15 @@ class Weibo(Extractor):
                         })
                     }).json()['data']['Component_Play_Playinfo']
 
-        info.title = vdata['title']
-        info.artist = vdata['author']
         for stream_profile, url in vdata['urls'].items():
             if url:
                 stream_quality = match1(stream_profile, '(\d+)')
                 append_stream(stream_profile, stream_quality, 'https:' + url)
 
+        info.title = vdata['title']
+        info.artist = vdata['author']
+        info.duration = vdata['duration']
+        info.add_comment(vdata['text'])
         return info
 
 site = Weibo()

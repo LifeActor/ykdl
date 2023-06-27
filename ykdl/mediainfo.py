@@ -162,7 +162,7 @@ class MediaInfo:
         if self.live:
             unique_title.append(legitimize(
                     datetime.now().isoformat().split('.')[0]
-                    )[0])
+                    ))
         return '_'.join(unique_title)
 
     @staticmethod

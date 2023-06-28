@@ -36,7 +36,7 @@ class Douyutv(Extractor):
         
         videoloop_label = match1(
                 html, '\$ROOM\.room_biz_all\s*=\s*\{\"videoLoop\":(\d+)')
-        assert videoloop_label == '1' , 'Douyu重播'
+        assert !(videoloop_label == '1') , 'Douyu重播'
 
         title = match1(html, 'Title-head\w*">([^<]+)<')
         artist = match1(html, 'Title-anchorName\w*" title="([^"]+)"')

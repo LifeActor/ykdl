@@ -16,7 +16,7 @@ class Douyin(Extractor):
      }
 
     def prepare(self):
-        info = MediaInfo(self.name)
+        info = MediaInfo(self.name,True)
 
         if 'amemv.com' in self.url:
             data = get_response('https://webcast.amemv.com/webcast/room/reflow/info/',

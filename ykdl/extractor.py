@@ -60,6 +60,7 @@ class Extractor:
             self._mid = self.format_mid(value)
         except AssertionError:
             raise ValueError('invalid media ID: {value!r}'.format(**vars()))
+        self.logger.debug(f'media ID: {self._mid}')
 
     @property
     def sum(self):

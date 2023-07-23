@@ -164,7 +164,9 @@ del create_attr_code
 
 def lazy_import(import_str):
     _import_str = import_str.replace('\\', ' ').lstrip()
-    if _import_str.startswith('from '):
+    if _import_str.endswith(' *'):
+        raise ValueError('lazy_import does not support importing * from a package.')
+    elif _import_str.startswith('from '):
         names = _import_str.partition('from ')[2].partition('import ')[2]
     elif _import_str.startswith('import '):
         names = _import_str.partition('import ')[2]
@@ -174,19 +176,24 @@ def lazy_import(import_str):
     def _import(___name):
         if not kv:
             try:
-                exec(import_str)
+                exec(import_str, f.f_globals, kv)
             except ImportError as e:
                 raise RuntimeError(e)
-            else:
-                kv.update(locals())
         return kv[___name]
 
+    f = sys._getframe(1)
+    is_local_import = f.f_locals is not f.f_globals
     kv = {}
     kvp = {}
     for name in names.strip().strip('()').split(','):
         name = name.rpartition(' as ')[2].strip()
+        if is_local_import and name not in f.f_locals:
+            raise RuntimeError('LOCAL variables MUST be defined '
+                               '(e.g. `{name} = None`) before lazy_import.'
+                               .format(**vars()))
         kvp[name] = proxy(_import, name)
 
-    f = sys._getframe(1)
     f.f_locals.update(kvp)
-    pythonapi.PyFrame_LocalsToFast(py_object(f), c_int(0))
+    if is_local_import:
+        pythonapi.PyFrame_LocalsToFast(py_object(f), c_int(0))
+    del kvp

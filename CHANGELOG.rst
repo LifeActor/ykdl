@@ -1,12 +1,19 @@
 Change Log for ykdl
 ===================
 
-1.8.2.dev
+1.8.2
 -----------
 
 - enable pep517
+- change API name from "vid" to "mid", step 1
 - add index item to MediaInfo for playlist
-- update GeneralSimple, Bilibili, Douban
+- add util.lazy
+- fix compatibility with m3u8 3.5.0 (#621) @Joeky
+- fix default filename timestamp (#622) @a67878813
+- add new extractor: acfun.live
+- update GeneralSimple, Bilibili, Douban, DouYin, iQIYI, iXiGua, Huya, Weibo
+- move extractor from "le.le" to "le"
+- remove Baidu, iXiGua.live
 
 
 1.8.1.post1

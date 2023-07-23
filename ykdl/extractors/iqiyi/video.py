@@ -232,7 +232,7 @@ class Iqiyi(Extractor):
                             tmts_data = gettmts(tvid, vip_conf[vd]['vid'])
                             if tmts_data['code'] == 'A00000':
                                 push_stream_vd(tmts_data['data'])
-                                break
+
         def fetch_vps():
             # use vps as preferred fallback
             vps_data = getvps(tvid, vid)
@@ -262,7 +262,6 @@ class Iqiyi(Extractor):
                         fs_array = stream['fs']
                         size = stream['vsize']
                         push_stream_bid(url_prefix, _bid, container, fs_array, size)
-                        break
 
         for fetch in (fetch_tmts, fetch_vps, fetch_dash):
             try:

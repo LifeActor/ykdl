@@ -7,7 +7,7 @@ class Douyin(Extractor):
     name = '抖音 (Douyin)'
 
     def prepare_mid(self):
-        return match1(self.url, '(?:video/|vid=)(\d+)')
+        return match1(self.url, r'\b(?:video/|music/|vid=|aweme_id=|item_ids=)(\d+)')
 
     def prepare(self):
         info = MediaInfo(self.name)
@@ -17,21 +17,31 @@ class Douyin(Extractor):
         assert data['status_code'] == 0, data['status_msg']
         assert data['aweme_detail'], data['filter_detail']
 
-        video_info = data['aweme_detail']
-        title = video_info['desc']
-        nickName = video_info['author'].get('nickname', '')
-        uid = video_info['author'].get('unique_id') or \
-                video_info['author']['short_id']
+        data = data['aweme_detail']
+        aweme_type = data['aweme_type']
+        # TikTok [0, 51, 55, 58, 61, 150]
+        if aweme_type not in [2, 68, 150, 0, 4, 51, 55, 58, 61]:
+            print('new type', aweme_type)
+        music_image = aweme_type in [2, 68, 150]  # video [0, 4, 51, 55, 58, 61]
+        title = data['desc']
+        nickName = data['author'].get('nickname', '')
+        uid = data['author'].get('unique_id') or \
+                data['author']['short_id']
 
         info.title = '{title} - {nickName}(@{uid})'.format(**vars())
         info.artist = nickName
-        info.duration = video_info['duration'] // 1000
+        info.duration = data['duration'] // 1000
 
+        ext = 'mp4'
+        url = data['video']['play_addr']['url_list'][0] \
+                        .replace('playwm', 'play')
+        if music_image or 'music' in url:
+            ext = 'mp3'
+            url = data['video']['cover']['url_list'][0], url
         info.streams['current'] = {
-            'container': 'mp4',
-            'profile': video_info['video']['ratio'].upper(),
-            'src': [video_info['video']['play_addr']['url_list'][0]
-                              .replace('playwm', 'play')]
+            'container': ext,
+            'profile': data['video']['ratio'].upper(),
+            'src': [url]
         }
         return info
 

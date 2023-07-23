@@ -47,8 +47,10 @@ class Weibo(Extractor):
 
         info = MediaInfo(self.name)
         add_header('User-Agent', 'Baiduspider')
-        rurl = get_location(self.url)
-        assert '/sorry?' not in rurl, 'can not find any video!!!'
+
+        if '.weibocdn.com' not in self.url:
+            rurl = get_location(self.url)
+            assert '/sorry?' not in rurl, 'can not find any video!!!'
 
         def append_stream(stream_profile, stream_quality, url):
             stream_id = self.quality_2_id[stream_quality]

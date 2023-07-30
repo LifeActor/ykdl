@@ -51,7 +51,7 @@ class HuyaLive(Extractor):
         ct = int((int(params['wsTime'], 16) + random.random()) * 1000)
         lPresenterUid = stream_info['lPresenterUid']
         if liveSourceType and not sStreamName.startswith(str(lPresenterUid)):
-            uid = lPresenterUid
+            uid = int(lPresenterUid)
         else:
             uid = int(ct % 1e10 * 1e3 % 0xffffffff)
         u1 = uid & 0xffffffff00000000

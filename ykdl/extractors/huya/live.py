@@ -46,28 +46,26 @@ class HuyaLive(Extractor):
         sUrlSuffix = stream_info['sFlvUrlSuffix']
         _url = '{sUrl}/{sStreamName}.{sUrlSuffix}?'.format(**vars())
 
-        reSecret = liveSourceType in (0, 8, 13)
         params = dict(parse_qsl(unescape(stream_info['sFlvAntiCode'])))
-        if reSecret:
-            params.setdefault('t', '100')  # 102
-            ct = int((int(params['wsTime'], 16) + random.random()) * 1000)
-            lPresenterUid = stream_info['lPresenterUid']
-            if liveSourceType and not sStreamName.startswith(str(lPresenterUid)):
-                uid = lPresenterUid
-            else:
-                uid = int(ct % 1e10 * 1e3 % 0xffffffff)
-            u1 = uid & 0xffffffff00000000
-            u2 = uid & 0xffffffff
-            u3 = uid & 0xffffff
-            u = u1 | u2 >> 24 | u3 << 8
-            params.update({
-                 'u': str(u),
-                 'seqid': str(ct + uid),
-                 'ver': '1',
-                 'uuid': int((ct % 1e10 + random.random()) * 1e3 % 0xffffffff),
-             })
-            fm = unb64(params['fm']).split('_', 1)[0]
-            ss = hash.md5('|'.join([params['seqid'], params['ctype'], params['t']]))
+        params.setdefault('t', '100')  # 102
+        ct = int((int(params['wsTime'], 16) + random.random()) * 1000)
+        lPresenterUid = stream_info['lPresenterUid']
+        if liveSourceType and not sStreamName.startswith(str(lPresenterUid)):
+            uid = lPresenterUid
+        else:
+            uid = int(ct % 1e10 * 1e3 % 0xffffffff)
+        u1 = uid & 0xffffffff00000000
+        u2 = uid & 0xffffffff
+        u3 = uid & 0xffffff
+        u = u1 | u2 >> 24 | u3 << 8
+        params.update({
+             'u': str(u),
+             'seqid': str(ct + uid),
+             'ver': '1',
+             'uuid': int((ct % 1e10 + random.random()) * 1e3 % 0xffffffff),
+         })
+        fm = unb64(params['fm']).split('_', 1)[0]
+        ss = hash.md5('|'.join([params['seqid'], params['ctype'], params['t']]))
 
         for si in data['vMultiStreamInfo']:
             stream_profile = si['sDisplayName']
@@ -77,9 +75,8 @@ class HuyaLive(Extractor):
                 params['ratio'] = rate
             else:
                 params.pop('ratio', None)
-            if reSecret:
-                params['wsSecret'] = hash.md5('_'.join(
-                            [fm, params['u'], sStreamName, ss, params['wsTime']]))
+            params['wsSecret'] = hash.md5('_'.join(
+                        [fm, params['u'], sStreamName, ss, params['wsTime']]))
             url = _url + urlencode(params, safe=',*')
             info.streams[stream_id] = {
                 'container': 'flv',

@@ -32,7 +32,6 @@ class HuyaLive(Extractor):
         info.title = '{}「{} - {}」'.format(
             room_info['roomName'], room_info['nick'], room_info['introduction'])
         info.artist = room_info['nick']
-        screenType = room_info['screenType']
         liveSourceType = room_info['liveSourceType']
 
         stream_info_list = data['data'][0]['gameStreamInfoList']
@@ -47,7 +46,7 @@ class HuyaLive(Extractor):
         sUrlSuffix = stream_info['sFlvUrlSuffix']
         _url = '{sUrl}/{sStreamName}.{sUrlSuffix}?'.format(**vars())
 
-        reSecret = not screenType and liveSourceType in (0, 8, 13)
+        reSecret = liveSourceType in (0, 8, 13)
         params = dict(parse_qsl(unescape(stream_info['sFlvAntiCode'])))
         if reSecret:
             params.setdefault('t', '100')  # 102

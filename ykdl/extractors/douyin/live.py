@@ -33,14 +33,13 @@ class Douyin(Extractor):
             video_info = data['data'].get('room')
         else:
             html = _byted.get_content(self.url)
-            data = match1(html,
-                         'id="RENDER_DATA" type="application/json">(.+?)</script>',
-                         '__INIT_PROPS__ = (.+?)</script>')
-            data = json.loads(unquote(data))
+            data = match1(html, 'self.__pace_f.push\(\[\d,("[a-z]:.+?")\]\)</script>')
+            data = json.loads(data)
             self.logger.debug('data: \n%s', data)
+            data = json.loads(match1(data, '(\[.+\])'))[-1]
 
             try:
-                video_info = data['app']['initialState']['roomStore']['roomInfo'].get('room')
+                video_info = data['state']['roomStore']['roomInfo'].get('room')
             except KeyError:
                 video_info = data['/webcast/reflow/:id'].get('room')
 

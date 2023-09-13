@@ -33,7 +33,7 @@ class Douyin(Extractor):
             video_info = data['data'].get('room')
         else:
             html = _byted.get_content(self.url)
-            data = match1(html, 'self.__pace_f.push\(\[\d,("[a-z]:.+?")\]\)</script>')
+            data = matchall(html, 'self.__pace_f.push\(\[\d,("[a-z]:.+?")\]\)</script>')[-1]
             data = json.loads(data)
             self.logger.debug('data: \n%s', data)
             data = json.loads(match1(data, '(\[.+\])'))[-1]

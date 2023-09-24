@@ -25,7 +25,7 @@ def get_info_list(sids):
         info.streams['current'] = {
             'container': 'mp3',
             'profile': 'current',
-            'src' : [song['url']],
+            'src': [(artist['picture'], song['url'])],
         }
         yield info
 

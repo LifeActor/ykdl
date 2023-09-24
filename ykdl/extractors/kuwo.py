@@ -52,7 +52,7 @@ class Kuwo(Extractor):
         info.streams['current'] = {
             'container': 'mp3',
             'profile': 'current',
-            'src': [url]
+            'src': [(albumpic, url)]
         }
         return info
 

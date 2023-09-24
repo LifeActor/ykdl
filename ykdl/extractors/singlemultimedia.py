@@ -83,11 +83,12 @@ class Multimedia(Extractor):
         # Get file type
         ext = self.url.split('?')[0].split('.')[-1]
         if ext not in extNames:
-            ctype = self.resinfo['Content-Type'].lower()
+            ctype = self.resinfo.get('Content-Type', '').lower()
             if ctype.startswith('image/'):
                 ext = ctype[6:]
             else:
-                ext = contentTypes[ctype]
+                ext = contentTypes.get(ctype)
+        assert ext in extNames, 'This link is not a Multimedia file!'
 
         # Get title
         title = self.resinfo.get_filename()

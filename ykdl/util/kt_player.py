@@ -48,7 +48,7 @@ def get_urls(html):
     license = get_license(html)
     if license is None:
         return
-    for url in matchall(html, '''function/0/(http[^'"]+)'''):
+    for url in matchall(html, '''function/0/(http[^'"]+)/?['"]'''):
         url = decrypto(url, license)
         if '?' in url:
             yield f'{url}&rnd={rnd}'

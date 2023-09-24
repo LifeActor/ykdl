@@ -42,6 +42,7 @@ class GeneralSimple(Extractor):
         html = get_content(self.url)
 
         info.title = match1(html, '<meta property="og:title" content="([^"]+)',
+                                  '''video_title\s*[:=]\s*['"](.+?)['"],''',
                                   '<title>(.+?)</title>')
 
         streams = get_kt_playlist(html)

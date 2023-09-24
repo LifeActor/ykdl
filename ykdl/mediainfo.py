@@ -277,8 +277,9 @@ class MediaStreams:
     @staticmethod
     def _sort_key(ids):
         i, _, id = ids
-        if 'H265' in id:  # raise, the size of h265 file is smaller than others
-            id = '0' + id
+        if ('H265' in id or  # the size of h265 file is smaller than others
+            'M3U8' in id):
+            id = '0' + id    # raise
         return i, id
 
     @staticmethod

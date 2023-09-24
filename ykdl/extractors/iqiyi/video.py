@@ -145,9 +145,7 @@ class Iqiyi(Extractor):
         return mid
 
     def parse_html(self):
-        html = get_content(self.url, headers={
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.1) Gecko/20100101 Firefox/60.1',
-        })
+        html = get_content(self.url)
         data = match1(html, "playPageInfo=({.+?});")
         if data:
             return json.loads(data)

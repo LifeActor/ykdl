@@ -77,7 +77,7 @@ def url_to_module(url):
 
         if response.url == url:
             logger.debug('> NO HTTP Redirection')
-            if response.headers['Content-Type'].startswith('text/'):
+            if response.headers.get('Content-Type', '').startswith('text/'):
                 logger.debug('> Try GeneralSimple')
                 from ykdl.extractors.generalsimple import site
                 site = site.get_proxy('parser', url)

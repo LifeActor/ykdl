@@ -75,6 +75,11 @@ def launch_player(player, urls, ext, play=True, **args):
     if nt and not os.path.splitext(player)[1]:
         cmd[0] += '.exe'
 
+    if len(urls[0]) == 2:
+        urls, (audio, *_) = zip(*urls)
+    else:
+        audio = None
+
     if 'mpv' in os.path.split(player)[1]:
         if ext == 'm3u8' and any(os.path.isfile(url) for url in urls):
             cmd += ['--demuxer-lavf-o=protocol_whitelist=[file,http,https,tls,rtp,tcp,udp,crypto,httpproxy]']
@@ -92,6 +97,8 @@ def launch_player(player, urls, ext, play=True, **args):
         if args['subs']:
             for sub in args['subs']:
                 cmd += ['--sub-file=' + sub]
+        if audio:
+            cmd += ['--audio-file=' + audio]
 
     start_new_server = None
     if args['rangefetch']:

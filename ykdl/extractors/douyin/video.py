@@ -1,19 +1,34 @@
 # -*- coding: utf-8 -*-
 
 from .._common import *
+from .._byted import generate_mstoken, sign_xbogus
 
 
 class Douyin(Extractor):
     name = '抖音 (Douyin)'
 
     def prepare_mid(self):
-        return match1(self.url, r'\b(?:video/|music/|vid=|aweme_id=|item_ids=)(\d+)')
+        return match1(self.url, r'\b(?:video/|music/|note/|vid=|aweme_id=|item_ids=)(\d+)')
 
     def prepare(self):
         info = MediaInfo(self.name)
 
-        data = get_response('https://www.iesdouyin.com/aweme/v1/web/aweme/detail/',
-                            params={'aweme_id': self.mid}).json()
+        ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
+        params = {
+            'aweme_id': self.mid,
+            'aid': 6383,
+            'version_name': '23.5.0',
+            'device_platform': 'webapp',
+            'os_version': 10
+        }
+        params['X-Bogus'] = sign_xbogus(urlencode(params), ua)
+        data = get_response('https://www.douyin.com/aweme/v1/web/aweme/detail/',
+                            params=params,
+                            headers={
+                                'User-Agent': ua,
+                                'Cookie': {'msToken': generate_mstoken()},
+                                'Referer': 'https://www.douyin.com/'
+                            }).json()
         assert data['status_code'] == 0, data['status_msg']
         assert data['aweme_detail'], data['filter_detail']
 

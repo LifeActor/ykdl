@@ -7,15 +7,22 @@ class HuyaLive(Extractor):
     name = 'Huya Live (虎牙直播)'
 
     def profile_2_id(self, profile):
-        if profile[-1] == 'M':
-            return profile.replace('蓝光', 'BD')
-        else:
-            return {
-                '蓝光': 'BD',
-                '超清': 'TD',
-                '高清': 'HD',
-                '流畅': 'SD'
-            }[profile]
+        id = match1(profile, '(\d+K)')
+        br = match1(profile, '(\d+M)')
+        if id is None:
+            if profile.startswith(('蓝光', 'HDR')):
+                id = 'BD'
+            else:
+                id = {
+                    '超清': 'TD',
+                    '高清': 'HD',
+                    '流畅': 'SD'
+                }[profile]
+        if br:
+            id += br
+        if 'HDR' in profile:
+            id += '-HDR'
+        return id
 
     def prepare(self):
         info = MediaInfo(self.name, True)

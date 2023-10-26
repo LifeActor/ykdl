@@ -22,7 +22,7 @@ try:
     functools.cache
 except AttributeError:
     exec('''\
-def cache(user_function, /):
+def cache(user_function):
     'Simple lightweight unbounded cache.  Sometimes called "memoize".'
     return lru_cache(maxsize=None)(user_function)
 ''', functools.__dict__)

@@ -48,6 +48,7 @@ class HuyaLive(Extractor):
             stream_info = stream_info_list.pop()
             sUrl = stream_info['sFlvUrl']
             if sUrl:
+                info.add_comment(stream_info['sCdnType'])
                 break
         sStreamName = stream_info['sStreamName']
         sUrlSuffix = stream_info['sFlvUrlSuffix']

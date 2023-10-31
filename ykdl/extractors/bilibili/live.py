@@ -68,13 +68,45 @@ class BiliLive(Extractor):
         aqlts = set()
         aqlts_p = set()
 
-        def get_live_info(qn=1):
+        def get_live_info_v1(qn=1):
+            data = get_response(
+                    'https://api.live.bilibili.com/xlive/web-room/v1/playUrl/playUrl',
+                    params={
+                        'https_url_req': 1,
+                        'cid': room_id,
+                        'qn': qn,
+                        'platform': 'web',
+                        'ptype': 16
+                    }, cache=False).json()
+            assert data['code'] == 0, data['message']
+            data = data['data']
+
+            urls = [random.choice(data['durl'])['url']]
+            qlt = data['current_qn']
+            aqlts = {x['qn']: x['desc'] for x in data['quality_description']}
+            ext = 'flv'
+            prf = aqlts[qlt]
+            st = self.profile_2_id[prf]
+            if urls:
+                info.streams[st] = {
+                    'container': ext,
+                    'profile': prf,
+                    'src' : urls,
+                    'size': Infinity
+                }
+
+            if qn == 1:
+                del aqlts[qlt]
+                for aqlt in aqlts:
+                    get_live_info_v1(aqlt)
+
+        def get_live_info_v2(qn=1):
             data = get_response(
                     'https://api.live.bilibili.com/xlive/web-room/v2/index/getRoomPlayInfo',
                     params={
                         'room_id': room_id,
                         'protocol': '0,1',    # 0 = http_stream, 1 = http_hls
-                        'format': '0,1,2',
+                        'format': '0,1,2',    # 0 = flv, 1 = ts, 2 = fmp4
                         'codec': '0,1',       # 0 = avc, 1 = hevc
                         'qn': qn,
                         'platform': 'web',
@@ -87,16 +119,16 @@ class BiliLive(Extractor):
             nonlocal g_qn_desc, aqlts
             if g_qn_desc is None:
                 g_qn_desc = {x['qn']: x['desc'] for x in data['g_qn_desc']}
-            qlt = None
 
             for stream in data['stream']:
                 for format in stream['format']:
                     for codec in format['codec']:
                         aqlts.update(x for x in codec['accept_qn']
                                      if x not in aqlts_p)
-                        if qlt is None:
-                            qlt = codec['current_qn']
-                            prf = g_qn_desc[qlt]
+                        qlt = codec['current_qn']
+                        aqlts.discard(qlt)
+                        aqlts_p.add(qlt)
+                        prf = g_qn_desc[qlt]
                         st = self.profile_2_id[prf]
                         if 'http_hls' in stream['protocol_name']:
                             ext = 'm3u8'
@@ -107,11 +139,6 @@ class BiliLive(Extractor):
                             st += '-h265'
                         if st in info.streams:
                             st += '-bak'
-                        #    self.logger.debug('skip stream: [ %s %s %s ]',
-                        #                      stream['protocol_name'],
-                        #                      format['format_name'],
-                        #                      codec['codec_name'],)
-                        #    continue
                         url_info = random.choice(codec['url_info'])
                         url = url_info['host'] + codec['base_url'] + url_info['extra']
                         info.streams[st] = {
@@ -121,15 +148,18 @@ class BiliLive(Extractor):
                             'size': Infinity
                         }
 
-            if qn == 1:
-                aqlts.remove(qlt)
-                aqlts_p.add(qlt)
-                while aqlts:
-                    qlt = aqlts.pop()
-                    aqlts_p.add(qlt)
-                    get_live_info(qlt)
+            # FIXME: qn is invalid without authorized
+            #if qn == 1:
+            #    while aqlts:
+            #        qlt = aqlts.pop()
+            #        aqlts_p.add(qlt)
+            #        get_live_info_v2(qlt)
 
-        get_live_info()
+        try:
+            get_live_info_v1()
+        except:
+            pass
+        get_live_info_v2()
         info.extra.referer= 'https://live.bilibili.com/'
         return info
 

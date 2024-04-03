@@ -92,7 +92,7 @@ def launch_player(player, urls, ext, play=True, **args):
         if args['header']:
             header = args['header']
             if not isinstance(header, str):
-                header = ','.join("'{}: {}'".format(k, v) for k, v in header.items())
+                header = ','.join('{}: {}'.format(k, v.replace(',', '\\,')) for k, v in header.items())
             cmd += ['--http-header-fields=' + header]
         if args['subs']:
             for sub in args['subs']:

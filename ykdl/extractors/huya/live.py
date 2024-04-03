@@ -67,6 +67,7 @@ class HuyaLive(Extractor):
         u3 = uid & 0xffffff
         u = u1 | u2 >> 24 | u3 << 8
         params.update({
+             'ctype': 'tars_mp', # !!!!
              'u': str(u),
              'seqid': str(ct + uid),
              'ver': '1',

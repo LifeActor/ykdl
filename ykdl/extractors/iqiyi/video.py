@@ -146,12 +146,12 @@ class Iqiyi(Extractor):
 
     def parse_html(self):
         html = get_content(self.url)
-        data = match1(html, "playPageInfo=({.+?});")
+        data = match1(html, '<script id="__NEXT_DATA__".+?>({.+?})</script>')
         if data:
-            return json.loads(data)
+            return json.loads(data)['props']['pageProps']['videoInfo']
 
         url = match1(html, '(www\.iqiyi\.com/v_[0-9a-z]+\.html)')
-        if url:
+        if url and url not in self.url:
             self.url = 'https://' + url
             return self.parse_html()
 

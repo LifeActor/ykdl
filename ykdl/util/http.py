@@ -594,7 +594,7 @@ def get_response(url, headers={}, data=None, params=None, method='GET',
     req = Request(url, headers=default_headers, method=method)
     for k, v in headers.items():
         if k.lower() == 'cookie' and isinstance(v, dict):
-            v = ';'.join('='.join(c) for c in v.items())
+            v = ';'.join('='.join(str(c)) for c in v.items())
         req.add_header(k, v)
     if data:
         form = False

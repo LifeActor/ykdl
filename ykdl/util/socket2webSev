@@ -1,0 +1,188 @@
+# module HTTPServer 已经加入使用示例代码，如做调用需要注释 line 152 后的代码
+import socket
+import asyncio
+import uuid
+import json
+from collections import defaultdict
+import ssl
+import gzip
+import brotli
+
+# 会话存储
+sessions = defaultdict(dict)
+
+# 鉴权密钥
+AUTH_KEY = "Bearer my_secret_token"
+
+class Request:
+    def __init__(self, method, path, headers, body):
+        self.method = method
+        self.path = path
+        self.headers = headers
+        self.body = body
+
+    @classmethod
+    def from_raw_request(cls, raw_request):
+        lines = raw_request.split('\r\n')
+        method, path, _ = lines[0].split(' ')
+        headers = {}
+        body = ''
+        for line in lines[1:]:
+            if line == '':
+                break
+            key, value = line.split(': ', 1)
+            headers[key] = value
+        if 'Content-Length' in headers:
+            content_length = int(headers['Content-Length'])
+            body = lines[-1][:content_length]
+        return cls(method, path, headers, body)
+
+class Response:
+    def __init__(self, status_code, body, compress_encoding=None):
+        self.status_code = status_code
+        self.body = body
+        self.compress_encoding = compress_encoding
+
+    def build(self):
+        status_message = {
+            200: 'OK',
+            401: 'Unauthorized',
+            404: 'Not Found',
+            405: 'Method Not Allowed'
+        }[self.status_code]
+        response = f'HTTP/1.1 {self.status_code} {status_message}\r\n'
+        response += 'Content-Type: application/json\r\n'
+        if self.compress_encoding:
+            response += f'Content-Encoding: {self.compress_encoding}\r\n'
+            compressed_body = self.compress(self.body)
+            response += f'Content-Length: {len(compressed_body)}\r\n'
+        else:
+            response += f'Content-Length: {len(self.body)}\r\n'
+        response += '\r\n'
+        if self.compress_encoding:
+            response = response.encode('utf-8') + compressed_body  # 请求特定压缩格式的数据需要将压缩后的数据追加到响应中
+            return response #response = response.encode('utf-8') 所以此处不用再转成字节数组
+        else:
+            response += self.body
+            return response.encode('utf-8')
+
+    def compress(self, data):
+        if self.compress_encoding == 'gzip':
+            return gzip.compress(data.encode('utf-8'))  # 修改行
+        elif self.compress_encoding == 'br':
+            return brotli.compress(data.encode('utf-8'))  # 修改行
+        else:
+            return data.encode('utf-8')  # 修改行
+
+class HTTPServer:
+    def __init__(self, host='0.0.0.0', port=8080, ssl_context=None):
+        self.host = host
+        self.port = port
+        self.ssl_context = ssl_context
+        self.routes = {}
+
+    def add_route(self, method, path, handler):
+        if (method, path) not in self.routes:
+            self.routes[(method, path)] = handler
+
+    async def handle_client(self, reader, writer):
+        request_data = await reader.read(4096)
+        request = Request.from_raw_request(request_data.decode('utf-8'))
+
+        if not self.check_auth(request.headers):
+            response = Response(401, '{"message": "Unauthorized"}')
+            writer.write(response.build())
+            await writer.drain()
+            writer.close()
+            return
+        print(f'Request: {request.headers}')
+        session_id = self.get_session_id(request.headers)
+        if session_id not in sessions:
+            sessions[session_id] = {}
+
+        response = await self.handle_request(request, session_id)
+        writer.write(response.build())
+        await writer.drain()
+        writer.close()
+
+    async def handle_request(self, request, session_id):
+        if (request.method, request.path) in self.routes:
+            handler = self.routes[(request.method, request.path)]
+            response_body = await handler(request, session_id)
+            compress_encoding = self.get_compress_encoding(request.headers)
+            return Response(200, response_body, compress_encoding)
+        else:
+            response_body = '{"message": "Not Found"}'
+            return Response(404, response_body)
+
+    def check_auth(self, headers):
+        if 'Authorization' in headers:
+            auth_header = headers['Authorization']
+            if auth_header == AUTH_KEY:
+                return True
+        return False
+
+    def get_session_id(self, headers):
+        if 'Cookie' in headers:
+            cookies = headers['Cookie'].split('; ')
+            for cookie in cookies:
+                key, value = cookie.split('=', 1)
+                if key == 'session_id':
+                    return value
+        return str(uuid.uuid4())
+
+    def get_compress_encoding(self, headers):
+        if 'Accept-Encoding' in headers:
+            accept_encoding = headers['Accept-Encoding'].split(', ')
+            if 'br' in accept_encoding:
+                return 'br'
+            elif 'gzip' in accept_encoding:
+                return 'gzip'
+        return None
+
+    async def start(self):
+        if self.ssl_context:
+            server = await asyncio.start_server(self.handle_client, self.host, self.port, ssl=self.ssl_context)
+        else:
+            server = await asyncio.start_server(self.handle_client, self.host, self.port)
+        addr = server.sockets[0].getsockname()
+        print(f'Serving on {addr}')
+        async with server:
+            await server.serve_forever()
+
+# 路由处理函数
+async def home_handler(request, session_id):
+    response_body = '{"message": "Mini API WebServer By LifeActor!", "session_id": "' + session_id + '"}'
+    return response_body
+
+async def post_handler(request, session_id):
+    print(request.body)
+    response_body = '{"message": "POST request received", "session_id": "' + session_id + '"}'
+    return response_body
+
+async def put_handler(request, session_id):
+    print(request.body)
+    response_body = '{"message": "PUT request received", "session_id": "' + session_id + '"}'
+    return response_body
+
+async def delete_handler(request, session_id):
+    if session_id in sessions:
+        del sessions[session_id]
+    response_body = '{"message": "DELETE request received", "session_id": "' + session_id + '"}'
+    return response_body
+
+if __name__ == "__main__":
+    # https web服务器
+    # ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+    # ssl_context.load_cert_chain('cert.pem', 'key.pem')  # 请确保cert.pem和key.pem存在
+    # server = HTTPServer(port=8443, ssl_context=ssl_context)
+    
+    # http web服务器
+    server = HTTPServer(port=8443)
+    # 路由
+    server.add_route('GET', '/', home_handler)
+    server.add_route('POST', '/', post_handler)
+    server.add_route('PUT', '/', put_handler)
+    server.add_route('DELETE', '/', delete_handler)
+    # 异步起动服务器
+    asyncio.run(server.start())

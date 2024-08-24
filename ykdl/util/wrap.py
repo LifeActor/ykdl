@@ -65,7 +65,7 @@ def get_pkgdata_str(package, resource, url=None, encoding=None):
     '''
     try:
         data = pkgutil.get_data(package, resource)
-    except IOError:
+    except OSError:
         if not url:
             raise
         return get_content(url, encoding=encoding)

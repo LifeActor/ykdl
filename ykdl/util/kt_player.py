@@ -14,7 +14,8 @@ profile_2_id = {
     '1080P': 'BD',
      '720P': 'TD',
      '480P': 'HD',
-     '360P': 'SD'
+     '360P': 'SD',
+     '240P': 'LD'
 }
 
 def get_license(html):

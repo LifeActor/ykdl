@@ -193,20 +193,14 @@ class ProxyExtractor(Extractor):
         self.name = real.name
         self.url = real.url
         self._mid = real._mid
-        if isinstance(info, (GeneratorType, list)):
-            self.info_list = info
-        else:
-            self.info_list = [info]
+        self._info = info
 
     def parser(self, url):
-        for info in self.parser_list(url):
-            return info
+        return self.parser_list(url)
 
     def parser_list(self, url):
         if url and url in [self._orig_url, self.url, self._mid]:
-            for info in self.info_list:
-                yield info
-
+            return self._info
 
 class SimpleExtractor(Extractor):
 

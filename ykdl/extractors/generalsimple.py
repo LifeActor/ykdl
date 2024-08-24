@@ -36,34 +36,40 @@ src=["']?((?:https?:|\\?/)[^"' ]+)["' ]
 class GeneralSimple(Extractor):
     name = 'GeneralSimple (通用简单)'
 
-    def prepare(self):
-        info = MediaInfo(self.name)
+    def list_only(self):
+        return True
 
+    def prepare_list(self):
         html = get_content(self.url)
-
-        info.title = match1(html, '<meta property="og:title" content="([^"]+)',
+        title = match1(html, '<meta property="og:title" content="([^"]+)',
                                   '''video_title\s*[:=]\s*['"](.+?)['"],''',
                                   '<title>(.+?)</title>')
 
         streams = get_kt_playlist(html)
         if streams:
+            info = MediaInfo(self.name)
+            info.title = title
             info.streams = streams
             info.extra.referer = self.url
-            return info
+            yield info
+            return
 
-        ext = ctype = None
         for i in range(2):
-            url, ctype = matchm(html, pattern_src)
-            if url is None:
-                url, ext = matchm(html, pattern_ext)
-            if url:
-                if not i:
-                    url = unescape(url)
+            urls = matchall(html, pattern_src)
+            if urls:
+                urls = [(i and url or unescape(url), ctype, None) for url, ctype in urls]
                 break
-            elif i == 0:
+            urls = matchall(html, pattern_ext)
+            if urls:
+                urls = [(i and url or unescape(url), None, ext) for url, ext in urls]
+                break
+            if i == 0:
                 html = unquote(unescape(html))
 
-        if url:
+        self.set_index(0, len(urls))
+        for i, (url, ctype, ext) in enumerate(urls):
+            info = MediaInfo(self.name)
+            info.title = len(urls) == 1 and title or f'{title}_{i+1}'
             url = literalize(url, True)
             url = match1(url, '.+(https?://.+)') or url  # redirect clear
             if url[:2] == '//':
@@ -86,6 +92,6 @@ class GeneralSimple(Extractor):
                     'size': 0
                 }
             info.extra.referer = self.url
-            return info
+            yield info
 
 site = GeneralSimple()

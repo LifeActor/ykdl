@@ -108,9 +108,12 @@ def download(urls, name, ext, live=False):
     if not internal:
         launch_ffmpeg_download(url, name + '.' + ext, allow_all_ext=m3u8_crypto)
     else:
-        if save_urls(urls, name, ext, jobs=args.jobs,
-                     fail_confirm=not args.no_fail_confirm,
-                     fail_retry_eta=args.fail_retry_eta):
+        succeed = save_urls(urls, name, ext, jobs=args.jobs,
+                            fail_confirm=not args.no_fail_confirm,
+                            fail_retry_eta=args.fail_retry_eta)
+        if succeed is None:
+            pass
+        elif succeed:
             lenth = len(urls)
             if (m3u8 or lenth > 1) and not args.no_merge:
                 fix_sa_name(name, ext, lenth)
@@ -142,9 +145,12 @@ def download(urls, name, ext, live=False):
         if audio:
             ext = 'm4a'
             lenth = len(audio)
-            if save_urls(audio, name, ext, jobs=args.jobs,
-                         fail_confirm=not args.no_fail_confirm,
-                         fail_retry_eta=args.fail_retry_eta):
+            succeed = save_urls(audio, name, ext, jobs=args.jobs,
+                                fail_confirm=not args.no_fail_confirm,
+                                fail_retry_eta=args.fail_retry_eta)
+            if succeed is None:
+                pass
+            elif succeed:
                 if (m3u8 or lenth > 1) and not args.no_merge:
                     fix_sa_name(name, ext, lenth)
                     launch_ffmpeg_merge(name, ext, lenth)
@@ -153,17 +159,17 @@ def download(urls, name, ext, live=False):
                 logger.critical('{}> HLS audio donwload failed'.format(name))
         if subtitle:
             ext = 'srt'
-            if not save_urls(subtitle[:1], name, ext, jobs=args.jobs,
+            if save_urls(subtitle[:1], name, ext, jobs=args.jobs,
                          fail_confirm=not args.no_fail_confirm,
-                         fail_retry_eta=args.fail_retry_eta):
+                         fail_retry_eta=args.fail_retry_eta) is False:
                 logger.critical('{}> HLS subtitle donwload failed'.format(name))
 
 def download_subtitles(subtitles, name):
     for sub in subtitles:
         _name = name + '_' + sub['lang']
-        if not save_urls([sub['src']], _name, sub['format'],
-                         fail_confirm=not args.no_fail_confirm,
-                         fail_retry_eta=args.fail_retry_eta):
+        if save_urls([sub['src']], _name, sub['format'],
+                     fail_confirm=not args.no_fail_confirm,
+                     fail_retry_eta=args.fail_retry_eta) is False:
             logger.critical('{}> donwload failed'.format(_name))
 
 def handle_videoinfo(info):

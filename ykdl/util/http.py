@@ -231,7 +231,7 @@ class Request(_Request):
         return isinstance(other, self.__class__)
 
     def __hash__(self):
-        return hash((self.get_method(), self._full_url, self.data, *self.header_items()))
+        return hash((self.get_method(), self.headget, self._full_url, self.data, *self.header_items()))
 
 
 # Custom HTTP response
@@ -657,7 +657,7 @@ def get_head_response(url, headers={}, params=None, max_redirections=0,
                                 method=method,
                                 max_redirections=max_redirections,
                                 default_headers=default_headers)
-    except IOError as e:
+    except OSError as e:
         # Maybe HEAD method is not supported, retry
         if method != 'HEADGET' and match(str(e), 'HTTP Error (40[345]|520)'):
             logger.debug('get_head_response> HEAD failed, try GET')

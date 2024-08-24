@@ -86,18 +86,18 @@ def _format_time(s):
                   (?:^|[^:\.\d])
                   (
                       (?:
-                          (?:\d{1,3}:)?  # on limits 1K
-                          [0-5]?\d:
+                          (?:\d{1,3}[:Hh]?)?  # on limits 1K
+                          [0-5]?\d
                           |
-                          60:
-                      )
+                          60
+                      )[:Mm]
                       [0-5]?\d
                       |
                       60
                   )
                   (?:\.\d+)?        # ignore float
                   (?:$|[^:\.\d])
-                  ''')
+                  ''').lower().replace('h', ':').replace('m', ':')
     if s:
         t = 0
         for i, n in enumerate(reversed(s.split(':'))):

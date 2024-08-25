@@ -406,7 +406,7 @@ def _opener_open(req, encoding):
             del r.request.responses  # clear circular reference
     return response
 
-_opener_open_cached = functools.cache(_opener_open)
+_opener_open_cached = functools.lru_cache()(_opener_open)
 
 def cache_clear():
     _opener_open_cached.cache_clear()

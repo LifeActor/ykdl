@@ -23,11 +23,13 @@ alias = reverse_list_dict({
 exclude_list = {'com', 'net', 'org'}
 
 def url_to_module(url):
-    if not url.startswith('http'):
-        logger.warning('> url not starts with http(s) ' + url)
-        logger.warning('> assume http connection!')
-        url = 'http://' + url
-    url_infos = re.match('''(?x)
+    redirection = False
+    while True:
+        if not url.startswith('http'):
+            logger.warning('> url not starts with http(s) ' + url)
+            logger.warning('> assume http connection!')
+            url = 'http://' + url
+        url_infos = re.match('''(?x)
             https?://
             (                       # catch host
                     [\-\w\.]*?      # ignore
@@ -44,51 +46,52 @@ def url_to_module(url):
                 (?:\?|\#|&|$)       # path end, '&' is used to ignore wrong query
             )?
             ''', url)
-    assert url_infos, 'wrong URL string!'
-    host, dm3, dm2, ext = url_infos.groups()
-    logger.debug('host> ' + host)
+        assert url_infos, 'wrong URL string!'
+        host, dm3, dm2, ext = url_infos.groups()
+        logger.debug('host> ' + host)
 
-    short_name = dm2 in exclude_list and dm3 or dm2
-    if short_name in alias.keys():
-        short_name = alias[short_name]
-    logger.debug('short_name> ' + short_name)
+        short_name = dm2 in exclude_list and dm3 or dm2
+        if short_name in alias.keys():
+            short_name = alias[short_name]
+        logger.debug('short_name> ' + short_name)
 
-    try:
-        m = import_module('.'.join(['ykdl','extractors', short_name]))
-        if hasattr(m, 'get_extractor'):
-            site, url = m.get_extractor(url)
-        else:
-            site = m.site
-        return site, url
-
-    except ImportError as e:
-        logger.debug('Import Error: %s', e)
-
-        from .extractors import singlemultimedia
-
-        if ext in singlemultimedia.extNames:
-            logger.debug('> the extension name %r match multimedia types', ext)
-            logger.debug('> Go SingleMultimedia')
-            singlemultimedia.site.resinfo = get_head_response(url).info()
-            return singlemultimedia.site, url
-
-        logger.debug('> Try HTTP Redirection!')
-        response = get_head_response(url)
-
-        if response.url == url:
-            logger.debug('> NO HTTP Redirection')
-            if response.headers.get('Content-Type', '').startswith('text/'):
-                logger.debug('> Try GeneralSimple')
-                from ykdl.extractors.generalsimple import site
-                site = site.get_proxy('parser_list', url)
-                if site:
-                    return site, url
-                logger.debug('> Try GeneralEmbed')
-                return import_module('ykdl.extractors.generalembed').site, url
+        try:
+            m = import_module('.'.join(['ykdl','extractors', short_name]))
+            if hasattr(m, 'get_extractor'):
+                site, url = m.get_extractor(url)
             else:
-                logger.debug('> Try SingleMultimedia')
-                singlemultimedia.site.resinfo = response.info()
+                site = m.site
+            return site, url
+
+        except ImportError as e:
+            logger.debug('Import Error: %s', e)
+
+            from .extractors import singlemultimedia
+
+            if ext in singlemultimedia.extNames:
+                logger.debug('> the extension name %r match multimedia types', ext)
+                logger.debug('> Go SingleMultimedia')
                 return singlemultimedia.site, url
 
-        logger.info('> New url: ' + response.url)
-        return url_to_module(response.url)
+            if not redirection:
+                logger.debug('> Try HTTP Redirection!')
+                response = get_head_response(url, max_redirections=None)
+
+            if response.url == url:
+                if not redirection:
+                    logger.debug('> NO HTTP Redirection')
+                if response.headers.get('Content-Type', '').startswith('text/'):
+                    logger.debug('> Try GeneralSimple')
+                    from ykdl.extractors.generalsimple import site
+                    site = site.get_proxy('parser_list', url)
+                    if site:
+                        return site, url
+                    logger.debug('> Try GeneralEmbed')
+                    return import_module('ykdl.extractors.generalembed').site, url
+                else:
+                    logger.debug('> Try SingleMultimedia')
+                    return singlemultimedia.site, url
+
+            logger.info('> New url: ' + response.url)
+            url = response.url
+            redirection = True

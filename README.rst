@@ -8,11 +8,8 @@ YouKuDownLoader
 A video downloader focus on China mainland video sites.
 
 Origin website: https://github.com/zhangn1985/ykdl
-
-Now, it has migrated to the new website: https://github.com/SeaHOH/ykdl
-
-**And, it is still looking for a new owner,**
-see `#565 <https://github.com/SeaHOH/ykdl/issues/565>`_.
+Later migrated to a new website: https://github.com/SeaHOH/ykdl
+Today it migrated to my name, and this is the new website: https://github.com/LifeActor/ykdl
 
 This project is a fork of
 `you-get <https://github.com/soimort/you-get>`_ with below changes.

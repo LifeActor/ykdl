@@ -71,3 +71,23 @@ Please check wiki page:
 `sites-status <https://github.com/SeaHOH/ykdl/wiki/sites-status>`_
 
 Bugs report, features require, and pull requests are welcome.
+
+Project Ownership Transition
+----------------------------
+
+I am pleased to announce that I have taken over the ownership of the YouKuDownLoader project from @SeaHOH today. This transition marks the beginning of an exciting new chapter for the project, and I am committed to ensuring its continued development and success.
+
+### Future Plans
+
+- **Enhanced Features**: I plan to introduce new features that will improve the user experience and expand the capabilities of the downloader.
+- **Regular Updates**: Regular updates will be pushed to ensure compatibility with the latest video sites and technologies.
+- **Community Engagement**: I will actively engage with the community to gather feedback and suggestions for future enhancements.
+- **Bug Fixes**: Addressing existing bugs and issues to ensure a smooth and reliable user experience.
+
+Your support and contributions are invaluable to the project's success. Together, we can make YouKuDownLoader an even more powerful tool for downloading videos from China mainland video sites.
+
+Thank you for your continued support!
+
+---
+
+*Note: For any inquiries or suggestions, please feel free to open an issue or reach out directly.*

@@ -67,12 +67,11 @@ class HuyaLive(Extractor):
         u3 = uid & 0xffffff
         u = u1 | u2 >> 24 | u3 << 8
         params.update({
-             'ctype': 'tars_mp', # !!!!
-             'u': str(u),
-             'seqid': str(ct + uid),
-             'ver': '1',
-             'uuid': int((ct % 1e10 + random.random()) * 1e3 % 0xffffffff),
-         })
+            'ctype': 'huya_live', # !!!!
+            'u': str(u),
+            'seqid': str(ct + uid),
+            'ver': '1',
+        })
         fm = unb64(params['fm']).split('_', 1)[0]
         ss = hash.md5('|'.join([params['seqid'], params['ctype'], params['t']]))
 

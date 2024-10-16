@@ -22,7 +22,7 @@ import sys
 import time
 import socket
 import string
-import threading
+import _thread
 from logging import getLogger
 from shutil import get_terminal_size
 from concurrent.futures import ThreadPoolExecutor
@@ -38,19 +38,19 @@ from .wrap import hash
 
 logger = getLogger(__name__)
 
-print_lock = threading.Lock()
+print_lock = _thread.allocate_lock()
 _max_columns = get_terminal_size().columns - 1
 _clear_enter = '\r' + ' ' * _max_columns + '\r'
 _progress_bar_len = _max_columns - 50
 if IS_ANSI_TERMINAL:
     _progress_bar_fg = ' '
     _progress_bar_bg = ' '
-    _progress_bar_fmt = ' \33[47m%s\33[100m%s\33[0m'
+    _progress_bar_fmt = ' \33[47m%s\33[100m%s\33[0m '
 else:
     _progress_bar_fg = '#'
-    _progress_bar_bg = '|'
-    _progress_bar_fmt = ' %s%s'
-ESCAPE_CODE_LEN = len(_progress_bar_fmt) - len(' %s%s')
+    _progress_bar_bg = '-'
+    _progress_bar_fmt = '|%s%s|'
+ESCAPE_CODE_LEN = len(_progress_bar_fmt) - len('|%s%s|')
 
 def print(*args, print=print, **kwargs):
     kwargs['file'] = sys.stderr
@@ -110,7 +110,7 @@ def multi_hook(action, size=None, total=None, part=None):
     def update_processes_suffix():
         global _processes_suffix
         status = action_args[0]
-        _processes_suffix = f'  %s [{sum(status)}/{len(status)}] [%s/%s]'
+        _processes_suffix = f' %s [{sum(status)}/{len(status)}] [%s/%s]'
 
     def get_processes_suffix():
         size, total, *_ = _progress
@@ -202,7 +202,7 @@ def multi_hook(action, size=None, total=None, part=None):
         _processes_start = ct
         _processes_last_refresh = 0
         _processing = True
-        threading._start_new_thread(processes_deamon, ())
+        _thread.start_new_thread(processes_deamon, ())
 
     elif action == 'end':
         _processing = False

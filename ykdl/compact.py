@@ -17,6 +17,13 @@ logging.basicConfig(handlers=[ColorHandler()])
 builtins.Infinity = float('inf')
 
 
+if sys.version_info > (3, 13):
+    import warnings
+    warnings.filterwarnings('ignore',
+                            'invalid escape sequence',
+                            SyntaxWarning, append=True)
+
+
 if sys.version_info < (3, 10):
     import types
     types.NoneType = type(None)

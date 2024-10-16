@@ -42,8 +42,11 @@ class GeneralSimple(Extractor):
     def prepare_list(self):
         html = get_content(self.url)
         title = match1(html, '<meta property="og:title" content="([^"]+)',
-                                  '''video_title\s*[:=]\s*['"](.+?)['"],''',
-                                  '<title>(.+?)</title>')
+                             '''video_title\s*[:=]\s*['"](.+?)['"],''',
+                             '<title>(.+?)</title>')
+        _title, domain = matchm(title, '(.+) [-|*] (.+)$')
+        if domain and domain.lower() in self.url.split('/')[2]:
+            title = _title
 
         streams = get_kt_playlist(html)
         if streams:
@@ -66,6 +69,7 @@ class GeneralSimple(Extractor):
             if i == 0:
                 html = unquote(unescape(html))
 
+        urls = set(urls)
         self.set_index(0, len(urls))
         for i, (url, ctype, ext) in enumerate(urls):
             info = MediaInfo(self.name)

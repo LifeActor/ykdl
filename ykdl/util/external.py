@@ -214,7 +214,7 @@ def launch_ffmpeg_download(url, name, set_headers=True, allow_all_ext=False):
         cmd[3:3] = ['-protocol_whitelist', 'file,http,https,tls,rtp,tcp,udp,crypto,httpproxy']
     if set_headers:
         # can use for only HTTP protocol
-        cmd[3:3] = ['-headers', ''.join('%s: %s\r\n' % x for x in fake_headers.items())]
+        cmd[3:3] = ['-headers', (''.join('%s: %s\r\n' % x for x in fake_headers.items())).replace(', br', '')]
     if allow_all_ext:
         cmd[3:3] = ['-allowed_extensions', 'ALL']
 
